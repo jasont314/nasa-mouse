@@ -49,5 +49,6 @@ PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mouse_glare.export cs
 - `data/glare_inputs/tms_facs_pretrain.mtx`: `21010 genes x 3552 cells`
 - `data/glare_inputs/osdr_finetune.csv`: `21010 genes x 3315 samples`
 
-The upstream `hpt.py` currently calls `.to_dense()` on the SciPy object returned
-by `mmread`; SciPy sparse matrices expose `.todense()` or `.toarray()` instead.
+The local GLARE submodule copy of `hpt.py` was patched to convert the SciPy
+object returned by `mmread` with `.toarray()` instead of the unsupported
+`.to_dense()` method.

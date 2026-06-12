@@ -108,8 +108,8 @@ python hpt.py \
   --data2 ../../../../../data/glare_inputs/tms_facs_pretrain.mtx
 ```
 
-Note: upstream `hpt.py` calls `.to_dense()` on the SciPy matrix returned by
-`mmread`. In current SciPy this should be `.todense()` or `.toarray()`.
+The local GLARE submodule copy of `hpt.py` has been patched to convert the
+MatrixMarket file with SciPy's `.toarray()` method.
 
 ## Train
 
