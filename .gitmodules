@@ -1,0 +1,7 @@
+[submodule "src/adversarial-gene-expression"]
+	path = src/adversarial-gene-expression
+	url = https://github.com/rvinas/adversarial-gene-expression.git
+
+[submodule "src/glare"]
+	path = src/glare
+	url = https://github.com/OpenScienceDataRepo/Plants_AWG.git
