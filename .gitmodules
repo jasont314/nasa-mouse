@@ -1,7 +1,0 @@
-[submodule "src/adversarial-gene-expression"]
-	path = src/adversarial-gene-expression
-	url = git@github.com:jasont314/adversarial-gene-expression.git
-
-[submodule "src/glare"]
-	path = src/glare
-	url = git@github.com:jasont314/Plants_AWG.git

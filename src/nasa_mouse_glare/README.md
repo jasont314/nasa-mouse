@@ -2,9 +2,9 @@
 
 Project-specific GLARE adaptation for mouse spaceflight data.
 
-The GLARE code is kept as a submodule in `src/glare`, pointed at the
-`jasont314/Plants_AWG` fork so project-specific runtime fixes can be committed.
-This package is where mouse-specific data preparation and model changes live.
+The GLARE code is vendored directly in `src/glare` so project-specific runtime
+fixes can be edited and committed in this repository. This package is where
+mouse-specific data preparation and model changes live.
 
 ## Data model
 
@@ -109,10 +109,10 @@ python hpt.py \
   --data2 ../../../../../data/glare_inputs/tms_facs_pretrain.mtx
 ```
 
-The GLARE submodule fork includes the `hpt.py` runtime fix for direct script
+The vendored GLARE copy includes the `hpt.py` runtime fix for direct script
 execution, MatrixMarket loading, architecture-compatible fine-tuning, and
 adapter-aware representation extraction. `patches/glare-hpt-runtime.patch` is
-retained as a reference copy of that submodule change.
+retained as a reference copy of that upstream-derived change.
 
 ## Train
 
