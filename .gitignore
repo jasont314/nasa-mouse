@@ -1,5 +1,8 @@
 *.h5
 assets/
+data/processed/
+data/glare_inputs/
+models/
 .DS_Store
 __pycache__/
 *.pyc

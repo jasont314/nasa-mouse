@@ -56,8 +56,8 @@ def prepare_tms(
     )
     anndata = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
 
-    adata = anndata.read_h5ad(input_h5ad, backed=None)
-    obs = adata.obs.copy()
+    adata_backed = anndata.read_h5ad(input_h5ad, backed="r")
+    obs = adata_backed.obs.copy()
 
     mask = pd.Series(True, index=obs.index)
     for key, value in obs_filters or []:
@@ -70,7 +70,11 @@ def prepare_tms(
         rng = np.random.default_rng(random_seed)
         selected_obs = rng.choice(selected_obs, size=max_cells, replace=False)
 
-    adata = adata[selected_obs, :].copy()
+    adata = adata_backed[selected_obs, :].to_memory()
+    try:
+        adata_backed.file.close()
+    except AttributeError:
+        pass
     obs = adata.obs.copy()
     X, var = _matrix_from_adata(adata, matrix_source)
     genes = _gene_ids(var, gene_field)
@@ -84,7 +88,8 @@ def prepare_tms(
 
     matrix = X.T.tocsr() if scipy_sparse.issparse(X) else np.asarray(X).T
     profile_names = [str(v) for v in obs.index.tolist()]
-    metadata = obs.reset_index(names="cell")
+    index_name = "cell_id" if "cell" in obs.columns else "cell"
+    metadata = obs.reset_index(names=index_name)
     description = f"TMS {matrix_source} direct cell profiles"
 
     return write_matrix_bundle(

@@ -27,7 +27,15 @@ For TMS, prefer processed `.h5ad` over raw FASTQ:
 ## Setup
 
 ```bash
-pip install -r requirements-nasa-mouse-glare.txt
+conda env create -f environment.yml
+conda activate nasa
+```
+
+For the existing local environment, dependencies were installed with:
+
+```bash
+conda create -y -n nasa python=3.11
+conda run -n nasa python -m pip install -r requirements-nasa-mouse-glare.txt
 ```
 
 ## Download links
@@ -99,6 +107,9 @@ python hpt.py \
   --data1 ../../../../../data/glare_inputs/osdr_finetune.csv \
   --data2 ../../../../../data/glare_inputs/tms_facs_pretrain.mtx
 ```
+
+Note: upstream `hpt.py` calls `.to_dense()` on the SciPy matrix returned by
+`mmread`. In current SciPy this should be `.todense()` or `.toarray()`.
 
 ## Train
 
