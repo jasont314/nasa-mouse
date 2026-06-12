@@ -49,6 +49,8 @@ PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mouse_glare.export cs
 - `data/glare_inputs/tms_facs_pretrain.mtx`: `21010 genes x 3552 cells`
 - `data/glare_inputs/osdr_finetune.csv`: `21010 genes x 3315 samples`
 
-The local GLARE submodule copy of `hpt.py` was patched to convert the SciPy
-object returned by `mmread` with `.toarray()` instead of the unsupported
-`.to_dense()` method.
+The local GLARE submodule copy of `hpt.py` was patched with
+`patches/glare-hpt-runtime.patch` so direct script execution works, MatrixMarket
+input uses SciPy's `.toarray()` API, fine-tuning reuses the pretraining
+architecture, and final representation extraction applies the fine-tuning
+adapter.

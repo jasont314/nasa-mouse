@@ -108,8 +108,10 @@ python hpt.py \
   --data2 ../../../../../data/glare_inputs/tms_facs_pretrain.mtx
 ```
 
-The local GLARE submodule copy of `hpt.py` has been patched to convert the
-MatrixMarket file with SciPy's `.toarray()` method.
+The local GLARE submodule copy of `hpt.py` has been patched with
+`patches/glare-hpt-runtime.patch` for direct script execution, MatrixMarket
+loading, architecture-compatible fine-tuning, and adapter-aware representation
+extraction.
 
 ## Train
 
