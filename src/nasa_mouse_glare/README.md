@@ -126,6 +126,34 @@ saved to `hpt_config_results.csv` and `hpt_config_results.json` inside
 `--output-dir`; final weights, the representation array, and `hpt_summary.json`
 are saved there too.
 
+## Reproduce Original GLARE Pretraining
+
+Download the Arabidopsis single-cell normalized MatrixMarket file used by
+GLARE:
+
+```bash
+mkdir -p assets/glare_original
+
+curl -L --fail --show-error \
+  --output assets/glare_original/E-CURD-5.aggregated_filtered_normalised_counts.mtx.gz \
+  https://ftp.ebi.ac.uk/pub/databases/microarray/data/atlas/sc_experiments/E-CURD-5/E-CURD-5.aggregated_filtered_normalised_counts.mtx.gz
+
+gunzip -kf assets/glare_original/E-CURD-5.aggregated_filtered_normalised_counts.mtx.gz
+```
+
+Run the released GLARE pretraining config:
+
+```bash
+python src/nasa_mouse_glare/reproduce_glare_pretrain.py \
+  --input assets/glare_original/E-CURD-5.aggregated_filtered_normalised_counts.mtx \
+  --output-dir outputs/glare_original_pretrain_config5 \
+  --epochs 30
+```
+
+This uses the released GLARE SAE setup: `[128, 64, 32, 16]`, LayerNorm, ELU,
+Adam `lr=1e-3`, weight decay `1e-4`, sparsity penalty `1e-5`, and batch size
+`16`.
+
 ## Train
 
 ```bash
