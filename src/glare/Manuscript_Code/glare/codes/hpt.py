@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import argparse
 import itertools
+import time
 
 # Representation learning via SAE
 import torch
@@ -17,6 +18,33 @@ from scipy.io import mmread
 # os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:64'
 torch.cuda.empty_cache()
 torch.manual_seed(2023)
+
+
+def log(message):
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {message}", flush=True)
+
+
+def format_elapsed(seconds):
+    seconds = int(seconds)
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    if hours:
+        return f"{hours}h {minutes}m {seconds}s"
+    if minutes:
+        return f"{minutes}m {seconds}s"
+    return f"{seconds}s"
+
+
+def activation_name(activation_fn):
+    return getattr(activation_fn, "__name__", str(activation_fn))
+
+
+def format_params(params):
+    if params is None:
+        return None
+    formatted = dict(params)
+    formatted["activation_fn"] = activation_name(formatted["activation_fn"])
+    return formatted
 
 # Build Sparse AutoEncoder with chosen hyperparmeter
 class BuildSAE(nn.Module):
@@ -69,7 +97,15 @@ class Adapter(nn.Module):
 
 
 # Grid Search for Hyperparameter Tuning
-def grid_search(data, device, pretrained_model=None, pi_dim=None, fixed_architecture=None):
+def grid_search(
+    data,
+    device,
+    pretrained_model=None,
+    pi_dim=None,
+    fixed_architecture=None,
+    stage_name="grid_search",
+    log_every_epochs=1,
+):
     param_grid = {
         "hidden_layers": [[128, 64, 32, 16], [256, 128, 64, 32], [512, 256, 128, 64]],
         "layer_norm": [True, False],
@@ -88,9 +124,20 @@ def grid_search(data, device, pretrained_model=None, pi_dim=None, fixed_architec
 
     param_combinations = list(itertools.product(*param_grid.values()))
     param_keys = list(param_grid.keys())
+    total_configs = len(param_combinations)
+    stage_start = time.perf_counter()
+    log(
+        f"{stage_name}: starting grid search with {total_configs} configs, "
+        f"data_shape={data.shape}, device={device}"
+    )
 
-    for params in param_combinations:
+    for config_idx, params in enumerate(param_combinations, start=1):
         param_dict = dict(zip(param_keys, params))
+        config_start = time.perf_counter()
+        log(
+            f"{stage_name}: config {config_idx}/{total_configs} start "
+            f"{format_params(param_dict)}"
+        )
 
         # Prepare Data
         scaler = StandardScaler()
@@ -117,6 +164,7 @@ def grid_search(data, device, pretrained_model=None, pi_dim=None, fixed_architec
         patience_counter = 0
 
         for epoch in range(50):  # Maximum epochs set for 50
+            epoch_start = time.perf_counter()
             total_loss = 0.0
             model.train()   
             for batch_data in data_loader:
@@ -142,18 +190,46 @@ def grid_search(data, device, pretrained_model=None, pi_dim=None, fixed_architec
             else:
                 patience_counter += 1
 
+            if log_every_epochs and (
+                epoch == 0 or (epoch + 1) % log_every_epochs == 0
+            ):
+                log(
+                    f"{stage_name}: config {config_idx}/{total_configs} "
+                    f"epoch {epoch + 1}/50 loss={avg_loss:.6f} "
+                    f"best={best_epoch_loss:.6f} patience={patience_counter}/5 "
+                    f"epoch_time={format_elapsed(time.perf_counter() - epoch_start)}"
+                )
+
             if patience_counter >= patience:
+                log(
+                    f"{stage_name}: config {config_idx}/{total_configs} "
+                    f"early stopped at epoch {epoch + 1}"
+                )
                 break
+
+        log(
+            f"{stage_name}: config {config_idx}/{total_configs} complete "
+            f"best_loss={best_epoch_loss:.6f} "
+            f"elapsed={format_elapsed(time.perf_counter() - config_start)}"
+        )
 
         # Update Best Parameters
         if best_epoch_loss < best_loss:
             best_loss = best_epoch_loss
             best_params = param_dict
+            log(
+                f"{stage_name}: new best config {config_idx}/{total_configs} "
+                f"loss={best_loss:.6f} params={format_params(best_params)}"
+            )
 
+    log(
+        f"{stage_name}: complete in {format_elapsed(time.perf_counter() - stage_start)} "
+        f"best_loss={best_loss:.6f} best_params={format_params(best_params)}"
+    )
     return best_params
 
 # Pre-Training and Fine-Tuning Workflow
-def pretrain_sae(data, device, best_params):
+def pretrain_sae(data, device, best_params, log_every_epochs=1):
     # Extract best parameters
     hidden_layers = best_params["hidden_layers"]
     layer_norm = best_params["layer_norm"]
@@ -161,6 +237,11 @@ def pretrain_sae(data, device, best_params):
     learning_rate = best_params["learning_rate"]
     weight_decay = best_params["weight_decay"]
     sparsity_penalty = best_params["sparsity_penalty"]
+    run_start = time.perf_counter()
+    log(
+        f"pretrain: starting data_shape={data.shape}, device={device}, "
+        f"params={format_params(best_params)}"
+    )
 
     scaler = StandardScaler()
     X = scaler.fit_transform(data)
@@ -179,6 +260,7 @@ def pretrain_sae(data, device, best_params):
     patience_counter = 0
 
     for epoch in range(50):  # Maximum epochs set for 50
+        epoch_start = time.perf_counter()
         total_loss = 0.0
         model.train()    
         for batch_data in data_loader:
@@ -204,12 +286,26 @@ def pretrain_sae(data, device, best_params):
         else:
             patience_counter += 1
 
+        if log_every_epochs and (
+            epoch == 0 or (epoch + 1) % log_every_epochs == 0
+        ):
+            log(
+                f"pretrain: epoch {epoch + 1}/50 loss={avg_loss:.6f} "
+                f"best={best_epoch_loss:.6f} patience={patience_counter}/5 "
+                f"epoch_time={format_elapsed(time.perf_counter() - epoch_start)}"
+            )
+
         if patience_counter >= patience:
+            log(f"pretrain: early stopped at epoch {epoch + 1}")
             break
 
+    log(
+        f"pretrain: complete best_loss={best_epoch_loss:.6f} "
+        f"elapsed={format_elapsed(time.perf_counter() - run_start)}"
+    )
     return model
 
-def finetune_sae(data, pretrained_model, device, best_params, pi_dim):
+def finetune_sae(data, pretrained_model, device, best_params, pi_dim, log_every_epochs=1):
     # Extract best parameters
     hidden_layers = best_params["hidden_layers"]
     layer_norm = best_params["layer_norm"]
@@ -217,6 +313,11 @@ def finetune_sae(data, pretrained_model, device, best_params, pi_dim):
     learning_rate = best_params["learning_rate"]
     weight_decay = best_params["weight_decay"]
     sparsity_penalty = best_params["sparsity_penalty"]
+    run_start = time.perf_counter()
+    log(
+        f"finetune: starting data_shape={data.shape}, adapter_output_dim={pi_dim}, "
+        f"device={device}, params={format_params(best_params)}"
+    )
 
     scaler = StandardScaler()
     X = scaler.fit_transform(data)
@@ -239,6 +340,7 @@ def finetune_sae(data, pretrained_model, device, best_params, pi_dim):
     patience_counter = 0
 
     for epoch in range(50):  # Maximum epochs set for 50
+        epoch_start = time.perf_counter()
         model.train()
         total_loss = 0.0
         for batch_data in data_loader:
@@ -264,12 +366,28 @@ def finetune_sae(data, pretrained_model, device, best_params, pi_dim):
         else:
             patience_counter += 1
 
+        if log_every_epochs and (
+            epoch == 0 or (epoch + 1) % log_every_epochs == 0
+        ):
+            log(
+                f"finetune: epoch {epoch + 1}/50 loss={avg_loss:.6f} "
+                f"best={best_epoch_loss:.6f} patience={patience_counter}/5 "
+                f"epoch_time={format_elapsed(time.perf_counter() - epoch_start)}"
+            )
+
         if patience_counter >= patience:
+            log(f"finetune: early stopped at epoch {epoch + 1}")
             break
 
+    log(
+        f"finetune: complete best_loss={best_epoch_loss:.6f} "
+        f"elapsed={format_elapsed(time.perf_counter() - run_start)}"
+    )
     return model, adapter
 
 def get_representation(SAE_model, data, device, adapter=None):
+    run_start = time.perf_counter()
+    log(f"representation: starting data_shape={data.shape}, device={device}")
     # Train SAE
     SAE_model.eval()
     # Create a StandardScaler instance
@@ -289,6 +407,10 @@ def get_representation(SAE_model, data, device, adapter=None):
     # Convert the encoded data tensor to NumPy array
     SAE_representation = encoded_data.detach().cpu().numpy()
 
+    log(
+        f"representation: complete shape={SAE_representation.shape} "
+        f"elapsed={format_elapsed(time.perf_counter() - run_start)}"
+    )
     return SAE_representation
 
 def parse_arguments():
@@ -296,6 +418,12 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Hyperparameter Tuning for Sparse AutoEncoder")
     parser.add_argument("--data1", required=True, type=str, help="Path to the first dataset (e.g., GeneLab)")
     parser.add_argument("--data2", required=True, type=str, help="Path to the second dataset (e.g., Single-Cell)")
+    parser.add_argument(
+        "--log-every-epochs",
+        type=int,
+        default=1,
+        help="Print epoch progress every N epochs. Use 0 to disable epoch logs.",
+    )
     
     return parser.parse_args()
 
@@ -306,18 +434,32 @@ def matrixmarket_to_dense(matrix):
 
 # Usage Example
 if __name__ == "__main__":
+    pipeline_start = time.perf_counter()
     # Set seed
     torch.manual_seed(1996)
     # Set gpu # cuda required, if you are using different gpu change.
     gpu = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # Get arguments
     args = parse_arguments()
+    log(f"Starting GLARE HPT pipeline on device={gpu}")
+    log(f"GeneLab/OSDR input: {args.data1}")
+    log(f"single-cell input: {args.data2}")
     # Load data 
     # # RECOMMENDED:Process the csv to include appropriate matrix for model training
+    load_start = time.perf_counter()
     gl_csv = pd.read_csv(args.data1)
+    log(
+        f"Loaded GeneLab/OSDR CSV shape={gl_csv.shape} "
+        f"elapsed={format_elapsed(time.perf_counter() - load_start)}"
+    )
     # # RECOMMENDED: Convert your single-cell data to .mtx data so it could be read appropriately
+    load_start = time.perf_counter()
     sc_matrix = mmread(args.data2)
     sc_dense = matrixmarket_to_dense(sc_matrix)
+    log(
+        f"Loaded single-cell MatrixMarket shape={sc_dense.shape} "
+        f"elapsed={format_elapsed(time.perf_counter() - load_start)}"
+    )
     # # If sparse matrix change to sparse tensor
     # sparse_tensor = torch.sparse.FloatTensor(
     #     torch.LongTensor([sc_matrix.row, sc_matrix.col]),
@@ -326,37 +468,54 @@ if __name__ == "__main__":
     # )
 
     # Hyperparameter Tuning and Pretraining for chosen single-cell Dataset
-    print("Tuning hyperparameters for single-cell data")
-    best_params_sc = grid_search(sc_dense, gpu)
-    print("Best Hyperparameters for single-cell data:", best_params_sc)
+    log("Tuning hyperparameters for single-cell data")
+    best_params_sc = grid_search(
+        sc_dense,
+        gpu,
+        stage_name="single_cell_hpt",
+        log_every_epochs=args.log_every_epochs,
+    )
+    log(f"Best Hyperparameters for single-cell data: {format_params(best_params_sc)}")
 
-    print("Pretraining SAE with single-cell data")
-    pretrained_model = pretrain_sae(sc_dense, gpu, best_params_sc)
+    log("Pretraining SAE with single-cell data")
+    pretrained_model = pretrain_sae(
+        sc_dense,
+        gpu,
+        best_params_sc,
+        log_every_epochs=args.log_every_epochs,
+    )
     # Save pre-trained weights
-    torch.save(pretrained_model.state_dict(), "pretrained_sae_sc.pth") # rename it with your project/data name
+    pretrained_output = "pretrained_sae_sc.pth"
+    torch.save(pretrained_model.state_dict(), pretrained_output) # rename it with your project/data name
+    log(f"Saved pretrained weights: {pretrained_output}")
 
     # Load pretrained weights and tune hyperparameters for GeneLab Dataset
     pretrained_input_dim = sc_matrix.shape[1] 
-    print("Loading pretrained weights and tuning hyperparameters for GeneLab")
+    log("Loading pretrained weights and tuning hyperparameters for GeneLab")
     best_params_gl = grid_search(
         gl_csv,
         gpu,
         pretrained_model,
         pi_dim=pretrained_input_dim,
         fixed_architecture=best_params_sc,
+        stage_name="genelab_hpt",
+        log_every_epochs=args.log_every_epochs,
     )
-    print("Best Hyperparameters for GeneLab data:", best_params_gl)
+    log(f"Best Hyperparameters for GeneLab data: {format_params(best_params_gl)}")
 
-    print("Fine-tuning SAE with GeneLab data")
+    log("Fine-tuning SAE with GeneLab data")
     finetuned_model, finetune_adapter = finetune_sae(
         gl_csv,
         pretrained_model,
         gpu,
         best_params_gl,
         pi_dim=pretrained_input_dim,
+        log_every_epochs=args.log_every_epochs,
     )
     # Save Fine-tuned weights
-    torch.save(finetuned_model.state_dict(), "finetuned_sae_gl.pth") # rename it with your project/data name
+    finetuned_output = "finetuned_sae_gl.pth"
+    torch.save(finetuned_model.state_dict(), finetuned_output) # rename it with your project/data name
+    log(f"Saved fine-tuned weights: {finetuned_output}")
     # Get Final data representation
     FTSAE_representation = get_representation(
         finetuned_model,
@@ -364,7 +523,10 @@ if __name__ == "__main__":
         gpu,
         adapter=finetune_adapter,
     )
-    np.save('FTSAE_representation.npy', FTSAE_representation)
+    representation_output = "FTSAE_representation.npy"
+    np.save(representation_output, FTSAE_representation)
+    log(f"Saved final representation: {representation_output}")
+    log(f"GLARE HPT pipeline complete in {format_elapsed(time.perf_counter() - pipeline_start)}")
      
     # # The gl_csv might have different data structure to CARA data which is `tsne4viz` is based on.
     # # Edit the function accordingly on utils.py

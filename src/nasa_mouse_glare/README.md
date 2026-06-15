@@ -114,7 +114,8 @@ That produces the same broad input contract as GLARE:
 ```bash
 python src/glare/Manuscript_Code/glare/codes/hpt.py \
   --data1 data/glare_inputs/osdr_finetune.csv \
-  --data2 data/glare_inputs/tms_facs_pretrain.mtx
+  --data2 data/glare_inputs/tms_facs_pretrain.mtx \
+  --log-every-epochs 1
 ```
 
 The vendored GLARE copy includes the `hpt.py` runtime fix for direct script
