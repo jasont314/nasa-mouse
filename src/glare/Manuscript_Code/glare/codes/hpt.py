@@ -2,8 +2,11 @@
 import pandas as pd
 import numpy as np
 import argparse
+import csv
 import itertools
+import json
 import time
+from pathlib import Path
 
 # Representation learning via SAE
 import torch
@@ -45,6 +48,77 @@ def format_params(params):
     formatted = dict(params)
     formatted["activation_fn"] = activation_name(formatted["activation_fn"])
     return formatted
+
+
+class ConfigResultLogger:
+    csv_fields = [
+        "timestamp",
+        "stage",
+        "config_index",
+        "total_configs",
+        "data_shape",
+        "device",
+        "hidden_layers",
+        "layer_norm",
+        "activation_fn",
+        "sparsity_penalty",
+        "learning_rate",
+        "weight_decay",
+        "best_loss",
+        "epochs_run",
+        "elapsed_seconds",
+        "elapsed",
+        "early_stopped",
+        "is_stage_best",
+    ]
+
+    def __init__(self, output_dir, prefix="hpt_config_results"):
+        self.output_dir = Path(output_dir)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.csv_path = self.output_dir / f"{prefix}.csv"
+        self.json_path = self.output_dir / f"{prefix}.json"
+        self.records = []
+        self.csv_path.unlink(missing_ok=True)
+        self.json_path.unlink(missing_ok=True)
+
+    def write(self, record):
+        self.records.append(record)
+        write_header = not self.csv_path.exists()
+        with self.csv_path.open("a", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=self.csv_fields)
+            if write_header:
+                writer.writeheader()
+            writer.writerow(self._csv_row(record))
+        self.json_path.write_text(
+            json.dumps(self.records, indent=2) + "\n", encoding="utf-8"
+        )
+
+    def _csv_row(self, record):
+        params = record["params"]
+        row = {
+            "timestamp": record["timestamp"],
+            "stage": record["stage"],
+            "config_index": record["config_index"],
+            "total_configs": record["total_configs"],
+            "data_shape": json.dumps(record["data_shape"]),
+            "device": record["device"],
+            "hidden_layers": json.dumps(params["hidden_layers"]),
+            "layer_norm": params["layer_norm"],
+            "activation_fn": params["activation_fn"],
+            "sparsity_penalty": params["sparsity_penalty"],
+            "learning_rate": params["learning_rate"],
+            "weight_decay": params["weight_decay"],
+            "best_loss": record["best_loss"],
+            "epochs_run": record["epochs_run"],
+            "elapsed_seconds": record["elapsed_seconds"],
+            "elapsed": record["elapsed"],
+            "early_stopped": record["early_stopped"],
+            "is_stage_best": record["is_stage_best"],
+        }
+        return row
+
+    def paths(self):
+        return self.csv_path, self.json_path
 
 # Build Sparse AutoEncoder with chosen hyperparmeter
 class BuildSAE(nn.Module):
@@ -105,6 +179,7 @@ def grid_search(
     fixed_architecture=None,
     stage_name="grid_search",
     log_every_epochs=1,
+    result_logger=None,
 ):
     param_grid = {
         "hidden_layers": [[128, 64, 32, 16], [256, 128, 64, 32], [512, 256, 128, 64]],
@@ -162,8 +237,11 @@ def grid_search(
         best_epoch_loss = float("inf")
         patience = 5
         patience_counter = 0
+        early_stopped = False
+        epochs_run = 0
 
         for epoch in range(50):  # Maximum epochs set for 50
+            epochs_run = epoch + 1
             epoch_start = time.perf_counter()
             total_loss = 0.0
             model.train()   
@@ -201,20 +279,43 @@ def grid_search(
                 )
 
             if patience_counter >= patience:
+                early_stopped = True
                 log(
                     f"{stage_name}: config {config_idx}/{total_configs} "
                     f"early stopped at epoch {epoch + 1}"
                 )
                 break
 
+        elapsed_seconds = time.perf_counter() - config_start
+        is_stage_best = best_epoch_loss < best_loss
+        if result_logger is not None:
+            result_logger.write(
+                {
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "stage": stage_name,
+                    "config_index": config_idx,
+                    "total_configs": total_configs,
+                    "data_shape": list(data.shape),
+                    "device": str(device),
+                    "params": format_params(param_dict),
+                    "best_loss": float(best_epoch_loss),
+                    "epochs_run": epochs_run,
+                    "elapsed_seconds": round(elapsed_seconds, 3),
+                    "elapsed": format_elapsed(elapsed_seconds),
+                    "early_stopped": early_stopped,
+                    "is_stage_best": is_stage_best,
+                }
+            )
+
         log(
             f"{stage_name}: config {config_idx}/{total_configs} complete "
             f"best_loss={best_epoch_loss:.6f} "
-            f"elapsed={format_elapsed(time.perf_counter() - config_start)}"
+            f"epochs_run={epochs_run} early_stopped={early_stopped} "
+            f"elapsed={format_elapsed(elapsed_seconds)}"
         )
 
         # Update Best Parameters
-        if best_epoch_loss < best_loss:
+        if is_stage_best:
             best_loss = best_epoch_loss
             best_params = param_dict
             log(
@@ -424,6 +525,18 @@ def parse_arguments():
         default=1,
         help="Print epoch progress every N epochs. Use 0 to disable epoch logs.",
     )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="",
+        help="Directory for HPT outputs. Defaults to outputs/glare_hpt_<timestamp>.",
+    )
+    parser.add_argument(
+        "--results-prefix",
+        type=str,
+        default="hpt_config_results",
+        help="Filename prefix for per-config CSV/JSON logs.",
+    )
     
     return parser.parse_args()
 
@@ -441,9 +554,17 @@ if __name__ == "__main__":
     gpu = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # Get arguments
     args = parse_arguments()
+    run_id = time.strftime("glare_hpt_%Y%m%d_%H%M%S")
+    output_dir = Path(args.output_dir) if args.output_dir else Path("outputs") / run_id
+    output_dir.mkdir(parents=True, exist_ok=True)
+    result_logger = ConfigResultLogger(output_dir, prefix=args.results_prefix)
+    config_csv_output, config_json_output = result_logger.paths()
     log(f"Starting GLARE HPT pipeline on device={gpu}")
     log(f"GeneLab/OSDR input: {args.data1}")
     log(f"single-cell input: {args.data2}")
+    log(f"Output directory: {output_dir}")
+    log(f"Config result CSV: {config_csv_output}")
+    log(f"Config result JSON: {config_json_output}")
     # Load data 
     # # RECOMMENDED:Process the csv to include appropriate matrix for model training
     load_start = time.perf_counter()
@@ -472,8 +593,9 @@ if __name__ == "__main__":
     best_params_sc = grid_search(
         sc_dense,
         gpu,
-        stage_name="single_cell_hpt",
+        stage_name="single-cell",
         log_every_epochs=args.log_every_epochs,
+        result_logger=result_logger,
     )
     log(f"Best Hyperparameters for single-cell data: {format_params(best_params_sc)}")
 
@@ -485,7 +607,7 @@ if __name__ == "__main__":
         log_every_epochs=args.log_every_epochs,
     )
     # Save pre-trained weights
-    pretrained_output = "pretrained_sae_sc.pth"
+    pretrained_output = output_dir / "pretrained_sae_sc.pth"
     torch.save(pretrained_model.state_dict(), pretrained_output) # rename it with your project/data name
     log(f"Saved pretrained weights: {pretrained_output}")
 
@@ -498,8 +620,9 @@ if __name__ == "__main__":
         pretrained_model,
         pi_dim=pretrained_input_dim,
         fixed_architecture=best_params_sc,
-        stage_name="genelab_hpt",
+        stage_name="OSDR",
         log_every_epochs=args.log_every_epochs,
+        result_logger=result_logger,
     )
     log(f"Best Hyperparameters for GeneLab data: {format_params(best_params_gl)}")
 
@@ -513,7 +636,7 @@ if __name__ == "__main__":
         log_every_epochs=args.log_every_epochs,
     )
     # Save Fine-tuned weights
-    finetuned_output = "finetuned_sae_gl.pth"
+    finetuned_output = output_dir / "finetuned_sae_gl.pth"
     torch.save(finetuned_model.state_dict(), finetuned_output) # rename it with your project/data name
     log(f"Saved fine-tuned weights: {finetuned_output}")
     # Get Final data representation
@@ -523,10 +646,28 @@ if __name__ == "__main__":
         gpu,
         adapter=finetune_adapter,
     )
-    representation_output = "FTSAE_representation.npy"
+    representation_output = output_dir / "FTSAE_representation.npy"
     np.save(representation_output, FTSAE_representation)
     log(f"Saved final representation: {representation_output}")
-    log(f"GLARE HPT pipeline complete in {format_elapsed(time.perf_counter() - pipeline_start)}")
+    total_elapsed_seconds = time.perf_counter() - pipeline_start
+    summary_output = output_dir / "hpt_summary.json"
+    summary = {
+        "data1": args.data1,
+        "data2": args.data2,
+        "device": str(gpu),
+        "single_cell_best_params": format_params(best_params_sc),
+        "osdr_best_params": format_params(best_params_gl),
+        "pretrained_weights": str(pretrained_output),
+        "finetuned_weights": str(finetuned_output),
+        "representation": str(representation_output),
+        "config_results_csv": str(config_csv_output),
+        "config_results_json": str(config_json_output),
+        "total_elapsed_seconds": round(total_elapsed_seconds, 3),
+        "total_elapsed": format_elapsed(total_elapsed_seconds),
+    }
+    summary_output.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    log(f"Saved HPT summary: {summary_output}")
+    log(f"GLARE HPT pipeline complete in {format_elapsed(total_elapsed_seconds)}")
      
     # # The gl_csv might have different data structure to CARA data which is `tsne4viz` is based on.
     # # Edit the function accordingly on utils.py

@@ -4,6 +4,7 @@ data/processed/
 data/glare_inputs/
 src/adversarial-gene-expression/data/E_coli_v4_Build_6/
 models/
+outputs/
 .DS_Store
 __pycache__/
 *.pyc

@@ -115,12 +115,16 @@ That produces the same broad input contract as GLARE:
 python src/glare/Manuscript_Code/glare/codes/hpt.py \
   --data1 data/glare_inputs/osdr_finetune.csv \
   --data2 data/glare_inputs/tms_facs_pretrain.mtx \
-  --log-every-epochs 1
+  --log-every-epochs 1 \
+  --output-dir outputs/glare_hpt_tms_facs_osdr
 ```
 
 The vendored GLARE copy includes the `hpt.py` runtime fix for direct script
 execution, MatrixMarket loading, architecture-compatible fine-tuning, and
-adapter-aware representation extraction.
+adapter-aware representation extraction. During HPT, each completed config is
+saved to `hpt_config_results.csv` and `hpt_config_results.json` inside
+`--output-dir`; final weights, the representation array, and `hpt_summary.json`
+are saved there too.
 
 ## Train
 
