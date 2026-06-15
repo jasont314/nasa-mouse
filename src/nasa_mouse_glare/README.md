@@ -27,9 +27,16 @@ For TMS, prefer processed `.h5ad` over raw FASTQ:
 
 ## Setup
 
+All commands below assume they are run from the repository root:
+
+```bash
+cd path/to/nasa-mouse
+```
+
 ```bash
 conda env create -f environment.yml
 conda activate nasa
+export PYTHONPATH=src
 ```
 
 For the existing local environment, dependencies were installed with:
@@ -37,14 +44,16 @@ For the existing local environment, dependencies were installed with:
 ```bash
 conda create -y -n nasa python=3.11
 conda run -n nasa python -m pip install -r requirements-nasa-mouse-glare.txt
+conda activate nasa
+export PYTHONPATH=src
 ```
 
 ## Download links
 
 ```bash
-python -m nasa_mouse_glare.downloads links
-python -m nasa_mouse_glare.downloads download --kind facs --output-dir assets/tms
-python -m nasa_mouse_glare.downloads download --kind droplet --output-dir assets/tms
+PYTHONPATH=src python -m nasa_mouse_glare.downloads links
+PYTHONPATH=src python -m nasa_mouse_glare.downloads download --kind facs --output-dir assets/tms
+PYTHONPATH=src python -m nasa_mouse_glare.downloads download --kind droplet --output-dir assets/tms
 ```
 
 ## Prepare TMS pretraining matrix
@@ -53,7 +62,7 @@ Strict GLARE-compatible direct-cell prep, sampled to the same cell count as the
 paper's original `E-CURD-5` pretraining set:
 
 ```bash
-python -m nasa_mouse_glare.tms \
+PYTHONPATH=src python -m nasa_mouse_glare.tms \
   --input assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad \
   --output-prefix data/processed/tms_facs_3552_cells \
   --matrix-source X \
@@ -68,10 +77,10 @@ matrix, so full FACS/droplet is likely too large without changing training.
 Your current OSDR HDF5 has `/data/expression` with shape `53511 x 3315`.
 
 ```bash
-python -m nasa_mouse_glare.osdr inspect-h5 \
+PYTHONPATH=src python -m nasa_mouse_glare.osdr inspect-h5 \
   --input assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5
 
-python -m nasa_mouse_glare.osdr prep-h5 \
+PYTHONPATH=src python -m nasa_mouse_glare.osdr prep-h5 \
   --input assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5 \
   --output-prefix data/processed/osdr_mouse_bulk \
   --matrix-key /data/expression \
@@ -82,7 +91,7 @@ python -m nasa_mouse_glare.osdr prep-h5 \
 ## Align genes
 
 ```bash
-python -m nasa_mouse_glare.align \
+PYTHONPATH=src python -m nasa_mouse_glare.align \
   --pretrain data/processed/tms_facs_3552_cells.manifest.json \
   --target data/processed/osdr_mouse_bulk.manifest.json \
   --output-prefix data/processed/tms_facs_osdr_aligned
@@ -91,11 +100,11 @@ python -m nasa_mouse_glare.align \
 ## Export for upstream GLARE `hpt.py`
 
 ```bash
-python -m nasa_mouse_glare.export mtx \
+PYTHONPATH=src python -m nasa_mouse_glare.export mtx \
   --bundle data/processed/tms_facs_osdr_aligned.pretrain.manifest.json \
   --output data/glare_inputs/tms_facs_pretrain.mtx
 
-python -m nasa_mouse_glare.export csv \
+PYTHONPATH=src python -m nasa_mouse_glare.export csv \
   --bundle data/processed/tms_facs_osdr_aligned.target.manifest.json \
   --output data/glare_inputs/osdr_finetune.csv
 ```
@@ -103,10 +112,9 @@ python -m nasa_mouse_glare.export csv \
 That produces the same broad input contract as GLARE:
 
 ```bash
-cd src/glare/Manuscript_Code/glare/codes
-python hpt.py \
-  --data1 ../../../../../data/glare_inputs/osdr_finetune.csv \
-  --data2 ../../../../../data/glare_inputs/tms_facs_pretrain.mtx
+python src/glare/Manuscript_Code/glare/codes/hpt.py \
+  --data1 data/glare_inputs/osdr_finetune.csv \
+  --data2 data/glare_inputs/tms_facs_pretrain.mtx
 ```
 
 The vendored GLARE copy includes the `hpt.py` runtime fix for direct script
@@ -116,13 +124,13 @@ adapter-aware representation extraction.
 ## Train
 
 ```bash
-python -m nasa_mouse_glare.model pretrain \
+PYTHONPATH=src python -m nasa_mouse_glare.model pretrain \
   --matrix data/processed/tms_facs_osdr_aligned.pretrain.manifest.json \
   --output models/tms_facs_pretrained.pth \
   --epochs 30
 
 # Use the printed pretrain_input_dim value from pretrain.
-python -m nasa_mouse_glare.model finetune \
+PYTHONPATH=src python -m nasa_mouse_glare.model finetune \
   --target-matrix data/processed/tms_facs_osdr_aligned.target.manifest.json \
   --pretrained models/tms_facs_pretrained.pth \
   --pretrain-input-dim <printed_pretrain_input_dim> \

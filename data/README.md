@@ -12,6 +12,12 @@ Generated on 2026-06-12 in the `nasa` conda environment.
 
 ## Commands
 
+Run these from the repository root:
+
+```bash
+cd path/to/nasa-mouse
+```
+
 ```bash
 PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mouse_glare.tms \
   --input assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad \
