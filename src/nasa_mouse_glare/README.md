@@ -111,8 +111,7 @@ python hpt.py \
 
 The vendored GLARE copy includes the `hpt.py` runtime fix for direct script
 execution, MatrixMarket loading, architecture-compatible fine-tuning, and
-adapter-aware representation extraction. `patches/glare-hpt-runtime.patch` is
-retained as a reference copy of that upstream-derived change.
+adapter-aware representation extraction.
 
 ## Train
 

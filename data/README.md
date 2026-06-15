@@ -50,7 +50,6 @@ PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mouse_glare.export cs
 - `data/glare_inputs/osdr_finetune.csv`: `21010 genes x 3315 samples`
 
 The GLARE source is vendored directly in `src/glare` with the `hpt.py` runtime
-fix applied. `patches/glare-hpt-runtime.patch` is kept as a reference copy of
-that upstream-derived change: direct script execution works, MatrixMarket input
-uses SciPy's `.toarray()` API, fine-tuning reuses the pretraining architecture,
-and final representation extraction applies the fine-tuning adapter.
+fix applied: direct script execution works, MatrixMarket input uses SciPy's
+`.toarray()` API, fine-tuning reuses the pretraining architecture, and final
+representation extraction applies the fine-tuning adapter.
