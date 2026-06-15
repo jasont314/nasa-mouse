@@ -154,6 +154,28 @@ This uses the released GLARE SAE setup: `[128, 64, 32, 16]`, LayerNorm, ELU,
 Adam `lr=1e-3`, weight decay `1e-4`, sparsity penalty `1e-5`, and batch size
 `16`.
 
+Download the CARA/OSD-120 normalized counts used for fine-tuning:
+
+```bash
+curl -L --fail --show-error \
+  --output assets/glare_original/GLDS-120_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
+  "https://osdr.nasa.gov/geode-py/ws/studies/OSD-120/download?file=GLDS-120_rna_seq_Normalized_Counts_GLbulkRNAseq.csv&version=1"
+```
+
+Run the released GLARE fine-tuning config for FLT and GC:
+
+```bash
+python src/nasa_mouse_glare/reproduce_glare_finetune.py \
+  --data assets/glare_original/GLDS-120_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
+  --pretrained-weights outputs/glare_original_pretrain_config5/sc_shulse_pretrained_reproduced.pth \
+  --output-dir outputs/glare_original_finetune_osd120 \
+  --epochs 30
+```
+
+This reproduces GLARE's CARA restructuring, PCA/k-means outlier step, fixed
+adapter transform to the pretraining dimension, and SAE fine-tuning with Adam
+`lr=1e-3`, no weight decay, sparsity penalty `1e-5`, and batch size `16`.
+
 ## Train
 
 ```bash
