@@ -42,12 +42,29 @@ def activation_name(activation_fn):
     return getattr(activation_fn, "__name__", str(activation_fn))
 
 
+ACTIVATION_FNS = {
+    "ELU": nn.ELU,
+    "ReLU": nn.ReLU,
+    "LeakyReLU": nn.LeakyReLU,
+}
+
+
 def format_params(params):
     if params is None:
         return None
     formatted = dict(params)
     formatted["activation_fn"] = activation_name(formatted["activation_fn"])
     return formatted
+
+
+def restore_params(params):
+    restored = dict(params)
+    activation_fn = restored["activation_fn"]
+    if isinstance(activation_fn, str):
+        if activation_fn not in ACTIVATION_FNS:
+            raise ValueError(f"Unsupported activation function in results: {activation_fn}")
+        restored["activation_fn"] = ACTIVATION_FNS[activation_fn]
+    return restored
 
 
 class ConfigResultLogger:
@@ -72,14 +89,20 @@ class ConfigResultLogger:
         "is_stage_best",
     ]
 
-    def __init__(self, output_dir, prefix="hpt_config_results"):
+    def __init__(self, output_dir, prefix="hpt_config_results", resume=False):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.csv_path = self.output_dir / f"{prefix}.csv"
         self.json_path = self.output_dir / f"{prefix}.json"
         self.records = []
-        self.csv_path.unlink(missing_ok=True)
-        self.json_path.unlink(missing_ok=True)
+        if resume:
+            if self.json_path.exists():
+                self.records = json.loads(self.json_path.read_text(encoding="utf-8"))
+            if self.records and not self.csv_path.exists():
+                self._rewrite_csv()
+        else:
+            self.csv_path.unlink(missing_ok=True)
+            self.json_path.unlink(missing_ok=True)
 
     def write(self, record):
         self.records.append(record)
@@ -116,6 +139,16 @@ class ConfigResultLogger:
             "is_stage_best": record["is_stage_best"],
         }
         return row
+
+    def _rewrite_csv(self):
+        with self.csv_path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=self.csv_fields)
+            writer.writeheader()
+            for record in self.records:
+                writer.writerow(self._csv_row(record))
+
+    def stage_records(self, stage_name):
+        return [record for record in self.records if record["stage"] == stage_name]
 
     def paths(self):
         return self.csv_path, self.json_path
@@ -180,6 +213,8 @@ def grid_search(
     stage_name="grid_search",
     log_every_epochs=1,
     result_logger=None,
+    resume=False,
+    start_config=1,
 ):
     param_grid = {
         "hidden_layers": [[128, 64, 32, 16], [256, 128, 64, 32], [512, 256, 128, 64]],
@@ -194,19 +229,55 @@ def grid_search(
         param_grid["layer_norm"] = [fixed_architecture["layer_norm"]]
         param_grid["activation_fn"] = [fixed_architecture["activation_fn"]]
 
-    best_params = None
-    best_loss = float("inf")
-
     param_combinations = list(itertools.product(*param_grid.values()))
     param_keys = list(param_grid.keys())
     total_configs = len(param_combinations)
+    if start_config < 1 or start_config > total_configs:
+        raise ValueError(
+            f"{stage_name}: start_config must be between 1 and {total_configs}; "
+            f"got {start_config}"
+        )
+
+    best_params = None
+    best_loss = float("inf")
+    completed_indices = set()
+    prior_records = result_logger.stage_records(stage_name) if result_logger else []
+    if resume and prior_records:
+        completed_indices = {record["config_index"] for record in prior_records}
+        best_record = min(prior_records, key=lambda record: record["best_loss"])
+        best_loss = float(best_record["best_loss"])
+        best_params = restore_params(best_record["params"])
+        log(
+            f"{stage_name}: loaded {len(prior_records)} prior records from "
+            f"{result_logger.json_path}; prior best_loss={best_loss:.6f} "
+            f"params={format_params(best_params)}"
+        )
+    if resume and start_config > 1 and not prior_records:
+        raise SystemExit(
+            f"{stage_name}: --start-config/--osdr-start-config was set to "
+            f"{start_config}, but no prior records for this stage were found in "
+            f"{result_logger.json_path}. Copy the prior hpt_config_results.json "
+            "into --output-dir or start from config 1."
+        )
+
     stage_start = time.perf_counter()
+    skipped_before_start = start_config - 1
+    skipped_completed = len(
+        [idx for idx in completed_indices if idx >= start_config]
+    ) if resume else 0
     log(
         f"{stage_name}: starting grid search with {total_configs} configs, "
-        f"data_shape={data.shape}, device={device}"
+        f"data_shape={data.shape}, device={device}, start_config={start_config}, "
+        f"resume={resume}, skipped_before_start={skipped_before_start}, "
+        f"completed_to_skip={skipped_completed}"
     )
 
     for config_idx, params in enumerate(param_combinations, start=1):
+        if config_idx < start_config:
+            continue
+        if resume and config_idx in completed_indices:
+            continue
+
         param_dict = dict(zip(param_keys, params))
         config_start = time.perf_counter()
         log(
@@ -327,6 +398,8 @@ def grid_search(
         f"{stage_name}: complete in {format_elapsed(time.perf_counter() - stage_start)} "
         f"best_loss={best_loss:.6f} best_params={format_params(best_params)}"
     )
+    if best_params is None:
+        raise SystemExit(f"{stage_name}: no configs were run and no prior best was loaded")
     return best_params
 
 # Pre-Training and Fine-Tuning Workflow
@@ -537,6 +610,35 @@ def parse_arguments():
         default="hpt_config_results",
         help="Filename prefix for per-config CSV/JSON logs.",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help=(
+            "Append to existing result logs in --output-dir and restore prior "
+            "best configs from the JSON log."
+        ),
+    )
+    parser.add_argument(
+        "--start-config",
+        type=int,
+        default=None,
+        help=(
+            "First single-cell HPT config to run, 1-indexed. Alias for "
+            "--single-cell-start-config; use 250 after configs 1-249 completed."
+        ),
+    )
+    parser.add_argument(
+        "--single-cell-start-config",
+        type=int,
+        default=None,
+        help="First single-cell HPT config to run, 1-indexed.",
+    )
+    parser.add_argument(
+        "--osdr-start-config",
+        type=int,
+        default=1,
+        help="First OSDR HPT config to run, 1-indexed.",
+    )
     
     return parser.parse_args()
 
@@ -554,15 +656,35 @@ if __name__ == "__main__":
     gpu = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # Get arguments
     args = parse_arguments()
+    single_cell_start_config = (
+        args.single_cell_start_config
+        if args.single_cell_start_config is not None
+        else args.start_config
+    )
+    if single_cell_start_config is None:
+        single_cell_start_config = 1
+    resume_run = (
+        args.resume
+        or single_cell_start_config > 1
+        or args.osdr_start_config > 1
+    )
     run_id = time.strftime("glare_hpt_%Y%m%d_%H%M%S")
     output_dir = Path(args.output_dir) if args.output_dir else Path("outputs") / run_id
     output_dir.mkdir(parents=True, exist_ok=True)
-    result_logger = ConfigResultLogger(output_dir, prefix=args.results_prefix)
+    result_logger = ConfigResultLogger(
+        output_dir,
+        prefix=args.results_prefix,
+        resume=resume_run,
+    )
     config_csv_output, config_json_output = result_logger.paths()
     log(f"Starting GLARE HPT pipeline on device={gpu}")
     log(f"GeneLab/OSDR input: {args.data1}")
     log(f"single-cell input: {args.data2}")
     log(f"Output directory: {output_dir}")
+    log(
+        f"Resume: {resume_run}; single_cell_start_config={single_cell_start_config}; "
+        f"osdr_start_config={args.osdr_start_config}"
+    )
     log(f"Config result CSV: {config_csv_output}")
     log(f"Config result JSON: {config_json_output}")
     # Load data 
@@ -596,6 +718,8 @@ if __name__ == "__main__":
         stage_name="single-cell",
         log_every_epochs=args.log_every_epochs,
         result_logger=result_logger,
+        resume=resume_run,
+        start_config=single_cell_start_config,
     )
     log(f"Best Hyperparameters for single-cell data: {format_params(best_params_sc)}")
 
@@ -623,6 +747,8 @@ if __name__ == "__main__":
         stage_name="OSDR",
         log_every_epochs=args.log_every_epochs,
         result_logger=result_logger,
+        resume=resume_run,
+        start_config=args.osdr_start_config,
     )
     log(f"Best Hyperparameters for GeneLab data: {format_params(best_params_gl)}")
 
@@ -655,6 +781,9 @@ if __name__ == "__main__":
         "data1": args.data1,
         "data2": args.data2,
         "device": str(gpu),
+        "resume": resume_run,
+        "single_cell_start_config": single_cell_start_config,
+        "osdr_start_config": args.osdr_start_config,
         "single_cell_best_params": format_params(best_params_sc),
         "osdr_best_params": format_params(best_params_gl),
         "pretrained_weights": str(pretrained_output),

@@ -119,6 +119,28 @@ python src/glare/Manuscript_Code/glare/codes/hpt.py \
   --output-dir outputs/glare_hpt_tms_facs_osdr
 ```
 
+To resume after configs `1` through `249` completed in the single-cell HPT
+stage, copy the prior `hpt_config_results.json` into the same `--output-dir`
+and continue from config `250`:
+
+```bash
+python src/glare/Manuscript_Code/glare/codes/hpt.py \
+  --data1 data/glare_inputs/osdr_finetune.csv \
+  --data2 data/glare_inputs/tms_facs_pretrain.mtx \
+  --log-every-epochs 1 \
+  --output-dir outputs/glare_hpt_tms_facs_osdr \
+  --resume \
+  --start-config 250
+```
+
+The JSON log is required for resume because it restores the best hyperparameter
+configuration from the completed configs. If the CSV is missing, it is rebuilt
+from JSON automatically.
+
+The single-cell HPT stage has `486` configs. The OSDR fine-tuning HPT stage has
+`27` configs after the pretraining architecture is fixed; resume that stage with
+`--osdr-start-config <N>`.
+
 The vendored GLARE copy includes the `hpt.py` runtime fix for direct script
 execution, MatrixMarket loading, architecture-compatible fine-tuning, and
 adapter-aware representation extraction. During HPT, each completed config is
