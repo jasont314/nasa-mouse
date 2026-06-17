@@ -43,3 +43,26 @@ Article: https://academic.oup.com/bioinformatics/article/39/6/btad387/7199588
   - branch: `main`
   - commit: `2e0cb284288d46b86ea83341bfc00e879fb05fa8`
   - purpose: manuscript analysis/reproduction code.
+
+## VEGA
+
+Paper: "VEGA is an interpretable generative model for inferring biological
+network activity in single-cell transcriptomics"
+
+Article: https://www.nature.com/articles/s41467-021-26017-0
+
+- `vega`
+  - upstream: https://github.com/LucasESBS/vega
+  - branch: `main`
+  - commit: `146c6c80aa2904138d2cfac7459861d2cb812cb1`
+  - purpose: Python package/API for VEGA.
+  - note: the paper's code availability section cites
+    `https://github.com/LucasESBS/vega/tree/vega_dev`, but that branch is no
+    longer available upstream; the current package source was vendored from
+    `main`.
+- `vega-reproducibility`
+  - upstream: https://github.com/LucasESBS/vega-reproducibility
+  - branch: `main`
+  - commit: `2474b51dc50654f0c6a5509cdebd179747c9e8f5`
+  - purpose: manuscript reproduction code, small data assets, trained-model
+    placeholders, and plotting scripts.
