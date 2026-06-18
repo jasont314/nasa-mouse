@@ -173,6 +173,23 @@ Key outputs:
 - `post_finetune_summary.json`: input paths, shapes, clustering settings, and
   output file paths.
 
+Run GLARE-style ensemble clustering with GMM, HDBSCAN, Spectral clustering, and
+a consensus step:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.ensemble_clustering \
+  --representation outputs/glare_hpt_tms_facs_osdr/FTSAE_representation.npy \
+  --gene-latent outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_latent.tsv \
+  --gene-pca outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_pca.tsv \
+  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_clustering
+```
+
+This writes `ensemble_clusters.tsv`, a consensus `gene_clusters.tsv`,
+cluster/algorithm summaries, metrics, and `ensemble_pca_by_consensus.png`.
+The mouse run uses diagonal-covariance GMM for numerical stability. HDBSCAN
+keeps GLARE's `min_cluster_size=60` but uses `min_samples=10`; `30` labeled
+all genes as noise on the mouse FTSAE latent space.
+
 Run enrichment and driver summaries for the strongest flight-shifted clusters:
 
 ```bash
