@@ -219,7 +219,7 @@ def run_verification(run_dir: Path, seed: int, n_estimators: int) -> dict:
     return summary
 
 
-def differential_expression(
+def pooled_welch_differential_expression(
     flt: np.ndarray, gc: np.ndarray, genes: list[str]
 ) -> pd.DataFrame:
     log_flt = np.log2(flt + 1.0)
@@ -246,26 +246,148 @@ def differential_expression(
     )
 
 
-def export_cluster_analysis(run_dir: Path) -> dict:
+def official_differential_expression(
+    path: Path, genes: list[str]
+) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
+    """Load the four age/euthanasia-matched NASA flight-vs-ground contrasts."""
+    columns = pd.read_csv(path, nrows=0).columns.tolist()
+    log2_columns = []
+    for column in columns:
+        if not column.startswith("Log2fc_(Space Flight") or "v(Ground Control" not in column:
+            continue
+        same_age = (
+            column.count("10 to 12 week") == 2 or column.count("32 week") == 2
+        )
+        same_collection = (
+            column.count("Carcass") == 2
+            or column.count("Upon euthanasia") == 2
+        )
+        if same_age and same_collection:
+            log2_columns.append(column)
+    if len(log2_columns) != 4:
+        raise ValueError(
+            f"Expected four matched flight-vs-ground contrasts, found {len(log2_columns)}"
+        )
+    contrast_names = [column.removeprefix("Log2fc_") for column in log2_columns]
+    p_columns = [f"P.value_{name}" for name in contrast_names]
+    adjusted_columns = [f"Adj.p.value_{name}" for name in contrast_names]
+    usecols = ["ENSEMBL", "SYMBOL"] + log2_columns + p_columns + adjusted_columns
+    source = pd.read_csv(path, usecols=usecols)
+    source["ENSEMBL"] = source["ENSEMBL"].astype(str)
+    source = source.drop_duplicates("ENSEMBL").set_index("ENSEMBL")
+    missing = [gene for gene in genes if gene not in source.index]
+    if missing:
+        raise ValueError(
+            f"Official differential-expression file is missing {len(missing)} genes"
+        )
+    source = source.loc[genes]
+
+    long_frames = []
+    for name, log2_column, p_column, adjusted_column in zip(
+        contrast_names, log2_columns, p_columns, adjusted_columns
+    ):
+        frame = pd.DataFrame(
+            {
+                "gene_id": genes,
+                "gene_symbol": source["SYMBOL"].fillna("").astype(str).to_numpy(),
+                "contrast": name,
+                "log2_fold_change": pd.to_numeric(
+                    source[log2_column], errors="coerce"
+                ).to_numpy(),
+                "p_value": pd.to_numeric(source[p_column], errors="coerce").to_numpy(),
+                "fdr_bh": pd.to_numeric(
+                    source[adjusted_column], errors="coerce"
+                ).to_numpy(),
+            }
+        )
+        frame["significant_fdr05_abs_log2fc1"] = (
+            frame["fdr_bh"].lt(0.05) & frame["log2_fold_change"].abs().ge(1.0)
+        )
+        long_frames.append(frame)
+    long = pd.concat(long_frames, ignore_index=True)
+
+    aggregate_rows = []
+    for gene_id, group in long.groupby("gene_id", sort=False):
+        significant = group.loc[group["significant_fdr05_abs_log2fc1"]]
+        strongest = group.loc[group["log2_fold_change"].abs().idxmax()]
+        signs = set(np.sign(significant["log2_fold_change"]).astype(int))
+        if not signs:
+            direction = "not_deg"
+        elif signs == {1}:
+            direction = "up"
+        elif signs == {-1}:
+            direction = "down"
+        else:
+            direction = "mixed"
+        aggregate_rows.append(
+            {
+                "gene_id": gene_id,
+                "gene_symbol": group["gene_symbol"].iloc[0],
+                "log2_fold_change": float(strongest["log2_fold_change"]),
+                "p_value": float(group["p_value"].min()),
+                "fdr_bh": float(group["fdr_bh"].min()),
+                "significant_fdr05_abs_log2fc1": bool(len(significant)),
+                "significant_contrast_count": int(len(significant)),
+                "direction": direction,
+            }
+        )
+    aggregate = pd.DataFrame(aggregate_rows)
+    return aggregate, long, contrast_names
+
+
+def export_cluster_analysis(
+    run_dir: Path, official_de_path: Path | None = None
+) -> dict:
     output_dir = run_dir / "biological_analysis"
     metascape_dir = output_dir / "metascape_gene_lists"
     output_dir.mkdir(parents=True, exist_ok=True)
     metascape_dir.mkdir(parents=True, exist_ok=True)
     flt, gc, genes, _ = load_target(run_dir)
-    deg = differential_expression(flt, gc, genes)
+    if official_de_path:
+        deg, official_long, contrast_names = official_differential_expression(
+            official_de_path, genes
+        )
+        official_long.to_csv(
+            output_dir / "official_matched_contrast_deg_long.tsv",
+            sep="\t",
+            index=False,
+        )
+        deg_method = (
+            "NASA OSD-379 GLbulkRNAseq differential-expression results; union of "
+            "four age- and collection-matched Space Flight vs Ground Control "
+            "contrasts at adjusted p < 0.05 and absolute log2 fold change >= 1"
+        )
+    else:
+        deg = pooled_welch_differential_expression(flt, gc, genes)
+        deg.insert(1, "gene_symbol", "")
+        contrast_names = []
+        deg_method = (
+            "Fallback Welch t-test on log2(expression + 1), Benjamini-Hochberg "
+            "FDR; threshold FDR < 0.05 and absolute log2 fold change >= 1"
+        )
     deg.to_csv(output_dir / "osd379_flt_vs_gc_deg.tsv", sep="\t", index=False)
 
     cluster_tables = {}
     proportion_rows = []
     metascape_rows = []
+    metascape_lists: dict[str, list[str]] = {}
     for location in ("FLT", "GC"):
         clusters = pd.read_csv(
             run_dir / "clustering" / f"{location}_gene_clusters.tsv", sep="\t"
+        )
+        clusters = clusters.merge(
+            deg[["gene_id", "gene_symbol"]], on="gene_id", validate="one_to_one"
+        )
+        clusters.to_csv(
+            output_dir / f"{location}_gene_clusters_annotated.tsv",
+            sep="\t",
+            index=False,
         )
         cluster_tables[location] = clusters
         merged = clusters[["gene_id", "consensus"]].merge(
             deg[[
                 "gene_id",
+                "gene_symbol",
                 "log2_fold_change",
                 "fdr_bh",
                 "significant_fdr05_abs_log2fc1",
@@ -291,8 +413,14 @@ def export_cluster_analysis(run_dir: Path) -> dict:
             include = 10 <= len(group) <= 3000
             list_path = metascape_dir / f"{location}_cluster_{int(cluster):02d}.txt"
             if include:
+                identifiers = group["gene_symbol"].where(
+                    group["gene_symbol"].astype(str).str.len().gt(0),
+                    group["gene_id"],
+                )
+                list_name = f"{location}_cluster_{int(cluster):02d}"
+                metascape_lists[list_name] = identifiers.astype(str).tolist()
                 list_path.write_text(
-                    "\n".join(group["gene_id"].astype(str)) + "\n", encoding="utf-8"
+                    "\n".join(identifiers.astype(str)) + "\n", encoding="utf-8"
                 )
             metascape_rows.append(
                 {
@@ -313,10 +441,33 @@ def export_cluster_analysis(run_dir: Path) -> dict:
     proportions.to_csv(output_dir / "cluster_deg_proportions.tsv", sep="\t", index=False)
     metascape = pd.DataFrame(metascape_rows)
     metascape.to_csv(metascape_dir / "manifest.tsv", sep="\t", index=False)
+    background = deg["gene_symbol"].where(
+        deg["gene_symbol"].astype(str).str.len().gt(0), deg["gene_id"]
+    ).astype(str).tolist()
+    combined_lists = {**metascape_lists, "_BACKGROUND": background}
+    pd.DataFrame(
+        {name: pd.Series(values) for name, values in combined_lists.items()}
+    ).to_csv(metascape_dir / "metascape_multiple_gene_lists.csv", index=False)
+    for location in ("FLT", "GC"):
+        location_lists = {
+            name: values
+            for name, values in metascape_lists.items()
+            if name.startswith(f"{location}_")
+        }
+        location_lists["_BACKGROUND"] = background
+        pd.DataFrame(
+            {name: pd.Series(values) for name, values in location_lists.items()}
+        ).to_csv(
+            metascape_dir / f"metascape_{location.lower()}_gene_lists.csv",
+            index=False,
+        )
     (metascape_dir / "README.txt").write_text(
-        "Upload the included mouse Ensembl gene lists to Metascape as multiple "
-        "gene lists. Lists over 3,000 genes and lists under 10 genes are excluded "
-        "to match the GLARE paper's cluster filtering.\n",
+        "Upload metascape_multiple_gene_lists.csv (or one location-specific CSV) "
+        "to Metascape with Multiple Gene Lists selected. Each column is one list; "
+        "_BACKGROUND contains all tested genes. Select Mus musculus as both input "
+        "and analysis species. Lists over 3,000 genes and lists under 10 genes are "
+        "excluded to match GLARE and Metascape limits. Metascape has no public API, "
+        "so web submission and result download are manual.\n",
         encoding="utf-8",
     )
 
@@ -332,14 +483,22 @@ def export_cluster_analysis(run_dir: Path) -> dict:
     contingency.to_csv(output_dir / "flt_gc_cluster_contingency.tsv", sep="\t")
     significant_count = int(deg["significant_fdr05_abs_log2fc1"].sum())
     summary = {
-        "deg_method": (
-            "Welch t-test on log2(expression + 1), Benjamini-Hochberg FDR; "
-            "DEG threshold FDR < 0.05 and absolute log2 fold change >= 1"
-        ),
+        "deg_method": deg_method,
+        "official_de_source": str(official_de_path) if official_de_path else "",
+        "official_matched_contrasts": contrast_names,
         "genes_tested": int(len(deg)),
         "significant_degs": significant_count,
         "significant_up": int((deg["direction"] == "up").sum()),
         "significant_down": int((deg["direction"] == "down").sum()),
+        "significant_mixed_direction": int((deg["direction"] == "mixed").sum()),
+        "significant_by_official_contrast": (
+            official_long.groupby("contrast")["significant_fdr05_abs_log2fc1"]
+            .sum()
+            .astype(int)
+            .to_dict()
+            if official_de_path
+            else {}
+        ),
         "flt_gc_cluster_adjusted_rand": float(
             adjusted_rand_score(comparison["consensus_flt"], comparison["consensus_gc"])
         ),
@@ -357,6 +516,9 @@ def export_cluster_analysis(run_dir: Path) -> dict:
             "deg_proportions": str(output_dir / "cluster_deg_proportions.tsv"),
             "cluster_contingency": str(output_dir / "flt_gc_cluster_contingency.tsv"),
             "metascape_manifest": str(metascape_dir / "manifest.tsv"),
+            "metascape_multiple_lists": str(
+                metascape_dir / "metascape_multiple_gene_lists.csv"
+            ),
         },
     }
     (output_dir / "biological_analysis_summary.json").write_text(
@@ -375,6 +537,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--seed", type=int, default=1996)
     parser.add_argument("--n-estimators", type=int, default=500)
+    parser.add_argument(
+        "--official-de",
+        default="assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv",
+        help="Official NASA differential-expression table; pass an empty value for Welch fallback.",
+    )
     return parser.parse_args()
 
 
@@ -384,7 +551,8 @@ def main() -> None:
     if args.stage in {"verification", "all"}:
         run_verification(run_dir, args.seed, args.n_estimators)
     if args.stage in {"post", "all"}:
-        export_cluster_analysis(run_dir)
+        official_de = Path(args.official_de) if args.official_de else None
+        export_cluster_analysis(run_dir, official_de)
 
 
 if __name__ == "__main__":

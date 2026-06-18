@@ -79,6 +79,7 @@ def prepare_controlled_target(
     target_manifest: str | Path,
     accession: str,
     output_dir: Path,
+    normalized_counts: str | Path | None = None,
 ) -> dict:
     """Select balanced FLT/GC profiles and assign comparable cohort slots."""
     bundle = load_matrix_bundle(target_manifest)
@@ -93,8 +94,28 @@ def prepare_controlled_target(
     study_metadata = metadata.loc[metadata["id.accession"].eq(accession)].copy()
     if study_metadata.empty:
         raise ValueError(f"No profiles found for accession {accession}")
-    profile_to_index = {str(profile): index for index, profile in enumerate(bundle.profiles)}
-    target = dense_matrix(bundle.matrix)
+    if normalized_counts:
+        normalized_counts = Path(normalized_counts)
+        counts = pd.read_csv(normalized_counts)
+        gene_column = counts.columns[0]
+        counts[gene_column] = counts[gene_column].astype(str)
+        if counts[gene_column].duplicated().any():
+            raise ValueError(f"Duplicate gene IDs in normalized counts: {normalized_counts}")
+        counts = counts.set_index(gene_column)
+        selected_genes = [gene for gene in bundle.genes if gene in counts.index]
+        if not selected_genes:
+            raise ValueError("Normalized counts have no genes in common with the bundle")
+        target = counts.loc[selected_genes].to_numpy(dtype=np.float32)
+        source_profiles = counts.columns.astype(str).tolist()
+        input_kind = "official_osdr_normalized_counts"
+        input_path = str(normalized_counts)
+    else:
+        target = dense_matrix(bundle.matrix)
+        selected_genes = bundle.genes
+        source_profiles = [str(profile) for profile in bundle.profiles]
+        input_kind = "matrix_bundle_expression"
+        input_path = str(target_manifest)
+    profile_to_index = {profile: index for index, profile in enumerate(source_profiles)}
 
     ordered = {
         label: _ordered_condition_rows(study_metadata, condition)
@@ -113,6 +134,16 @@ def prepare_controlled_target(
     feature_rows = []
     matrices = {}
     for label, rows in ordered.items():
+        missing_profiles = [
+            str(profile)
+            for profile in rows["profile"]
+            if str(profile) not in profile_to_index
+        ]
+        if missing_profiles:
+            raise ValueError(
+                f"Expression input is missing {len(missing_profiles)} {label} profiles; "
+                f"first missing: {missing_profiles[0]}"
+            )
         indices = [profile_to_index[str(profile)] for profile in rows["profile"]]
         matrices[label] = target[:, indices].astype(np.float32, copy=False)
 
@@ -152,14 +183,17 @@ def prepare_controlled_target(
         target_path,
         flt=matrices["FLT"],
         gc=matrices["GC"],
-        genes=np.asarray(bundle.genes, dtype=str),
+        genes=np.asarray(selected_genes, dtype=str),
         features=feature_map["feature"].to_numpy(dtype=str),
+        input_kind=np.asarray(input_kind),
+        input_path=np.asarray(input_path),
     )
     feature_map.to_csv(output_dir / "matched_feature_slots.tsv", sep="\t", index=False)
     study_metadata.to_csv(output_dir / "study_profile_metadata.tsv", sep="\t", index=False)
     return {
         "path": target_path,
-        "genes": bundle.genes,
+        "genes": selected_genes,
+        "genes_dropped_from_broad_alignment": len(bundle.genes) - len(selected_genes),
         "features": feature_map["feature"].tolist(),
         "matrices": matrices,
         "cohort_counts": {
@@ -167,6 +201,8 @@ def prepare_controlled_target(
             for label, counts in cohort_counts.items()
         },
         "study_profile_count": int(len(study_metadata)),
+        "input_kind": input_kind,
+        "input_path": input_path,
     }
 
 
@@ -348,6 +384,10 @@ def parse_args() -> argparse.Namespace:
         default="data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
     )
     parser.add_argument("--accession", default="OSD-379")
+    parser.add_argument(
+        "--normalized-counts",
+        help="Official OSDR normalized-counts CSV; preferred over raw bundle expression.",
+    )
     parser.add_argument("--pretrained-weights", required=True)
     parser.add_argument(
         "--output-dir",
@@ -366,7 +406,7 @@ def main() -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     prepared = prepare_controlled_target(
-        args.target_manifest, args.accession, output_dir
+        args.target_manifest, args.accession, output_dir, args.normalized_counts
     )
     log(
         f"Prepared {args.accession}: {len(prepared['genes'])} genes, "
@@ -399,6 +439,8 @@ def main() -> None:
         "method": "GLARE released 16-dimensional SAE with separate FLT/GC fine-tuning",
         "accession": args.accession,
         "target_manifest": args.target_manifest,
+        "target_expression_input": prepared["input_path"],
+        "target_expression_kind": prepared["input_kind"],
         "pretrained_weights": str(pretrained_weights),
         "pretrained_input_dim": input_dim,
         "device": str(device),
@@ -410,6 +452,9 @@ def main() -> None:
         "batch_size": args.batch_size,
         "cohort_counts": prepared["cohort_counts"],
         "study_profile_count_all_conditions": prepared["study_profile_count"],
+        "genes_dropped_from_broad_alignment": prepared[
+            "genes_dropped_from_broad_alignment"
+        ],
         "outlier_policy": (
             "PCA/k-means audit exported; no genes removed because GLARE's three "
             "fixed Arabidopsis outlier IDs do not transfer to mouse"

@@ -360,6 +360,99 @@ cross-tissue run. With `min_cluster_size=60` and `min_samples=10`, every gene
 was labeled noise. The documented liver setting produces two density clusters
 and 3,695 noise genes, retaining HDBSCAN as an active ensemble member.
 
+## Paper-Style Controlled OSD-379 Run
+
+This run addresses the main differences from the published GLARE analysis:
+
+- one controlled liver study (`OSD-379`, RR-8), not 17 pooled studies;
+- official NASA normalized counts, not the integrated raw-count matrix;
+- GLARE's released `[128, 64, 32, 16]` SAE;
+- separate FLT and GC fine-tuning and representations;
+- melted-data XGBoost verification and SHAP;
+- GMM/HDBSCAN/Spectral partitions with true co-association EAC and
+  average-linkage consensus;
+- official NASA DESeq2 contrasts, DEG proportions, and Metascape upload files.
+
+OSD-379 provides 35 flight and 35 ground-control liver profiles balanced over
+young/old and ISS-terminal/live-animal-return collection strata. Download its
+official normalized counts and differential-expression table:
+
+```bash
+curl -L --fail --show-error \
+  --output assets/osdr/GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
+  "https://osdr.nasa.gov/geode-py/ws/studies/OSD-379/download?file=GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv&version=1"
+
+curl -L --fail --show-error \
+  --output assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv \
+  "https://osdr.nasa.gov/geode-py/ws/studies/OSD-379/download?file=GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv&version=1"
+```
+
+Pretrain the released 16-dimensional GLARE SAE on TMS FACS liver cells:
+
+```bash
+conda run -n nasa python src/nasa_mouse_glare/reproduce_glare_pretrain.py \
+  --input data/glare_inputs/tms_facs_liver_pretrain.mtx \
+  --output-dir outputs/glare_paper_tms_liver_osd379/pretraining \
+  --epochs 30 \
+  --batch-size 16 \
+  --seed 1996 \
+  --num-workers 0
+```
+
+Prepare matched OSD-379 inputs, then run verification before representation
+learning as in GLARE:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.paper_finetune \
+  --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
+  --accession OSD-379 \
+  --normalized-counts assets/osdr/GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
+  --pretrained-weights outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
+  --output-dir outputs/glare_paper_tms_liver_osd379 \
+  --prepare-only
+
+PYTHONPATH=src MPLCONFIGDIR=/tmp/nasa-matplotlib \
+  python -m nasa_mouse_glare.paper_analysis verification \
+  --run-dir outputs/glare_paper_tms_liver_osd379
+```
+
+Fine-tune separate model copies on FLT and GC and cluster both latent spaces:
+
+```bash
+PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  python -m nasa_mouse_glare.paper_finetune \
+  --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
+  --accession OSD-379 \
+  --normalized-counts assets/osdr/GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
+  --pretrained-weights outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
+  --output-dir outputs/glare_paper_tms_liver_osd379 \
+  --epochs 30 \
+  --seed 1996
+
+PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  MPLCONFIGDIR=/tmp/nasa-matplotlib \
+  python -m nasa_mouse_glare.paper_clustering \
+  --run-dir outputs/glare_paper_tms_liver_osd379
+```
+
+Use NASA's four age- and collection-matched DESeq2 contrasts for DEG
+proportions and export Metascape multi-list files:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.paper_analysis post \
+  --run-dir outputs/glare_paper_tms_liver_osd379 \
+  --official-de assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv
+```
+
+Metascape does not provide a public API. Upload
+`biological_analysis/metascape_gene_lists/metascape_multiple_gene_lists.csv`
+from the run directory with **Multiple Gene Lists** enabled and select
+`Mus musculus` for input and analysis. The file contains one column per
+eligible cluster and a `_BACKGROUND` column containing all tested genes.
+
+See `outputs/glare_paper_tms_liver_osd379/RUN_SUMMARY.md` for results and
+method deviations that remain specific to the mouse adaptation.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by

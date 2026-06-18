@@ -139,17 +139,23 @@ def run_base_clusterings(
         min_samples=min_cluster_size // 2,
         cluster_selection_method="leaf",
         prediction_data=True,
+        core_dist_n_jobs=1,
     ).fit(representation)
     membership = hdbscan.all_points_membership_vectors(density_model)
+    hdbscan_fallback = ""
     if membership.ndim != 2 or membership.shape[1] == 0:
-        raise RuntimeError(f"{location}: HDBSCAN produced no soft clusters")
-    density = np.argmax(membership, axis=1)
+        # A constant partition adds an equal similarity to every pair, so it
+        # does not alter average-linkage merge ordering.
+        density = np.zeros(len(representation), dtype=np.int32)
+        hdbscan_fallback = "all_noise_encoded_as_neutral_constant_partition"
+    else:
+        density = np.argmax(membership, axis=1)
 
     log(f"{location}: fitting {config['spectral_clusters']}-cluster spectral model")
     spectral = SpectralClustering(
         n_clusters=config["spectral_clusters"],
         affinity="nearest_neighbors",
-        n_jobs=-1,
+        n_jobs=1,
         random_state=2024,
     ).fit_predict(representation)
     labels = np.column_stack([gmm, density, spectral])
@@ -162,6 +168,7 @@ def run_base_clusterings(
         "hdbscan_noise_points_before_soft_assignment": int(
             np.sum(density_model.labels_ < 0)
         ),
+        "hdbscan_fallback": hdbscan_fallback,
         "spectral_clusters_observed": int(np.unique(spectral).size),
         "unique_partition_signatures": int(np.unique(labels, axis=0).shape[0]),
     }
