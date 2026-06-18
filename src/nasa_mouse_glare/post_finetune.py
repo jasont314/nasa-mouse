@@ -103,24 +103,45 @@ def merge_profile_metadata(bundle, osdr_h5: str | Path | None, sample_key: str):
         metadata = pd.DataFrame({"profile": bundle.profiles})
     if "profile" not in metadata:
         metadata.insert(0, "profile", bundle.profiles)
+    metadata = metadata.reset_index(drop=True)
 
     if osdr_h5:
         h5_metadata = load_osdr_metadata(osdr_h5, bundle.profiles, sample_key)
-        metadata = metadata.merge(
-            h5_metadata,
-            on="profile",
-            how="left",
-            suffixes=("", "_h5"),
+        h5_profiles = h5_metadata["profile"].astype(str).tolist()
+        bundle_profiles = [str(profile) for profile in bundle.profiles]
+        if len(h5_metadata) == len(metadata) and h5_profiles == bundle_profiles:
+            h5_metadata = h5_metadata.reset_index(drop=True)
+            for column in h5_metadata.columns:
+                if column == "profile":
+                    continue
+                if column in metadata:
+                    metadata[column] = metadata[column].fillna(h5_metadata[column])
+                else:
+                    metadata[column] = h5_metadata[column]
+        else:
+            h5_metadata = h5_metadata.drop_duplicates(subset=["profile"], keep="first")
+            metadata = metadata.merge(
+                h5_metadata,
+                on="profile",
+                how="left",
+                suffixes=("", "_h5"),
+            )
+            for column in list(metadata.columns):
+                if not column.endswith("_h5"):
+                    continue
+                base = column[:-3]
+                if base in metadata:
+                    metadata[base] = metadata[base].fillna(metadata[column])
+                    metadata = metadata.drop(columns=[column])
+                else:
+                    metadata = metadata.rename(columns={column: base})
+
+    if len(metadata) != len(bundle.profiles):
+        raise SystemExit(
+            "Profile metadata row count changed during merge: "
+            f"{len(metadata)} rows for {len(bundle.profiles)} profiles"
         )
-        for column in list(metadata.columns):
-            if not column.endswith("_h5"):
-                continue
-            base = column[:-3]
-            if base in metadata:
-                metadata[base] = metadata[base].fillna(metadata[column])
-                metadata = metadata.drop(columns=[column])
-            else:
-                metadata = metadata.rename(columns={column: base})
+    metadata["profile"] = bundle.profiles
 
     metadata["condition_inferred"] = metadata["profile"].map(infer_condition)
     metadata["flight_status_inferred"] = metadata["condition_inferred"].map(
