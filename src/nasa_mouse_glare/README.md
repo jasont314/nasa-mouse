@@ -186,6 +186,25 @@ This writes cluster gene lists, Reactome/Panglao over-representation results,
 and accession/condition/source driver summaries under
 `outputs/glare_hpt_tms_facs_osdr/post_finetune/enrichment`.
 
+Run GLARE-style representation evaluation and flight-vs-ground verification:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.glare_evaluation \
+  --representation outputs/glare_hpt_tms_facs_osdr/FTSAE_representation.npy \
+  --target-manifest data/processed/tms_facs_osdr_aligned.target.manifest.json \
+  --post-dir outputs/glare_hpt_tms_facs_osdr/post_finetune \
+  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/evaluation
+```
+
+This mirrors GLARE's `evaluation.py` metrics where they apply to the mouse
+gene-level output: KMeans silhouette, KNN predictability of KMeans labels, and
+trustworthiness against the original expression space. It also runs a
+verification study for `condition_inferred=flight` versus
+`condition_inferred=ground_control`, including both random CV and
+accession-grouped CV. GLARE's SHAP post-pipeline used XGBoost/SHAP; those are
+optional dependencies here, so the current evaluation records SHAP as not run
+and writes linear classifier coefficients instead.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by
