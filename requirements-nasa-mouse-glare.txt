@@ -6,3 +6,4 @@ torch>=2.0
 anndata>=0.10
 h5py>=3.8
 tqdm>=4.64
+matplotlib>=3.7

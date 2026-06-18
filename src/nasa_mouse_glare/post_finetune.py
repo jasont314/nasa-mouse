@@ -389,6 +389,10 @@ def write_gene_expression_summaries(
 
 
 def maybe_write_pca_plot(pca_df, cluster_col: str, output_dir: Path):
+    mpl_config_dir = output_dir / ".matplotlib"
+    mpl_config_dir.mkdir(parents=True, exist_ok=True)
+    os.environ.setdefault("MPLCONFIGDIR", str(mpl_config_dir))
+    os.environ.setdefault("XDG_CACHE_HOME", str(mpl_config_dir))
     try:
         matplotlib = require_import("matplotlib", "pip install matplotlib")
         matplotlib.use("Agg")
