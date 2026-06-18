@@ -1,0 +1,43 @@
+{
+  "gene_clusters": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_clustering/gene_clusters.tsv",
+  "target_manifest": "data/processed/tms_facs_osdr_aligned.target.manifest.json",
+  "profile_metadata": "outputs/glare_hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv",
+  "n_clusters": 15,
+  "n_profiles": 3315,
+  "n_accessions": 107,
+  "tissue_inference": {
+    "source": "profile sample-name tokens; not an explicit OSDR tissue field",
+    "known_profiles": 2436,
+    "unknown_profiles": 879,
+    "known_flight_ground_profiles": 1269
+  },
+  "significance": {
+    "effect": "log2((mean flight expression + 1)/(mean ground expression + 1))",
+    "test": "two-sided Wilcoxon signed-rank across paired accessions",
+    "secondary_test": "two-sided binomial sign test",
+    "multiple_testing": "Benjamini-Hochberg FDR",
+    "min_paired_studies": 3,
+    "accession_cluster_tests": 15,
+    "accession_nominal_p_lt_0_05": 0,
+    "accession_fdr_lt_0_05": 0,
+    "tissue_cluster_tests": 255,
+    "tissue_nominal_p_lt_0_05": 6,
+    "tissue_fdr_lt_0_05": 0
+  },
+  "outputs": {
+    "gene_clusters": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/gene_clusters.tsv",
+    "profile_metadata": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/profile_metadata.tsv",
+    "cluster_sample_expression": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/cluster_sample_expression.tsv",
+    "condition_summary": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/gene_cluster_expression_by_condition_inferred.tsv",
+    "accession_summary": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/gene_cluster_expression_by_id.accession.tsv",
+    "project_summary": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/gene_cluster_expression_by_project_identifier.tsv",
+    "tissue_summary": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/gene_cluster_expression_by_tissue_inferred.tsv",
+    "flight_ground_summary": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/gene_cluster_flight_ground_summary.tsv",
+    "accession_effects": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/flight_ground_effects_by_accession.tsv",
+    "accession_significance": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/flight_ground_significance_by_accession.tsv",
+    "accession_tissue_effects": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/flight_ground_effects_by_accession_tissue.tsv",
+    "tissue_significance": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/flight_ground_significance_by_tissue.tsv",
+    "variance_summary": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/stratification_variance_summary.tsv",
+    "tissue_inference_counts": "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/tissue_inference_counts.tsv"
+  }
+}
