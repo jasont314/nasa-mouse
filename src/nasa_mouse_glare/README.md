@@ -173,6 +173,19 @@ Key outputs:
 - `post_finetune_summary.json`: input paths, shapes, clustering settings, and
   output file paths.
 
+Run enrichment and driver summaries for the strongest flight-shifted clusters:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.cluster_enrichment \
+  --post-dir outputs/glare_hpt_tms_facs_osdr/post_finetune \
+  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/enrichment \
+  --clusters 13 10 8 0 6
+```
+
+This writes cluster gene lists, Reactome/Panglao over-representation results,
+and accession/condition/source driver summaries under
+`outputs/glare_hpt_tms_facs_osdr/post_finetune/enrichment`.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by
