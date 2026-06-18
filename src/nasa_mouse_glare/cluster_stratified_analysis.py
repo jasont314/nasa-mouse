@@ -19,6 +19,10 @@ DEFAULT_TARGET_MANIFEST = "data/processed/tms_facs_osdr_aligned.target.manifest.
 DEFAULT_PROFILE_METADATA = (
     "outputs/glare_hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv"
 )
+DEFAULT_OFFICIAL_TISSUES = (
+    "outputs/glare_hpt_tms_facs_osdr/post_finetune/"
+    "osdr_tissues/osdr_sample_tissues.tsv"
+)
 DEFAULT_OUTPUT_DIR = (
     "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis"
 )
@@ -80,6 +84,93 @@ def validate_alignment(bundle, gene_clusters, metadata) -> None:
         )
 
 
+def add_tissue_metadata(metadata, official_tissues_path: str | Path):
+    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+
+    metadata = metadata.copy()
+    metadata["tissue_inferred"] = metadata["profile"].map(infer_tissue)
+    metadata["tissue_inference_rule"] = metadata["profile"].map(
+        tissue_inference_rule
+    )
+    metadata["tissue_inference_confidence"] = metadata["tissue_inferred"].map(
+        lambda value: "high_explicit_sample_token"
+        if value != "unknown"
+        else "unassigned"
+    )
+    metadata["tissue_metadata_source"] = "sample_name_inference"
+    metadata["official_tissue_type"] = ""
+    metadata["official_material_type"] = ""
+
+    official_tissues_path = Path(official_tissues_path)
+    if not official_tissues_path.exists():
+        return metadata, False
+
+    official = pd.read_csv(
+        official_tissues_path,
+        sep="\t",
+        keep_default_na=False,
+    )
+    if len(official) != len(metadata):
+        raise SystemExit(
+            "Official OSDR tissue table row count does not match profile metadata: "
+            f"{len(official)} vs {len(metadata)}"
+        )
+    if official["profile"].astype(str).tolist() != metadata["profile"].astype(str).tolist():
+        raise SystemExit(
+            "Official OSDR tissue table profile order does not match profile metadata."
+        )
+    official_accessions = official["id.accession"].astype(str)
+    metadata_accessions = metadata["id.accession"].astype(str)
+    accession_mismatch = metadata_accessions.ne("") & metadata_accessions.ne(
+        official_accessions
+    )
+    if accession_mismatch.any():
+        raise SystemExit(
+            "Official OSDR tissue table accession order does not match profile metadata."
+        )
+
+    metadata["id.accession"] = official_accessions.to_numpy()
+    metadata["tissue_inferred"] = official["tissue_final"].astype(str).to_numpy()
+    metadata["tissue_metadata_source"] = official["tissue_source"].astype(str).to_numpy()
+    metadata["official_material_type"] = official[
+        "official_material_type"
+    ].astype(str).to_numpy()
+    metadata["official_tissue_type"] = official[
+        "official_tissue_type"
+    ].astype(str).to_numpy()
+    metadata["tissue_inference_rule"] = [
+        (
+            f"OSDR Material Type: {material}"
+            if source == "official_osdr_material_type"
+            else (
+                f"OSDR Tissue Type: {tissue_type}"
+                if source == "official_osdr_tissue_type"
+                else rule
+            )
+        )
+        for source, material, tissue_type, rule in zip(
+            metadata["tissue_metadata_source"],
+            metadata["official_material_type"],
+            metadata["official_tissue_type"],
+            metadata["tissue_inference_rule"],
+        )
+    ]
+    metadata["tissue_inference_confidence"] = metadata[
+        "tissue_metadata_source"
+    ].map(
+        lambda source: (
+            "authoritative_osdr_metadata"
+            if source.startswith("official_osdr_")
+            else (
+                "high_explicit_sample_token"
+                if source == "sample_name_inference"
+                else "unassigned"
+            )
+        )
+    )
+    return metadata, True
+
+
 def compute_cluster_sample_expression(bundle, gene_clusters):
     np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
     pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
@@ -113,6 +204,9 @@ def write_sample_expression(clusters, expression, n_genes, metadata, output_dir:
         "tissue_inferred",
         "tissue_inference_rule",
         "tissue_inference_confidence",
+        "tissue_metadata_source",
+        "official_material_type",
+        "official_tissue_type",
     ]
     available_cols = [col for col in metadata_cols if col in metadata]
     for row_idx, cluster in enumerate(clusters):
@@ -360,14 +454,9 @@ def run(args) -> Path:
     gene_clusters = pd.read_csv(args.gene_clusters, sep="\t")
     gene_clusters["gene_cluster"] = gene_clusters["gene_cluster"].astype(int)
     metadata = pd.read_csv(args.profile_metadata, sep="\t", keep_default_na=False)
-    metadata["tissue_inferred"] = metadata["profile"].map(infer_tissue)
-    metadata["tissue_inference_rule"] = metadata["profile"].map(
-        tissue_inference_rule
-    )
-    metadata["tissue_inference_confidence"] = metadata["tissue_inferred"].map(
-        lambda value: "high_explicit_sample_token"
-        if value != "unknown"
-        else "unassigned"
+    metadata, used_official_tissues = add_tissue_metadata(
+        metadata,
+        args.official_tissues,
     )
     validate_alignment(bundle, gene_clusters, metadata)
 
@@ -464,10 +553,18 @@ def run(args) -> Path:
     ]
     tissue_audit = {
         "accuracy_status": (
-            "not directly measurable because the source HDF5 has no explicit "
-            "tissue ground-truth column"
+            "official OSDR material and anatomical tissue fields used when available"
+            if used_official_tissues
+            else (
+                "not directly measurable because the source HDF5 has no explicit "
+                "tissue ground-truth column"
+            )
         ),
-        "method": "deterministic explicit tissue tokens in profile sample IDs",
+        "method": (
+            "official OSDR ISA material/tissue metadata with sample-name fallback"
+            if used_official_tissues
+            else "deterministic explicit tissue tokens in profile sample IDs"
+        ),
         "all_profile_coverage": float(
             metadata["tissue_inferred"].ne("unknown").mean()
         ),
@@ -478,8 +575,8 @@ def run(args) -> Path:
         "single_tissue_accessions": int(accession_tissue_counts.eq(1).sum()),
         "multi_tissue_accessions": multi_tissue_accessions,
         "internal_consistency_note": (
-            "OSD-164 is the only multi-tissue accession and explicitly contains "
-            "liver and spleen sample IDs."
+            "Multi-material accessions are retained at sample level instead of "
+            "being forced to one accession-level tissue."
         ),
     }
     tissue_audit_path = output_dir / "tissue_inference_audit.json"
@@ -496,7 +593,14 @@ def run(args) -> Path:
         "n_profiles": len(metadata),
         "n_accessions": int(metadata["id.accession"].nunique()),
         "tissue_inference": {
-            "source": "profile sample-name tokens; not an explicit OSDR tissue field",
+            "source": (
+                "official OSDR ISA material/tissue fields with sample-name fallback"
+                if used_official_tissues
+                else "profile sample-name tokens; not an explicit OSDR tissue field"
+            ),
+            "official_tissue_table": (
+                str(args.official_tissues) if used_official_tissues else ""
+            ),
             "known_profiles": int(metadata["tissue_inferred"].ne("unknown").sum()),
             "unknown_profiles": int(metadata["tissue_inferred"].eq("unknown").sum()),
             "known_flight_ground_profiles": int(
@@ -568,6 +672,7 @@ def main() -> None:
     parser.add_argument("--gene-clusters", default=DEFAULT_GENE_CLUSTERS)
     parser.add_argument("--target-manifest", default=DEFAULT_TARGET_MANIFEST)
     parser.add_argument("--profile-metadata", default=DEFAULT_PROFILE_METADATA)
+    parser.add_argument("--official-tissues", default=DEFAULT_OFFICIAL_TISSUES)
     parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--min-paired-studies", type=int, default=3)
     run(parser.parse_args())

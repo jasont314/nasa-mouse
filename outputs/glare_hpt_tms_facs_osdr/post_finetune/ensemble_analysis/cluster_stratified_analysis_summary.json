@@ -6,21 +6,23 @@
   "n_profiles": 3315,
   "n_accessions": 107,
   "tissue_inference": {
-    "source": "profile sample-name tokens; not an explicit OSDR tissue field",
-    "known_profiles": 2452,
-    "unknown_profiles": 863,
+    "source": "official OSDR ISA material/tissue fields with sample-name fallback",
+    "official_tissue_table": "outputs/glare_hpt_tms_facs_osdr/post_finetune/osdr_tissues/osdr_sample_tissues.tsv",
+    "known_profiles": 3315,
+    "unknown_profiles": 0,
     "known_flight_ground_profiles": 1282,
     "audit": {
-      "accuracy_status": "not directly measurable because the source HDF5 has no explicit tissue ground-truth column",
-      "method": "deterministic explicit tissue tokens in profile sample IDs",
-      "all_profile_coverage": 0.7396681749622926,
+      "accuracy_status": "official OSDR material and anatomical tissue fields used when available",
+      "method": "official OSDR ISA material/tissue metadata with sample-name fallback",
+      "all_profile_coverage": 1.0,
       "flight_ground_profile_coverage": 1.0,
-      "accessions_with_inferred_tissue": 76,
-      "single_tissue_accessions": 75,
+      "accessions_with_inferred_tissue": 107,
+      "single_tissue_accessions": 105,
       "multi_tissue_accessions": [
-        "OSD-164"
+        "OSD-164",
+        "OSD-457"
       ],
-      "internal_consistency_note": "OSD-164 is the only multi-tissue accession and explicitly contains liver and spleen sample IDs."
+      "internal_consistency_note": "Multi-material accessions are retained at sample level instead of being forced to one accession-level tissue."
     }
   },
   "significance": {

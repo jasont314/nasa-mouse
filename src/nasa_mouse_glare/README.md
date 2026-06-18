@@ -190,6 +190,23 @@ The mouse run uses diagonal-covariance GMM for numerical stability. HDBSCAN
 keeps GLARE's `min_cluster_size=60` but uses `min_samples=10`; `30` labeled
 all genes as noise on the mouse FTSAE latent space.
 
+Download official OSDR ISA metadata and extract sample/accession tissues:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.osdr_tissues \
+  --download \
+  --metadata-dir assets/osdr_metadata \
+  --profile-metadata outputs/glare_hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv \
+  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/osdr_tissues
+```
+
+This uses OSDR `Characteristics[Material Type]` from the official sample
+tables, including paginated studies. When Material Type is generic, it uses
+the study's explicit `Characteristics[Tissue Type]` or `Factor Value[Tissue]`
+field. It writes `osdr_sample_tissues.tsv`, `osdr_accession_tissues.tsv`,
+`osdr_tissue_accessions.tsv`, an official-versus-inferred validation table,
+and a JSON summary. The downloaded JSON cache remains ignored under `assets/`.
+
 Recompute expression summaries and run study/tissue-stratified significance
 tests for the ensemble consensus clusters:
 
@@ -198,13 +215,14 @@ PYTHONPATH=src python -m nasa_mouse_glare.cluster_stratified_analysis \
   --gene-clusters outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_clustering/gene_clusters.tsv \
   --target-manifest data/processed/tms_facs_osdr_aligned.target.manifest.json \
   --profile-metadata outputs/glare_hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv \
+  --official-tissues outputs/glare_hpt_tms_facs_osdr/post_finetune/osdr_tissues/osdr_sample_tissues.tsv \
   --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis
 ```
 
-The OSDR HDF5 does not include a dedicated tissue column. This step creates
-`tissue_inferred` from tissue tokens in sample IDs and records unknown samples
-explicitly. Flight-vs-ground effects are computed within OSDR accessions using
-log2 expression ratios, tested across paired accessions with a two-sided
+The OSDR HDF5 does not include its ISA tissue fields, so this step joins the
+official tissue table generated above. Sample-name inference is retained only
+as a fallback. Flight-vs-ground effects are computed within OSDR accessions
+using log2 expression ratios, tested across paired accessions with a two-sided
 Wilcoxon signed-rank test, and corrected with Benjamini-Hochberg FDR.
 
 Run enrichment for all 15 ensemble consensus clusters:
