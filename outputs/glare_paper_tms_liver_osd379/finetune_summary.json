@@ -1,0 +1,68 @@
+{
+  "method": "GLARE released 16-dimensional SAE with separate FLT/GC fine-tuning",
+  "accession": "OSD-379",
+  "target_manifest": "data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+  "target_expression_input": "assets/osdr/GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv",
+  "target_expression_kind": "official_osdr_normalized_counts",
+  "pretrained_weights": "outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth",
+  "pretrained_input_dim": 2859,
+  "device": "cpu",
+  "seed_reused_for_each_location": 1996,
+  "architecture": [
+    128,
+    64,
+    32,
+    16
+  ],
+  "learning_rate": 0.001,
+  "weight_decay": 0,
+  "sparsity_penalty": 1e-05,
+  "batch_size": 16,
+  "cohort_counts": {
+    "FLT": {
+      "ISS-T_OLD": 10,
+      "ISS-T_YNG": 10,
+      "LAR_OLD": 7,
+      "LAR_YNG": 8
+    },
+    "GC": {
+      "ISS-T_OLD": 10,
+      "ISS-T_YNG": 10,
+      "LAR_OLD": 7,
+      "LAR_YNG": 8
+    }
+  },
+  "study_profile_count_all_conditions": 141,
+  "genes_dropped_from_broad_alignment": 4457,
+  "outlier_policy": "PCA/k-means audit exported; no genes removed because GLARE's three fixed Arabidopsis outlier IDs do not transfer to mouse",
+  "locations": [
+    {
+      "location": "FLT",
+      "genes": 16553,
+      "profiles": 35,
+      "best_loss": 0.15442395,
+      "best_epoch": 28,
+      "epochs": 30,
+      "weights": "outputs/glare_paper_tms_liver_osd379/FLT_finetuned_sae.pth",
+      "adapter": "outputs/glare_paper_tms_liver_osd379/FLT_adapter.pth",
+      "representation": "outputs/glare_paper_tms_liver_osd379/FLT_FTSAE_representation.npy",
+      "elapsed_seconds": 63.047,
+      "elapsed": "1m 3s"
+    },
+    {
+      "location": "GC",
+      "genes": 16553,
+      "profiles": 35,
+      "best_loss": 0.15498392,
+      "best_epoch": 30,
+      "epochs": 30,
+      "weights": "outputs/glare_paper_tms_liver_osd379/GC_finetuned_sae.pth",
+      "adapter": "outputs/glare_paper_tms_liver_osd379/GC_adapter.pth",
+      "representation": "outputs/glare_paper_tms_liver_osd379/GC_FTSAE_representation.npy",
+      "elapsed_seconds": 63.568,
+      "elapsed": "1m 3s"
+    }
+  ],
+  "elapsed_seconds": 127.413,
+  "elapsed": "2m 7s"
+}

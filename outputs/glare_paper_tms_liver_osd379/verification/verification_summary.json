@@ -1,0 +1,41 @@
+{
+  "method": "GLARE melted-data XGBoost verification and SHAP",
+  "rows": 33106,
+  "genes": 16553,
+  "features": 35,
+  "classifier": {
+    "n_estimators": 500,
+    "max_depth": 10,
+    "random_state": 1996
+  },
+  "random_cv_note": "Matches GLARE's shuffled KFold but allows paired FLT/GC rows from one gene to appear across train and test folds",
+  "grouped_cv_note": "Keeps both rows for every gene in the same fold",
+  "metrics": [
+    {
+      "scheme": "gene_grouped_kfold",
+      "accuracy_mean": 0.9278976696738237,
+      "accuracy_std": 0.005538250968000158,
+      "f1_mean": 0.9280728146504027,
+      "f1_std": 0.005677247454086229,
+      "roc_auc_mean": 0.9802294335762743,
+      "roc_auc_std": 0.001836878538593497
+    },
+    {
+      "scheme": "random_kfold_glare",
+      "accuracy_mean": 0.927656645241286,
+      "accuracy_std": 0.003517132637578907,
+      "f1_mean": 0.9279598373452569,
+      "f1_std": 0.0036723026687328817,
+      "roc_auc_mean": 0.9797282144404684,
+      "roc_auc_std": 0.0025629342991955297
+    }
+  ],
+  "outputs": {
+    "folds": "outputs/glare_paper_tms_liver_osd379/verification/xgboost_verification_folds.tsv",
+    "summary": "outputs/glare_paper_tms_liver_osd379/verification/xgboost_verification_summary.tsv",
+    "shap_values": "outputs/glare_paper_tms_liver_osd379/verification/shap_values.npz",
+    "shap_features": "outputs/glare_paper_tms_liver_osd379/verification/shap_feature_importance.tsv",
+    "shap_genes": "outputs/glare_paper_tms_liver_osd379/verification/shap_gene_condition.tsv",
+    "shap_plot": "outputs/glare_paper_tms_liver_osd379/verification/shap_beeswarm.png"
+  }
+}

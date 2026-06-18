@@ -1,0 +1,32 @@
+{
+  "config": {
+    "hidden_layers": [
+      128,
+      64,
+      32,
+      16
+    ],
+    "layer_norm": true,
+    "activation_fn": "ELU",
+    "sparsity_penalty": 1e-05,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "batch_size": 16,
+    "epochs": 30,
+    "seed": 1996,
+    "num_workers": 0,
+    "device": "cpu",
+    "input": "data/glare_inputs/tms_facs_liver_pretrain.mtx"
+  },
+  "data_shape": [
+    21010,
+    2859
+  ],
+  "best_loss": 0.86171712,
+  "final_loss": 0.86304858,
+  "weights": "outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth",
+  "epoch_logs_csv": "outputs/glare_paper_tms_liver_osd379/pretraining/epoch_losses.csv",
+  "epoch_logs_json": "outputs/glare_paper_tms_liver_osd379/pretraining/epoch_losses.json",
+  "elapsed_seconds": 132.181,
+  "elapsed": "2m 12s"
+}

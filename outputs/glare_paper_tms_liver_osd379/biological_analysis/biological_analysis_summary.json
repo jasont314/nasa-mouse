@@ -1,0 +1,31 @@
+{
+  "deg_method": "NASA OSD-379 GLbulkRNAseq differential-expression results; union of four age- and collection-matched Space Flight vs Ground Control contrasts at adjusted p < 0.05 and absolute log2 fold change >= 1",
+  "official_de_source": "assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv",
+  "official_matched_contrasts": [
+    "(Space Flight & 22 to 23 day & On ISS & Carcass & 10 to 12 week)v(Ground Control & 24 day & On Earth & Carcass & 10 to 12 week)",
+    "(Space Flight & 22 to 23 day & On ISS & Carcass & 32 week)v(Ground Control & 24 day & On Earth & Carcass & 32 week)",
+    "(Space Flight & ~40 day & On Earth & Upon euthanasia & 10 to 12 week)v(Ground Control & ~40 day & On Earth & Upon euthanasia & 10 to 12 week)",
+    "(Space Flight & ~40 day & On Earth & Upon euthanasia & 32 week)v(Ground Control & ~40 day & On Earth & Upon euthanasia & 32 week)"
+  ],
+  "genes_tested": 16553,
+  "significant_degs": 636,
+  "significant_up": 441,
+  "significant_down": 174,
+  "significant_mixed_direction": 21,
+  "significant_by_official_contrast": {
+    "(Space Flight & 22 to 23 day & On ISS & Carcass & 10 to 12 week)v(Ground Control & 24 day & On Earth & Carcass & 10 to 12 week)": 10,
+    "(Space Flight & 22 to 23 day & On ISS & Carcass & 32 week)v(Ground Control & 24 day & On Earth & Carcass & 32 week)": 471,
+    "(Space Flight & ~40 day & On Earth & Upon euthanasia & 10 to 12 week)v(Ground Control & ~40 day & On Earth & Upon euthanasia & 10 to 12 week)": 102,
+    "(Space Flight & ~40 day & On Earth & Upon euthanasia & 32 week)v(Ground Control & ~40 day & On Earth & Upon euthanasia & 32 week)": 93
+  },
+  "flt_gc_cluster_adjusted_rand": 0.48914367039305445,
+  "flt_gc_cluster_normalized_mutual_information": 0.6250474170071552,
+  "metascape": "Gene lists and manifest exported; Metascape is an external web submission and is not executed locally",
+  "outputs": {
+    "deg": "outputs/glare_paper_tms_liver_osd379/biological_analysis/osd379_flt_vs_gc_deg.tsv",
+    "deg_proportions": "outputs/glare_paper_tms_liver_osd379/biological_analysis/cluster_deg_proportions.tsv",
+    "cluster_contingency": "outputs/glare_paper_tms_liver_osd379/biological_analysis/flt_gc_cluster_contingency.tsv",
+    "metascape_manifest": "outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/manifest.tsv",
+    "metascape_multiple_lists": "outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/metascape_multiple_gene_lists.csv"
+  }
+}
