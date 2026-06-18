@@ -148,6 +148,31 @@ saved to `hpt_config_results.csv` and `hpt_config_results.json` inside
 `--output-dir`; final weights, the representation array, and `hpt_summary.json`
 are saved there too.
 
+## Post Fine-Tuning Analysis
+
+The current GLARE-compatible OSDR CSV is `genes x samples`, so
+`FTSAE_representation.npy` is expected to contain gene-level latent vectors.
+After `hpt.py` finishes, summarize and cluster those fine-tuned gene
+representations:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.post_finetune \
+  --representation outputs/glare_hpt_tms_facs_osdr/FTSAE_representation.npy \
+  --target-manifest data/processed/tms_facs_osdr_aligned.target.manifest.json \
+  --osdr assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5 \
+  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune
+```
+
+Key outputs:
+
+- `gene_latent.tsv`: gene IDs, latent dimensions, and gene cluster labels.
+- `gene_pca.tsv`: PCA coordinates for plotting the gene latent space.
+- `gene_cluster_summary.tsv`: cluster sizes and PCA centroids.
+- `gene_cluster_expression_by_*.tsv`: cluster-level mean expression grouped by
+  OSDR metadata, including inferred flight/ground labels where available.
+- `post_finetune_summary.json`: input paths, shapes, clustering settings, and
+  output file paths.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by
