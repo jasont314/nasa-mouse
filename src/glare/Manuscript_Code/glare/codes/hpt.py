@@ -215,6 +215,7 @@ def grid_search(
     result_logger=None,
     resume=False,
     start_config=1,
+    num_workers=0,
 ):
     param_grid = {
         "hidden_layers": [[128, 64, 32, 16], [256, 128, 64, 32], [512, 256, 128, 64]],
@@ -294,7 +295,13 @@ def grid_search(
             adapter = Adapter(X.shape[1], pi_dim)
             X = adapter(X).clone().detach()
         # Set batch size and make the data to tensor # batch size can change depending on your device
-        data_loader = DataLoader(X, batch_size=16, shuffle=True, num_workers=4, pin_memory=True)
+        data_loader = DataLoader(
+            X,
+            batch_size=16,
+            shuffle=True,
+            num_workers=num_workers,
+            pin_memory=device.type == "cuda",
+        )
 
         # Model Initialization
         input_dim = X.shape[1]
@@ -403,7 +410,7 @@ def grid_search(
     return best_params
 
 # Pre-Training and Fine-Tuning Workflow
-def pretrain_sae(data, device, best_params, log_every_epochs=1):
+def pretrain_sae(data, device, best_params, log_every_epochs=1, num_workers=0):
     # Extract best parameters
     hidden_layers = best_params["hidden_layers"]
     layer_norm = best_params["layer_norm"]
@@ -421,7 +428,13 @@ def pretrain_sae(data, device, best_params, log_every_epochs=1):
     X = scaler.fit_transform(data)
     X = torch.tensor(X, dtype=torch.float32)
     # Set batch size and make the data to tensor # batch size can change depending on your device
-    data_loader = DataLoader(X, batch_size=16, shuffle=True, num_workers=4, pin_memory=True)
+    data_loader = DataLoader(
+        X,
+        batch_size=16,
+        shuffle=True,
+        num_workers=num_workers,
+        pin_memory=device.type == "cuda",
+    )
 
     # Model Initialization
     input_dim = X.shape[1]
@@ -490,7 +503,15 @@ def pretrain_sae(data, device, best_params, log_every_epochs=1):
         "elapsed": format_elapsed(elapsed_seconds),
     }
 
-def finetune_sae(data, pretrained_model, device, best_params, pi_dim, log_every_epochs=1):
+def finetune_sae(
+    data,
+    pretrained_model,
+    device,
+    best_params,
+    pi_dim,
+    log_every_epochs=1,
+    num_workers=0,
+):
     # Extract best parameters
     hidden_layers = best_params["hidden_layers"]
     layer_norm = best_params["layer_norm"]
@@ -511,7 +532,13 @@ def finetune_sae(data, pretrained_model, device, best_params, pi_dim, log_every_
     adapter = Adapter(X.shape[1], pi_dim)
     X = adapter(X).clone().detach()
     # Set batch size and make the data to tensor # batch size can change depending on your device
-    data_loader = DataLoader(X, batch_size=16, shuffle=True, num_workers=4, pin_memory=True)
+    data_loader = DataLoader(
+        X,
+        batch_size=16,
+        shuffle=True,
+        num_workers=num_workers,
+        pin_memory=device.type == "cuda",
+    )
 
     # Model Initialization
     input_dim = X.shape[1]
@@ -670,6 +697,15 @@ def parse_arguments():
             "hpt_summary.json and skip both hyperparameter sweeps."
         ),
     )
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=0,
+        help=(
+            "PyTorch DataLoader worker processes. Use 0 on macOS or restricted "
+            "environments that do not permit torch shared-memory workers."
+        ),
+    )
     
     return parser.parse_args()
 
@@ -774,6 +810,7 @@ if __name__ == "__main__":
             result_logger=result_logger,
             resume=resume_run,
             start_config=single_cell_start_config,
+            num_workers=args.num_workers,
         )
     log(f"Best Hyperparameters for single-cell data: {format_params(best_params_sc)}")
 
@@ -783,6 +820,7 @@ if __name__ == "__main__":
         gpu,
         best_params_sc,
         log_every_epochs=args.log_every_epochs,
+        num_workers=args.num_workers,
     )
     # Save pre-trained weights
     pretrained_output = output_dir / "pretrained_sae_sc.pth"
@@ -806,6 +844,7 @@ if __name__ == "__main__":
             result_logger=result_logger,
             resume=resume_run,
             start_config=args.osdr_start_config,
+            num_workers=args.num_workers,
         )
     log(f"Best Hyperparameters for GeneLab data: {format_params(best_params_gl)}")
 
@@ -817,6 +856,7 @@ if __name__ == "__main__":
         best_params_gl,
         pi_dim=pretrained_input_dim,
         log_every_epochs=args.log_every_epochs,
+        num_workers=args.num_workers,
     )
     # Save Fine-tuned weights
     finetuned_output = output_dir / "finetuned_sae_gl.pth"
@@ -841,6 +881,7 @@ if __name__ == "__main__":
         "data1": args.data1,
         "data2": args.data2,
         "device": str(gpu),
+        "num_workers": args.num_workers,
         "mode": "fixed_best_configs" if fixed_config_source else "hyperparameter_sweep",
         "best_config_source": str(fixed_config_source) if fixed_config_source else "",
         "resume": resume_run,

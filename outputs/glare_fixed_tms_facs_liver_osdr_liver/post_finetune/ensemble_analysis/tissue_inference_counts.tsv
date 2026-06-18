@@ -1,0 +1,6 @@
+tissue_inferred	condition_inferred	n_samples
+liver	baseline_control	85
+liver	flight	107
+liver	ground_control	103
+liver	unknown	278
+liver	vivarium_control	55

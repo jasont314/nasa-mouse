@@ -1,0 +1,44 @@
+{
+  "representation": "outputs/glare_fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy",
+  "gene_latent": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/gene_latent.tsv",
+  "gene_pca": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/gene_pca.tsv",
+  "n_genes": 21010,
+  "n_clusters": 15,
+  "seed": 2024,
+  "scaled_latent": true,
+  "base_algorithms": {
+    "gmm": {
+      "n_components": 15,
+      "max_iter": 100,
+      "covariance_type_requested": "diag",
+      "reg_covar": 0.0001,
+      "fallback_covariance_type": "diag",
+      "covariance_type_used": "diag"
+    },
+    "hdbscan": {
+      "min_cluster_size": 100,
+      "min_samples": 1,
+      "cluster_selection_method": "leaf",
+      "implementation": "sklearn.cluster.HDBSCAN"
+    },
+    "spectral": {
+      "n_clusters": 15,
+      "affinity": "nearest_neighbors",
+      "n_neighbors": 15
+    }
+  },
+  "consensus": {
+    "method": "MiniBatchKMeans on sparse one-hot base-cluster membership; equivalent feature embedding for EAC co-association labels",
+    "n_clusters": 15,
+    "hdbscan_noise_handling": "noise points are omitted from the HDBSCAN one-hot block so they do not form one artificial noise cluster"
+  },
+  "outputs": {
+    "ensemble_clusters": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering/ensemble_clusters.tsv",
+    "gene_clusters": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering/gene_clusters.tsv",
+    "ensemble_cluster_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering/ensemble_cluster_summary.tsv",
+    "ensemble_base_cluster_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering/ensemble_base_cluster_summary.tsv",
+    "ensemble_metrics": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering/ensemble_metrics.tsv",
+    "ensemble_consensus_features": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering/ensemble_consensus_features.txt",
+    "ensemble_pca_by_consensus": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering/ensemble_pca_by_consensus.png"
+  }
+}

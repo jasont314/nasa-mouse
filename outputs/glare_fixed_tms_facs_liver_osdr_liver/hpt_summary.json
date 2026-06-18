@@ -1,0 +1,61 @@
+{
+  "data1": "data/glare_inputs/osdr_liver_finetune.csv",
+  "data2": "data/glare_inputs/tms_facs_liver_pretrain.mtx",
+  "device": "cpu",
+  "num_workers": 0,
+  "mode": "fixed_best_configs",
+  "best_config_source": "outputs/glare_hpt_tms_facs_osdr/hpt_summary.json",
+  "resume": false,
+  "single_cell_start_config": 1,
+  "osdr_start_config": 1,
+  "single_cell_best_params": {
+    "hidden_layers": [
+      512,
+      256,
+      128,
+      64
+    ],
+    "layer_norm": true,
+    "activation_fn": "ELU",
+    "sparsity_penalty": 1e-05,
+    "learning_rate": 0.0001,
+    "weight_decay": 1e-05
+  },
+  "osdr_best_params": {
+    "hidden_layers": [
+      512,
+      256,
+      128,
+      64
+    ],
+    "layer_norm": true,
+    "activation_fn": "ELU",
+    "sparsity_penalty": 0.001,
+    "learning_rate": 0.0001,
+    "weight_decay": 1e-05
+  },
+  "pretrained_weights": "outputs/glare_fixed_tms_facs_liver_osdr_liver/pretrained_sae_sc.pth",
+  "finetuned_weights": "outputs/glare_fixed_tms_facs_liver_osdr_liver/finetuned_sae_gl.pth",
+  "finetune_adapter": "outputs/glare_fixed_tms_facs_liver_osdr_liver/finetune_adapter.pth",
+  "representation": "outputs/glare_fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy",
+  "config_results_csv": "",
+  "config_results_json": "",
+  "training_metrics": {
+    "pretrain": {
+      "best_loss": 0.8113615770159428,
+      "epochs_run": 50,
+      "early_stopped": false,
+      "elapsed_seconds": 690.621,
+      "elapsed": "11m 30s"
+    },
+    "finetune": {
+      "best_loss": 0.15311360439393545,
+      "epochs_run": 50,
+      "early_stopped": false,
+      "elapsed_seconds": 658.546,
+      "elapsed": "10m 58s"
+    }
+  },
+  "total_elapsed_seconds": 1350.263,
+  "total_elapsed": "22m 30s"
+}

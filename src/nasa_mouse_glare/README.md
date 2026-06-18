@@ -305,12 +305,60 @@ python src/glare/Manuscript_Code/glare/codes/hpt.py \
   --data2 data/glare_inputs/tms_facs_liver_pretrain.mtx \
   --reuse-best-configs-from outputs/glare_hpt_tms_facs_osdr/hpt_summary.json \
   --log-every-epochs 1 \
+  --num-workers 0 \
   --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver
 ```
 
 All liver-only training and analysis outputs use
 `outputs/glare_fixed_tms_facs_liver_osdr_liver`, leaving the cross-tissue run
 unchanged.
+
+Run the liver-only post-training analyses:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.post_finetune \
+  --representation outputs/glare_fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy \
+  --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
+  --osdr assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5 \
+  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune
+
+PYTHONPATH=src python -m nasa_mouse_glare.ensemble_clustering \
+  --representation outputs/glare_fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy \
+  --gene-latent outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/gene_latent.tsv \
+  --gene-pca outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/gene_pca.tsv \
+  --hdbscan-min-cluster-size 100 \
+  --hdbscan-min-samples 1 \
+  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering
+
+PYTHONPATH=src python -m nasa_mouse_glare.osdr_tissues \
+  --metadata-dir assets/osdr_metadata \
+  --profile-metadata outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/profile_metadata.tsv \
+  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/osdr_tissues
+
+PYTHONPATH=src python -m nasa_mouse_glare.cluster_stratified_analysis \
+  --gene-clusters outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering/gene_clusters.tsv \
+  --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
+  --profile-metadata outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/profile_metadata.tsv \
+  --official-tissues outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/osdr_tissues/osdr_sample_tissues.tsv \
+  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis
+
+PYTHONPATH=src python -m nasa_mouse_glare.cluster_enrichment \
+  --post-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis \
+  --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
+  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment \
+  --clusters 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+
+PYTHONPATH=src python -m nasa_mouse_glare.glare_evaluation \
+  --representation outputs/glare_fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy \
+  --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
+  --post-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune \
+  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation
+```
+
+The liver latent space required a lower-density HDBSCAN setting than the
+cross-tissue run. With `min_cluster_size=60` and `min_samples=10`, every gene
+was labeled noise. The documented liver setting produces two density clusters
+and 3,695 noise genes, retaining HDBSCAN as an active ensemble member.
 
 ## Reproduce Original GLARE Pretraining
 

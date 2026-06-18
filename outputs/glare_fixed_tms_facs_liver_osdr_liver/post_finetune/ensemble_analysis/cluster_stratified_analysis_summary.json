@@ -1,0 +1,55 @@
+{
+  "gene_clusters": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering/gene_clusters.tsv",
+  "target_manifest": "data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+  "profile_metadata": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/profile_metadata.tsv",
+  "n_clusters": 15,
+  "n_profiles": 628,
+  "n_accessions": 17,
+  "tissue_inference": {
+    "source": "official OSDR ISA material/tissue fields with sample-name fallback",
+    "official_tissue_table": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/osdr_tissues/osdr_sample_tissues.tsv",
+    "known_profiles": 628,
+    "unknown_profiles": 0,
+    "known_flight_ground_profiles": 210,
+    "audit": {
+      "accuracy_status": "official OSDR material and anatomical tissue fields used when available",
+      "method": "official OSDR ISA material/tissue metadata with sample-name fallback",
+      "all_profile_coverage": 1.0,
+      "flight_ground_profile_coverage": 1.0,
+      "accessions_with_inferred_tissue": 17,
+      "single_tissue_accessions": 17,
+      "multi_tissue_accessions": [],
+      "internal_consistency_note": "Multi-material accessions are retained at sample level instead of being forced to one accession-level tissue."
+    }
+  },
+  "significance": {
+    "effect": "log2((mean flight expression + 1)/(mean ground expression + 1))",
+    "test": "two-sided Wilcoxon signed-rank across paired accessions",
+    "secondary_test": "two-sided binomial sign test",
+    "multiple_testing": "Benjamini-Hochberg FDR",
+    "min_paired_studies": 3,
+    "accession_cluster_tests": 15,
+    "accession_nominal_p_lt_0_05": 3,
+    "accession_fdr_lt_0_05": 0,
+    "tissue_cluster_tests": 15,
+    "tissue_nominal_p_lt_0_05": 3,
+    "tissue_fdr_lt_0_05": 0
+  },
+  "outputs": {
+    "gene_clusters": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/gene_clusters.tsv",
+    "profile_metadata": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/profile_metadata.tsv",
+    "cluster_sample_expression": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/cluster_sample_expression.tsv",
+    "condition_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/gene_cluster_expression_by_condition_inferred.tsv",
+    "accession_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/gene_cluster_expression_by_id.accession.tsv",
+    "project_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/gene_cluster_expression_by_project_identifier.tsv",
+    "tissue_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/gene_cluster_expression_by_tissue_inferred.tsv",
+    "flight_ground_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/gene_cluster_flight_ground_summary.tsv",
+    "accession_effects": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/flight_ground_effects_by_accession.tsv",
+    "accession_significance": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/flight_ground_significance_by_accession.tsv",
+    "accession_tissue_effects": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/flight_ground_effects_by_accession_tissue.tsv",
+    "tissue_significance": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/flight_ground_significance_by_tissue.tsv",
+    "variance_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/stratification_variance_summary.tsv",
+    "tissue_inference_counts": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/tissue_inference_counts.tsv",
+    "tissue_inference_audit": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/tissue_inference_audit.json"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "metadata_dir": "assets/osdr_metadata",
+  "profile_metadata": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/profile_metadata.tsv",
+  "official_studies_loaded": 107,
+  "local_profiles": 628,
+  "official_sample_matches": 628,
+  "official_sample_match_fraction": 1.0,
+  "official_tissue_assignments": 628,
+  "official_tissue_assignment_fraction": 1.0,
+  "final_tissue_assignments": 628,
+  "validation_profiles": 505,
+  "sample_name_inference_accuracy_on_officially_labeled_profiles": 1.0,
+  "outputs": {
+    "sample_tissues": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/osdr_tissues/osdr_sample_tissues.tsv",
+    "accession_tissues": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/osdr_tissues/osdr_accession_tissues.tsv",
+    "tissue_accessions": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/osdr_tissues/osdr_tissue_accessions.tsv",
+    "official_vs_inferred": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/osdr_tissues/official_vs_inferred_tissue.tsv"
+  }
+}

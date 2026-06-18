@@ -1,0 +1,10 @@
+{
+  "accuracy_status": "official OSDR material and anatomical tissue fields used when available",
+  "method": "official OSDR ISA material/tissue metadata with sample-name fallback",
+  "all_profile_coverage": 1.0,
+  "flight_ground_profile_coverage": 1.0,
+  "accessions_with_inferred_tissue": 17,
+  "single_tissue_accessions": 17,
+  "multi_tissue_accessions": [],
+  "internal_consistency_note": "Multi-material accessions are retained at sample level instead of being forced to one accession-level tissue."
+}

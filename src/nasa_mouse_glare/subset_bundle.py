@@ -57,6 +57,19 @@ def subset_bundle(
         raise ValueError(
             f"No profiles matched {filter_column}={filter_value!r}"
         )
+    if (
+        bundle.profile_metadata is not None
+        and "source_profile_index" in bundle.profile_metadata
+    ):
+        source_profile_indices = (
+            bundle.profile_metadata.loc[selected, "source_profile_index"]
+            .astype(int)
+            .tolist()
+        )
+    else:
+        source_profile_indices = [
+            index for index, keep in enumerate(selected) if keep
+        ]
 
     matrix = bundle.matrix[:, selected]
     profiles = [
@@ -74,6 +87,7 @@ def subset_bundle(
             raise ValueError(
                 "Bundle profile metadata is not aligned with the bundle profile order"
             )
+        profile_metadata["source_profile_index"] = source_profile_indices
         external = aligned.loc[selected].reset_index(drop=True)
         for column in external:
             if column not in profile_metadata:

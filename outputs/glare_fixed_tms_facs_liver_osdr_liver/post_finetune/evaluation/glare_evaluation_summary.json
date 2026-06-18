@@ -1,0 +1,30 @@
+{
+  "representation": "outputs/glare_fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy",
+  "target_manifest": "data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+  "post_dir": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune",
+  "output_dir": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation",
+  "seed": 2024,
+  "n_clusters": 15,
+  "max_eval_rows": 5000,
+  "knn_neighbors": 500,
+  "trust_neighbors": 500,
+  "verification": {
+    "run": true,
+    "label_col": "condition_inferred",
+    "positive_label": "flight",
+    "negative_label": "ground_control",
+    "group_col": "id.accession",
+    "classifier": "sklearn SGDClassifier(log_loss), GLARE-compatible fallback"
+  },
+  "outputs": {
+    "representation_evaluation": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation/representation_evaluation.tsv",
+    "representation_evaluation_clusters": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation/representation_evaluation_clusters.tsv",
+    "representation_pca_variance": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation/representation_pca_variance.tsv",
+    "verification_folds": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation/verification_folds.tsv",
+    "verification_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation/verification_summary.tsv",
+    "verification_feature_importance": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation/verification_feature_importance.tsv",
+    "verification_label_counts": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation/verification_label_counts.tsv",
+    "shap_status": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation/shap_status.json",
+    "group_cv_status": "ok"
+  }
+}

@@ -69,6 +69,7 @@ def load_osdr_metadata(
     osdr_h5: str | Path,
     profiles: list[str],
     sample_key: str = DEFAULT_OSDR_SAMPLE_KEY,
+    source_profile_indices=None,
 ):
     """Load 1D /meta/info arrays that align with profile order."""
     h5py = require_import("h5py", "pip install -r requirements-nasa-mouse-glare.txt")
@@ -80,13 +81,32 @@ def load_osdr_metadata(
         if info is None:
             return pd.DataFrame({"profile": profiles})
 
+        sample_col = Path(sample_key).name
+        if sample_col not in info:
+            return pd.DataFrame({"profile": profiles})
+        source_length = len(info[sample_col])
+        if source_profile_indices is not None:
+            source_profile_indices = list(map(int, source_profile_indices))
+            if len(source_profile_indices) != len(profiles):
+                raise ValueError(
+                    "source_profile_indices must match the requested profile count"
+                )
+            if source_profile_indices and max(source_profile_indices) >= source_length:
+                raise ValueError(
+                    "source_profile_index exceeds the OSDR HDF5 metadata length"
+                )
+
         for key, dataset in info.items():
             shape = getattr(dataset, "shape", ())
-            if len(shape) == 1 and shape[0] == len(profiles):
+            if len(shape) != 1:
+                continue
+            if source_profile_indices is not None and shape[0] == source_length:
+                values = dataset[:]
+                rows[key] = _decode_array(values[source_profile_indices])
+            elif source_profile_indices is None and shape[0] == len(profiles):
                 rows[key] = _decode_array(dataset[:])
 
     metadata = pd.DataFrame(rows)
-    sample_col = Path(sample_key).name
     if sample_col in metadata:
         metadata.insert(0, "profile", metadata[sample_col].astype(str))
     else:
@@ -106,7 +126,17 @@ def merge_profile_metadata(bundle, osdr_h5: str | Path | None, sample_key: str):
     metadata = metadata.reset_index(drop=True)
 
     if osdr_h5:
-        h5_metadata = load_osdr_metadata(osdr_h5, bundle.profiles, sample_key)
+        source_profile_indices = (
+            metadata["source_profile_index"].tolist()
+            if "source_profile_index" in metadata
+            else None
+        )
+        h5_metadata = load_osdr_metadata(
+            osdr_h5,
+            bundle.profiles,
+            sample_key,
+            source_profile_indices=source_profile_indices,
+        )
         h5_profiles = h5_metadata["profile"].astype(str).tolist()
         bundle_profiles = [str(profile) for profile in bundle.profiles]
         if len(h5_metadata) == len(metadata) and h5_profiles == bundle_profiles:

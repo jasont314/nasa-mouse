@@ -1,0 +1,16 @@
+gene_cluster	n_genes	flight_mean	ground_or_control_mean	flight_minus_ground_or_control	comparison
+0	1781	94.73259	91.42381	3.3087769	flight_vs_ground_control
+1	1679	1.2447273	0.8816621	0.36306518	flight_vs_ground_control
+2	2356	31.387299	29.140764	2.2465343	flight_vs_ground_control
+3	2013	422.56424	419.10843	3.4558105	flight_vs_ground_control
+4	1945	14720.706	15565.031	-844.3252	flight_vs_ground_control
+5	1047	3685.7097	3672.3887	13.321045	flight_vs_ground_control
+6	2120	1087.9624	1110.2751	-22.312744	flight_vs_ground_control
+7	1516	9.697075	8.671613	1.0254622	flight_vs_ground_control
+8	566	0.12491331	0.08984871	0.0350646	flight_vs_ground_control
+9	967	687.57184	689.2105	-1.6386719	flight_vs_ground_control
+10	956	182.41962	180.65614	1.7634735	flight_vs_ground_control
+11	559	1692.7772	1683.3486	9.428589	flight_vs_ground_control
+12	1634	3.3055286	2.7521718	0.5533569	flight_vs_ground_control
+13	611	280.77744	277.6415	3.1359253	flight_vs_ground_control
+14	1260	0.46005046	0.25798273	0.20206773	flight_vs_ground_control

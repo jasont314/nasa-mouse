@@ -1,0 +1,54 @@
+{
+  "post_dir": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis",
+  "target_manifest": "data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+  "clusters": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "min_overlap": 3,
+  "top_n": 20,
+  "gmt_files": {
+    "reactome": "src/expiMap_reproducibility/metadata/c2.cp.reactome.v4.0_mouseEID.gmt",
+    "panglao": "src/expiMap_reproducibility/metadata/PanglaoDB_markers_27_Mar_2020_mouseEID.gmt"
+  },
+  "outputs": {
+    "gene_lists": {
+      "0": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_0_genes.txt",
+      "1": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_1_genes.txt",
+      "2": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_2_genes.txt",
+      "3": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_3_genes.txt",
+      "4": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_4_genes.txt",
+      "5": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_5_genes.txt",
+      "6": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_6_genes.txt",
+      "7": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_7_genes.txt",
+      "8": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_8_genes.txt",
+      "9": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_9_genes.txt",
+      "10": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_10_genes.txt",
+      "11": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_11_genes.txt",
+      "12": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_12_genes.txt",
+      "13": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_13_genes.txt",
+      "14": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_14_genes.txt",
+      "combined": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/focus_cluster_genes.tsv"
+    },
+    "cluster_shift_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/cluster_shift_summary.tsv",
+    "condition_driver_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/condition_driver_summary.tsv",
+    "study_driver_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/study_driver_summary.tsv",
+    "source_driver_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/source_driver_summary.tsv",
+    "reactome_enrichment": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/reactome_enrichment.tsv",
+    "panglao_enrichment": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/panglao_enrichment.tsv",
+    "top_enrichment_summary": "outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment/top_enrichment_summary.tsv"
+  }
+}

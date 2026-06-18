@@ -1,0 +1,6 @@
+{
+  "run": false,
+  "reason": "GLARE used XGBoost SHAP in post_pipeline.py. This environment does not have xgboost/shap installed, so this mouse evaluation writes linear classifier coefficients instead.",
+  "xgboost_available": false,
+  "shap_available": false
+}
