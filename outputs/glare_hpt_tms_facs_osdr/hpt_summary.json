@@ -1,0 +1,41 @@
+{
+  "data1": "data/glare_inputs/osdr_finetune.csv",
+  "data2": "data/glare_inputs/tms_facs_pretrain.mtx",
+  "device": "cpu",
+  "resume": true,
+  "single_cell_start_config": 1,
+  "osdr_start_config": 1,
+  "single_cell_best_params": {
+    "hidden_layers": [
+      512,
+      256,
+      128,
+      64
+    ],
+    "layer_norm": true,
+    "activation_fn": "ELU",
+    "sparsity_penalty": 1e-05,
+    "learning_rate": 0.0001,
+    "weight_decay": 1e-05
+  },
+  "osdr_best_params": {
+    "hidden_layers": [
+      512,
+      256,
+      128,
+      64
+    ],
+    "layer_norm": true,
+    "activation_fn": "ELU",
+    "sparsity_penalty": 0.001,
+    "learning_rate": 0.0001,
+    "weight_decay": 1e-05
+  },
+  "pretrained_weights": "outputs/glare_hpt_tms_facs_osdr/pretrained_sae_sc.pth",
+  "finetuned_weights": "outputs/glare_hpt_tms_facs_osdr/finetuned_sae_gl.pth",
+  "representation": "outputs/glare_hpt_tms_facs_osdr/FTSAE_representation.npy",
+  "config_results_csv": "outputs/glare_hpt_tms_facs_osdr/hpt_config_results.csv",
+  "config_results_json": "outputs/glare_hpt_tms_facs_osdr/hpt_config_results.json",
+  "total_elapsed_seconds": 936.49,
+  "total_elapsed": "15m 36s"
+}
