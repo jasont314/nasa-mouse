@@ -1,0 +1,32 @@
+{
+  "representation": "outputs/glare_hpt_tms_facs_osdr/FTSAE_representation.npy",
+  "target_manifest": "data/processed/tms_facs_osdr_aligned.target.manifest.json",
+  "osdr": "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5",
+  "entity_axis": "genes",
+  "representation_shape": [
+    21010,
+    64
+  ],
+  "target_shape": [
+    21010,
+    3315
+  ],
+  "n_clusters": 15,
+  "seed": 2024,
+  "scaled_latent": true,
+  "silhouette": 0.35405078530311584,
+  "outputs": {
+    "latent_table": "outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_latent.tsv",
+    "pca_table": "outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_pca.tsv",
+    "clusters": "outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_clusters.tsv",
+    "cluster_summary": "outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_cluster_summary.tsv",
+    "pca_variance": "outputs/glare_hpt_tms_facs_osdr/post_finetune/pca_variance.tsv",
+    "profile_metadata": "outputs/glare_hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv",
+    "gene_cluster_expression_by_condition_inferred": "outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_cluster_expression_by_condition_inferred.tsv",
+    "gene_cluster_expression_by_flight_status_inferred": "outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_cluster_expression_by_flight_status_inferred.tsv",
+    "gene_cluster_expression_by_id.accession": "outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_cluster_expression_by_id.accession.tsv",
+    "gene_cluster_expression_by_investigation.study assays.study assay technology type": "outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_cluster_expression_by_investigation.study_assays.study_assay_technology_type.tsv",
+    "gene_cluster_flight_ground_summary": "outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_cluster_flight_ground_summary.tsv",
+    "pca_by_cluster_plot": "outputs/glare_hpt_tms_facs_osdr/post_finetune/pca_by_cluster.png"
+  }
+}
