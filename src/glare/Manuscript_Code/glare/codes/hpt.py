@@ -432,8 +432,11 @@ def pretrain_sae(data, device, best_params, log_every_epochs=1):
     best_epoch_loss = float("inf")
     patience = 5
     patience_counter = 0
+    early_stopped = False
+    epochs_run = 0
 
     for epoch in range(50):  # Maximum epochs set for 50
+        epochs_run = epoch + 1
         epoch_start = time.perf_counter()
         total_loss = 0.0
         model.train()    
@@ -470,14 +473,22 @@ def pretrain_sae(data, device, best_params, log_every_epochs=1):
             )
 
         if patience_counter >= patience:
+            early_stopped = True
             log(f"pretrain: early stopped at epoch {epoch + 1}")
             break
 
+    elapsed_seconds = time.perf_counter() - run_start
     log(
         f"pretrain: complete best_loss={best_epoch_loss:.6f} "
-        f"elapsed={format_elapsed(time.perf_counter() - run_start)}"
+        f"elapsed={format_elapsed(elapsed_seconds)}"
     )
-    return model
+    return model, {
+        "best_loss": float(best_epoch_loss),
+        "epochs_run": epochs_run,
+        "early_stopped": early_stopped,
+        "elapsed_seconds": round(elapsed_seconds, 3),
+        "elapsed": format_elapsed(elapsed_seconds),
+    }
 
 def finetune_sae(data, pretrained_model, device, best_params, pi_dim, log_every_epochs=1):
     # Extract best parameters
@@ -512,8 +523,11 @@ def finetune_sae(data, pretrained_model, device, best_params, pi_dim, log_every_
     best_epoch_loss = float("inf")
     patience = 5
     patience_counter = 0
+    early_stopped = False
+    epochs_run = 0
 
     for epoch in range(50):  # Maximum epochs set for 50
+        epochs_run = epoch + 1
         epoch_start = time.perf_counter()
         model.train()
         total_loss = 0.0
@@ -550,14 +564,22 @@ def finetune_sae(data, pretrained_model, device, best_params, pi_dim, log_every_
             )
 
         if patience_counter >= patience:
+            early_stopped = True
             log(f"finetune: early stopped at epoch {epoch + 1}")
             break
 
+    elapsed_seconds = time.perf_counter() - run_start
     log(
         f"finetune: complete best_loss={best_epoch_loss:.6f} "
-        f"elapsed={format_elapsed(time.perf_counter() - run_start)}"
+        f"elapsed={format_elapsed(elapsed_seconds)}"
     )
-    return model, adapter
+    return model, adapter, {
+        "best_loss": float(best_epoch_loss),
+        "epochs_run": epochs_run,
+        "early_stopped": early_stopped,
+        "elapsed_seconds": round(elapsed_seconds, 3),
+        "elapsed": format_elapsed(elapsed_seconds),
+    }
 
 def get_representation(SAE_model, data, device, adapter=None):
     run_start = time.perf_counter()
@@ -639,6 +661,15 @@ def parse_arguments():
         default=1,
         help="First OSDR HPT config to run, 1-indexed.",
     )
+    parser.add_argument(
+        "--reuse-best-configs-from",
+        type=str,
+        default="",
+        help=(
+            "Load single_cell_best_params and osdr_best_params from a prior "
+            "hpt_summary.json and skip both hyperparameter sweeps."
+        ),
+    )
     
     return parser.parse_args()
 
@@ -671,12 +702,27 @@ if __name__ == "__main__":
     run_id = time.strftime("glare_hpt_%Y%m%d_%H%M%S")
     output_dir = Path(args.output_dir) if args.output_dir else Path("outputs") / run_id
     output_dir.mkdir(parents=True, exist_ok=True)
-    result_logger = ConfigResultLogger(
-        output_dir,
-        prefix=args.results_prefix,
-        resume=resume_run,
-    )
-    config_csv_output, config_json_output = result_logger.paths()
+    fixed_config_source = Path(args.reuse_best_configs_from) if args.reuse_best_configs_from else None
+    if fixed_config_source:
+        fixed_config_summary = json.loads(
+            fixed_config_source.read_text(encoding="utf-8")
+        )
+        best_params_sc = restore_params(
+            fixed_config_summary["single_cell_best_params"]
+        )
+        best_params_gl = restore_params(
+            fixed_config_summary["osdr_best_params"]
+        )
+        result_logger = None
+        config_csv_output = None
+        config_json_output = None
+    else:
+        result_logger = ConfigResultLogger(
+            output_dir,
+            prefix=args.results_prefix,
+            resume=resume_run,
+        )
+        config_csv_output, config_json_output = result_logger.paths()
     log(f"Starting GLARE HPT pipeline on device={gpu}")
     log(f"GeneLab/OSDR input: {args.data1}")
     log(f"single-cell input: {args.data2}")
@@ -685,8 +731,13 @@ if __name__ == "__main__":
         f"Resume: {resume_run}; single_cell_start_config={single_cell_start_config}; "
         f"osdr_start_config={args.osdr_start_config}"
     )
-    log(f"Config result CSV: {config_csv_output}")
-    log(f"Config result JSON: {config_json_output}")
+    if fixed_config_source:
+        log(f"Fixed-config mode: reusing best configs from {fixed_config_source}")
+        log(f"Single-cell config: {format_params(best_params_sc)}")
+        log(f"OSDR config: {format_params(best_params_gl)}")
+    else:
+        log(f"Config result CSV: {config_csv_output}")
+        log(f"Config result JSON: {config_json_output}")
     # Load data 
     # # RECOMMENDED:Process the csv to include appropriate matrix for model training
     load_start = time.perf_counter()
@@ -711,20 +762,23 @@ if __name__ == "__main__":
     # )
 
     # Hyperparameter Tuning and Pretraining for chosen single-cell Dataset
-    log("Tuning hyperparameters for single-cell data")
-    best_params_sc = grid_search(
-        sc_dense,
-        gpu,
-        stage_name="single-cell",
-        log_every_epochs=args.log_every_epochs,
-        result_logger=result_logger,
-        resume=resume_run,
-        start_config=single_cell_start_config,
-    )
+    if fixed_config_source:
+        log("Skipping single-cell hyperparameter sweep")
+    else:
+        log("Tuning hyperparameters for single-cell data")
+        best_params_sc = grid_search(
+            sc_dense,
+            gpu,
+            stage_name="single-cell",
+            log_every_epochs=args.log_every_epochs,
+            result_logger=result_logger,
+            resume=resume_run,
+            start_config=single_cell_start_config,
+        )
     log(f"Best Hyperparameters for single-cell data: {format_params(best_params_sc)}")
 
     log("Pretraining SAE with single-cell data")
-    pretrained_model = pretrain_sae(
+    pretrained_model, pretrain_metrics = pretrain_sae(
         sc_dense,
         gpu,
         best_params_sc,
@@ -737,23 +791,26 @@ if __name__ == "__main__":
 
     # Load pretrained weights and tune hyperparameters for GeneLab Dataset
     pretrained_input_dim = sc_matrix.shape[1] 
-    log("Loading pretrained weights and tuning hyperparameters for GeneLab")
-    best_params_gl = grid_search(
-        gl_csv,
-        gpu,
-        pretrained_model,
-        pi_dim=pretrained_input_dim,
-        fixed_architecture=best_params_sc,
-        stage_name="OSDR",
-        log_every_epochs=args.log_every_epochs,
-        result_logger=result_logger,
-        resume=resume_run,
-        start_config=args.osdr_start_config,
-    )
+    if fixed_config_source:
+        log("Skipping OSDR hyperparameter sweep")
+    else:
+        log("Loading pretrained weights and tuning hyperparameters for GeneLab")
+        best_params_gl = grid_search(
+            gl_csv,
+            gpu,
+            pretrained_model,
+            pi_dim=pretrained_input_dim,
+            fixed_architecture=best_params_sc,
+            stage_name="OSDR",
+            log_every_epochs=args.log_every_epochs,
+            result_logger=result_logger,
+            resume=resume_run,
+            start_config=args.osdr_start_config,
+        )
     log(f"Best Hyperparameters for GeneLab data: {format_params(best_params_gl)}")
 
     log("Fine-tuning SAE with GeneLab data")
-    finetuned_model, finetune_adapter = finetune_sae(
+    finetuned_model, finetune_adapter, finetune_metrics = finetune_sae(
         gl_csv,
         pretrained_model,
         gpu,
@@ -765,6 +822,9 @@ if __name__ == "__main__":
     finetuned_output = output_dir / "finetuned_sae_gl.pth"
     torch.save(finetuned_model.state_dict(), finetuned_output) # rename it with your project/data name
     log(f"Saved fine-tuned weights: {finetuned_output}")
+    adapter_output = output_dir / "finetune_adapter.pth"
+    torch.save(finetune_adapter.state_dict(), adapter_output)
+    log(f"Saved fine-tuning adapter: {adapter_output}")
     # Get Final data representation
     FTSAE_representation = get_representation(
         finetuned_model,
@@ -781,6 +841,8 @@ if __name__ == "__main__":
         "data1": args.data1,
         "data2": args.data2,
         "device": str(gpu),
+        "mode": "fixed_best_configs" if fixed_config_source else "hyperparameter_sweep",
+        "best_config_source": str(fixed_config_source) if fixed_config_source else "",
         "resume": resume_run,
         "single_cell_start_config": single_cell_start_config,
         "osdr_start_config": args.osdr_start_config,
@@ -788,9 +850,14 @@ if __name__ == "__main__":
         "osdr_best_params": format_params(best_params_gl),
         "pretrained_weights": str(pretrained_output),
         "finetuned_weights": str(finetuned_output),
+        "finetune_adapter": str(adapter_output),
         "representation": str(representation_output),
-        "config_results_csv": str(config_csv_output),
-        "config_results_json": str(config_json_output),
+        "config_results_csv": str(config_csv_output) if config_csv_output else "",
+        "config_results_json": str(config_json_output) if config_json_output else "",
+        "training_metrics": {
+            "pretrain": pretrain_metrics,
+            "finetune": finetune_metrics,
+        },
         "total_elapsed_seconds": round(total_elapsed_seconds, 3),
         "total_elapsed": format_elapsed(total_elapsed_seconds),
     }

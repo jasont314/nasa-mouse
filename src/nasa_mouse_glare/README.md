@@ -266,6 +266,52 @@ accession-grouped CV. GLARE's SHAP post-pipeline used XGBoost/SHAP; those are
 optional dependencies here, so the current evaluation records SHAP as not run
 and writes linear classifier coefficients instead.
 
+## Liver-Only Fixed-Config Run
+
+Use all TMS FACS liver cells for pretraining and only officially annotated
+OSDR liver profiles for fine-tuning. The training command reuses the previous
+winning configurations from `outputs/glare_hpt_tms_facs_osdr/hpt_summary.json`
+and does not run either hyperparameter sweep:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.tms \
+  --input assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad \
+  --output-prefix data/processed/tms_facs_liver \
+  --matrix-source X \
+  --filter tissue=liver
+
+PYTHONPATH=src python -m nasa_mouse_glare.subset_bundle \
+  --bundle data/processed/osdr_mouse_bulk.manifest.json \
+  --metadata outputs/glare_hpt_tms_facs_osdr/post_finetune/osdr_tissues/osdr_sample_tissues.tsv \
+  --filter-column tissue_final \
+  --filter-value liver \
+  --output-prefix data/processed/osdr_mouse_bulk_liver
+
+PYTHONPATH=src python -m nasa_mouse_glare.align \
+  --pretrain data/processed/tms_facs_liver.manifest.json \
+  --target data/processed/osdr_mouse_bulk_liver.manifest.json \
+  --output-prefix data/processed/tms_facs_liver_osdr_liver_aligned
+
+PYTHONPATH=src python -m nasa_mouse_glare.export mtx \
+  --bundle data/processed/tms_facs_liver_osdr_liver_aligned.pretrain.manifest.json \
+  --output data/glare_inputs/tms_facs_liver_pretrain.mtx
+
+PYTHONPATH=src python -m nasa_mouse_glare.export csv \
+  --bundle data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
+  --output data/glare_inputs/osdr_liver_finetune.csv
+
+python src/glare/Manuscript_Code/glare/codes/hpt.py \
+  --data1 data/glare_inputs/osdr_liver_finetune.csv \
+  --data2 data/glare_inputs/tms_facs_liver_pretrain.mtx \
+  --reuse-best-configs-from outputs/glare_hpt_tms_facs_osdr/hpt_summary.json \
+  --log-every-epochs 1 \
+  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver
+```
+
+All liver-only training and analysis outputs use
+`outputs/glare_fixed_tms_facs_liver_osdr_liver`, leaving the cross-tissue run
+unchanged.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by
