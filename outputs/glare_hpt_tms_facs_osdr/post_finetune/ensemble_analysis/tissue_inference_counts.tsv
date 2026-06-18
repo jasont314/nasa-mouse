@@ -45,12 +45,12 @@ mammary_gland	ground_control	15
 mammary_gland	vivarium_control	18
 optic_nerve	flight	23
 optic_nerve	unknown	12
-retina	baseline_control	1
+retina	baseline_control	4
 retina	flight	28
-retina	ground_control	3
+retina	ground_control	4
 retina	unknown	71
-skeletal_muscle	flight	67
-skeletal_muscle	ground_control	71
+skeletal_muscle	flight	73
+skeletal_muscle	ground_control	77
 skeletal_muscle	unknown	140
 skeletal_muscle	vivarium_control	38
 skin	baseline_control	36
@@ -67,7 +67,4 @@ thymus	baseline_control	19
 thymus	flight	51
 thymus	ground_control	45
 thymus	vivarium_control	10
-unknown	baseline_control	3
-unknown	flight	6
-unknown	ground_control	7
 unknown	unknown	863

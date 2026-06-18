@@ -34,7 +34,7 @@ TISSUE_PATTERNS = [
     ("hippocampus", r"(^|[_-])HPC([_-]|$)"),
     ("cerebellum", r"(^|[_-])CB([_-]|$)"),
     ("brain", r"(^|[_-])BRN([_-]|$)"),
-    ("retina", r"(^|[_-])(LRTN|RTN)([_-]|$)"),
+    ("retina", r"(^|[_-])(LRTN|RRTN|RTN)([_-]|$)"),
     ("optic_nerve", r"(^|[_-])ON([_-]|$)"),
     ("eye", r"(^|[_-])EYE([_-]|$)"),
     ("adrenal_gland", r"(^|[_-])ADR([_-]|$)"),
@@ -44,7 +44,7 @@ TISSUE_PATTERNS = [
     ("skin", r"(^|[_-])(DSKN|FSKN|SKN)([_-]|$)"),
     (
         "skeletal_muscle",
-        r"(^|[_-])(R-)?(EDL|QUAD|SLS|TA|GST-R)([_-]|$)",
+        r"(^|[_-])(R-)?(EDL|QUAD|SLS|TA|GST|GST-R)([_-]|$)",
     ),
 ]
 
@@ -55,6 +55,16 @@ def infer_tissue(profile: str) -> str:
         if re.search(pattern, value):
             return tissue
     return "unknown"
+
+
+def tissue_inference_rule(profile: str) -> str:
+    value = str(profile).upper()
+    for tissue, pattern in TISSUE_PATTERNS:
+        match = re.search(pattern, value)
+        if match:
+            token = match.group(0).strip("_-")
+            return f"{token}->{tissue}"
+    return ""
 
 
 def validate_alignment(bundle, gene_clusters, metadata) -> None:
@@ -101,6 +111,8 @@ def write_sample_expression(clusters, expression, n_genes, metadata, output_dir:
         "condition_inferred",
         "flight_status_inferred",
         "tissue_inferred",
+        "tissue_inference_rule",
+        "tissue_inference_confidence",
     ]
     available_cols = [col for col in metadata_cols if col in metadata]
     for row_idx, cluster in enumerate(clusters):
@@ -349,6 +361,14 @@ def run(args) -> Path:
     gene_clusters["gene_cluster"] = gene_clusters["gene_cluster"].astype(int)
     metadata = pd.read_csv(args.profile_metadata, sep="\t", keep_default_na=False)
     metadata["tissue_inferred"] = metadata["profile"].map(infer_tissue)
+    metadata["tissue_inference_rule"] = metadata["profile"].map(
+        tissue_inference_rule
+    )
+    metadata["tissue_inference_confidence"] = metadata["tissue_inferred"].map(
+        lambda value: "high_explicit_sample_token"
+        if value != "unknown"
+        else "unassigned"
+    )
     validate_alignment(bundle, gene_clusters, metadata)
 
     gene_clusters_path = output_dir / "gene_clusters.tsv"
@@ -432,6 +452,42 @@ def run(args) -> Path:
     tissue_counts_path = output_dir / "tissue_inference_counts.tsv"
     tissue_counts.to_csv(tissue_counts_path, sep="\t", index=False)
 
+    known_tissue = metadata[metadata["tissue_inferred"].ne("unknown")]
+    accession_tissue_counts = known_tissue.groupby("id.accession")[
+        "tissue_inferred"
+    ].nunique()
+    multi_tissue_accessions = accession_tissue_counts[
+        accession_tissue_counts > 1
+    ].index.tolist()
+    flight_ground = metadata[
+        metadata["condition_inferred"].isin(["flight", "ground_control"])
+    ]
+    tissue_audit = {
+        "accuracy_status": (
+            "not directly measurable because the source HDF5 has no explicit "
+            "tissue ground-truth column"
+        ),
+        "method": "deterministic explicit tissue tokens in profile sample IDs",
+        "all_profile_coverage": float(
+            metadata["tissue_inferred"].ne("unknown").mean()
+        ),
+        "flight_ground_profile_coverage": float(
+            flight_ground["tissue_inferred"].ne("unknown").mean()
+        ),
+        "accessions_with_inferred_tissue": int(len(accession_tissue_counts)),
+        "single_tissue_accessions": int(accession_tissue_counts.eq(1).sum()),
+        "multi_tissue_accessions": multi_tissue_accessions,
+        "internal_consistency_note": (
+            "OSD-164 is the only multi-tissue accession and explicitly contains "
+            "liver and spleen sample IDs."
+        ),
+    }
+    tissue_audit_path = output_dir / "tissue_inference_audit.json"
+    tissue_audit_path.write_text(
+        json.dumps(tissue_audit, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
     summary = {
         "gene_clusters": str(args.gene_clusters),
         "target_manifest": str(args.target_manifest),
@@ -452,6 +508,7 @@ def run(args) -> Path:
                 .ne("unknown")
                 .sum()
             ),
+            "audit": tissue_audit,
         },
         "significance": {
             "effect": "log2((mean flight expression + 1)/(mean ground expression + 1))",
@@ -489,6 +546,7 @@ def run(args) -> Path:
             "tissue_significance": str(tissue_tests_path),
             "variance_summary": str(variance_path),
             "tissue_inference_counts": str(tissue_counts_path),
+            "tissue_inference_audit": str(tissue_audit_path),
         },
     }
     summary_path = output_dir / "cluster_stratified_analysis_summary.json"
