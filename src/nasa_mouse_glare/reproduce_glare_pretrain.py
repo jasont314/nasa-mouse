@@ -114,6 +114,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--seed", type=int, default=1996)
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=0,
+        help="DataLoader workers; zero avoids macOS shared-memory restrictions.",
+    )
     return parser.parse_args()
 
 
@@ -136,6 +142,7 @@ def main() -> None:
         "batch_size": args.batch_size,
         "epochs": args.epochs,
         "seed": args.seed,
+        "num_workers": args.num_workers,
         "device": str(device),
         "input": str(input_path),
     }
@@ -150,7 +157,7 @@ def main() -> None:
         x,
         batch_size=args.batch_size,
         shuffle=True,
-        num_workers=4,
+        num_workers=args.num_workers,
         pin_memory=torch.cuda.is_available(),
     )
 
