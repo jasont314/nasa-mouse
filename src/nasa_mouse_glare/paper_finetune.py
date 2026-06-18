@@ -1,0 +1,428 @@
+"""GLARE-style separate-condition fine-tuning for one controlled OSDR study."""
+
+from __future__ import annotations
+
+import argparse
+import copy
+import csv
+import json
+import re
+import time
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from torch.utils.data import DataLoader
+
+from .io import dense_matrix, load_matrix_bundle
+from .reproduce_glare_finetune import Adapter, SparseAutoEncoder, load_state_dict
+
+
+CONDITIONS = {"FLT": "flight", "GC": "ground_control"}
+COHORT_ORDER = {
+    ("ISS-T", "OLD"): 0,
+    ("ISS-T", "YNG"): 1,
+    ("LAR", "OLD"): 2,
+    ("LAR", "YNG"): 3,
+}
+
+
+def log(message: str) -> None:
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {message}", flush=True)
+
+
+def format_elapsed(seconds: float) -> str:
+    seconds = int(seconds)
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    if hours:
+        return f"{hours}h {minutes}m {seconds}s"
+    if minutes:
+        return f"{minutes}m {seconds}s"
+    return f"{seconds}s"
+
+
+def profile_cohort(profile: str) -> tuple[str, str, int]:
+    """Return preservation cohort, age, and animal number from RR-8 names."""
+    platform = "ISS-T" if "ISS-T" in profile else "LAR" if "LAR" in profile else ""
+    age = "OLD" if "_OLD_" in profile else "YNG" if "_YNG_" in profile else ""
+    match = re.search(r"(\d+)$", profile)
+    if not platform or not age or not match:
+        raise ValueError(f"Cannot derive OSD-379 cohort slot from profile: {profile}")
+    return platform, age, int(match.group(1))
+
+
+def _ordered_condition_rows(metadata: pd.DataFrame, condition: str) -> pd.DataFrame:
+    selected = metadata.loc[metadata["condition_inferred"].eq(condition)].copy()
+    if selected.empty:
+        raise ValueError(f"No profiles found for condition_inferred={condition!r}")
+    cohorts = selected["profile"].astype(str).map(profile_cohort)
+    selected["cohort"] = cohorts.map(lambda value: value[0])
+    selected["age"] = cohorts.map(lambda value: value[1])
+    selected["animal_number"] = cohorts.map(lambda value: value[2])
+    selected["cohort_order"] = [
+        COHORT_ORDER[(cohort, age)]
+        for cohort, age in zip(selected["cohort"], selected["age"])
+    ]
+    return selected.sort_values(
+        ["cohort_order", "animal_number", "profile"]
+    ).reset_index(drop=True)
+
+
+def prepare_controlled_target(
+    target_manifest: str | Path,
+    accession: str,
+    output_dir: Path,
+) -> dict:
+    """Select balanced FLT/GC profiles and assign comparable cohort slots."""
+    bundle = load_matrix_bundle(target_manifest)
+    if bundle.profile_metadata is None:
+        raise ValueError("Target bundle must include profile metadata")
+    metadata = bundle.profile_metadata.copy()
+    required = {"profile", "id.accession", "condition_inferred"}
+    missing = required - set(metadata.columns)
+    if missing:
+        raise ValueError(f"Target metadata is missing columns: {sorted(missing)}")
+
+    study_metadata = metadata.loc[metadata["id.accession"].eq(accession)].copy()
+    if study_metadata.empty:
+        raise ValueError(f"No profiles found for accession {accession}")
+    profile_to_index = {str(profile): index for index, profile in enumerate(bundle.profiles)}
+    target = dense_matrix(bundle.matrix)
+
+    ordered = {
+        label: _ordered_condition_rows(study_metadata, condition)
+        for label, condition in CONDITIONS.items()
+    }
+    cohort_counts = {
+        label: rows.groupby(["cohort", "age"]).size().to_dict()
+        for label, rows in ordered.items()
+    }
+    if cohort_counts["FLT"] != cohort_counts["GC"]:
+        raise ValueError(
+            "FLT and GC cohort counts differ; matched melted features cannot be built: "
+            f"{cohort_counts}"
+        )
+
+    feature_rows = []
+    matrices = {}
+    for label, rows in ordered.items():
+        indices = [profile_to_index[str(profile)] for profile in rows["profile"]]
+        matrices[label] = target[:, indices].astype(np.float32, copy=False)
+
+    for (cohort, age), count in sorted(
+        cohort_counts["FLT"].items(), key=lambda item: COHORT_ORDER[item[0]]
+    ):
+        flt_rows = ordered["FLT"].loc[
+            ordered["FLT"]["cohort"].eq(cohort) & ordered["FLT"]["age"].eq(age)
+        ]
+        gc_rows = ordered["GC"].loc[
+            ordered["GC"]["cohort"].eq(cohort) & ordered["GC"]["age"].eq(age)
+        ]
+        for rank, (flt_row, gc_row) in enumerate(
+            zip(flt_rows.itertuples(), gc_rows.itertuples()), start=1
+        ):
+            feature_rows.append(
+                {
+                    "feature_index": len(feature_rows),
+                    "feature": f"{cohort}_{age}_rep{rank:02d}",
+                    "cohort": cohort,
+                    "age": age,
+                    "flt_profile": flt_row.profile,
+                    "gc_profile": gc_row.profile,
+                    "flt_animal_number": flt_row.animal_number,
+                    "gc_animal_number": gc_row.animal_number,
+                }
+            )
+
+    # Rows were sorted by the same cohort/rank order used above.
+    feature_map = pd.DataFrame(feature_rows)
+    if len(feature_map) != matrices["FLT"].shape[1]:
+        raise AssertionError("Feature map and expression matrices are not aligned")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    target_path = output_dir / "controlled_target.npz"
+    np.savez_compressed(
+        target_path,
+        flt=matrices["FLT"],
+        gc=matrices["GC"],
+        genes=np.asarray(bundle.genes, dtype=str),
+        features=feature_map["feature"].to_numpy(dtype=str),
+    )
+    feature_map.to_csv(output_dir / "matched_feature_slots.tsv", sep="\t", index=False)
+    study_metadata.to_csv(output_dir / "study_profile_metadata.tsv", sep="\t", index=False)
+    return {
+        "path": target_path,
+        "genes": bundle.genes,
+        "features": feature_map["feature"].tolist(),
+        "matrices": matrices,
+        "cohort_counts": {
+            label: {f"{key[0]}_{key[1]}": int(value) for key, value in counts.items()}
+            for label, counts in cohort_counts.items()
+        },
+        "study_profile_count": int(len(study_metadata)),
+    }
+
+
+def write_epoch_logs(output_dir: Path, location: str, records: list[dict]) -> None:
+    fields = [
+        "location",
+        "epoch",
+        "loss",
+        "best_loss",
+        "elapsed_seconds",
+        "elapsed",
+        "epoch_seconds",
+    ]
+    with (output_dir / f"{location}_epoch_losses.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(records)
+    (output_dir / f"{location}_epoch_losses.json").write_text(
+        json.dumps(records, indent=2) + "\n", encoding="utf-8"
+    )
+
+
+def write_outlier_audit(
+    matrix: np.ndarray,
+    genes: list[str],
+    location: str,
+    output_dir: Path,
+) -> None:
+    """Export GLARE's PCA/k-means inspection without arbitrary gene removal."""
+    scaled = StandardScaler().fit_transform(matrix)
+    pca = PCA(n_components=3, random_state=1).fit_transform(scaled)
+    n_clusters = 5 if location == "FLT" else 4
+    labels = KMeans(
+        n_clusters=n_clusters,
+        init="k-means++",
+        n_init=10,
+        random_state=1,
+    ).fit_predict(pca)
+    pd.DataFrame(
+        {
+            "gene_id": genes,
+            "pc1": pca[:, 0],
+            "pc2": pca[:, 1],
+            "pc3": pca[:, 2],
+            "inspection_cluster": labels,
+        }
+    ).to_csv(output_dir / f"{location}_outlier_audit.tsv", sep="\t", index=False)
+
+
+def infer_pretrain_input_dim(weights: Path) -> int:
+    state = load_state_dict(weights)
+    key = "encoder.0.weight"
+    if key not in state:
+        raise ValueError(f"Cannot infer pretraining input dimension from {weights}")
+    return int(state[key].shape[1])
+
+
+def finetune_location(
+    matrix: np.ndarray,
+    genes: list[str],
+    location: str,
+    pretrained_weights: Path,
+    output_dir: Path,
+    device: torch.device,
+    input_dim: int,
+    epochs: int,
+    batch_size: int,
+    seed: int,
+) -> dict:
+    start = time.perf_counter()
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+
+    scaler = StandardScaler()
+    scaled = scaler.fit_transform(matrix).astype(np.float32, copy=False)
+    np.savez_compressed(
+        output_dir / f"{location}_standard_scaler.npz",
+        mean=scaler.mean_,
+        scale=scaler.scale_,
+    )
+    source = torch.tensor(scaled, dtype=torch.float32)
+    adapter = Adapter(source.shape[1], input_dim)
+    adapted = adapter(source).clone().detach()
+    loader = DataLoader(adapted, batch_size=batch_size, shuffle=True, num_workers=0)
+
+    model = SparseAutoEncoder(input_dim).to(device)
+    model.load_state_dict(load_state_dict(pretrained_weights))
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    records = []
+    best_loss = float("inf")
+    best_epoch = 0
+    best_state = None
+    log(
+        f"{location}: fine-tuning {matrix.shape[0]} genes x {matrix.shape[1]} "
+        f"profiles through adapter -> {input_dim}"
+    )
+    for epoch in range(epochs):
+        epoch_start = time.perf_counter()
+        total_loss = 0.0
+        model.train()
+        for batch in loader:
+            batch = batch.to(device)
+            optimizer.zero_grad()
+            outputs = model(batch)
+            loss = criterion(outputs, batch)
+            # This intentionally matches GLARE's released sparsity calculation.
+            encoded_for_l1 = model.encoder[-1](batch)
+            loss += 1e-5 * torch.mean(torch.abs(encoded_for_l1))
+            loss.backward()
+            optimizer.step()
+            total_loss += float(loss.item())
+
+        average_loss = total_loss / len(loader)
+        if average_loss < best_loss:
+            best_loss = average_loss
+            best_epoch = epoch + 1
+            best_state = copy.deepcopy(model.state_dict())
+        elapsed = time.perf_counter() - start
+        records.append(
+            {
+                "location": location,
+                "epoch": epoch + 1,
+                "loss": round(average_loss, 8),
+                "best_loss": round(best_loss, 8),
+                "elapsed_seconds": round(elapsed, 3),
+                "elapsed": format_elapsed(elapsed),
+                "epoch_seconds": round(time.perf_counter() - epoch_start, 3),
+            }
+        )
+        write_epoch_logs(output_dir, location, records)
+        log(
+            f"{location}: epoch {epoch + 1}/{epochs} loss={average_loss:.8f} "
+            f"best={best_loss:.8f}"
+        )
+
+    if best_state is None:
+        raise AssertionError("Fine-tuning completed without a best model")
+    model.load_state_dict(best_state)
+    weights_path = output_dir / f"{location}_finetuned_sae.pth"
+    adapter_path = output_dir / f"{location}_adapter.pth"
+    torch.save(best_state, weights_path)
+    torch.save(adapter.state_dict(), adapter_path)
+    model.eval()
+    with torch.no_grad():
+        representation = model.encoder(adapted.to(device)).cpu().numpy()
+    representation_path = output_dir / f"{location}_FTSAE_representation.npy"
+    np.save(representation_path, representation)
+    pd.DataFrame(
+        representation,
+        index=genes,
+        columns=[f"latent_{index + 1}" for index in range(representation.shape[1])],
+    ).rename_axis("gene_id").to_csv(
+        output_dir / f"{location}_gene_latent.tsv", sep="\t"
+    )
+    return {
+        "location": location,
+        "genes": int(matrix.shape[0]),
+        "profiles": int(matrix.shape[1]),
+        "best_loss": round(best_loss, 8),
+        "best_epoch": best_epoch,
+        "epochs": epochs,
+        "weights": str(weights_path),
+        "adapter": str(adapter_path),
+        "representation": str(representation_path),
+        "elapsed_seconds": round(time.perf_counter() - start, 3),
+        "elapsed": format_elapsed(time.perf_counter() - start),
+    }
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Fine-tune GLARE separately on FLT and GC from one OSDR study."
+    )
+    parser.add_argument(
+        "--target-manifest",
+        default="data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+    )
+    parser.add_argument("--accession", default="OSD-379")
+    parser.add_argument("--pretrained-weights", required=True)
+    parser.add_argument(
+        "--output-dir",
+        default="outputs/glare_paper_tms_liver_osd379",
+    )
+    parser.add_argument("--epochs", type=int, default=30)
+    parser.add_argument("--batch-size", type=int, default=16)
+    parser.add_argument("--seed", type=int, default=1996)
+    parser.add_argument("--prepare-only", action="store_true")
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    run_start = time.perf_counter()
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    prepared = prepare_controlled_target(
+        args.target_manifest, args.accession, output_dir
+    )
+    log(
+        f"Prepared {args.accession}: {len(prepared['genes'])} genes, "
+        f"{len(prepared['features'])} matched profiles per condition"
+    )
+    if args.prepare_only:
+        return
+
+    pretrained_weights = Path(args.pretrained_weights)
+    input_dim = infer_pretrain_input_dim(pretrained_weights)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    for location, matrix in prepared["matrices"].items():
+        write_outlier_audit(matrix, prepared["genes"], location, output_dir)
+    locations = [
+        finetune_location(
+            prepared["matrices"][location],
+            prepared["genes"],
+            location,
+            pretrained_weights,
+            output_dir,
+            device,
+            input_dim,
+            args.epochs,
+            args.batch_size,
+            args.seed,
+        )
+        for location in CONDITIONS
+    ]
+    summary = {
+        "method": "GLARE released 16-dimensional SAE with separate FLT/GC fine-tuning",
+        "accession": args.accession,
+        "target_manifest": args.target_manifest,
+        "pretrained_weights": str(pretrained_weights),
+        "pretrained_input_dim": input_dim,
+        "device": str(device),
+        "seed_reused_for_each_location": args.seed,
+        "architecture": [128, 64, 32, 16],
+        "learning_rate": 1e-3,
+        "weight_decay": 0,
+        "sparsity_penalty": 1e-5,
+        "batch_size": args.batch_size,
+        "cohort_counts": prepared["cohort_counts"],
+        "study_profile_count_all_conditions": prepared["study_profile_count"],
+        "outlier_policy": (
+            "PCA/k-means audit exported; no genes removed because GLARE's three "
+            "fixed Arabidopsis outlier IDs do not transfer to mouse"
+        ),
+        "locations": locations,
+        "elapsed_seconds": round(time.perf_counter() - run_start, 3),
+        "elapsed": format_elapsed(time.perf_counter() - run_start),
+    }
+    (output_dir / "finetune_summary.json").write_text(
+        json.dumps(summary, indent=2) + "\n", encoding="utf-8"
+    )
+    log(f"Saved summary: {output_dir / 'finetune_summary.json'}")
+
+
+if __name__ == "__main__":
+    main()
