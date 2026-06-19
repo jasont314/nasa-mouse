@@ -413,10 +413,9 @@ def export_cluster_analysis(
             include = 10 <= len(group) <= 3000
             list_path = metascape_dir / f"{location}_cluster_{int(cluster):02d}.txt"
             if include:
-                identifiers = group["gene_symbol"].where(
-                    group["gene_symbol"].astype(str).str.len().gt(0),
-                    group["gene_id"],
-                )
+                # Ensembl IDs are species-specific and avoid Metascape's expensive
+                # cross-species synonym expansion during multi-list uploads.
+                identifiers = group["gene_id"]
                 list_name = f"{location}_cluster_{int(cluster):02d}"
                 metascape_lists[list_name] = identifiers.astype(str).tolist()
                 list_path.write_text(
@@ -441,9 +440,7 @@ def export_cluster_analysis(
     proportions.to_csv(output_dir / "cluster_deg_proportions.tsv", sep="\t", index=False)
     metascape = pd.DataFrame(metascape_rows)
     metascape.to_csv(metascape_dir / "manifest.tsv", sep="\t", index=False)
-    background = deg["gene_symbol"].where(
-        deg["gene_symbol"].astype(str).str.len().gt(0), deg["gene_id"]
-    ).astype(str).tolist()
+    background = deg["gene_id"].astype(str).tolist()
     pd.DataFrame(
         {name: pd.Series(values) for name, values in metascape_lists.items()}
     ).to_csv(metascape_dir / "metascape_multiple_gene_lists.csv", index=False)

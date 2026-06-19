@@ -452,6 +452,8 @@ Analysis**, select `Mus musculus` for input and analysis, and paste
 `biological_analysis/metascape_gene_lists/metascape_background.txt` into
 the custom enrichment-background dialog. The CSV contains one foreground
 column per eligible cluster; the background file contains all tested genes.
+Both use mouse Ensembl gene IDs to avoid ambiguous cross-species symbol
+mapping during upload.
 
 See `outputs/glare_paper_tms_liver_osd379/RUN_SUMMARY.md` for results and
 method deviations that remain specific to the mouse adaptation.
