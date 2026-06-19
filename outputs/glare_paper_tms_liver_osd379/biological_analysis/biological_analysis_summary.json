@@ -26,6 +26,7 @@
     "deg_proportions": "outputs/glare_paper_tms_liver_osd379/biological_analysis/cluster_deg_proportions.tsv",
     "cluster_contingency": "outputs/glare_paper_tms_liver_osd379/biological_analysis/flt_gc_cluster_contingency.tsv",
     "metascape_manifest": "outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/manifest.tsv",
-    "metascape_multiple_lists": "outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/metascape_multiple_gene_lists.csv"
+    "metascape_multiple_lists": "outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/metascape_multiple_gene_lists.csv",
+    "metascape_background": "outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/metascape_background.txt"
   }
 }

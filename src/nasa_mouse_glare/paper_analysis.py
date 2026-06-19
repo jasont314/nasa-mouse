@@ -444,17 +444,18 @@ def export_cluster_analysis(
     background = deg["gene_symbol"].where(
         deg["gene_symbol"].astype(str).str.len().gt(0), deg["gene_id"]
     ).astype(str).tolist()
-    combined_lists = {**metascape_lists, "_BACKGROUND": background}
     pd.DataFrame(
-        {name: pd.Series(values) for name, values in combined_lists.items()}
+        {name: pd.Series(values) for name, values in metascape_lists.items()}
     ).to_csv(metascape_dir / "metascape_multiple_gene_lists.csv", index=False)
+    (metascape_dir / "metascape_background.txt").write_text(
+        "\n".join(background) + "\n", encoding="utf-8"
+    )
     for location in ("FLT", "GC"):
         location_lists = {
             name: values
             for name, values in metascape_lists.items()
             if name.startswith(f"{location}_")
         }
-        location_lists["_BACKGROUND"] = background
         pd.DataFrame(
             {name: pd.Series(values) for name, values in location_lists.items()}
         ).to_csv(
@@ -463,11 +464,13 @@ def export_cluster_analysis(
         )
     (metascape_dir / "README.txt").write_text(
         "Upload metascape_multiple_gene_lists.csv (or one location-specific CSV) "
-        "to Metascape with Multiple Gene Lists selected. Each column is one list; "
-        "_BACKGROUND contains all tested genes. Select Mus musculus as both input "
-        "and analysis species. Lists over 3,000 genes and lists under 10 genes are "
-        "excluded to match GLARE and Metascape limits. Metascape has no public API, "
-        "so web submission and result download are manual.\n",
+        "to Metascape after selecting Multiple Gene Lists. Confirm that the first "
+        "row is detected as the column header, then choose Custom Analysis. Select "
+        "Mus musculus as both input and analysis species. In the enrichment settings, "
+        "paste metascape_background.txt into the custom background dialog. Each CSV "
+        "column is one foreground list. Lists over 3,000 genes and lists under 10 "
+        "genes are excluded to match GLARE and Metascape limits. Metascape has no "
+        "public API, so web submission and result download are manual.\n",
         encoding="utf-8",
     )
 
@@ -518,6 +521,9 @@ def export_cluster_analysis(
             "metascape_manifest": str(metascape_dir / "manifest.tsv"),
             "metascape_multiple_lists": str(
                 metascape_dir / "metascape_multiple_gene_lists.csv"
+            ),
+            "metascape_background": str(
+                metascape_dir / "metascape_background.txt"
             ),
         },
     }

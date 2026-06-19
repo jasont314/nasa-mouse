@@ -446,9 +446,12 @@ PYTHONPATH=src python -m nasa_mouse_glare.paper_analysis post \
 
 Metascape does not provide a public API. Upload
 `biological_analysis/metascape_gene_lists/metascape_multiple_gene_lists.csv`
-from the run directory with **Multiple Gene Lists** enabled and select
-`Mus musculus` for input and analysis. The file contains one column per
-eligible cluster and a `_BACKGROUND` column containing all tested genes.
+from the run directory after enabling **Multiple Gene Lists** and confirm
+that the first row is detected as the column header. Choose **Custom
+Analysis**, select `Mus musculus` for input and analysis, and paste
+`biological_analysis/metascape_gene_lists/metascape_background.txt` into
+the custom enrichment-background dialog. The CSV contains one foreground
+column per eligible cluster; the background file contains all tested genes.
 
 See `outputs/glare_paper_tms_liver_osd379/RUN_SUMMARY.md` for results and
 method deviations that remain specific to the mouse adaptation.
