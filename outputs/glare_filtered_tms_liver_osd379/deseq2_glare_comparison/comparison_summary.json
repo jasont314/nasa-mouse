@@ -1,0 +1,71 @@
+{
+  "deseq2_genes_tested_in_glare": 12962,
+  "deseq2_significant_genes": 48,
+  "deseq2_up": 32,
+  "deseq2_down": 16,
+  "flt_gc_cluster_ari": 0.4234661150210462,
+  "flt_gc_cluster_nmi": 0.6713369069010585,
+  "abs_lfc_vs_latent_shift_spearman_rho": 0.0740031807179823,
+  "abs_lfc_vs_latent_shift_spearman_p": 3.281699097058512e-17,
+  "deg_latent_shift_mannwhitney_u": 453035.0,
+  "deg_latent_shift_mannwhitney_p": 1.6015263781810063e-08,
+  "latent_shift_deg_roc_auc": 0.7308524985803521,
+  "deg_enriched_glare_clusters_fdr05": 0,
+  "significant_cluster_records": [],
+  "latent_alignment_note": "GC latent coordinates were standardized and orthogonally aligned to FLT before calculating gene-wise distances; separate SAE spaces are otherwise not directly coordinate-comparable.",
+  "reactome": {
+    "background_mouse_ensembl_genes": 12962,
+    "deseq2_query_mouse_ensembl_genes": 48,
+    "glare_top_shift_query_mouse_ensembl_genes": 48,
+    "deseq2_significant_terms_fdr05": 27,
+    "glare_shift_significant_terms_fdr05": 30,
+    "shared_significant_terms": 6,
+    "shared_terms": [
+      "REACTOME_FATTY_ACID_TRIACYLGLYCEROL_AND_KETONE_BODY_METABOLISM",
+      "REACTOME_FATTY_ACYL_COA_BIOSYNTHESIS",
+      "REACTOME_INTEGRATION_OF_ENERGY_METABOLISM",
+      "REACTOME_METABOLISM_OF_LIPIDS_AND_LIPOPROTEINS",
+      "REACTOME_TRANSMEMBRANE_TRANSPORT_OF_SMALL_MOLECULES",
+      "REACTOME_TRIGLYCERIDE_BIOSYNTHESIS"
+    ],
+    "top_deseq2_terms": [
+      "REACTOME_BMAL1_CLOCK_NPAS2_ACTIVATES_CIRCADIAN_EXPRESSION",
+      "REACTOME_METABOLISM_OF_LIPIDS_AND_LIPOPROTEINS",
+      "REACTOME_INTEGRATION_OF_ENERGY_METABOLISM",
+      "REACTOME_CIRCADIAN_CLOCK",
+      "REACTOME_G_ALPHA_Z_SIGNALLING_EVENTS",
+      "REACTOME_FATTY_ACYL_COA_BIOSYNTHESIS",
+      "REACTOME_NEURONAL_SYSTEM",
+      "REACTOME_CHOLESTEROL_BIOSYNTHESIS",
+      "REACTOME_INHIBITION_OF_INSULIN_SECRETION_BY_ADRENALINE_NORADRENALINE",
+      "REACTOME_NEUROTRANSMITTER_RECEPTOR_BINDING_AND_DOWNSTREAM_TRANSMISSION_IN_THE_POSTSYNAPTIC_CELL"
+    ],
+    "top_glare_shift_terms": [
+      "REACTOME_RESPONSE_TO_ELEVATED_PLATELET_CYTOSOLIC_CA2_",
+      "REACTOME_PLATELET_ACTIVATION_SIGNALING_AND_AGGREGATION",
+      "REACTOME_HEMOSTASIS",
+      "REACTOME_COMMON_PATHWAY",
+      "REACTOME_P130CAS_LINKAGE_TO_MAPK_SIGNALING_FOR_INTEGRINS",
+      "REACTOME_GRB2_SOS_PROVIDES_LINKAGE_TO_MAPK_SIGNALING_FOR_INTERGRINS_",
+      "REACTOME_FATTY_ACYL_COA_BIOSYNTHESIS",
+      "REACTOME_GLUCOSE_METABOLISM",
+      "REACTOME_METABOLISM_OF_LIPIDS_AND_LIPOPROTEINS",
+      "REACTOME_INTEGRIN_ALPHAIIB_BETA3_SIGNALING"
+    ]
+  },
+  "filtered_vs_original_glare": {
+    "FLT": {
+      "ari": 0.38619798330814126,
+      "nmi": 0.5985470567962017
+    },
+    "GC": {
+      "ari": 0.4128130784527194,
+      "nmi": 0.6055765953415162
+    }
+  },
+  "original_flt_cluster12": {
+    "genes": 115,
+    "filtered_clusters_spanned": 11,
+    "deseq2_significant_genes": 0
+  }
+}

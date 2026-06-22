@@ -1,0 +1,6 @@
+analysis	samples	genes_tested	significant	up	down	model
+global_adjusted	56	17112	96	60	36	~stratum + muscle_score_z + condition
+ISS-T_OLD	18	16290	236	119	117	~muscle_score_z + condition
+ISS-T_YNG	17	15920	60	45	15	~muscle_score_z + condition
+LAR_OLD	9	15278	126	67	59	~muscle_score_z + condition
+LAR_YNG	12	15278	20	2	18	~muscle_score_z + condition

@@ -1,0 +1,91 @@
+{
+  "method": "GLARE released 16-dimensional SAE with separate FLT/GC fine-tuning",
+  "accession": "OSD-379",
+  "target_manifest": "data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+  "target_expression_input": "outputs/glare_filtered_tms_liver_osd379/deseq2/filtered_deseq2_normalized_counts_glare.csv",
+  "target_expression_kind": "official_osdr_normalized_counts",
+  "pretrained_weights": "outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth",
+  "pretrained_input_dim": 2859,
+  "device": "cpu",
+  "seed_reused_for_each_location": 1996,
+  "architecture": [
+    128,
+    64,
+    32,
+    16
+  ],
+  "learning_rate": 0.001,
+  "weight_decay": 0,
+  "sparsity_penalty": 1e-05,
+  "batch_size": 16,
+  "cohort_counts": {
+    "FLT": {
+      "ISS-T_OLD": 8,
+      "ISS-T_YNG": 8,
+      "LAR_OLD": 4,
+      "LAR_YNG": 6
+    },
+    "GC": {
+      "ISS-T_OLD": 10,
+      "ISS-T_YNG": 9,
+      "LAR_OLD": 5,
+      "LAR_YNG": 6
+    }
+  },
+  "sample_filter": {
+    "exclusion_file": "outputs/glare_paper_tms_liver_osd379/biological_analysis/tissue_composition_qc/recommended_sample_exclusions.tsv",
+    "directly_flagged_profiles": [
+      "RR8_LVR_FLT_ISS-T_OLD_FI16",
+      "RR8_LVR_FLT_ISS-T_OLD_FI17",
+      "RR8_LVR_FLT_ISS-T_YNG_FI10",
+      "RR8_LVR_FLT_ISS-T_YNG_FI9",
+      "RR8_LVR_FLT_LAR_OLD_FL11",
+      "RR8_LVR_FLT_LAR_OLD_FL15",
+      "RR8_LVR_FLT_LAR_OLD_FL8",
+      "RR8_LVR_FLT_LAR_YNG_FL18",
+      "RR8_LVR_FLT_LAR_YNG_FL2",
+      "RR8_LVR_GC_ISS-T_YNG_GI10",
+      "RR8_LVR_GC_LAR_OLD_GL3",
+      "RR8_LVR_GC_LAR_OLD_GL7",
+      "RR8_LVR_GC_LAR_YNG_GL18",
+      "RR8_LVR_GC_LAR_YNG_GL5"
+    ],
+    "affected_matched_slots": 12,
+    "matched_slots_excluded": 0,
+    "total_profiles_excluded": 14,
+    "filter_mode": "independent"
+  },
+  "study_profile_count_all_conditions": 141,
+  "genes_dropped_from_broad_alignment": 4457,
+  "outlier_policy": "PCA/k-means audit exported; no genes removed because GLARE's three fixed Arabidopsis outlier IDs do not transfer to mouse",
+  "locations": [
+    {
+      "location": "FLT",
+      "genes": 16553,
+      "profiles": 26,
+      "best_loss": 0.15614395,
+      "best_epoch": 30,
+      "epochs": 30,
+      "weights": "outputs/glare_filtered_tms_liver_osd379/FLT_finetuned_sae.pth",
+      "adapter": "outputs/glare_filtered_tms_liver_osd379/FLT_adapter.pth",
+      "representation": "outputs/glare_filtered_tms_liver_osd379/FLT_FTSAE_representation.npy",
+      "elapsed_seconds": 62.587,
+      "elapsed": "1m 2s"
+    },
+    {
+      "location": "GC",
+      "genes": 16553,
+      "profiles": 30,
+      "best_loss": 0.15580788,
+      "best_epoch": 28,
+      "epochs": 30,
+      "weights": "outputs/glare_filtered_tms_liver_osd379/GC_finetuned_sae.pth",
+      "adapter": "outputs/glare_filtered_tms_liver_osd379/GC_adapter.pth",
+      "representation": "outputs/glare_filtered_tms_liver_osd379/GC_FTSAE_representation.npy",
+      "elapsed_seconds": 59.228,
+      "elapsed": "59s"
+    }
+  ],
+  "elapsed_seconds": 122.413,
+  "elapsed": "2m 2s"
+}

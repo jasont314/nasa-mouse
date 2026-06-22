@@ -1,0 +1,74 @@
+{
+  "method": "GLARE GMM/HDBSCAN/Spectral partitions followed by co-association distance and average-linkage EAC",
+  "implementation": "Exact lossless partition-signature compression avoids the full gene-by-gene co-association matrix",
+  "locations": [
+    {
+      "location": "FLT",
+      "representation": "outputs/glare_filtered_tms_liver_osd379/FLT_FTSAE_representation.npy",
+      "shape": [
+        16553,
+        16
+      ],
+      "base_configuration": {
+        "gmm_clusters": 20,
+        "hdbscan_min_cluster_size": 60,
+        "spectral_clusters": 25,
+        "consensus_clusters": 16
+      },
+      "diagnostics": {
+        "gmm_clusters_observed": 20,
+        "hdbscan_hard_clusters_observed": 11,
+        "hdbscan_soft_clusters_observed": 9,
+        "hdbscan_noise_points_before_soft_assignment": 15298,
+        "hdbscan_fallback": "",
+        "spectral_clusters_observed": 25,
+        "unique_partition_signatures": 67
+      },
+      "consensus_clusters_observed": 16,
+      "consensus_silhouette_sample_size": 5000,
+      "consensus_silhouette": 0.11684173345565796,
+      "clusters": "outputs/glare_filtered_tms_liver_osd379/clustering/FLT_gene_clusters.tsv",
+      "visualization": {
+        "pca": "outputs/glare_filtered_tms_liver_osd379/clustering/FLT_pca.tsv",
+        "pca_plot": "outputs/glare_filtered_tms_liver_osd379/clustering/FLT_pca.png",
+        "tsne": "outputs/glare_filtered_tms_liver_osd379/clustering/FLT_tsne.tsv",
+        "tsne_plot": "outputs/glare_filtered_tms_liver_osd379/clustering/FLT_tsne.png"
+      },
+      "elapsed_seconds": 93.259
+    },
+    {
+      "location": "GC",
+      "representation": "outputs/glare_filtered_tms_liver_osd379/GC_FTSAE_representation.npy",
+      "shape": [
+        16553,
+        16
+      ],
+      "base_configuration": {
+        "gmm_clusters": 25,
+        "hdbscan_min_cluster_size": 50,
+        "spectral_clusters": 20,
+        "consensus_clusters": 15
+      },
+      "diagnostics": {
+        "gmm_clusters_observed": 25,
+        "hdbscan_hard_clusters_observed": 17,
+        "hdbscan_soft_clusters_observed": 16,
+        "hdbscan_noise_points_before_soft_assignment": 15195,
+        "hdbscan_fallback": "",
+        "spectral_clusters_observed": 20,
+        "unique_partition_signatures": 97
+      },
+      "consensus_clusters_observed": 15,
+      "consensus_silhouette_sample_size": 5000,
+      "consensus_silhouette": 0.3531773090362549,
+      "clusters": "outputs/glare_filtered_tms_liver_osd379/clustering/GC_gene_clusters.tsv",
+      "visualization": {
+        "pca": "outputs/glare_filtered_tms_liver_osd379/clustering/GC_pca.tsv",
+        "pca_plot": "outputs/glare_filtered_tms_liver_osd379/clustering/GC_pca.png",
+        "tsne": "outputs/glare_filtered_tms_liver_osd379/clustering/GC_tsne.tsv",
+        "tsne_plot": "outputs/glare_filtered_tms_liver_osd379/clustering/GC_tsne.png"
+      },
+      "elapsed_seconds": 100.587
+    }
+  ]
+}
