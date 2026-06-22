@@ -1,0 +1,162 @@
+Network,Annotation
+FLT_cluster_02,R-MMU-8953854|Metabolism of RNA|-11.7;GO:0042254|ribosome biogenesis|-10.4;R-MMU-72163|mRNA Splicing - Major Pathway|-10.3
+FLT_cluster_03,R-MMU-9937383|Mitochondrial ribosome-associated quality control|-13.1;R-MMU-5368287|Mitochondrial translation|-12.3;GO:0006412|translation|-12.0
+FLT_cluster_04,GO:0019941|modification-dependent protein catabolic process|-11.4;R-MMU-8953897|Cellular responses to stimuli|-11.2;GO:0043632|modification-dependent macromolecule catabolic process|-11.2
+FLT_cluster_05,mmu05022|Pathways of neurodegeneration - multiple diseases - Mus musculus (house mouse)|-12.7;mmu05010|Alzheimer disease - Mus musculus (house mouse)|-12.6;mmu05012|Parkinson disease - Mus musculus (house mouse)|-12.0
+FLT_cluster_06,R-MMU-9954716|ZNF598 and the Ribosome-associated Quality Trigger (RQT) complex dissociate a ribosome stalled on a no-go mRNA|-38.3;R-MMU-975956|Nonsense Mediated Decay (NMD) independent of the Exon Junction Complex (EJC)|-38.3;GO:0045333|cellular respiration|-37.9
+FLT_cluster_07,mmu05016|Huntington disease - Mus musculus (house mouse)|-6.6;GO:0016236|macroautophagy|-5.7;GO:0006368|transcription elongation by RNA polymerase II|-5.5
+FLT_cluster_08,WP441|Matrix metalloproteinases|-5.7;GO:0048812|neuron projection morphogenesis|-5.2;GO:0120039|plasma membrane bounded cell projection morphogenesis|-5.1
+FLT_cluster_09,mmu01210|2-Oxocarboxylic acid metabolism - Mus musculus (house mouse)|-12.0;mmu01200|Carbon metabolism - Mus musculus (house mouse)|-9.2;mmu00020|Citrate cycle (TCA cycle) - Mus musculus (house mouse)|-8.9
+FLT_cluster_10,mmu05171|Coronavirus disease - Mus musculus (house mouse)|-31.5;WP163|Cytoplasmic ribosomal proteins|-31.1;R-MMU-9954714|PELO:HBS1L and ABCE1 dissociate a ribosome on a non-stop mRNA|-24.9
+FLT_cluster_11,GO:0006631|fatty acid metabolic process|-19.4;GO:0032787|monocarboxylic acid metabolic process|-19.2;GO:0044282|small molecule catabolic process|-18.6
+FLT_cluster_12,mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-38.6;GO:0003012|muscle system process|-38.4;GO:0006936|muscle contraction|-33.8
+FLT_cluster_13,GO:0006119|oxidative phosphorylation|-20.6;GO:0009060|aerobic respiration|-20.1;mmu00190|Oxidative phosphorylation - Mus musculus (house mouse)|-19.4
+FLT_cluster_14,mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-8.7;GO:0061061|muscle structure development|-7.6;GO:0030029|actin filament-based process|-7.2
+FLT_cluster_02_MCODE_ALL,GO:0010257|NADH dehydrogenase complex assembly|-8.1;GO:0032981|mitochondrial respiratory chain complex I assembly|-8.1;GO:0033108|mitochondrial respiratory chain complex assembly|-6.7
+FLT_cluster_02_SUB2_MCODE_1,GO:0010257|NADH dehydrogenase complex assembly|-8.1;GO:0032981|mitochondrial respiratory chain complex I assembly|-8.1;GO:0033108|mitochondrial respiratory chain complex assembly|-6.7
+FLT_cluster_05_MCODE_ALL,R-MMU-9909615|Regulation of PD-L1(CD274) Post-translational modification|-20.4;R-MMU-9909648|Regulation of PD-L1(CD274) expression|-19.3;R-MMU-389948|Co-inhibition by PD-1|-18.7
+FLT_cluster_05_SUB1_MCODE_1,R-MMU-195253|Degradation of beta-catenin by the destruction complex|-25.3;R-MMU-4641257|Degradation of AXIN|-25.0;R-MMU-5610785|GLI3 is processed to GLI3R by the proteasome|-24.4
+FLT_cluster_05_SUB1_MCODE_2,R-MMU-9013407|RHOH GTPase cycle|-10.1;R-MMU-9931295|PD-L1(CD274) glycosylation and translocation to plasma membrane|-8.6;R-MMU-156588|Glucuronidation|-8.5
+FLT_cluster_05_SUB1_MCODE_3,GO:0032212|positive regulation of telomere maintenance via telomerase|-12.4;GO:1904358|positive regulation of telomere maintenance via telomere lengthening|-12.1;CORUM:132|CCT complex (chaperonin containing TCP1 complex)|-11.9
+FLT_cluster_05_SUB1_MCODE_4,"CORUM:381|Respiratory chain complex I, mitochondrial|-12.9;CORUM:382|Respiratory chain complex I, mitochondrial|-12.7;WP1248|Oxidative phosphorylation|-12.0"
+FLT_cluster_05_SUB1_MCODE_5,R-MMU-8936459|RUNX1 regulates genes involved in megakaryocyte differentiation and platelet function|-5.7;R-MMU-9018519|Estrogen-dependent gene expression|-5.5;R-MMU-9917777|Epigenetic regulation by WDR5-containing histone modifying complexes|-5.3
+FLT_cluster_05_SUB1_MCODE_6,GO:1900181|negative regulation of protein localization to nucleus|-6.4;mmu04722|Neurotrophin signaling pathway - Mus musculus (house mouse)|-5.4;mmu04390|Hippo signaling pathway - Mus musculus (house mouse)|-5.0
+FLT_cluster_05_SUB1_MCODE_7,R-MMU-432722|Golgi Associated Vesicle Biogenesis|-6.9;GO:0048488|synaptic vesicle endocytosis|-6.7;GO:0140238|presynaptic endocytosis|-6.6
+FLT_cluster_05_SUB1_MCODE_8,GO:0006338|chromatin remodeling|-3.6
+FLT_cluster_05_SUB1_MCODE_9,GO:0010256|endomembrane system organization|-3.9
+FLT_cluster_05_SUB1_MCODE_10,GO:0007097|nuclear migration|-8.1;GO:0051647|nucleus localization|-7.8;GO:0051656|establishment of organelle localization|-5.2
+FLT_cluster_05_SUB1_MCODE_12,mmu04120|Ubiquitin mediated proteolysis - Mus musculus (house mouse)|-6.1;R-MMU-983168|Antigen processing: Ubiquitination & Proteasome degradation|-5.3;GO:0000209|protein polyubiquitination|-5.3
+FLT_cluster_06_MCODE_ALL,R-MMU-9954716|ZNF598 and the Ribosome-associated Quality Trigger (RQT) complex dissociate a ribosome stalled on a no-go mRNA|-52.3;R-MMU-9954714|PELO:HBS1L and ABCE1 dissociate a ribosome on a non-stop mRNA|-49.7;R-MMU-1799339|SRP-dependent cotranslational protein targeting to membrane|-49.2
+FLT_cluster_06_SUB1_MCODE_1,mmu03010|Ribosome - Mus musculus (house mouse)|-79.0;R-MMU-9954716|ZNF598 and the Ribosome-associated Quality Trigger (RQT) complex dissociate a ribosome stalled on a no-go mRNA|-76.3;R-MMU-9954714|PELO:HBS1L and ABCE1 dissociate a ribosome on a non-stop mRNA|-74.6
+FLT_cluster_06_SUB1_MCODE_2,GO:0006119|oxidative phosphorylation|-43.1;GO:0042773|ATP synthesis coupled electron transport|-42.5;GO:0042775|mitochondrial ATP synthesis coupled electron transport|-42.5
+FLT_cluster_06_SUB1_MCODE_3,mmu00140|Steroid hormone biosynthesis - Mus musculus (house mouse)|-14.8;mmu00830|Retinol metabolism - Mus musculus (house mouse)|-12.0;GO:0006805|xenobiotic metabolic process|-11.0
+FLT_cluster_06_SUB1_MCODE_4,GO:0015986|proton motive force-driven ATP synthesis|-14.1;R-MMU-8949613|Cristae formation|-13.7;R-MMU-163210|Formation of ATP by chemiosmotic coupling|-13.7
+FLT_cluster_06_SUB1_MCODE_6,mmu01212|Fatty acid metabolism - Mus musculus (house mouse)|-10.9;GO:0019395|fatty acid oxidation|-9.9;GO:0034440|lipid oxidation|-9.7
+FLT_cluster_06_SUB1_MCODE_7,"mmu00280|Valine, leucine and isoleucine degradation - Mus musculus (house mouse)|-11.6;mmu00410|beta-Alanine metabolism - Mus musculus (house mouse)|-9.6;mmu00620|Pyruvate metabolism - Mus musculus (house mouse)|-9.0"
+FLT_cluster_06_SUB1_MCODE_8,R-MMU-195253|Degradation of beta-catenin by the destruction complex|-8.4;GO:0043161|proteasome-mediated ubiquitin-dependent protein catabolic process|-7.2;GO:0010498|proteasomal protein catabolic process|-6.8
+FLT_cluster_06_SUB1_MCODE_9,R-MMU-8949613|Cristae formation|-15.0;R-MMU-163210|Formation of ATP by chemiosmotic coupling|-15.0;R-MMU-1592230|Mitochondrial biogenesis|-13.9
+FLT_cluster_06_SUB1_MCODE_10,R-MMU-5694530|Cargo concentration in the ER|-13.8;R-MMU-204005|COPII-mediated vesicle transport|-12.2;R-MMU-199977|ER to Golgi Anterograde Transport|-10.4
+FLT_cluster_06_SUB1_MCODE_11,GO:0034375|high-density lipoprotein particle remodeling|-8.2;GO:0034368|protein-lipid complex remodeling|-7.7;GO:0034369|plasma lipoprotein particle remodeling|-7.7
+FLT_cluster_06_SUB1_MCODE_12,GO:0001905|activation of membrane attack complex|-8.8;R-MMU-166786|Creation of C4 and C2 activators|-8.8;GO:0008228|opsonization|-8.4
+FLT_cluster_06_SUB1_MCODE_13,GO:0006413|translational initiation|-6.9;GO:0160307|protein biosynthetic process|-4.8;GO:0006412|translation|-4.8
+FLT_cluster_06_SUB1_MCODE_15,mmu01200|Carbon metabolism - Mus musculus (house mouse)|-6.4;R-MMU-1428517|Aerobic respiration and respiratory electron transport|-5.6
+FLT_cluster_07_MCODE_ALL,R-MMU-199991|Membrane Trafficking|-6.9;GO:0006368|transcription elongation by RNA polymerase II|-6.6;R-MMU-5653656|Vesicle-mediated transport|-6.6
+FLT_cluster_07_SUB1_MCODE_1,R-MMU-199977|ER to Golgi Anterograde Transport|-7.4;R-MMU-948021|Transport to the Golgi and subsequent modification|-6.9;R-MMU-199991|Membrane Trafficking|-6.4
+FLT_cluster_07_SUB1_MCODE_2,R-MMU-9755511|KEAP1-NFE2L2 pathway|-10.7;R-MMU-9909615|Regulation of PD-L1(CD274) Post-translational modification|-10.1;R-MMU-5358351|Signaling by Hedgehog|-9.2
+FLT_cluster_07_SUB1_MCODE_3,"GO:0002183|cytoplasmic translational initiation|-6.5;R-MMU-72695|Formation of the ternary complex, and subsequently, the 43S complex|-6.1;R-MMU-72649|Translation initiation complex formation|-6.0"
+FLT_cluster_07_SUB1_MCODE_4,R-MMU-432722|Golgi Associated Vesicle Biogenesis|-6.9;R-MMU-199992|trans-Golgi Network Vesicle Budding|-6.5;R-MMU-199991|Membrane Trafficking|-3.8
+FLT_cluster_07_SUB1_MCODE_5,R-MMU-72163|mRNA Splicing - Major Pathway|-5.1;R-MMU-72172|mRNA Splicing|-5.1;R-MMU-72203|Processing of Capped Intron-Containing Pre-mRNA|-4.7
+FLT_cluster_07_SUB1_MCODE_6,GO:0045582|positive regulation of T cell differentiation|-6.3;GO:0045621|positive regulation of lymphocyte differentiation|-6.2;GO:0045580|regulation of T cell differentiation|-5.8
+FLT_cluster_08_MCODE_ALL,mmu05412|Arrhythmogenic right ventricular cardiomyopathy - Mus musculus (house mouse)|-8.1;R-MMU-2500257|Resolution of Sister Chromatid Cohesion|-7.2;R-MMU-68882|Mitotic Anaphase|-7.1
+FLT_cluster_08_SUB2_MCODE_1,R-MMU-68882|Mitotic Anaphase|-11.3;R-MMU-2555396|Mitotic Metaphase and Anaphase|-11.3;GO:0098813|nuclear chromosome segregation|-11.0
+FLT_cluster_08_SUB4_MCODE_2,GO:0016339|calcium-dependent cell-cell adhesion|-10.0;mmu04519|Cadherin signaling - Mus musculus (house mouse)|-8.2;GO:0098609|cell-cell adhesion|-7.4
+FLT_cluster_08_SUB3_MCODE_4,GO:0016055|Wnt signaling pathway|-8.2;GO:0035567|non-canonical Wnt signaling pathway|-7.2;GO:0060070|canonical Wnt signaling pathway|-6.3
+FLT_cluster_08_SUB5_MCODE_5,GO:0060402|calcium ion transport into cytosol|-9.2;GO:0070588|calcium ion transmembrane transport|-7.6;GO:0006816|calcium ion transport|-7.2
+FLT_cluster_08_SUB7_MCODE_6,mmu04512|ECM-receptor interaction - Mus musculus (house mouse)|-6.9;mmu04518|Integrin signaling - Mus musculus (house mouse)|-6.1;WP85|Focal adhesion|-5.8
+FLT_cluster_08_SUB8_MCODE_7,GO:0048706|embryonic skeletal system development|-6.1;GO:0009952|anterior/posterior pattern specification|-5.7;GO:0003002|regionalization|-4.9
+FLT_cluster_09_MCODE_ALL,mmu01210|2-Oxocarboxylic acid metabolism - Mus musculus (house mouse)|-12.1;mmu00020|Citrate cycle (TCA cycle) - Mus musculus (house mouse)|-10.3;R-MMU-199977|ER to Golgi Anterograde Transport|-9.3
+FLT_cluster_09_SUB1_MCODE_1,mmu01210|2-Oxocarboxylic acid metabolism - Mus musculus (house mouse)|-16.5;mmu00020|Citrate cycle (TCA cycle) - Mus musculus (house mouse)|-14.0;WP434|TCA cycle|-11.7
+FLT_cluster_09_SUB1_MCODE_2,CORUM:3146|Coatomer-Arf1 complex|-10.2;R-MMU-6811434|COPI-dependent Golgi-to-ER retrograde traffic|-9.1;mmu00830|Retinol metabolism - Mus musculus (house mouse)|-9.0
+FLT_cluster_09_SUB1_MCODE_3,R-MMU-9770562|mRNA Polyadenylation|-14.1;R-MMU-72187|mRNA 3'-end processing|-13.6;R-MMU-72163|mRNA Splicing - Major Pathway|-12.5
+FLT_cluster_09_SUB1_MCODE_4,"R-MMU-194315|Signaling by Rho GTPases|-8.7;R-MMU-9716542|Signaling by Rho GTPases, Miro GTPases and RHOBTB3|-8.6;mmu05132|Salmonella infection - Mus musculus (house mouse)|-8.3"
+FLT_cluster_09_SUB2_MCODE_5,mmu00564|Glycerophospholipid metabolism - Mus musculus (house mouse)|-8.9;WP386|Triacylglyceride synthesis|-8.0;mmu00561|Glycerolipid metabolism - Mus musculus (house mouse)|-6.6
+FLT_cluster_09_SUB1_MCODE_6,R-MMU-390471|Association of TriC/CCT with target proteins during biosynthesis|-9.7;GO:0032212|positive regulation of telomere maintenance via telomerase|-8.4;GO:1904358|positive regulation of telomere maintenance via telomere lengthening|-8.3
+FLT_cluster_09_SUB1_MCODE_7,mmu00071|Fatty acid degradation - Mus musculus (house mouse)|-7.5;mmu01212|Fatty acid metabolism - Mus musculus (house mouse)|-7.3;GO:0006635|fatty acid beta-oxidation|-7.2
+FLT_cluster_09_SUB1_MCODE_8,mmu04137|Mitophagy - animal - Mus musculus (house mouse)|-6.6;mmu04140|Autophagy - animal - Mus musculus (house mouse)|-6.0
+FLT_cluster_09_SUB3_MCODE_9,R-MMU-204005|COPII-mediated vesicle transport|-7.3;GO:0006888|endoplasmic reticulum to Golgi vesicle-mediated transport|-6.4;R-MMU-199977|ER to Golgi Anterograde Transport|-6.2
+FLT_cluster_10_MCODE_ALL,mmu05171|Coronavirus disease - Mus musculus (house mouse)|-40.4;WP163|Cytoplasmic ribosomal proteins|-36.6;R-MMU-9954714|PELO:HBS1L and ABCE1 dissociate a ribosome on a non-stop mRNA|-31.0
+FLT_cluster_10_SUB1_MCODE_1,WP163|Cytoplasmic ribosomal proteins|-52.8;mmu03010|Ribosome - Mus musculus (house mouse)|-47.3;mmu05171|Coronavirus disease - Mus musculus (house mouse)|-44.2
+FLT_cluster_10_SUB1_MCODE_2,GO:0034369|plasma lipoprotein particle remodeling|-21.3;GO:0034368|protein-lipid complex remodeling|-21.3;GO:0034367|protein-containing complex remodeling|-20.9
+FLT_cluster_10_SUB1_MCODE_3,GO:0006805|xenobiotic metabolic process|-13.6;GO:0071466|cellular response to xenobiotic stimulus|-12.5;GO:0009410|response to xenobiotic stimulus|-12.4
+FLT_cluster_10_SUB1_MCODE_4,R-MMU-9769733|Fibrin formation|-14.9;R-MMU-9769740|Coagulation pathway|-14.9;WP460|Blood clotting cascade|-13.9
+FLT_cluster_10_SUB1_MCODE_5,"GO:0006956|complement activation|-13.1;GO:0006957|complement activation, alternative pathway|-12.8;WP449|Complement and coagulation cascades|-12.2"
+FLT_cluster_10_SUB1_MCODE_6,WP295|Electron transport chain|-11.5;mmu00190|Oxidative phosphorylation - Mus musculus (house mouse)|-10.7;WP1248|Oxidative phosphorylation|-9.5
+FLT_cluster_10_SUB1_MCODE_7,GO:0043648|dicarboxylic acid metabolic process|-9.0;WP662|Amino acid metabolism|-8.9;GO:0072350|tricarboxylic acid metabolic process|-8.3
+FLT_cluster_11_MCODE_ALL,GO:0006631|fatty acid metabolic process|-12.2;mmu00140|Steroid hormone biosynthesis - Mus musculus (house mouse)|-11.5;GO:0033559|unsaturated fatty acid metabolic process|-11.5
+FLT_cluster_11_SUB1_MCODE_1,GO:0006635|fatty acid beta-oxidation|-8.6;R-MMU-9837999|Mitochondrial protein degradation|-8.2;GO:0019395|fatty acid oxidation|-7.8
+FLT_cluster_11_SUB1_MCODE_2,mmu00140|Steroid hormone biosynthesis - Mus musculus (house mouse)|-17.9;mmu00830|Retinol metabolism - Mus musculus (house mouse)|-17.8;GO:0006805|xenobiotic metabolic process|-13.9
+FLT_cluster_11_SUB1_MCODE_3,WP157|Glycolysis and gluconeogenesis|-9.4;GO:0019674|NAD+ metabolic process|-9.4;R-MMU-9856872|Malate-aspartate shuttle|-8.8
+FLT_cluster_11_SUB2_MCODE_4,mmu04610|Complement and coagulation cascades - Mus musculus (house mouse)|-8.2;GO:0006508|proteolysis|-7.7;GO:0030449|regulation of complement activation|-7.4
+FLT_cluster_11_SUB3_MCODE_5,R-MMU-2046105|Linoleic acid (LA) metabolism|-10.0;R-MMU-2046106|alpha-linolenic acid (ALA) metabolism|-9.4;R-MMU-2046104|alpha-linolenic (omega3) and linoleic (omega6) acid metabolism|-9.4
+FLT_cluster_11_SUB4_MCODE_6,mmu04140|Autophagy - animal - Mus musculus (house mouse)|-6.0;mmu04142|Lysosome biogenesis - Mus musculus (house mouse)|-5.4;mmu04145|Phagocytosis - Mus musculus (house mouse)|-5.4
+FLT_cluster_12_MCODE_ALL,R-MMU-390522|Striated Muscle Contraction|-37.2;WP216|Striated muscle contraction|-37.0;GO:0006936|muscle contraction|-32.0
+FLT_cluster_12_SUB1_MCODE_1,R-MMU-390522|Striated Muscle Contraction|-44.6;WP216|Striated muscle contraction|-37.7;R-MMU-397014|Muscle contraction|-32.8
+FLT_cluster_12_SUB1_MCODE_2,mmu04814|Motor proteins - Mus musculus (house mouse)|-9.7;mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-6.7;GO:0006936|muscle contraction|-6.5
+FLT_cluster_12_SUB1_MCODE_3,GO:0046031|ADP metabolic process|-9.6;GO:0009179|purine ribonucleoside diphosphate metabolic process|-9.4;GO:0009135|purine nucleoside diphosphate metabolic process|-9.4
+FLT_cluster_12_SUB2_MCODE_4,"GO:0006123|mitochondrial electron transport, cytochrome c to oxygen|-9.2;GO:0019646|aerobic electron transport chain|-7.6;GO:0042775|mitochondrial ATP synthesis coupled electron transport|-7.4"
+FLT_cluster_13_MCODE_ALL,"CORUM:382|Respiratory chain complex I, mitochondrial|-21.3;GO:0006119|oxidative phosphorylation|-21.0;mmu00190|Oxidative phosphorylation - Mus musculus (house mouse)|-19.8"
+FLT_cluster_13_SUB2_MCODE_1,GO:0006119|oxidative phosphorylation|-27.1;mmu00190|Oxidative phosphorylation - Mus musculus (house mouse)|-25.9;R-MMU-611105|Respiratory electron transport|-25.7
+FLT_cluster_13_SUB1_MCODE_2,WP163|Cytoplasmic ribosomal proteins|-22.0;mmu03010|Ribosome - Mus musculus (house mouse)|-18.7;GO:0002181|cytoplasmic translation|-18.0
+FLT_cluster_14_MCODE_ALL,mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-8.4;R-MMU-390522|Striated Muscle Contraction|-6.7;GO:0030029|actin filament-based process|-6.4
+FLT_cluster_14_SUB1_MCODE_1,R-MMU-390522|Striated Muscle Contraction|-8.0;WP216|Striated muscle contraction|-7.6;R-MMU-397014|Muscle contraction|-6.1
+FLT_cluster_14_SUB2_MCODE_2,GO:0030036|actin cytoskeleton organization|-4.4;GO:0030029|actin filament-based process|-4.3
+GC_cluster_02,R-MMU-500792|GPCR ligand binding|-19.9;R-MMU-372790|Signaling by GPCR|-18.2;R-MMU-388396|GPCR downstream signalling|-17.9
+GC_cluster_03,GO:0006259|DNA metabolic process|-18.7;GO:0042254|ribosome biogenesis|-13.9;GO:0006974|DNA damage response|-13.2
+GC_cluster_04,GO:0030031|cell projection assembly|-8.6;GO:0120031|plasma membrane bounded cell projection assembly|-8.5;R-MMU-5617833|Cilium Assembly|-7.8
+GC_cluster_05,R-MMU-8953897|Cellular responses to stimuli|-14.3;mmu05017|Spinocerebellar ataxia - Mus musculus (house mouse)|-12.0;R-MMU-72766|Translation|-11.4
+GC_cluster_06,GO:0006753|nucleoside phosphate metabolic process|-21.1;GO:0032787|monocarboxylic acid metabolic process|-20.9;GO:0015980|energy derivation by oxidation of organic compounds|-20.3
+GC_cluster_07,R-MMU-5389840|Mitochondrial translation elongation|-7.8;R-MMU-9937383|Mitochondrial ribosome-associated quality control|-7.6;GO:0006412|translation|-7.6
+GC_cluster_08,mmu05010|Alzheimer disease - Mus musculus (house mouse)|-16.2;mmu05012|Parkinson disease - Mus musculus (house mouse)|-14.2;mmu05020|Prion disease - Mus musculus (house mouse)|-13.9
+GC_cluster_09,WP163|Cytoplasmic ribosomal proteins|-56.8;R-MMU-9954716|ZNF598 and the Ribosome-associated Quality Trigger (RQT) complex dissociate a ribosome stalled on a no-go mRNA|-54.2;R-MMU-9954714|PELO:HBS1L and ABCE1 dissociate a ribosome on a non-stop mRNA|-52.4
+GC_cluster_10,GO:0014812|muscle cell migration|-9.3;mmu04010|MAPK signaling pathway - Mus musculus (house mouse)|-7.5;GO:0010757|negative regulation of plasminogen activation|-6.9
+GC_cluster_11,mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-17.0;GO:0061061|muscle structure development|-14.4;CORUM:349|Sarcoglycan-sarcospan-syntrophin-dystrobrevin complex|-14.0
+GC_cluster_12,mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-47.3;WP216|Striated muscle contraction|-43.6;GO:0003012|muscle system process|-40.9
+GC_cluster_13,GO:0044282|small molecule catabolic process|-15.9;GO:0032787|monocarboxylic acid metabolic process|-14.4;GO:0006631|fatty acid metabolic process|-13.2
+GC_cluster_02_MCODE_ALL,R-MMU-190861|Gap junction assembly|-11.0;R-MMU-190828|Gap junction trafficking|-10.4;R-MMU-157858|Gap junction trafficking and regulation|-10.2
+GC_cluster_02_SUB2_MCODE_1,R-MMU-190861|Gap junction assembly|-13.1;R-MMU-190828|Gap junction trafficking|-12.5;R-MMU-157858|Gap junction trafficking and regulation|-12.4
+GC_cluster_02_SUB9_MCODE_3,R-MMU-1475029|Reversible hydration of carbon dioxide|-9.4;mmu00910|Nitrogen metabolism - Mus musculus (house mouse)|-9.0
+GC_cluster_03_MCODE_ALL,mmu04530|Tight junction - Mus musculus (house mouse)|-5.0;GO:0098609|cell-cell adhesion|-3.5;GO:0007155|cell adhesion|-3.0
+GC_cluster_03_SUB5_MCODE_2,mmu04530|Tight junction - Mus musculus (house mouse)|-6.0;GO:0098609|cell-cell adhesion|-4.4;GO:0007155|cell adhesion|-4.0
+GC_cluster_07_MCODE_ALL,R-MMU-5389840|Mitochondrial translation elongation|-15.2;R-MMU-9937383|Mitochondrial ribosome-associated quality control|-15.1;R-MMU-5419276|Mitochondrial translation termination|-15.0
+GC_cluster_07_SUB1_MCODE_1,R-MMU-5389840|Mitochondrial translation elongation|-31.2;R-MMU-9937383|Mitochondrial ribosome-associated quality control|-31.0;R-MMU-5419276|Mitochondrial translation termination|-30.9
+GC_cluster_07_SUB1_MCODE_2,R-MMU-72163|mRNA Splicing - Major Pathway|-6.5;R-MMU-72172|mRNA Splicing|-6.4;R-MMU-72203|Processing of Capped Intron-Containing Pre-mRNA|-5.7
+GC_cluster_07_SUB1_MCODE_3,R-MMU-5696398|Nucleotide Excision Repair|-8.2;R-MMU-6796648|TP53 Regulates Transcription of DNA Repair Genes|-7.8;R-MMU-6781823|Formation of TC-NER Pre-Incision Complex|-7.5
+GC_cluster_07_SUB1_MCODE_4,mmu04150|mTOR signaling pathway - Mus musculus (house mouse)|-5.6;R-MMU-193648|NRAGE signals death through JNK|-5.5;R-MMU-416476|G alpha (q) signalling events|-5.4
+GC_cluster_07_SUB1_MCODE_5,R-MMU-6807878|COPI-mediated anterograde transport|-6.9;R-MMU-4641262|Disassembly of the destruction complex and recruitment of AXIN to the membrane|-6.5;R-MMU-199977|ER to Golgi Anterograde Transport|-6.2
+GC_cluster_07_SUB1_MCODE_6,GO:0006511|ubiquitin-dependent protein catabolic process|-2.7;GO:0019941|modification-dependent protein catabolic process|-2.6;GO:0043632|modification-dependent macromolecule catabolic process|-2.6
+GC_cluster_07_SUB1_MCODE_7,GO:0006354|DNA-templated transcription elongation|-9.7;R-MMU-75955|RNA Polymerase II Transcription Elongation|-8.2;R-MMU-112382|Formation of RNA Pol II elongation complex|-8.2
+GC_cluster_07_SUB1_MCODE_8,GO:0010498|proteasomal protein catabolic process|-5.4;mmu04141|Protein processing in endoplasmic reticulum - Mus musculus (house mouse)|-5.0;GO:0043161|proteasome-mediated ubiquitin-dependent protein catabolic process|-3.8
+GC_cluster_07_SUB1_MCODE_9,mmu04130|SNARE interactions in vesicular transport - Mus musculus (house mouse)|-10.1;GO:0061025|membrane fusion|-7.6;R-MMU-199991|Membrane Trafficking|-7.4
+GC_cluster_07_SUB1_MCODE_11,R-MMU-9033241|Peroxisomal protein import|-7.2;R-MMU-9609507|Protein localization|-6.5
+GC_cluster_07_SUB1_MCODE_14,R-MMU-72187|mRNA 3'-end processing|-6.2;R-MMU-72203|Processing of Capped Intron-Containing Pre-mRNA|-5.2;R-MMU-8953854|Metabolism of RNA|-4.3
+GC_cluster_07_SUB1_MCODE_15,R-MMU-5663213|RHO GTPases Activate WASPs and WAVEs|-8.1;R-MMU-2029482|Regulation of actin dynamics for phagocytic cup formation|-7.4;R-MMU-2029480|Fcgamma receptor (FCGR) dependent phagocytosis|-7.0
+GC_cluster_07_SUB1_MCODE_17,"GO:0031507|heterochromatin formation|-6.0;GO:0070828|heterochromatin organization|-6.0;GO:0045814|negative regulation of gene expression, epigenetic|-5.8"
+GC_cluster_08_MCODE_ALL,mmu05014|Amyotrophic lateral sclerosis - Mus musculus (house mouse)|-19.4;mmu05020|Prion disease - Mus musculus (house mouse)|-18.8;mmu05012|Parkinson disease - Mus musculus (house mouse)|-17.5
+GC_cluster_08_SUB1_MCODE_1,GO:0006119|oxidative phosphorylation|-28.2;mmu00190|Oxidative phosphorylation - Mus musculus (house mouse)|-27.0;R-MMU-611105|Respiratory electron transport|-26.7
+GC_cluster_08_SUB1_MCODE_2,R-MMU-195253|Degradation of beta-catenin by the destruction complex|-6.9;GO:0032212|positive regulation of telomere maintenance via telomerase|-6.1;GO:1904358|positive regulation of telomere maintenance via telomere lengthening|-5.9
+GC_cluster_08_SUB1_MCODE_3,WP163|Cytoplasmic ribosomal proteins|-11.1;GO:0002181|cytoplasmic translation|-10.8;mmu03010|Ribosome - Mus musculus (house mouse)|-9.2
+GC_cluster_08_SUB1_MCODE_7,GO:0034330|cell junction organization|-4.3
+GC_cluster_09_MCODE_ALL,WP163|Cytoplasmic ribosomal proteins|-68.8;R-MMU-9954716|ZNF598 and the Ribosome-associated Quality Trigger (RQT) complex dissociate a ribosome stalled on a no-go mRNA|-65.9;R-MMU-9954714|PELO:HBS1L and ABCE1 dissociate a ribosome on a non-stop mRNA|-63.4
+GC_cluster_09_SUB1_MCODE_1,mmu03010|Ribosome - Mus musculus (house mouse)|-94.0;WP163|Cytoplasmic ribosomal proteins|-93.7;R-MMU-9954716|ZNF598 and the Ribosome-associated Quality Trigger (RQT) complex dissociate a ribosome stalled on a no-go mRNA|-89.9
+GC_cluster_09_SUB1_MCODE_2,mmu00190|Oxidative phosphorylation - Mus musculus (house mouse)|-24.0;WP295|Electron transport chain|-22.8;GO:0006119|oxidative phosphorylation|-22.2
+GC_cluster_09_SUB1_MCODE_3,"R-MMU-174824|Plasma lipoprotein assembly, remodeling, and clearance|-16.7;GO:0034369|plasma lipoprotein particle remodeling|-16.7;GO:0034368|protein-lipid complex remodeling|-16.7"
+GC_cluster_09_SUB1_MCODE_4,mmu00140|Steroid hormone biosynthesis - Mus musculus (house mouse)|-20.7;mmu00830|Retinol metabolism - Mus musculus (house mouse)|-20.6;mmu05204|Chemical carcinogenesis - DNA adducts - Mus musculus (house mouse)|-18.1
+GC_cluster_09_SUB1_MCODE_5,mmu04610|Complement and coagulation cascades - Mus musculus (house mouse)|-23.6;WP449|Complement and coagulation cascades|-19.7;R-MMU-9769743|Amplification and propagation of coagulation cascade|-15.3
+GC_cluster_09_SUB1_MCODE_6,R-MMU-163210|Formation of ATP by chemiosmotic coupling|-7.0;R-MMU-8949613|Cristae formation|-7.0;R-MMU-1592230|Mitochondrial biogenesis|-6.3
+GC_cluster_09_SUB1_MCODE_7,GO:0006107|oxaloacetate metabolic process|-11.9;GO:0043648|dicarboxylic acid metabolic process|-11.3;WP662|Amino acid metabolism|-8.2
+GC_cluster_09_SUB1_MCODE_8,"R-MMU-983170|Antigen Presentation: Folding, assembly and peptide loading of class I MHC|-11.5;mmu04612|Antigen processing and presentation - Mus musculus (house mouse)|-9.4;mmu05166|Human T-cell leukemia virus 1 infection - Mus musculus (house mouse)|-7.3"
+GC_cluster_09_SUB1_MCODE_9,mmu00071|Fatty acid degradation - Mus musculus (house mouse)|-7.5;GO:0006635|fatty acid beta-oxidation|-7.2;GO:0019395|fatty acid oxidation|-6.7
+GC_cluster_09_SUB1_MCODE_10,mmu00480|Glutathione metabolism - Mus musculus (house mouse)|-7.1;GO:0006749|glutathione metabolic process|-7.0;GO:0098869|cellular oxidant detoxification|-6.8
+GC_cluster_09_SUB2_MCODE_12,R-MMU-2046105|Linoleic acid (LA) metabolism|-10.0;R-MMU-2046106|alpha-linolenic acid (ALA) metabolism|-9.4;R-MMU-2046104|alpha-linolenic (omega3) and linoleic (omega6) acid metabolism|-9.4
+GC_cluster_10_MCODE_ALL,GO:0010757|negative regulation of plasminogen activation|-7.4;GO:0070613|regulation of protein processing|-6.7;GO:1903317|regulation of protein maturation|-6.6
+GC_cluster_10_SUB1_MCODE_1,GO:0010757|negative regulation of plasminogen activation|-8.7;GO:0010755|regulation of plasminogen activation|-7.6;GO:0010955|negative regulation of protein processing|-7.3
+GC_cluster_10_SUB3_MCODE_2,mmu04141|Protein processing in endoplasmic reticulum - Mus musculus (house mouse)|-5.0
+GC_cluster_11_MCODE_ALL,CORUM:349|Sarcoglycan-sarcospan-syntrophin-dystrobrevin complex|-18.8;mmu05410|Hypertrophic cardiomyopathy - Mus musculus (house mouse)|-15.7;mmu05414|Dilated cardiomyopathy - Mus musculus (house mouse)|-15.4
+GC_cluster_11_SUB1_MCODE_1,CORUM:349|Sarcoglycan-sarcospan-syntrophin-dystrobrevin complex|-23.7;mmu05416|Viral myocarditis - Mus musculus (house mouse)|-18.5;mmu05412|Arrhythmogenic right ventricular cardiomyopathy - Mus musculus (house mouse)|-18.4
+GC_cluster_11_SUB1_MCODE_2,GO:0034762|regulation of transmembrane transport|-6.0;GO:1904062|regulation of monoatomic cation transmembrane transport|-4.5;GO:0007268|chemical synaptic transmission|-4.5
+GC_cluster_11_SUB1_MCODE_3,R-MMU-9013406|RHOQ GTPase cycle|-6.8;GO:0090257|regulation of muscle system process|-4.7;GO:0071375|cellular response to peptide hormone stimulus|-4.7
+GC_cluster_11_SUB3_MCODE_4,GO:0030036|actin cytoskeleton organization|-5.9;GO:0030029|actin filament-based process|-5.7
+GC_cluster_11_SUB1_MCODE_5,R-MMU-390522|Striated Muscle Contraction|-8.0;WP216|Striated muscle contraction|-7.6;R-MMU-397014|Muscle contraction|-6.1
+GC_cluster_12_MCODE_ALL,WP216|Striated muscle contraction|-43.9;R-MMU-390522|Striated Muscle Contraction|-39.3;R-MMU-397014|Muscle contraction|-34.1
+GC_cluster_12_SUB1_MCODE_1,R-MMU-390522|Striated Muscle Contraction|-47.6;WP216|Striated muscle contraction|-40.4;R-MMU-397014|Muscle contraction|-34.9
+GC_cluster_12_SUB1_MCODE_2,mmu04814|Motor proteins - Mus musculus (house mouse)|-13.6;mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-10.2;WP216|Striated muscle contraction|-8.6
+GC_cluster_12_SUB1_MCODE_3,WP434|TCA cycle|-7.3;mmu00020|Citrate cycle (TCA cycle) - Mus musculus (house mouse)|-7.2;R-MMU-1428517|Aerobic respiration and respiratory electron transport|-6.8
+GC_cluster_12_SUB1_MCODE_4,GO:0030036|actin cytoskeleton organization|-4.4;GO:0030029|actin filament-based process|-4.3
+GC_cluster_12_SUB1_MCODE_5,GO:0006099|tricarboxylic acid cycle|-8.4;WP434|TCA cycle|-8.3;mmu00020|Citrate cycle (TCA cycle) - Mus musculus (house mouse)|-8.2
+GC_cluster_12_SUB1_MCODE_6,R-MMU-5578775|Ion homeostasis|-7.5;GO:1904427|positive regulation of calcium ion transmembrane transport|-7.2;R-MMU-2672351|Stimuli-sensing channels|-6.8
+GC_cluster_12_SUB2_MCODE_7,"GO:0006123|mitochondrial electron transport, cytochrome c to oxygen|-9.2;GO:0019646|aerobic electron transport chain|-7.6;GO:0042773|ATP synthesis coupled electron transport|-7.4"
+GC_cluster_13_MCODE_ALL,GO:0006805|xenobiotic metabolic process|-11.3;mmu00830|Retinol metabolism - Mus musculus (house mouse)|-10.9;GO:0008202|steroid metabolic process|-10.3
+GC_cluster_13_SUB1_MCODE_1,GO:0006805|xenobiotic metabolic process|-17.6;GO:0071466|cellular response to xenobiotic stimulus|-16.3;mmu00830|Retinol metabolism - Mus musculus (house mouse)|-16.3
+GC_cluster_13_SUB1_MCODE_2,WP662|Amino acid metabolism|-12.0;GO:0046395|carboxylic acid catabolic process|-11.9;GO:0044282|small molecule catabolic process|-10.6
+GC_cluster_13_SUB1_MCODE_3,GO:0008203|cholesterol metabolic process|-10.1;GO:0016125|sterol metabolic process|-9.9;GO:1902652|secondary alcohol metabolic process|-9.9
+GC_cluster_13_SUB1_MCODE_4,GO:0009060|aerobic respiration|-9.6;R-MMU-1428517|Aerobic respiration and respiratory electron transport|-9.4;GO:0045333|cellular respiration|-9.3

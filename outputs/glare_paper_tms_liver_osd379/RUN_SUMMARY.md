@@ -60,10 +60,17 @@ Clusters with the largest DEG proportions include FLT cluster 12 (100/115,
 47.11%). FLT cluster 15 contains five genes and is 100% DEG, but is excluded
 from enrichment because it is below the 10-gene threshold.
 
-Metascape-ready single-list and multi-list files are under
-`biological_analysis/metascape_gene_lists/`. Metascape has no public API, so
-submission and downloading its report remain manual. Clusters over 3,000 genes
-and under 10 genes are excluded.
+Metascape Custom Analysis session `tdv0higf0` completed with 26 eligible
+cluster lists and the 16,319-gene converted custom background. The final
+tables and interpretation are under
+`biological_analysis/metascape_results/tdv0higf0/`. Clusters over 3,000 genes
+and under 10 genes are excluded from whole-cluster enrichment.
+
+The strongest DEG-enriched clusters are dominated by muscle contraction,
+cytoskeleton, and muscle-development annotations. Because the input is liver
+and the muscle-gene signal is highly heterogeneous across samples, this result
+requires sample-level QC before it is interpreted as a spaceflight-induced
+liver program.
 
 ## Remaining Deviations
 
