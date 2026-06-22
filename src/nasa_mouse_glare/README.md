@@ -567,6 +567,35 @@ Default accessions are `OSD-379`, `OSD-245`, `OSD-463`, `OSD-242`, `OSD-137`,
 `OSD-47`, `OSD-686`, and `OSD-173`. Only `Space Flight` and `Ground Control`
 profiles are included.
 
+Run study/batch QC, FLT-vs-GC cluster comparison, and exploratory
+normalized-expression meta-DGEA:
+
+```bash
+conda run -n nasa env PYTHONPATH=src \
+  python -m nasa_mouse_glare.aggregate_liver_analysis \
+  --run-dir outputs/glare_tms_liver_aggregated_osdr_flt_gc \
+  --osdr-h5 assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5
+```
+
+Then run the study-aware raw-count DESeq2 meta-analysis. This uses the
+integer count-like matrix exported by the previous command, runs DESeq2 within
+each OSD accession, and combines per-study log2 fold changes:
+
+```bash
+conda run -n nasa Rscript src/nasa_mouse_glare/aggregate_liver_deseq2.R \
+  --counts outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/counts.tsv \
+  --metadata outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/sample_metadata.tsv \
+  --gene-symbols outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/gene_symbols.tsv \
+  --output-dir outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_meta \
+  --alpha 0.05 \
+  --lfc-cutoff 1 \
+  --min-studies 2
+
+conda run -n nasa env PYTHONPATH=src \
+  python -m nasa_mouse_glare.aggregate_liver_deseq_glare_overlap \
+  --run-dir outputs/glare_tms_liver_aggregated_osdr_flt_gc
+```
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by

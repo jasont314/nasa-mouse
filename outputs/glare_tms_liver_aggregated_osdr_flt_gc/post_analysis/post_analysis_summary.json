@@ -1,0 +1,373 @@
+{
+  "run_dir": "outputs/glare_tms_liver_aggregated_osdr_flt_gc",
+  "output_dir": "outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis",
+  "batch_qc": {
+    "batch_qc_rows": 217,
+    "strong_driver_clusters": 75,
+    "summary": [
+      {
+        "location": "FLT",
+        "variable": "h5_accession",
+        "clusters_tested": 16,
+        "median_eta_squared": 0.6040957831022402,
+        "max_eta_squared": 0.9411800252979861,
+        "strong_driver_clusters": 14
+      },
+      {
+        "location": "FLT",
+        "variable": "mission",
+        "clusters_tested": 16,
+        "median_eta_squared": 0.6040957831022402,
+        "max_eta_squared": 0.9411800252979861,
+        "strong_driver_clusters": 14
+      },
+      {
+        "location": "FLT",
+        "variable": "strain",
+        "clusters_tested": 16,
+        "median_eta_squared": 0.10496459875240635,
+        "max_eta_squared": 0.8909768549847394,
+        "strong_driver_clusters": 2
+      },
+      {
+        "location": "FLT",
+        "variable": "sex",
+        "clusters_tested": 16,
+        "median_eta_squared": 0.003835155196789554,
+        "max_eta_squared": 0.8153395916286307,
+        "strong_driver_clusters": 2
+      },
+      {
+        "location": "FLT",
+        "variable": "library_selection",
+        "clusters_tested": 16,
+        "median_eta_squared": 0.2678224392664441,
+        "max_eta_squared": 0.588310549415426,
+        "strong_driver_clusters": 10
+      },
+      {
+        "location": "FLT",
+        "variable": "sequencing_instrument",
+        "clusters_tested": 16,
+        "median_eta_squared": 0.060649868010412986,
+        "max_eta_squared": 0.13443131908421727,
+        "strong_driver_clusters": 0
+      },
+      {
+        "location": "FLT",
+        "variable": "library_layout",
+        "clusters_tested": 16,
+        "median_eta_squared": 0.050545364271487286,
+        "max_eta_squared": 0.08933089525746188,
+        "strong_driver_clusters": 0
+      },
+      {
+        "location": "GC",
+        "variable": "h5_accession",
+        "clusters_tested": 15,
+        "median_eta_squared": 0.5740413315553256,
+        "max_eta_squared": 0.9654684118780771,
+        "strong_driver_clusters": 12
+      },
+      {
+        "location": "GC",
+        "variable": "mission",
+        "clusters_tested": 15,
+        "median_eta_squared": 0.5740413315553256,
+        "max_eta_squared": 0.9654684118780771,
+        "strong_driver_clusters": 12
+      },
+      {
+        "location": "GC",
+        "variable": "strain",
+        "clusters_tested": 15,
+        "median_eta_squared": 0.1701109925074266,
+        "max_eta_squared": 0.9131987194471801,
+        "strong_driver_clusters": 3
+      },
+      {
+        "location": "GC",
+        "variable": "sex",
+        "clusters_tested": 15,
+        "median_eta_squared": 0.018204084490171184,
+        "max_eta_squared": 0.8426523671371801,
+        "strong_driver_clusters": 1
+      },
+      {
+        "location": "GC",
+        "variable": "library_selection",
+        "clusters_tested": 15,
+        "median_eta_squared": 0.1866234679013586,
+        "max_eta_squared": 0.4634718419655892,
+        "strong_driver_clusters": 5
+      },
+      {
+        "location": "GC",
+        "variable": "sequencing_instrument",
+        "clusters_tested": 15,
+        "median_eta_squared": 0.03230167413728423,
+        "max_eta_squared": 0.06990306550268909,
+        "strong_driver_clusters": 0
+      },
+      {
+        "location": "GC",
+        "variable": "library_layout",
+        "clusters_tested": 15,
+        "median_eta_squared": 0.006924995333579297,
+        "max_eta_squared": 0.06418716559954386,
+        "strong_driver_clusters": 0
+      }
+    ]
+  },
+  "cluster_comparison": {
+    "genes_compared": 21010,
+    "adjusted_rand_index": 0.42015547489070076,
+    "normalized_mutual_information": 0.6097576753055328,
+    "mean_latent_shift": 0.7694650448609467,
+    "median_latent_shift": 0.22046966397275697,
+    "top_flt_shift_clusters": [
+      {
+        "flt_cluster": 15,
+        "gene_count": 1,
+        "mean_latent_shift": 26.969026326096735,
+        "median_latent_shift": 26.969026326096735,
+        "p90_latent_shift": 26.969026326096735
+      },
+      {
+        "flt_cluster": 14,
+        "gene_count": 7,
+        "mean_latent_shift": 20.105507351407518,
+        "median_latent_shift": 19.73500611345535,
+        "p90_latent_shift": 28.713705419721364
+      },
+      {
+        "flt_cluster": 12,
+        "gene_count": 44,
+        "mean_latent_shift": 6.7992377976349045,
+        "median_latent_shift": 6.674164342496184,
+        "p90_latent_shift": 10.80994768769634
+      },
+      {
+        "flt_cluster": 11,
+        "gene_count": 491,
+        "mean_latent_shift": 6.634265685088059,
+        "median_latent_shift": 5.317209614320168,
+        "p90_latent_shift": 11.0891910826657
+      },
+      {
+        "flt_cluster": 7,
+        "gene_count": 1086,
+        "mean_latent_shift": 2.9893760702965984,
+        "median_latent_shift": 2.6190572414380124,
+        "p90_latent_shift": 5.042215364865883
+      }
+    ],
+    "top_gc_shift_clusters": [
+      {
+        "gc_cluster": 14,
+        "gene_count": 2,
+        "mean_latent_shift": 33.95987777309408,
+        "median_latent_shift": 33.95987777309408,
+        "p90_latent_shift": 39.55255893069196
+      },
+      {
+        "gc_cluster": 9,
+        "gene_count": 66,
+        "mean_latent_shift": 15.909454143710315,
+        "median_latent_shift": 12.488133692408578,
+        "p90_latent_shift": 29.507144504796038
+      },
+      {
+        "gc_cluster": 13,
+        "gene_count": 8,
+        "mean_latent_shift": 15.370284888556803,
+        "median_latent_shift": 16.079541784489038,
+        "p90_latent_shift": 21.05952311829061
+      },
+      {
+        "gc_cluster": 5,
+        "gene_count": 1043,
+        "mean_latent_shift": 5.03114215539079,
+        "median_latent_shift": 4.052068921621513,
+        "p90_latent_shift": 8.94382600691782
+      },
+      {
+        "gc_cluster": 7,
+        "gene_count": 265,
+        "mean_latent_shift": 1.9963993493304983,
+        "median_latent_shift": 1.4685314265782874,
+        "p90_latent_shift": 4.0291894275325895
+      }
+    ]
+  },
+  "meta_dgea": {
+    "accessions_tested": [
+      "OSD-137",
+      "OSD-173",
+      "OSD-242",
+      "OSD-245",
+      "OSD-379",
+      "OSD-463",
+      "OSD-47",
+      "OSD-686"
+    ],
+    "genes_tested": 21010,
+    "significant_fdr05_abs_log2fc1": 30,
+    "significant_up": 8,
+    "significant_down": 22,
+    "top_genes": [
+      {
+        "gene_id": "ENSMUSG00000032231",
+        "gene_symbol": "Anxa2",
+        "meta_log2_fold_change": -0.536712731607527,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000079557",
+        "gene_symbol": "Marchf2",
+        "meta_log2_fold_change": -0.23864620086304353,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000061482",
+        "gene_symbol": "H4c4",
+        "meta_log2_fold_change": -0.7385519862034944,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000073643",
+        "gene_symbol": "Wdfy1",
+        "meta_log2_fold_change": -0.570347456165584,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000029715",
+        "gene_symbol": "Pop7",
+        "meta_log2_fold_change": -0.6317390698059425,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000032040",
+        "gene_symbol": "Dcps",
+        "meta_log2_fold_change": -0.6018119514902759,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000050541",
+        "gene_symbol": "Adra1b",
+        "meta_log2_fold_change": -0.895092106467183,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000042228",
+        "gene_symbol": "Lyn",
+        "meta_log2_fold_change": -0.7579590604655638,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000030409",
+        "gene_symbol": "Dmpk",
+        "meta_log2_fold_change": -0.8034774359156843,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000069922",
+        "gene_symbol": "Ces3a",
+        "meta_log2_fold_change": -0.6906963991448019,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000031974",
+        "gene_symbol": "Abcb10",
+        "meta_log2_fold_change": -0.9971185649242253,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000070873",
+        "gene_symbol": "Lilra5",
+        "meta_log2_fold_change": -1.3156791552678393,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "all_down"
+      },
+      {
+        "gene_id": "ENSMUSG00000074794",
+        "gene_symbol": "Arrdc3",
+        "meta_log2_fold_change": -1.9181967436142353,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000041272",
+        "gene_symbol": "Tox",
+        "meta_log2_fold_change": 0.8098022756345881,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000032026",
+        "gene_symbol": "Rexo2",
+        "meta_log2_fold_change": -0.5032298051778631,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000022668",
+        "gene_symbol": "Gtpbp8",
+        "meta_log2_fold_change": -0.3315390310301496,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000071281",
+        "gene_symbol": "Zfp65",
+        "meta_log2_fold_change": -0.388369596917385,
+        "meta_fdr_bh": 0.0,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000032050",
+        "gene_symbol": "Rdx",
+        "meta_log2_fold_change": -0.5782232590740936,
+        "meta_fdr_bh": 8.39832660784508e-299,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000019370",
+        "gene_symbol": "Calm3",
+        "meta_log2_fold_change": -0.6784707546768576,
+        "meta_fdr_bh": 2.0051154175648558e-286,
+        "consistent_direction": "mixed"
+      },
+      {
+        "gene_id": "ENSMUSG00000043587",
+        "gene_symbol": "Pxylp1",
+        "meta_log2_fold_change": -1.0953048008282222,
+        "meta_fdr_bh": 1.838103342781801e-252,
+        "consistent_direction": "mixed"
+      }
+    ]
+  },
+  "deseq2_inputs": {
+    "counts": "outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/counts.tsv",
+    "metadata": "outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/sample_metadata.tsv",
+    "gene_symbols": "outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/gene_symbols.tsv",
+    "genes": 21010,
+    "samples": 173
+  },
+  "notes": [
+    "DGEA is exploratory normalized-expression meta-analysis, not raw-count DESeq2.",
+    "Raw-count DESeq2 inputs are exported for per-study DESeq2 meta-analysis.",
+    "Batch variables are partially confounded in this aggregate design."
+  ]
+}
