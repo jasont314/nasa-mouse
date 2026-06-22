@@ -72,6 +72,17 @@ and the muscle-gene signal is highly heterogeneous across samples, this result
 requires sample-level QC before it is interpreted as a spaceflight-induced
 liver program.
 
+Sample-level tissue-composition QC localizes this result to two old
+ISS-terminal flight profiles, `RR8_LVR_FLT_ISS-T_OLD_FI16` and
+`RR8_LVR_FLT_ISS-T_OLD_FI17`. NASA's official old ISS-terminal contrast calls
+93/115 FLT cluster-12 genes significant. Excluding those two severe
+muscle-marker outliers reduces the number with an absolute normalized-count
+effect of at least 1 from 82 to 11, and none remains significant at FDR < 0.05
+plus the effect threshold in the sensitivity test. The samples retain strong
+liver markers, so the pattern is most consistent with liver plus skeletal
+muscle RNA admixture rather than simple tissue mislabeling. See
+`biological_analysis/tissue_composition_qc/TISSUE_QC_REPORT.md`.
+
 ## Remaining Deviations
 
 - TMS mouse liver replaces Arabidopsis root-tip single-cell data.
@@ -81,4 +92,5 @@ liver program.
   mouse PCA/k-means audit tables are exported instead.
 - HDBSCAN is neutral in this run because the paper's thresholds produce only
   noise on the mouse latent spaces.
-- Metascape web execution is pending; all required upload files are present.
+- Metascape was run with the converted 16,319-gene custom background; final
+  results are under `biological_analysis/metascape_results/tdv0higf0/`.

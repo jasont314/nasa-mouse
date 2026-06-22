@@ -1,0 +1,144 @@
+{
+  "dataset": "OSD-379 RR-8 left-lobe liver bulk RNA-seq",
+  "samples_scored": 141,
+  "muscle_marker_count": 20,
+  "liver_marker_count": 8,
+  "old_iss_flight_samples": 10,
+  "old_iss_ground_samples": 10,
+  "flagged_old_iss_flight_samples": [
+    "RR8_LVR_FLT_ISS-T_OLD_FI17",
+    "RR8_LVR_FLT_ISS-T_OLD_FI16"
+  ],
+  "flt_cluster": 12,
+  "flt_cluster_gene_count": 115,
+  "official_old_iss_significant_cluster_genes": 93,
+  "cluster_genes_abs_effect_ge_1_before_exclusion": 82,
+  "cluster_genes_abs_effect_ge_1_after_exclusion": 11,
+  "cluster_genes_significant_after_exclusion": 0,
+  "all_genes_significant_after_exclusion": 42,
+  "tms_liver_cells": 2859,
+  "implicated_sample_assay_qc": [
+    {
+      "sample": "RR8_LVR_FLT_ISS-T_OLD_FI16",
+      "rna_integrity_number": 6.4,
+      "qa_score_unit": "RNA Integrity Number",
+      "library_prep_date": "24-Feb-21",
+      "fragment_size": 386,
+      "read_depth": 66531392,
+      "rrna_contamination_percent": 3.45
+    },
+    {
+      "sample": "RR8_LVR_FLT_ISS-T_OLD_FI17",
+      "rna_integrity_number": 6.4,
+      "qa_score_unit": "RNA Integrity Number",
+      "library_prep_date": "29-Oct-20",
+      "fragment_size": 343,
+      "read_depth": 59533317,
+      "rrna_contamination_percent": 0.64
+    }
+  ],
+  "top_samples": [
+    {
+      "sample": "RR8_LVR_GC_LAR_YNG_GL5",
+      "condition": "GC",
+      "collection": "LAR",
+      "age": "YNG",
+      "muscle_mean_log2": 15.45512125653425,
+      "muscle_marker_fraction_percent": 4.247264405438245,
+      "liver_mean_log2": 15.535200926210232,
+      "severe_muscle_composition_outlier": true
+    },
+    {
+      "sample": "RR8_LVR_FLT_ISS-T_OLD_FI17",
+      "condition": "FLT",
+      "collection": "ISS-T",
+      "age": "OLD",
+      "muscle_mean_log2": 13.920194150726086,
+      "muscle_marker_fraction_percent": 1.7583350583109552,
+      "liver_mean_log2": 16.362519113461005,
+      "severe_muscle_composition_outlier": true
+    },
+    {
+      "sample": "RR8_LVR_VIV_LAR_YNG_VL1",
+      "condition": "VIV",
+      "collection": "LAR",
+      "age": "YNG",
+      "muscle_mean_log2": 13.633428788334067,
+      "muscle_marker_fraction_percent": 1.2603237484432404,
+      "liver_mean_log2": 16.803393069858156,
+      "severe_muscle_composition_outlier": true
+    },
+    {
+      "sample": "RR8_LVR_VIV_ISS-T_OLD_VI14",
+      "condition": "VIV",
+      "collection": "ISS-T",
+      "age": "OLD",
+      "muscle_mean_log2": 13.290953047784203,
+      "muscle_marker_fraction_percent": 1.0470787367312975,
+      "liver_mean_log2": 16.291140814379148,
+      "severe_muscle_composition_outlier": false
+    },
+    {
+      "sample": "RR8_LVR_FLT_ISS-T_OLD_FI16",
+      "condition": "FLT",
+      "collection": "ISS-T",
+      "age": "OLD",
+      "muscle_mean_log2": 13.160625008663427,
+      "muscle_marker_fraction_percent": 0.8685649433188789,
+      "liver_mean_log2": 16.290781691618722,
+      "severe_muscle_composition_outlier": true
+    },
+    {
+      "sample": "RR8_LVR_VIV_ISS-T_OLD_VI16",
+      "condition": "VIV",
+      "collection": "ISS-T",
+      "age": "OLD",
+      "muscle_mean_log2": 12.9706008144537,
+      "muscle_marker_fraction_percent": 0.8888899133574447,
+      "liver_mean_log2": 16.845335215878503,
+      "severe_muscle_composition_outlier": false
+    },
+    {
+      "sample": "RR8_LVR_BSL_ISS-T_YNG_BI16",
+      "condition": "BSL",
+      "collection": "ISS-T",
+      "age": "YNG",
+      "muscle_mean_log2": 12.57440560721013,
+      "muscle_marker_fraction_percent": 0.7718795867960629,
+      "liver_mean_log2": 17.05352475423276,
+      "severe_muscle_composition_outlier": true
+    },
+    {
+      "sample": "RR8_LVR_BSL_LAR_YNG_BL2",
+      "condition": "BSL",
+      "collection": "LAR",
+      "age": "YNG",
+      "muscle_mean_log2": 12.435532352947927,
+      "muscle_marker_fraction_percent": 0.4709087766806261,
+      "liver_mean_log2": 16.91143681516195,
+      "severe_muscle_composition_outlier": true
+    },
+    {
+      "sample": "RR8_LVR_GC_LAR_OLD_GL3",
+      "condition": "GC",
+      "collection": "LAR",
+      "age": "OLD",
+      "muscle_mean_log2": 12.365513375174338,
+      "muscle_marker_fraction_percent": 0.4993051795698618,
+      "liver_mean_log2": 17.093165735328142,
+      "severe_muscle_composition_outlier": true
+    },
+    {
+      "sample": "RR8_LVR_BSL_LAR_OLD_BL16",
+      "condition": "BSL",
+      "collection": "LAR",
+      "age": "OLD",
+      "muscle_mean_log2": 12.304960523941658,
+      "muscle_marker_fraction_percent": 0.48535407999050295,
+      "liver_mean_log2": 16.86163487568483,
+      "severe_muscle_composition_outlier": true
+    }
+  ],
+  "interpretation": "The coherent fast-skeletal-muscle signal is concentrated in a few liver profiles and is most consistent with tissue admixture or cross-sample contamination, not generalized hepatic activation.",
+  "limitations": "The exclusion analysis uses Welch tests on official normalized counts, not a replacement DESeq2 fit from raw integer counts."
+}

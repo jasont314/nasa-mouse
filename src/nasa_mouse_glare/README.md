@@ -385,6 +385,14 @@ curl -L --fail --show-error \
 curl -L --fail --show-error \
   --output assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv \
   "https://osdr.nasa.gov/geode-py/ws/studies/OSD-379/download?file=GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv&version=1"
+
+curl -L --fail --show-error \
+  --output assets/osdr/OSD-379_metadata_OSD-379-ISA.zip \
+  "https://osdr.nasa.gov/geode-py/ws/studies/OSD-379/download?file=OSD-379_metadata_OSD-379-ISA.zip&version=6"
+
+unzip -p assets/osdr/OSD-379_metadata_OSD-379-ISA.zip \
+  'a_OSD-379_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq.txt' \
+  > assets/osdr/OSD-379_assay_metadata.tsv
 ```
 
 Pretrain the released 16-dimensional GLARE SAE on TMS FACS liver cells:
@@ -457,6 +465,25 @@ mapping during upload.
 
 See `outputs/glare_paper_tms_liver_osd379/RUN_SUMMARY.md` for results and
 method deviations that remain specific to the mouse adaptation.
+
+Audit liver tissue composition when muscle-related clusters or enrichment
+appear:
+
+```bash
+conda run -n nasa env PYTHONPATH=src MPLCONFIGDIR=/tmp/nasa-matplotlib \
+  python -m nasa_mouse_glare.osd379_tissue_qc \
+  --run-dir outputs/glare_paper_tms_liver_osd379 \
+  --normalized-counts assets/osdr/GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
+  --official-de assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv \
+  --tms-h5ad assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad \
+  --isa-assay assets/osdr/OSD-379_assay_metadata.tsv
+```
+
+This scores all OSD-379 profiles with a fast-skeletal-muscle marker panel,
+compares the signal with TMS FACS liver cells, and tests whether the affected
+old ISS-terminal cluster remains robust after severe composition outliers are
+excluded. It is a sensitivity analysis on normalized counts, not a replacement
+DESeq2 analysis from raw integer counts.
 
 ## Reproduce Original GLARE Pretraining
 
