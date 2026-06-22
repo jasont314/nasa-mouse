@@ -45,6 +45,8 @@ SAMPLE_PATTERN = re.compile(
     r"^RR8_LVR_(?P<condition>BSL|FLT|GC|VIV)_"
     r"(?P<collection>ISS-T|LAR)_(?P<age>OLD|YNG)_"
 )
+SEVERE_MIN_MARKERS_OVER_100 = 10
+SEVERE_MIN_MARKER_FRACTION_PERCENT = 0.005
 
 
 def parse_sample(sample: str) -> dict[str, str]:
@@ -296,6 +298,38 @@ def run(args: argparse.Namespace) -> dict:
     scores.to_csv(output_dir / "sample_muscle_marker_scores.tsv", sep="\t", index=False)
     plot_scores(scores, output_dir / "sample_muscle_marker_scores.png")
 
+    strict_exclusions = scores.loc[
+        scores["condition"].isin(["FLT", "GC"])
+        & scores["muscle_markers_over_100"].ge(SEVERE_MIN_MARKERS_OVER_100)
+        & scores["muscle_marker_fraction_percent"].ge(
+            SEVERE_MIN_MARKER_FRACTION_PERCENT
+        )
+    ].copy()
+    strict_exclusions["exclusion_reason"] = (
+        f">={SEVERE_MIN_MARKERS_OVER_100}/20 muscle markers above 100 normalized "
+        f"counts and marker fraction >={SEVERE_MIN_MARKER_FRACTION_PERCENT}%"
+    )
+    strict_exclusions.to_csv(
+        output_dir / "recommended_sample_exclusions.tsv", sep="\t", index=False
+    )
+    feature_map = pd.read_csv(run_dir / "matched_feature_slots.tsv", sep="\t")
+    excluded_samples = set(strict_exclusions["sample"])
+    excluded_slots = feature_map.loc[
+        feature_map["flt_profile"].isin(excluded_samples)
+        | feature_map["gc_profile"].isin(excluded_samples)
+    ].copy()
+    excluded_slots["directly_flagged_profile"] = [
+        flt if flt in excluded_samples else gc
+        for flt, gc in zip(
+            excluded_slots["flt_profile"], excluded_slots["gc_profile"]
+        )
+    ]
+    excluded_slots.to_csv(
+        output_dir / "recommended_matched_slot_exclusions.tsv",
+        sep="\t",
+        index=False,
+    )
+
     old_iss = scores.loc[
         scores["collection"].eq("ISS-T")
         & scores["age"].eq("OLD")
@@ -427,6 +461,22 @@ def run(args: argparse.Namespace) -> dict:
         "old_iss_flight_samples": len(flight_samples),
         "old_iss_ground_samples": len(ground_samples),
         "flagged_old_iss_flight_samples": flagged_flight,
+        "strict_filter_rule": {
+            "minimum_markers_over_100": SEVERE_MIN_MARKERS_OVER_100,
+            "minimum_marker_fraction_percent": (
+                SEVERE_MIN_MARKER_FRACTION_PERCENT
+            ),
+            "applied_before_condition_comparison": True,
+        },
+        "directly_flagged_flt_gc_samples": strict_exclusions["sample"].tolist(),
+        "matched_slots_affected": int(len(excluded_slots)),
+        "profiles_remaining_by_condition": {
+            condition: int(
+                len(feature_map)
+                - strict_exclusions["condition"].eq(condition).sum()
+            )
+            for condition in ("FLT", "GC")
+        },
         "flt_cluster": args.cluster,
         "flt_cluster_gene_count": int(len(sensitivity)),
         "official_old_iss_significant_cluster_genes": int(
@@ -519,6 +569,21 @@ like liver RNA mixed with a substantial amount of skeletal-muscle RNA.
 - {assay_text} The implicated samples were prepared in different library
   batches, making one shared library-preparation spillover event less likely.
 
+## Recommended Filter
+
+For the filtered GLARE and DESeq2 rerun, exclude profiles meeting both
+predeclared criteria:
+
+- At least {SEVERE_MIN_MARKERS_OVER_100}/20 skeletal-muscle markers above 100
+  normalized counts.
+- At least {SEVERE_MIN_MARKER_FRACTION_PERCENT}% of total normalized abundance
+  assigned to the 20-marker panel.
+
+This directly flags {len(strict_exclusions)} FLT/GC profiles. The filtered
+analysis removes those profiles independently rather than discarding clean
+animals from the opposite condition. The matched-slot table remains available
+for methods that specifically require equal feature dimensions.
+
 ## Likely Cause
 
 The most likely explanation is physical tissue admixture during dissection or
@@ -555,6 +620,8 @@ the original.
 - `old_iss_cleaned_candidate_genes.tsv`: candidates retained after exclusion.
 - `tms_liver_marker_detection.tsv`: single-cell liver reference detection.
 - `implicated_sample_assay_qc.tsv`: official ISA assay metadata for FI16/FI17.
+- `recommended_sample_exclusions.tsv`: profiles directly meeting the rule.
+- `recommended_matched_slot_exclusions.tsv`: balanced slots removed downstream.
 
 ## Sources
 

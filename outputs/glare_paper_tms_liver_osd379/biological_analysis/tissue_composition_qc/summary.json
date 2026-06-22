@@ -9,6 +9,32 @@
     "RR8_LVR_FLT_ISS-T_OLD_FI17",
     "RR8_LVR_FLT_ISS-T_OLD_FI16"
   ],
+  "strict_filter_rule": {
+    "minimum_markers_over_100": 10,
+    "minimum_marker_fraction_percent": 0.005,
+    "applied_before_condition_comparison": true
+  },
+  "directly_flagged_flt_gc_samples": [
+    "RR8_LVR_GC_LAR_YNG_GL5",
+    "RR8_LVR_FLT_ISS-T_OLD_FI17",
+    "RR8_LVR_FLT_ISS-T_OLD_FI16",
+    "RR8_LVR_GC_LAR_OLD_GL3",
+    "RR8_LVR_FLT_ISS-T_YNG_FI10",
+    "RR8_LVR_FLT_LAR_YNG_FL2",
+    "RR8_LVR_FLT_LAR_YNG_FL18",
+    "RR8_LVR_FLT_LAR_OLD_FL8",
+    "RR8_LVR_GC_LAR_YNG_GL18",
+    "RR8_LVR_FLT_LAR_OLD_FL15",
+    "RR8_LVR_FLT_LAR_OLD_FL11",
+    "RR8_LVR_GC_ISS-T_YNG_GI10",
+    "RR8_LVR_GC_LAR_OLD_GL7",
+    "RR8_LVR_FLT_ISS-T_YNG_FI9"
+  ],
+  "matched_slots_affected": 12,
+  "profiles_remaining_by_condition": {
+    "FLT": 26,
+    "GC": 30
+  },
   "flt_cluster": 12,
   "flt_cluster_gene_count": 115,
   "official_old_iss_significant_cluster_genes": 93,

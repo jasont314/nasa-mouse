@@ -485,6 +485,62 @@ old ISS-terminal cluster remains robust after severe composition outliers are
 excluded. It is a sensitivity analysis on normalized counts, not a replacement
 DESeq2 analysis from raw integer counts.
 
+Run the final filtered raw-count analysis. The hard filter removes profiles
+with at least 10/20 muscle markers above 100 normalized counts and at least
+0.005% marker abundance. DESeq2 then adjusts for residual within-stratum muscle
+score:
+
+```bash
+curl -L --fail --show-error \
+  --output assets/osdr/GLDS-379_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv \
+  "https://osdr.nasa.gov/geode-py/ws/studies/OSD-379/download?file=GLDS-379_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv&version=6"
+
+conda run -n nasa Rscript src/nasa_mouse_glare/osd379_deseq2.R \
+  --raw-counts assets/osdr/GLDS-379_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv \
+  --matched-slots outputs/glare_paper_tms_liver_osd379/matched_feature_slots.tsv \
+  --exclude-samples outputs/glare_paper_tms_liver_osd379/biological_analysis/tissue_composition_qc/recommended_sample_exclusions.tsv \
+  --filter-mode independent \
+  --composition-scores outputs/glare_paper_tms_liver_osd379/biological_analysis/tissue_composition_qc/sample_muscle_marker_scores.tsv \
+  --glare-gene-reference assets/osdr/GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
+  --output-dir outputs/glare_filtered_tms_liver_osd379/deseq2 \
+  --alpha 0.05 \
+  --lfc-cutoff 1
+```
+
+Fine-tune GLARE without discarding clean animals from the opposite condition.
+FLT and GC adapters may therefore have different profile dimensions:
+
+```bash
+conda run -n nasa env PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  python -m nasa_mouse_glare.paper_finetune \
+  --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
+  --accession OSD-379 \
+  --normalized-counts outputs/glare_filtered_tms_liver_osd379/deseq2/filtered_deseq2_normalized_counts_glare.csv \
+  --pretrained-weights outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
+  --output-dir outputs/glare_filtered_tms_liver_osd379 \
+  --exclude-samples outputs/glare_paper_tms_liver_osd379/biological_analysis/tissue_composition_qc/recommended_sample_exclusions.tsv \
+  --filter-mode independent \
+  --epochs 30 \
+  --batch-size 16 \
+  --seed 1996
+
+conda run -n nasa env PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  MPLCONFIGDIR=/tmp/nasa-matplotlib \
+  python -m nasa_mouse_glare.paper_clustering \
+  --run-dir outputs/glare_filtered_tms_liver_osd379
+
+conda run -n nasa env PYTHONPATH=src MPLCONFIGDIR=/tmp/nasa-matplotlib \
+  python -m nasa_mouse_glare.deseq_glare_comparison \
+  --run-dir outputs/glare_filtered_tms_liver_osd379 \
+  --deseq-dir outputs/glare_filtered_tms_liver_osd379/deseq2
+```
+
+The melted-data XGBoost verification is intentionally omitted for this run:
+after independent tissue QC, FLT and GC have unequal feature dimensions.
+Pair-removing healthy animals solely to satisfy the classifier would discard
+valid biological samples. Clustering and DESeq2-vs-GLARE comparisons do not
+require equal sample counts.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by

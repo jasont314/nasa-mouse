@@ -45,6 +45,21 @@ like liver RNA mixed with a substantial amount of skeletal-muscle RNA.
 - RR8_LVR_FLT_ISS-T_OLD_FI16 had RIN 6.4, library prep 24-Feb-21, 66,531,392 reads, and 3.45% rRNA contamination. RR8_LVR_FLT_ISS-T_OLD_FI17 had RIN 6.4, library prep 29-Oct-20, 59,533,317 reads, and 0.64% rRNA contamination. The implicated samples were prepared in different library
   batches, making one shared library-preparation spillover event less likely.
 
+## Recommended Filter
+
+For the filtered GLARE and DESeq2 rerun, exclude profiles meeting both
+predeclared criteria:
+
+- At least 10/20 skeletal-muscle markers above 100
+  normalized counts.
+- At least 0.005% of total normalized abundance
+  assigned to the 20-marker panel.
+
+This directly flags 14 FLT/GC profiles. The filtered
+analysis removes those profiles independently rather than discarding clean
+animals from the opposite condition. The matched-slot table remains available
+for methods that specifically require equal feature dimensions.
+
 ## Likely Cause
 
 The most likely explanation is physical tissue admixture during dissection or
@@ -81,6 +96,8 @@ the original.
 - `old_iss_cleaned_candidate_genes.tsv`: candidates retained after exclusion.
 - `tms_liver_marker_detection.tsv`: single-cell liver reference detection.
 - `implicated_sample_assay_qc.tsv`: official ISA assay metadata for FI16/FI17.
+- `recommended_sample_exclusions.tsv`: profiles directly meeting the rule.
+- `recommended_matched_slot_exclusions.tsv`: balanced slots removed downstream.
 
 ## Sources
 

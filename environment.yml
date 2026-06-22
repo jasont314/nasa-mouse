@@ -1,9 +1,11 @@
 name: nasa
 channels:
   - conda-forge
-  - defaults
+  - bioconda
 dependencies:
   - python=3.11
+  - r-base=4.5
+  - bioconductor-deseq2=1.50
   - pip
   - pip:
       - -r requirements-nasa-mouse-glare.txt

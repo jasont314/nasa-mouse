@@ -80,6 +80,8 @@ def prepare_controlled_target(
     accession: str,
     output_dir: Path,
     normalized_counts: str | Path | None = None,
+    excluded_profiles: set[str] | None = None,
+    filter_mode: str = "matched",
 ) -> dict:
     """Select balanced FLT/GC profiles and assign comparable cohort slots."""
     bundle = load_matrix_bundle(target_manifest)
@@ -132,21 +134,6 @@ def prepare_controlled_target(
         )
 
     feature_rows = []
-    matrices = {}
-    for label, rows in ordered.items():
-        missing_profiles = [
-            str(profile)
-            for profile in rows["profile"]
-            if str(profile) not in profile_to_index
-        ]
-        if missing_profiles:
-            raise ValueError(
-                f"Expression input is missing {len(missing_profiles)} {label} profiles; "
-                f"first missing: {missing_profiles[0]}"
-            )
-        indices = [profile_to_index[str(profile)] for profile in rows["profile"]]
-        matrices[label] = target[:, indices].astype(np.float32, copy=False)
-
     for (cohort, age), count in sorted(
         cohort_counts["FLT"].items(), key=lambda item: COHORT_ORDER[item[0]]
     ):
@@ -172,10 +159,93 @@ def prepare_controlled_target(
                 }
             )
 
-    # Rows were sorted by the same cohort/rank order used above.
     feature_map = pd.DataFrame(feature_rows)
-    if len(feature_map) != matrices["FLT"].shape[1]:
-        raise AssertionError("Feature map and expression matrices are not aligned")
+    excluded_profiles = excluded_profiles or set()
+    selected_profiles = set(feature_map["flt_profile"]) | set(feature_map["gc_profile"])
+    unknown_exclusions = excluded_profiles - selected_profiles
+    if unknown_exclusions:
+        raise ValueError(
+            "Excluded profiles are not part of the selected FLT/GC study cohort: "
+            f"{sorted(unknown_exclusions)}"
+        )
+    affected_slot_mask = (
+        feature_map["flt_profile"].isin(excluded_profiles)
+        | feature_map["gc_profile"].isin(excluded_profiles)
+    )
+    excluded_slots = feature_map.loc[affected_slot_mask].copy()
+    feature_map["flt_included"] = ~feature_map["flt_profile"].isin(
+        excluded_profiles
+    )
+    feature_map["gc_included"] = ~feature_map["gc_profile"].isin(excluded_profiles)
+    if filter_mode == "matched":
+        retained_feature_map = feature_map.loc[~affected_slot_mask].copy()
+        profile_maps = {
+            label: retained_feature_map[
+                [
+                    "feature",
+                    "cohort",
+                    "age",
+                    f"{label.lower()}_profile",
+                    f"{label.lower()}_animal_number",
+                ]
+            ].rename(
+                columns={
+                    f"{label.lower()}_profile": "profile",
+                    f"{label.lower()}_animal_number": "animal_number",
+                }
+            )
+            for label in CONDITIONS
+        }
+    elif filter_mode == "independent":
+        retained_feature_map = feature_map.loc[
+            feature_map["flt_included"] & feature_map["gc_included"]
+        ].copy()
+        profile_maps = {}
+        for label in CONDITIONS:
+            included_column = f"{label.lower()}_included"
+            profile_column = f"{label.lower()}_profile"
+            animal_column = f"{label.lower()}_animal_number"
+            profile_maps[label] = feature_map.loc[
+                feature_map[included_column],
+                ["feature", "cohort", "age", profile_column, animal_column],
+            ].rename(
+                columns={
+                    profile_column: "profile",
+                    animal_column: "animal_number",
+                }
+            )
+    else:
+        raise ValueError(f"Unsupported filter_mode: {filter_mode}")
+
+    retained_feature_map["original_feature_index"] = retained_feature_map[
+        "feature_index"
+    ]
+    retained_feature_map["feature_index"] = np.arange(len(retained_feature_map))
+    retained_feature_map = retained_feature_map.reset_index(drop=True)
+
+    matrices = {}
+    for label in CONDITIONS:
+        profiles = profile_maps[label]["profile"].astype(str).tolist()
+        missing_profiles = [
+            profile for profile in profiles if profile not in profile_to_index
+        ]
+        if missing_profiles:
+            raise ValueError(
+                f"Expression input is missing {len(missing_profiles)} {label} profiles; "
+                f"first missing: {missing_profiles[0]}"
+            )
+        indices = [profile_to_index[profile] for profile in profiles]
+        matrices[label] = target[:, indices].astype(np.float32, copy=False)
+
+    filtered_cohort_counts = {
+        label: {
+            f"{cohort}_{age}": int(count)
+            for (cohort, age), count in profile_maps[label].groupby(
+                ["cohort", "age"]
+            ).size().items()
+        }
+        for label in CONDITIONS
+    }
 
     output_dir.mkdir(parents=True, exist_ok=True)
     target_path = output_dir / "controlled_target.npz"
@@ -184,26 +254,69 @@ def prepare_controlled_target(
         flt=matrices["FLT"],
         gc=matrices["GC"],
         genes=np.asarray(selected_genes, dtype=str),
-        features=feature_map["feature"].to_numpy(dtype=str),
+        features=retained_feature_map["feature"].to_numpy(dtype=str),
+        flt_features=profile_maps["FLT"]["feature"].to_numpy(dtype=str),
+        gc_features=profile_maps["GC"]["feature"].to_numpy(dtype=str),
         input_kind=np.asarray(input_kind),
         input_path=np.asarray(input_path),
     )
-    feature_map.to_csv(output_dir / "matched_feature_slots.tsv", sep="\t", index=False)
+    retained_feature_map.to_csv(
+        output_dir / "matched_feature_slots.tsv", sep="\t", index=False
+    )
+    excluded_slots.to_csv(
+        output_dir / "excluded_matched_feature_slots.tsv", sep="\t", index=False
+    )
+    feature_map.to_csv(
+        output_dir / "all_feature_slots_with_filter.tsv", sep="\t", index=False
+    )
+    pd.concat(
+        [
+            profile_maps[label].assign(location=label)
+            for label in CONDITIONS
+        ],
+        ignore_index=True,
+    ).to_csv(output_dir / "retained_profile_features.tsv", sep="\t", index=False)
     study_metadata.to_csv(output_dir / "study_profile_metadata.tsv", sep="\t", index=False)
     return {
         "path": target_path,
         "genes": selected_genes,
         "genes_dropped_from_broad_alignment": len(bundle.genes) - len(selected_genes),
-        "features": feature_map["feature"].tolist(),
-        "matrices": matrices,
-        "cohort_counts": {
-            label: {f"{key[0]}_{key[1]}": int(value) for key, value in counts.items()}
-            for label, counts in cohort_counts.items()
+        "features": {
+            label: profile_maps[label]["feature"].tolist()
+            for label in CONDITIONS
         },
+        "matrices": matrices,
+        "cohort_counts": filtered_cohort_counts,
         "study_profile_count": int(len(study_metadata)),
         "input_kind": input_kind,
         "input_path": input_path,
+        "excluded_profiles_requested": sorted(excluded_profiles),
+        "affected_matched_slots": int(len(excluded_slots)),
+        "excluded_matched_slots": (
+            int(len(excluded_slots)) if filter_mode == "matched" else 0
+        ),
+        "excluded_profiles_total": (
+            int(2 * len(excluded_slots))
+            if filter_mode == "matched"
+            else int(len(excluded_profiles))
+        ),
+        "filter_mode": filter_mode,
     }
+
+
+def load_excluded_profiles(path: str | Path | None) -> set[str]:
+    if not path:
+        return set()
+    path = Path(path)
+    table = pd.read_csv(path, sep=None, engine="python")
+    for column in ("sample", "directly_flagged_profile"):
+        if column in table.columns:
+            return set(table[column].dropna().astype(str))
+    if table.shape[1] == 1:
+        return set(table.iloc[:, 0].dropna().astype(str))
+    raise ValueError(
+        f"Exclusion table must contain sample or directly_flagged_profile: {path}"
+    )
 
 
 def write_epoch_logs(output_dir: Path, location: str, records: list[dict]) -> None:
@@ -396,6 +509,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--seed", type=int, default=1996)
+    parser.add_argument(
+        "--exclude-samples",
+        help=(
+            "CSV/TSV containing sample or directly_flagged_profile. Removal "
+            "behavior is controlled by --filter-mode."
+        ),
+    )
+    parser.add_argument(
+        "--filter-mode",
+        choices=["matched", "independent"],
+        default="matched",
+        help=(
+            "matched removes both profiles in affected slots; independent removes "
+            "only directly flagged profiles and permits unequal FLT/GC dimensions."
+        ),
+    )
     parser.add_argument("--prepare-only", action="store_true")
     return parser.parse_args()
 
@@ -405,12 +534,19 @@ def main() -> None:
     run_start = time.perf_counter()
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    excluded_profiles = load_excluded_profiles(args.exclude_samples)
     prepared = prepare_controlled_target(
-        args.target_manifest, args.accession, output_dir, args.normalized_counts
+        args.target_manifest,
+        args.accession,
+        output_dir,
+        args.normalized_counts,
+        excluded_profiles,
+        args.filter_mode,
     )
     log(
         f"Prepared {args.accession}: {len(prepared['genes'])} genes, "
-        f"{len(prepared['features'])} matched profiles per condition"
+        f"{prepared['matrices']['FLT'].shape[1]} FLT and "
+        f"{prepared['matrices']['GC'].shape[1]} GC profiles"
     )
     if args.prepare_only:
         return
@@ -451,6 +587,14 @@ def main() -> None:
         "sparsity_penalty": 1e-5,
         "batch_size": args.batch_size,
         "cohort_counts": prepared["cohort_counts"],
+        "sample_filter": {
+            "exclusion_file": args.exclude_samples or "",
+            "directly_flagged_profiles": prepared["excluded_profiles_requested"],
+            "affected_matched_slots": prepared["affected_matched_slots"],
+            "matched_slots_excluded": prepared["excluded_matched_slots"],
+            "total_profiles_excluded": prepared["excluded_profiles_total"],
+            "filter_mode": prepared["filter_mode"],
+        },
         "study_profile_count_all_conditions": prepared["study_profile_count"],
         "genes_dropped_from_broad_alignment": prepared[
             "genes_dropped_from_broad_alignment"

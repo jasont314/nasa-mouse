@@ -1,0 +1,15 @@
+condition	collection	age	sample	muscle_mean_log2	muscle_markers_over_100	muscle_marker_fraction_percent	liver_mean_log2	liver_markers_over_100	muscle_score_robust_z_within_stratum	severe_muscle_composition_outlier	exclusion_reason
+GC	LAR	YNG	RR8_LVR_GC_LAR_YNG_GL5	15.45512125653425	19	4.247264405438245	15.535200926210232	8	19.22472416706721	True	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+FLT	ISS-T	OLD	RR8_LVR_FLT_ISS-T_OLD_FI17	13.920194150726086	20	1.7583350583109552	16.362519113461005	8	5.854337078308941	True	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+FLT	ISS-T	OLD	RR8_LVR_FLT_ISS-T_OLD_FI16	13.160625008663427	19	0.8685649433188789	16.290781691618722	8	5.467067378690693	True	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+GC	LAR	OLD	RR8_LVR_GC_LAR_OLD_GL3	12.365513375174338	19	0.4993051795698618	17.093165735328142	8	6.180654883528485	True	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+FLT	ISS-T	YNG	RR8_LVR_FLT_ISS-T_YNG_FI10	11.66642918064342	19	0.42553611488187293	17.15864976108032	8	9.09802006166656	True	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+FLT	LAR	YNG	RR8_LVR_FLT_LAR_YNG_FL2	10.581288542187547	17	0.2861856280060323	16.574539341196132	8	1.604651908201535	False	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+FLT	LAR	YNG	RR8_LVR_FLT_LAR_YNG_FL18	10.204470477991562	19	0.07881922601644482	16.741446949826567	8	1.5096823505860446	False	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+FLT	LAR	OLD	RR8_LVR_FLT_LAR_OLD_FL8	10.131297453512179	17	0.1391985080660177	16.900432735814725	8	2.2392871660556506	False	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+GC	LAR	YNG	RR8_LVR_GC_LAR_YNG_GL18	9.750301946495199	19	0.05732971282660158	17.20397688683994	8	11.226723167424865	True	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+FLT	LAR	OLD	RR8_LVR_FLT_LAR_OLD_FL15	9.31741363452216	20	0.052117942597139796	16.840678817764676	8	1.9780278155174613	False	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+FLT	LAR	OLD	RR8_LVR_FLT_LAR_OLD_FL11	8.960675085905256	17	0.04070743206601044	16.727664067185586	8	1.8635135822215523	False	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+GC	ISS-T	YNG	RR8_LVR_GC_ISS-T_YNG_GI10	7.554250491191368	13	0.01172976406913487	17.335643483411516	8	6.728624321730575	True	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+GC	LAR	OLD	RR8_LVR_GC_LAR_OLD_GL7	6.5982890469875715	10	0.008277863216013467	17.255388264154945	8	2.644405548482999	False	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
+FLT	ISS-T	YNG	RR8_LVR_FLT_ISS-T_YNG_FI9	6.5780894590763594	10	0.019359201781232908	17.30098203926932	8	4.453508806843829	True	>=10/20 muscle markers above 100 normalized counts and marker fraction >=0.005%
