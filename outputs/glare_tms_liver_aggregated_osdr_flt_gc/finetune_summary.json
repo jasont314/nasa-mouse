@@ -1,0 +1,120 @@
+{
+  "method": "GLARE released 16-dimensional SAE with aggregated liver FLT/GC fine-tuning",
+  "accessions": [
+    "OSD-379",
+    "OSD-245",
+    "OSD-463",
+    "OSD-242",
+    "OSD-137",
+    "OSD-47",
+    "OSD-686",
+    "OSD-173"
+  ],
+  "selection": {
+    "material_field": "/meta/samples/characteristics/study.characteristics.material type",
+    "condition_field": "/meta/samples/factors/study.factor value.spaceflight",
+    "included_conditions": [
+      "Space Flight",
+      "Ground Control"
+    ]
+  },
+  "condition_counts": [
+    {
+      "h5_accession": "OSD-379",
+      "FLT": 35,
+      "GC": 35,
+      "total": 70
+    },
+    {
+      "h5_accession": "OSD-245",
+      "FLT": 20,
+      "GC": 19,
+      "total": 39
+    },
+    {
+      "h5_accession": "OSD-463",
+      "FLT": 12,
+      "GC": 10,
+      "total": 22
+    },
+    {
+      "h5_accession": "OSD-242",
+      "FLT": 5,
+      "GC": 4,
+      "total": 9
+    },
+    {
+      "h5_accession": "OSD-137",
+      "FLT": 6,
+      "GC": 6,
+      "total": 12
+    },
+    {
+      "h5_accession": "OSD-47",
+      "FLT": 5,
+      "GC": 3,
+      "total": 8
+    },
+    {
+      "h5_accession": "OSD-686",
+      "FLT": 6,
+      "GC": 3,
+      "total": 9
+    },
+    {
+      "h5_accession": "OSD-173",
+      "FLT": 2,
+      "GC": 2,
+      "total": 4
+    }
+  ],
+  "target_manifest": "data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+  "target_expression_input": "data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+  "target_expression_kind": "aligned_osdr_liver_hdf5_expression",
+  "osdr_h5": "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5",
+  "pretrained_weights": "outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth",
+  "pretrained_input_dim": 2859,
+  "device": "cpu",
+  "seed_reused_for_each_location": 1996,
+  "architecture": [
+    128,
+    64,
+    32,
+    16
+  ],
+  "learning_rate": 0.001,
+  "weight_decay": 0,
+  "sparsity_penalty": 1e-05,
+  "batch_size": 16,
+  "outlier_policy": "PCA/k-means audit exported; no genes removed because GLARE's three fixed Arabidopsis outlier IDs do not transfer to mouse",
+  "locations": [
+    {
+      "location": "FLT",
+      "genes": 21010,
+      "profiles": 91,
+      "best_loss": 0.1516633,
+      "best_epoch": 27,
+      "epochs": 30,
+      "weights": "outputs/glare_tms_liver_aggregated_osdr_flt_gc/FLT_finetuned_sae.pth",
+      "adapter": "outputs/glare_tms_liver_aggregated_osdr_flt_gc/FLT_adapter.pth",
+      "representation": "outputs/glare_tms_liver_aggregated_osdr_flt_gc/FLT_FTSAE_representation.npy",
+      "elapsed_seconds": 75.614,
+      "elapsed": "1m 15s"
+    },
+    {
+      "location": "GC",
+      "genes": 21010,
+      "profiles": 82,
+      "best_loss": 0.14730988,
+      "best_epoch": 30,
+      "epochs": 30,
+      "weights": "outputs/glare_tms_liver_aggregated_osdr_flt_gc/GC_finetuned_sae.pth",
+      "adapter": "outputs/glare_tms_liver_aggregated_osdr_flt_gc/GC_adapter.pth",
+      "representation": "outputs/glare_tms_liver_aggregated_osdr_flt_gc/GC_FTSAE_representation.npy",
+      "elapsed_seconds": 80.418,
+      "elapsed": "1m 20s"
+    }
+  ],
+  "elapsed_seconds": 157.657,
+  "elapsed": "2m 37s"
+}

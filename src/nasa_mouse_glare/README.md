@@ -541,6 +541,32 @@ Pair-removing healthy animals solely to satisfy the classifier would discard
 valid biological samples. Clustering and DESeq2-vs-GLARE comparisons do not
 require equal sample counts.
 
+## Aggregate Liver FLT/GC Fine-Tuning
+
+This run reuses the TMS FACS liver pretrained SAE and fine-tunes separate FLT
+and GC adapters on aggregated OSDR liver profiles. Tissue selection uses the
+integrated HDF5 `study.characteristics.material type` field, and condition
+selection uses `study.factor value.spaceflight`.
+
+```bash
+conda run -n nasa env PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  python -m nasa_mouse_glare.aggregate_liver_finetune \
+  --pretrained-weights outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
+  --output-dir outputs/glare_tms_liver_aggregated_osdr_flt_gc \
+  --epochs 30 \
+  --batch-size 16 \
+  --seed 1996
+
+conda run -n nasa env PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  MPLCONFIGDIR=/tmp/nasa-matplotlib \
+  python -m nasa_mouse_glare.paper_clustering \
+  --run-dir outputs/glare_tms_liver_aggregated_osdr_flt_gc
+```
+
+Default accessions are `OSD-379`, `OSD-245`, `OSD-463`, `OSD-242`, `OSD-137`,
+`OSD-47`, `OSD-686`, and `OSD-173`. Only `Space Flight` and `Ground Control`
+profiles are included.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by
