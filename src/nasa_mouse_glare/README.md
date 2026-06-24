@@ -620,6 +620,12 @@ conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.aggregate_liver_mober_qc \
   --run-dir outputs/mober_liver_ribo6_osdr \
   --onto OSD-379
+
+conda run -n nasa env PYTHONPATH=src \
+  MPLCONFIGDIR=/tmp/nasa-matplotlib \
+  python -m nasa_mouse_glare.aggregate_liver_muscle_qc \
+  --run-dir outputs/mober_liver_ribo6_osdr \
+  --output-dir outputs/mober_liver_ribo6_osdr/muscle_outlier_qc
 ```
 
 To rerun the same six-dataset MOBER path without the strict OSD-379
@@ -647,6 +653,7 @@ model from epoch `67`. Key outputs:
 - `outputs/mober_liver_ribo6_osdr/projection/MOBER_PROJECTION_SUMMARY.md`
 - `outputs/mober_liver_ribo6_osdr/projection/mober_latent_onto_OSD-379.tsv`
 - `outputs/mober_liver_ribo6_osdr/mober_qc/MOBER_QC_SUMMARY.md`
+- `outputs/mober_liver_ribo6_osdr/muscle_outlier_qc/AGGREGATE_LIVER_MUSCLE_QC.md`
 
 The trained MOBER checkpoint is local under
 `outputs/mober_liver_ribo6_osdr/mober_train/models/`; it is intentionally not

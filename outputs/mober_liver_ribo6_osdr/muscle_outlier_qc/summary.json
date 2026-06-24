@@ -1,0 +1,215 @@
+{
+  "muscle_markers": {
+    "Mylpf": "ENSMUSG00000030672",
+    "Myh7": "ENSMUSG00000053093",
+    "Tnnt1": "ENSMUSG00000064179",
+    "Myl2": "ENSMUSG00000013936",
+    "Mybpc2": "ENSMUSG00000038670",
+    "Tnni2": "ENSMUSG00000031097",
+    "Myh8": "ENSMUSG00000055775",
+    "Ckm": "ENSMUSG00000030399",
+    "Myl1": "ENSMUSG00000061816",
+    "Myh2": "ENSMUSG00000033196",
+    "Mb": "ENSMUSG00000018893",
+    "Ryr1": "ENSMUSG00000030592",
+    "Mybpc1": "ENSMUSG00000020061",
+    "Atp2a1": "ENSMUSG00000030730",
+    "Tnnt3": "ENSMUSG00000061723",
+    "Actn3": "ENSMUSG00000006457",
+    "Pvalb": "ENSMUSG00000005716",
+    "Myh4": "ENSMUSG00000057003",
+    "Tnnc2": "ENSMUSG00000017300",
+    "Myh1": "ENSMUSG00000056328"
+  },
+  "liver_markers": {
+    "Fgb": "ENSMUSG00000033831",
+    "Tat": "ENSMUSG00000001670",
+    "Ass1": "ENSMUSG00000076441",
+    "Alb": "ENSMUSG00000029368",
+    "Apob": "ENSMUSG00000020609",
+    "Pck1": "ENSMUSG00000027513",
+    "Cyp2e1": "ENSMUSG00000025479"
+  },
+  "rules": {
+    "high_muscle_abundance": {
+      "muscle_markers_over_100_min": 10,
+      "muscle_marker_fraction_percent_min": 0.005
+    },
+    "relative_outlier": {
+      "robust_z_min": 3.5,
+      "minimum_stratum_group_size": 4,
+      "minimum_broad_group_size": 6,
+      "candidate_group": "h5_accession + location + collection_inferred + age_label_inferred",
+      "broad_review_groups": [
+        "h5_accession",
+        "h5_accession + location"
+      ]
+    }
+  },
+  "run_dir": "outputs/mober_liver_ribo6_osdr",
+  "output_dir": "outputs/mober_liver_ribo6_osdr/muscle_outlier_qc",
+  "samples_scored": 156,
+  "high_muscle_abundance_samples": 19,
+  "candidate_muscle_outliers": 12,
+  "broad_review_muscle_outliers": 6,
+  "candidate_profiles": [
+    "RR8_LVR_GC_LAR_YNG_GL5",
+    "RR8_LVR_FLT_ISS-T_OLD_FI17",
+    "RR8_LVR_FLT_ISS-T_OLD_FI16",
+    "RR8_LVR_GC_LAR_OLD_GL3",
+    "RR8_LVR_FLT_ISS-T_YNG_FI10",
+    "Mmus_C57-6T_LVR_FLT_ISS-T_Rep1_F5",
+    "Mmus_C57-6T_LVR_FLT_ISS-T_Rep3_F9",
+    "RR8_LVR_GC_LAR_YNG_GL18",
+    "Mmus_BAL-TAL_LVR_FLT_Rep2_F2",
+    "Mmus_C57-6J_LVR_GC_C2_Rep1_G1",
+    "RR8_LVR_GC_ISS-T_YNG_GI10",
+    "RR8_LVR_FLT_ISS-T_YNG_FI9"
+  ],
+  "accession_condition_summary": [
+    {
+      "h5_accession": "OSD-379",
+      "location": "FLT",
+      "samples": 35,
+      "median_muscle_fraction_percent": 0.0009513127480916414,
+      "max_muscle_fraction_percent": 2.835191242607753,
+      "median_muscle_mean_log2": 3.449282782863287,
+      "max_muscle_mean_log2": 15.118078462726515,
+      "high_muscle_abundance": 10,
+      "candidate_muscle_outlier": 4,
+      "broad_review_muscle_outlier": 5
+    },
+    {
+      "h5_accession": "OSD-379",
+      "location": "GC",
+      "samples": 35,
+      "median_muscle_fraction_percent": 0.0006501404815537111,
+      "max_muscle_fraction_percent": 8.722293159240927,
+      "median_muscle_mean_log2": 2.459660670089889,
+      "max_muscle_mean_log2": 16.082293264606346,
+      "high_muscle_abundance": 5,
+      "candidate_muscle_outlier": 4,
+      "broad_review_muscle_outlier": 1
+    },
+    {
+      "h5_accession": "OSD-245",
+      "location": "FLT",
+      "samples": 20,
+      "median_muscle_fraction_percent": 0.0005272562817475471,
+      "max_muscle_fraction_percent": 0.19026541649744583,
+      "median_muscle_mean_log2": 2.77251696434932,
+      "max_muscle_mean_log2": 11.538831457209794,
+      "high_muscle_abundance": 2,
+      "candidate_muscle_outlier": 2,
+      "broad_review_muscle_outlier": 0
+    },
+    {
+      "h5_accession": "OSD-137",
+      "location": "FLT",
+      "samples": 6,
+      "median_muscle_fraction_percent": 0.0005553236572817038,
+      "max_muscle_fraction_percent": 0.049119316896178544,
+      "median_muscle_mean_log2": 2.5946597049791826,
+      "max_muscle_mean_log2": 7.991802223089023,
+      "high_muscle_abundance": 1,
+      "candidate_muscle_outlier": 1,
+      "broad_review_muscle_outlier": 0
+    },
+    {
+      "h5_accession": "OSD-242",
+      "location": "GC",
+      "samples": 4,
+      "median_muscle_fraction_percent": 0.0004697597575665885,
+      "max_muscle_fraction_percent": 0.03054552231980299,
+      "median_muscle_mean_log2": 2.2395289278058508,
+      "max_muscle_mean_log2": 7.83897570110872,
+      "high_muscle_abundance": 1,
+      "candidate_muscle_outlier": 1,
+      "broad_review_muscle_outlier": 0
+    },
+    {
+      "h5_accession": "OSD-245",
+      "location": "GC",
+      "samples": 19,
+      "median_muscle_fraction_percent": 0.00046908001691748155,
+      "max_muscle_fraction_percent": 0.002761906411127147,
+      "median_muscle_mean_log2": 2.228559023957599,
+      "max_muscle_mean_log2": 5.804261442094255,
+      "high_muscle_abundance": 0,
+      "candidate_muscle_outlier": 0,
+      "broad_review_muscle_outlier": 0
+    },
+    {
+      "h5_accession": "OSD-137",
+      "location": "GC",
+      "samples": 6,
+      "median_muscle_fraction_percent": 0.00042632550264623493,
+      "max_muscle_fraction_percent": 0.0007518590621165123,
+      "median_muscle_mean_log2": 2.501538498611856,
+      "max_muscle_mean_log2": 3.558270103951544,
+      "high_muscle_abundance": 0,
+      "candidate_muscle_outlier": 0,
+      "broad_review_muscle_outlier": 0
+    },
+    {
+      "h5_accession": "OSD-173",
+      "location": "GC",
+      "samples": 2,
+      "median_muscle_fraction_percent": 0.0005101566931904557,
+      "max_muscle_fraction_percent": 0.0005715961813156164,
+      "median_muscle_mean_log2": 1.7262960881190863,
+      "max_muscle_mean_log2": 2.045044323248006,
+      "high_muscle_abundance": 0,
+      "candidate_muscle_outlier": 0,
+      "broad_review_muscle_outlier": 0
+    },
+    {
+      "h5_accession": "OSD-463",
+      "location": "GC",
+      "samples": 10,
+      "median_muscle_fraction_percent": 0.000283186771037507,
+      "max_muscle_fraction_percent": 0.0005370308327729792,
+      "median_muscle_mean_log2": 1.7857357748190847,
+      "max_muscle_mean_log2": 2.898471283413515,
+      "high_muscle_abundance": 0,
+      "candidate_muscle_outlier": 0,
+      "broad_review_muscle_outlier": 0
+    },
+    {
+      "h5_accession": "OSD-242",
+      "location": "FLT",
+      "samples": 5,
+      "median_muscle_fraction_percent": 0.00033463568584699265,
+      "max_muscle_fraction_percent": 0.00045456521156836155,
+      "median_muscle_mean_log2": 1.71709039500501,
+      "max_muscle_mean_log2": 1.8950387596144203,
+      "high_muscle_abundance": 0,
+      "candidate_muscle_outlier": 0,
+      "broad_review_muscle_outlier": 0
+    },
+    {
+      "h5_accession": "OSD-463",
+      "location": "FLT",
+      "samples": 12,
+      "median_muscle_fraction_percent": 0.00029639611481575053,
+      "max_muscle_fraction_percent": 0.00044223639160282085,
+      "median_muscle_mean_log2": 1.9998295017434158,
+      "max_muscle_mean_log2": 2.736995862573488,
+      "high_muscle_abundance": 0,
+      "candidate_muscle_outlier": 0,
+      "broad_review_muscle_outlier": 0
+    },
+    {
+      "h5_accession": "OSD-173",
+      "location": "FLT",
+      "samples": 2,
+      "median_muscle_fraction_percent": 0.0003142677543905862,
+      "max_muscle_fraction_percent": 0.00034034589422688626,
+      "median_muscle_mean_log2": 1.6519687964425982,
+      "max_muscle_mean_log2": 1.756926215085573,
+      "high_muscle_abundance": 0,
+      "candidate_muscle_outlier": 0,
+      "broad_review_muscle_outlier": 0
+    }
+  ]
+}
