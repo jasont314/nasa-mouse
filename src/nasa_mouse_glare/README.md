@@ -778,6 +778,17 @@ conda run -n nasa env PYTHONPATH=src \
   --analysis-species 10090
 ```
 
+Compare the paired flight and ground-control GLARE gene representations:
+
+```bash
+conda run -n nasa env PYTHONPATH=src \
+  python -m nasa_mouse_glare.paired_cluster_report \
+  --run-dir outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers
+```
+
+This writes a paired FLT-to-GC cluster report under
+`outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/paired_cluster_report/`.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by
