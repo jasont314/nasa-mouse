@@ -1,0 +1,21 @@
+GO,Description,_LogP_DESeq2_meta_sig_12filter,_LogP_FLT_cluster_13_muscle_contractile,_LogP_FLT_cluster_14_liver_secreted,_LogP_FLT_cluster_15_contractile_mito,_LogP_FLT_cluster_3_mixed_stress,_LogP_GC_cluster_1_DE_enriched
+GO:0060537,muscle tissue development,0.0,-7.532592914005695,0.0,-7.591890885951822,0.0,0.0
+GO:0090257,regulation of muscle system process,-2.2992307599827213,-7.394954514561299,0.0,-2.942321901946961,0.0,0.0
+mmu05414,Dilated cardiomyopathy - Mus musculus (house mouse),0.0,-6.97206395155614,0.0,0.0,0.0,0.0
+mmu04260,Cardiac muscle contraction - Mus musculus (house mouse),-2.951752032563573,-3.388986729794792,0.0,-4.474783631893381,0.0,-5.025481276773321
+mmu04020,Calcium signaling pathway - Mus musculus (house mouse),-2.509407097626966,-2.6158299478428564,0.0,-3.463181870404945,-2.2249571097373053,-4.109164076195834
+mmu04820,Cytoskeleton in muscle cells - Mus musculus (house mouse),-8.492643899250961,-30.531613387434312,0.0,-5.823130846292396,0.0,-3.0505655273692383
+GO:0030239,myofibril assembly,-6.325606188622769,-18.671680726572596,0.0,-4.357044833475214,0.0,-3.405446038127467
+GO:0043501,skeletal muscle adaptation,0.0,0.0,0.0,-6.7151403442368895,0.0,-2.952623826949292
+GO:0007267,cell-cell signaling,0.0,0.0,0.0,0.0,-7.105084741206485,-6.066778196981599
+WP41,GPCRs other,0.0,0.0,0.0,0.0,-8.007548390797407,-6.095632342006488
+GO:0003341,cilium movement,0.0,0.0,0.0,0.0,-11.951290243331533,-9.740371879251208
+mmu04080,Neuroactive ligand-receptor interaction - Mus musculus (house mouse),0.0,0.0,0.0,0.0,-9.695618635056455,-11.804475925445024
+GO:0030001,metal ion transport,0.0,0.0,0.0,-2.240067956662652,-10.86704965356364,-11.711414181974137
+R-MMU-5576891,Cardiac conduction,0.0,-3.8850005972059343,0.0,0.0,-2.2799628889798638,-4.2800963497264615
+WP163,Cytoplasmic ribosomal proteins,0.0,0.0,-16.838337709519728,0.0,0.0,0.0
+GO:0008202,steroid metabolic process,0.0,0.0,-14.366525690672903,0.0,0.0,0.0
+GO:0006805,xenobiotic metabolic process,0.0,0.0,-17.701873541914367,0.0,0.0,0.0
+R-MMU-5423646,Aflatoxin activation and detoxification,0.0,0.0,-7.317780518646429,0.0,0.0,0.0
+GO:0006790,sulfur compound metabolic process,0.0,0.0,-9.87942194284071,0.0,0.0,0.0
+GO:0035634,response to stilbenoid,0.0,0.0,-8.047961745040364,0.0,0.0,0.0

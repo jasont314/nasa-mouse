@@ -1,0 +1,751 @@
+_MEMBER_DESeq2_meta_sig_12filter,_MEMBER_FLT_cluster_13_muscle_contractile,_MEMBER_FLT_cluster_14_liver_secreted,_MEMBER_FLT_cluster_15_contractile_mito,_MEMBER_FLT_cluster_3_mixed_stress,_MEMBER_GC_cluster_1_DE_enriched,_LogP_DESeq2_meta_sig_12filter,_LogP_FLT_cluster_13_muscle_contractile,_LogP_FLT_cluster_14_liver_secreted,_LogP_FLT_cluster_15_contractile_mito,_LogP_FLT_cluster_3_mixed_stress,_LogP_GC_cluster_1_DE_enriched,GO,Description,_PATTERN_,_RANK_,GiniIndex
+1,1,1,1,0,1,-5.6,-22,-6.3,-2.8,0,-4.4,GO:0006936,muscle contraction,M111101,5,0
+1,1,0,1,1,1,-2.5,-2.6,0,-3.5,-2.2,-4.1,mmu04020,Calcium signaling pathway - Mus musculus (house mouse),M110111,5,0
+1,1,1,1,0,1,-3.2,-12,-5.8,-2.5,0,-2.3,GO:0006941,striated muscle contraction,M111101,5,0
+1,1,1,1,0,1,-6,-20,-6.1,-4,0,-4.1,GO:0003012,muscle system process,M111101,5,0
+1,1,0,1,0,1,-3.3,-19,0,-4.1,0,-6.7,R-MMU-397014,Muscle contraction,M110101,4,0
+1,1,0,1,0,1,-6.3,-19,0,-4.4,0,-3.4,GO:0030239,myofibril assembly,M110101,4,0
+1,1,0,1,0,1,-11,-22,0,-4.2,0,-9.2,WP216,Striated muscle contraction,M110101,4,0
+1,1,0,1,0,1,-4.1,-16,0,-2.9,0,-5.7,R-MMU-390522,Striated Muscle Contraction,M110101,4,0
+1,1,0,1,0,1,-8,-10,0,-2.3,0,-2.9,mmu04814,Motor proteins - Mus musculus (house mouse),M110101,4,0
+1,1,0,1,0,1,-5.4,-14,0,-2.4,0,-2.9,GO:0045214,sarcomere organization,M110101,4,0
+1,1,0,1,0,1,-2,-5.9,0,-2.9,0,-2.4,GO:0006937,regulation of muscle contraction,M110101,4,0
+1,1,0,1,0,1,-4.7,-13,0,-2.4,0,-2.8,GO:0032989,cellular anatomical entity morphogenesis,M110101,4,0
+1,1,0,1,0,1,-5.6,-17,0,-6.1,0,-2.4,GO:0055002,striated muscle cell development,M110101,4,0
+1,1,0,1,0,1,-8.5,-31,0,-5.8,0,-3.1,mmu04820,Cytoskeleton in muscle cells - Mus musculus (house mouse),M110101,4,0
+1,1,0,1,0,1,-3,-3.4,0,-4.5,0,-5,mmu04260,Cardiac muscle contraction - Mus musculus (house mouse),M110101,4,0
+1,1,0,1,0,1,-5.2,-16,0,-6.8,0,-2.5,GO:0055001,muscle cell development,M110101,4,0
+1,1,0,1,0,1,-4.7,-13,0,-2.4,0,-2.8,GO:0010927,cellular component assembly involved in morphogenesis,M110101,4,0
+0,1,0,1,0,1,0,-4.1,0,-4.5,0,-2.6,GO:0007519,skeletal muscle tissue development,M010101,3,0
+1,1,0,1,0,0,-3.7,-4.4,0,-2.3,0,0,GO:0044057,regulation of system process,M110100,3,0
+0,0,0,1,1,1,0,0,0,-2.6,-9.7,-10,GO:0098655,monoatomic cation transmembrane transport,M000111,3,0
+1,1,0,1,0,0,-3,-6.3,0,-2.2,0,0,GO:0060048,cardiac muscle contraction,M110100,3,0
+1,1,0,1,0,0,-2.8,-6.4,0,-3.3,0,0,GO:0060047,heart contraction,M110100,3,0
+1,1,0,1,0,0,-4.4,-9.7,0,-3,0,0,GO:0030036,actin cytoskeleton organization,M110100,3,0
+1,1,0,1,0,0,-2.3,-7.4,0,-2.9,0,0,GO:0090257,regulation of muscle system process,M110100,3,0
+0,1,0,0,1,1,0,-2.5,0,0,-2.5,-2.3,GO:0097553,calcium ion transmembrane import into cytosol,M010011,3,0
+0,1,0,0,1,1,0,-2.1,0,0,-2.4,-2.4,R-MMU-380108,Chemokine receptors bind chemokines,M010011,3,0
+0,1,0,1,0,1,0,-3,0,-2.1,0,-3,mmu04261,Adrenergic signaling in cardiomyocytes - Mus musculus (house mouse),M010101,3,0
+0,1,0,1,0,1,0,-5,0,-3.7,0,-3.7,mmu04972,Pancreatic secretion - Mus musculus (house mouse),M010101,3,0
+1,0,1,1,0,0,-3,0,-3.5,-2.1,0,0,mmu00590,Arachidonic acid metabolism - Mus musculus (house mouse),M101100,3,0
+0,1,0,1,0,1,0,-3.5,0,-5.5,0,-2.7,mmu04974,Protein digestion and absorption - Mus musculus (house mouse),M010101,3,0
+0,1,0,1,0,1,0,-3.8,0,-4.8,0,-2.3,GO:0060538,skeletal muscle organ development,M010101,3,0
+0,0,1,0,1,1,0,0,-2.3,0,-2.9,-2.9,mmu04726,Serotonergic synapse - Mus musculus (house mouse),M001011,3,0
+1,1,0,1,0,0,-5.6,-13,0,-6.6,0,0,GO:0051146,striated muscle cell differentiation,M110100,3,0
+1,1,0,1,0,0,-6.3,-14,0,-8.6,0,0,GO:0061061,muscle structure development,M110100,3,0
+0,1,0,1,0,1,0,-5.4,0,-5.9,0,-3.1,GO:0007517,muscle organ development,M010101,3,0
+1,1,0,1,0,0,-4.9,-14,0,-3.2,0,0,GO:0030029,actin filament-based process,M110100,3,0
+0,1,0,0,1,1,0,-3.9,0,0,-2.3,-4.3,R-MMU-5576891,Cardiac conduction,M010011,3,0
+0,1,0,1,0,1,0,-3.9,0,-2.2,0,-2.4,R-MMU-5578775,Ion homeostasis,M010101,3,0
+1,1,0,1,0,0,-2.7,-11,0,-2.4,0,0,GO:0097435,supramolecular fiber organization,M110100,3,0
+0,0,0,1,1,1,0,0,0,-2.2,-11,-12,GO:0030001,metal ion transport,M000111,3,0
+1,1,0,1,0,0,-6.4,-15,0,-3.5,0,0,GO:0031032,actomyosin structure organization,M110100,3,0
+1,1,0,1,0,0,-2.7,-6,0,-3,0,0,GO:0003015,heart process,M110100,3,0
+1,1,0,1,0,0,-5.9,-12,0,-8.3,0,0,GO:0042692,muscle cell differentiation,M110100,3,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-2,GO:0043278,response to morphine,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-4.6,-4.4,WP234,GPCRs peptide,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.2,-2,GO:0007618,mating,M000011,2,0
+0,0,1,0,1,0,0,0,-2.4,0,-2.3,0,R-MMU-3214858,RMTs methylate histone arginines,M001010,2,0
+0,0,0,0,1,1,0,0,0,0,-5.3,-3,R-MMU-381753,Olfactory Signaling Pathway,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3,-2,mmu05033,Nicotine addiction - Mus musculus (house mouse),M000011,2,0
+0,0,0,1,0,1,0,0,0,-2.1,0,-2,GO:0046475,glycerophospholipid catabolic process,M000101,2,0
+0,0,0,0,1,1,0,0,0,0,-2,-3.3,R-MMU-190241,FGFR2 ligand binding and activation,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-4.7,-3.5,GO:0007018,microtubule-based movement,M000011,2,0
+1,0,1,0,0,0,-2.3,0,-10,0,0,0,GO:0033559,unsaturated fatty acid metabolic process,M101000,2,0
+0,0,0,0,1,1,0,0,0,0,-2.5,-2,R-MMU-112315,Transmission across Chemical Synapses,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.5,-2.8,GO:0019236,response to pheromone,M000011,2,0
+0,1,0,1,0,0,0,-2.2,0,-4.1,0,0,R-MMU-1474244,Extracellular matrix organization,M010100,2,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-2.2,GO:0006705,mineralocorticoid biosynthetic process,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-6.2,-7.1,GO:0006814,sodium ion transport,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.1,R-MMU-8955332,Carboxyterminal post-translational modifications of tubulin,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.2,-2.7,GO:0050951,sensory perception of temperature stimulus,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-3.2,GO:0098953,receptor diffusion trapping,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.3,-4.9,R-MMU-1296072,Voltage gated Potassium channels,M000011,2,0
+1,0,0,1,0,0,-2.2,0,0,-3.1,0,0,GO:0008015,blood circulation,M100100,2,0
+0,0,0,0,1,1,0,0,0,0,-3,-2.7,GO:0120197,mucociliary clearance,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-2.2,R-MMU-388479,Vasopressin-like receptors,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-4.1,-3,GO:0003351,epithelial cilium movement involved in extracellular fluid movement,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.9,-2.5,GO:0070509,calcium ion import,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.6,-3.5,mmu04929,GnRH secretion - Mus musculus (house mouse),M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.2,-2.4,GO:0045671,negative regulation of osteoclast differentiation,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.1,-2.6,GO:0007156,homophilic cell-cell adhesion,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.4,-3,GO:0048469,cell maturation,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.9,-2.7,CORUM:7455,"Catsper complex, testis-specific",M000011,2,0
+0,1,0,1,0,0,0,-3.6,0,-4.6,0,0,GO:0048738,cardiac muscle tissue development,M010100,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-4.4,GO:0071600,otic vesicle morphogenesis,M000011,2,0
+0,1,0,1,0,0,0,-2.4,0,-3.8,0,0,GO:0014819,regulation of skeletal muscle contraction,M010100,2,0
+0,0,0,0,1,1,0,0,0,0,-4.8,-4.6,R-MMU-372790,Signaling by GPCR,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-4.5,-4.2,GO:0007188,adenylate cyclase-modulating G protein-coupled receptor signaling pathway,M000011,2,0
+0,1,0,1,0,0,0,-2.4,0,-2.6,0,0,GO:0055006,cardiac cell development,M010100,2,0
+0,1,1,0,0,0,0,-2.1,-5.8,0,0,0,GO:0042445,hormone metabolic process,M011000,2,0
+0,0,0,0,1,1,0,0,0,0,-2.5,-2.2,mmu05310,Asthma - Mus musculus (house mouse),M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.9,-2.8,GO:0044458,motile cilium assembly,M000011,2,0
+0,1,0,0,0,1,0,-3.8,0,0,0,-2.5,GO:0050905,neuromuscular process,M010001,2,0
+1,1,0,0,0,0,-2.7,-6.1,0,0,0,0,GO:0140694,membraneless organelle assembly,M110000,2,0
+0,0,0,0,1,1,0,0,0,0,-6.6,-5,GO:0048515,spermatid differentiation,M000011,2,0
+1,0,1,0,0,0,-2.3,0,-2.1,0,0,0,mmu04932,Non-alcoholic fatty liver disease - Mus musculus (house mouse),M101000,2,0
+0,0,0,0,1,1,0,0,0,0,-2.8,-2.3,GO:2000241,regulation of reproductive process,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-3.2,GO:0050982,detection of mechanical stimulus,M000011,2,0
+0,1,0,1,0,0,0,-2.4,0,-2.5,0,0,GO:0106056,regulation of calcineurin-mediated signaling,M010100,2,0
+0,0,0,0,1,1,0,0,0,0,-11,-8.9,GO:0060294,cilium movement involved in cell motility,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.8,-3.4,GO:0007204,positive regulation of cytosolic calcium ion concentration,M000011,2,0
+0,1,0,1,0,0,0,-7.4,0,-7.5,0,0,GO:0014706,striated muscle tissue development,M010100,2,0
+0,0,0,0,1,1,0,0,0,0,-3.4,-3.5,GO:0099505,regulation of presynaptic membrane potential,M000011,2,0
+0,1,0,1,0,0,0,-2.7,0,-2.2,0,0,R-MMU-6809371,Formation of the cornified envelope,M010100,2,0
+0,0,0,0,1,1,0,0,0,0,-2.8,-3.3,GO:2001256,regulation of store-operated calcium entry,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.3,GO:0051480,regulation of cytosolic calcium ion concentration,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.2,GO:2000344,positive regulation of acrosome reaction,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.4,GO:0006865,amino acid transport,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.4,-4,GO:0050974,detection of mechanical stimulus involved in sensory perception,M000011,2,0
+0,0,0,1,0,1,0,0,0,-2.1,0,-2,GO:0045606,positive regulation of epidermal cell differentiation,M000101,2,0
+0,0,0,0,1,1,0,0,0,0,-2.5,-2.7,mmu04081,Hormone signaling - Mus musculus (house mouse),M000011,2,0
+0,1,0,1,0,0,0,-2.4,0,-2.5,0,0,GO:0070884,regulation of calcineurin-NFAT signaling cascade,M010100,2,0
+0,0,0,0,1,1,0,0,0,0,-4.3,-2.6,R-MMU-9709957,Sensory Perception,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.2,-2.7,R-MMU-5654221,Phospholipase C-mediated cascade; FGFR2,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.2,GO:0042473,outer ear morphogenesis,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-3.3,GO:0009954,proximal/distal pattern formation,M000011,2,0
+0,1,1,0,0,0,0,-2.2,-3.5,0,0,0,WP1251,Metapathway biotransformation,M011000,2,0
+0,0,0,0,1,1,0,0,0,0,-3.8,-2.7,GO:0006858,extracellular transport,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.9,-2.7,GO:2000969,positive regulation of AMPA receptor activity,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.5,-2.4,mmu04061,Viral protein interaction with cytokine and cytokine receptor - Mus musculus (house mouse),M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-5.1,-4.7,GO:0098916,anterograde trans-synaptic signaling,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-5.2,-6.3,GO:0035725,sodium ion transmembrane transport,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-8,-6.1,WP41,GPCRs other,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-4.6,-5.2,GO:0071805,potassium ion transmembrane transport,M000011,2,0
+0,0,0,1,0,1,0,0,0,-6.7,0,-3,GO:0043501,skeletal muscle adaptation,M000101,2,0
+0,0,0,0,1,1,0,0,0,0,-4.2,-3.1,GO:0009566,fertilization,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-6.1,-7.1,GO:0042391,regulation of membrane potential,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-6.5,-6.4,WP1396,GPCRs non odorant,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-2.2,GO:0042713,sperm ejaculation,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.7,-2.4,R-MMU-209776,Metabolism of amine-derived hormones,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-4.1,-3.6,GO:0048240,sperm capacitation,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.1,GO:1901317,regulation of flagellated sperm motility,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-2.3,GO:0051899,membrane depolarization,M000011,2,0
+0,0,0,1,0,1,0,0,0,-2.3,0,-4.3,GO:0043269,regulation of monoatomic ion transport,M000101,2,0
+0,1,1,0,0,0,0,-2.1,-3.3,0,0,0,R-MMU-211958,Miscellaneous substrates,M011000,2,0
+0,0,0,0,1,1,0,0,0,0,-2.8,-3.5,GO:0060872,semicircular canal development,M000011,2,0
+1,0,1,0,0,0,-2.9,0,-6.9,0,0,0,GO:0019369,arachidonate metabolic process,M101000,2,0
+0,0,0,0,1,1,0,0,0,0,-8.6,-6.2,GO:0022412,cellular process involved in reproduction in multicellular organism,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-6.1,-5.4,GO:0099537,trans-synaptic signaling,M000011,2,0
+0,1,1,0,0,0,0,-2.3,-4.9,0,0,0,R-MMU-211897,Cytochrome P450 - arranged by substrate type,M011000,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.6,GO:0019233,sensory perception of pain,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.5,-2.1,GO:0071695,anatomical structure maturation,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.6,-3.5,GO:0098970,postsynaptic neurotransmitter receptor diffusion trapping,M000011,2,0
+0,1,0,0,0,1,0,-7.8,0,0,0,-3.1,GO:0050879,multicellular organismal movement,M010001,2,0
+0,0,0,0,1,1,0,0,0,0,-2.2,-3.1,WP3632,Lung fibrosis,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.5,-2.1,R-MMU-112314,Neurotransmitter receptors and postsynaptic signal transmission,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.9,-2.7,R-MMU-5576894,Phase 1 - inactivation of fast Na+ channels,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.4,-2.7,GO:0051966,"regulation of synaptic transmission, glutamatergic",M000011,2,0
+1,0,1,0,0,0,-2.3,0,-8.5,0,0,0,GO:0001676,long-chain fatty acid metabolic process,M101000,2,0
+0,0,0,0,1,1,0,0,0,0,-2.6,-2.4,GO:0046877,regulation of saliva secretion,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.6,-3.9,GO:0001508,action potential,M000011,2,0
+1,0,1,0,0,0,-2,0,-2.2,0,0,0,GO:0045834,positive regulation of lipid metabolic process,M101000,2,0
+1,0,1,0,0,0,-2.3,0,-8.2,0,0,0,GO:0006690,icosanoid metabolic process,M101000,2,0
+0,0,0,0,1,1,0,0,0,0,-7.3,-7.3,R-MMU-500792,GPCR ligand binding,M000011,2,0
+0,0,0,1,0,1,0,0,0,-5.1,0,-4.1,R-MMU-1592389,Activation of Matrix Metalloproteinases,M000101,2,0
+0,0,0,0,1,1,0,0,0,0,-2.8,-2.7,GO:0006874,intracellular calcium ion homeostasis,M000011,2,0
+0,1,1,0,0,0,0,-2.5,-10,0,0,0,GO:0120254,olefinic compound metabolic process,M011000,2,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-2.2,GO:0048808,male genitalia morphogenesis,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.2,-2.5,GO:0090103,cochlea morphogenesis,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.1,GO:0007187,"G protein-coupled receptor signaling pathway, coupled to cyclic nucleotide second messenger",M000011,2,0
+1,1,0,0,0,0,-2.2,-3.1,0,0,0,0,WP385,Myometrial relaxation and contraction pathways,M110000,2,0
+0,0,0,0,1,1,0,0,0,0,-10,-8.4,GO:0097722,sperm motility,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.8,-4,GO:0019226,transmission of nerve impulse,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.2,GO:0031652,positive regulation of heat generation,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-10,-8.6,GO:0001539,cilium or flagellum-dependent cell motility,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.5,-2.4,GO:0007342,fusion of sperm to egg plasma membrane involved in single fertilization,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.5,-2.4,GO:0035082,axoneme assembly,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.7,-3,GO:0007200,phospholipase C-activating G protein-coupled receptor signaling pathway,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-5.1,-4.7,GO:0007268,chemical synaptic transmission,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.8,-2.5,GO:0038003,G protein-coupled opioid receptor signaling pathway,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-2.2,GO:0090598,male anatomical structure morphogenesis,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.4,-2.8,GO:0099565,"chemical synaptic transmission, postsynaptic",M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-2.2,R-MMU-5662702,Melanin biosynthesis,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.9,-2.3,GO:0009952,anterior/posterior pattern specification,M000011,2,0
+0,1,0,0,0,1,0,-8.3,0,0,0,-3.5,GO:0050881,musculoskeletal movement,M010001,2,0
+0,0,0,0,1,1,0,0,0,0,-3,-2.4,GO:0060079,excitatory postsynaptic potential,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-5.4,-5.5,R-MMU-112316,Neuronal System,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.2,-2.3,GO:0055074,calcium ion homeostasis,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.2,mmu04727,GABAergic synapse - Mus musculus (house mouse),M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.1,-2.7,GO:1903522,regulation of blood circulation,M000011,2,0
+0,1,0,1,0,0,0,-7.5,0,-7.6,0,0,GO:0060537,muscle tissue development,M010100,2,0
+0,0,0,0,1,1,0,0,0,0,-2.6,-3.5,GO:0099628,neurotransmitter receptor diffusion trapping,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-5.4,-4.5,GO:0070588,calcium ion transmembrane transport,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.7,-2.5,GO:0009946,proximal/distal axis specification,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3,-2.7,GO:0002676,regulation of chronic inflammatory response,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-7,-5.1,mmu04082,Neuroactive ligand signaling - Mus musculus (house mouse),M000011,2,0
+0,1,0,1,0,0,0,-3.9,0,-2.1,0,0,GO:0007507,heart development,M010100,2,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-2,R-MMU-5654219,Phospholipase C-mediated cascade: FGFR1,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.4,-3.8,R-MMU-418555,G alpha (s) signalling events,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.5,-2.4,GO:0120316,sperm flagellum assembly,M000011,2,0
+0,1,0,1,0,0,0,-2.1,0,-5.2,0,0,GO:0061436,establishment of skin barrier,M010100,2,0
+0,1,0,0,0,1,0,-10,0,0,0,-5.5,GO:0003009,skeletal muscle contraction,M010001,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.2,GO:0060046,regulation of acrosome reaction,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-4.4,-5.4,GO:0006813,potassium ion transport,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-5.2,-6.5,R-MMU-1296071,Potassium Channels,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-9.7,-12,mmu04080,Neuroactive ligand-receptor interaction - Mus musculus (house mouse),M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.7,-2.3,GO:0016048,detection of temperature stimulus,M000011,2,0
+0,0,0,1,0,1,0,0,0,-4.6,0,-2.4,R-MMU-1474228,Degradation of the extracellular matrix,M000101,2,0
+0,0,0,0,1,1,0,0,0,0,-5.7,-3.7,WP1397,GPCRs odorant,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-3.2,GO:0048752,semicircular canal morphogenesis,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.2,-2,R-MMU-209968,Thyroxine biosynthesis,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.4,-4.1,GO:0009581,detection of external stimulus,M000011,2,0
+0,1,0,1,0,0,0,-4.5,0,-2.4,0,0,GO:0006942,regulation of striated muscle contraction,M010100,2,0
+0,0,0,0,1,1,0,0,0,0,-6.6,-6.7,R-MMU-373076,Class A/1 (Rhodopsin-like receptors),M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-7.5,-5.7,GO:0007281,germ cell development,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-6.6,-6.4,GO:0006816,calcium ion transport,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-5.4,-4.7,GO:0099536,synaptic signaling,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-7.3,-5.5,GO:0007286,spermatid development,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-10,-8.6,GO:0060285,cilium-dependent cell motility,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.5,-4.2,GO:0009582,detection of abiotic stimulus,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-7.1,-6.1,GO:0007267,cell-cell signaling,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.1,WP222,Cytokines and inflammatory response,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.2,GO:0070098,chemokine-mediated signaling pathway,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.8,-3.3,GO:0007218,neuropeptide signaling pathway,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.5,-3.9,R-MMU-375276,Peptide ligand-binding receptors,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-4.1,-4,R-MMU-388396,GPCR downstream signalling,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-10,-8.4,GO:0030317,flagellated sperm motility,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.5,-2.4,R-MMU-9955298,SLC-mediated transport of organic anions,M000011,2,0
+1,1,0,0,0,0,-2.9,-2.5,0,0,0,0,GO:0014823,response to activity,M110000,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.7,GO:0010469,regulation of signaling receptor activity,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.7,-2.5,GO:0033563,dorsal/ventral axon guidance,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-4.1,-4.1,GO:0060078,regulation of postsynaptic membrane potential,M000011,2,0
+0,1,0,1,0,0,0,-2.7,0,-2.8,0,0,GO:0055013,cardiac muscle cell development,M010100,2,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-2.3,mmu04723,Retrograde endocannabinoid signaling - Mus musculus (house mouse),M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.8,-2.4,R-MMU-375280,Amine ligand-binding receptors,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-12,-9.7,GO:0003341,cilium movement,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-2.3,-2,GO:0050961,detection of temperature stimulus involved in sensory perception,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-3.7,-3.5,GO:0007189,adenylate cyclase-activating G protein-coupled receptor signaling pathway,M000011,2,0
+1,0,0,1,0,0,-2.1,0,0,-2.8,0,0,GO:0003013,circulatory system process,M100100,2,0
+0,0,0,0,1,1,0,0,0,0,-2.4,-2.6,GO:0019722,calcium-mediated signaling,M000011,2,0
+0,0,0,0,1,1,0,0,0,0,-9,-6.7,WP189,GPCRs class A rhodopsin like,M000011,2,0
+0,0,1,0,0,0,0,0,-14,0,0,0,GO:0008202,steroid metabolic process,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.7,0,R-MMU-9841922,MLL4 and MLL3 complexes regulate expression of PPARG target genes in adipogenesis and hepatic steatosis,M000010,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0002677,negative regulation of chronic inflammatory response,M000010,1,0
+0,0,1,0,0,0,0,0,-4.7,0,0,0,mmu04976,Bile secretion - Mus musculus (house mouse),M001000,1,0
+0,0,0,1,0,0,0,0,0,-3.7,0,0,mmu04614,Renin-angiotensin system - Mus musculus (house mouse),M000100,1,0
+0,0,1,0,0,0,0,0,-2.3,0,0,0,GO:0060749,mammary gland alveolus development,M001000,1,0
+0,1,0,0,0,0,0,-2.5,0,0,0,0,GO:0030835,negative regulation of actin filament depolymerization,M010000,1,0
+0,0,1,0,0,0,0,0,-4.7,0,0,0,GO:0120161,regulation of cold-induced thermogenesis,M001000,1,0
+0,0,1,0,0,0,0,0,-4.1,0,0,0,WP4349,Eicosanoid metabolism via cytochrome P450 monooxygenases,M001000,1,0
+0,1,0,0,0,0,0,-3.2,0,0,0,0,GO:0043462,regulation of ATP-dependent activity,M010000,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,R-MMU-72737,Cap-dependent Translation Initiation,M001000,1,0
+0,1,0,0,0,0,0,-9.6,0,0,0,0,GO:0030049,muscle filament sliding,M010000,1,0
+0,0,1,0,0,0,0,0,-7,0,0,0,R-MMU-9954709,Ribosome Quality Control (RQC) complex extracts and degrades nascent peptide,M001000,1,0
+0,1,0,0,0,0,0,-3,0,0,0,0,GO:0071871,response to epinephrine,M010000,1,0
+0,0,0,1,0,0,0,0,0,-4.7,0,0,GO:0055007,cardiac muscle cell differentiation,M000100,1,0
+0,0,1,0,0,0,0,0,-2.8,0,0,0,GO:0160025,sensory perception of itch,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,R-MMU-418594,G alpha (i) signalling events,M000010,1,0
+0,1,0,0,0,0,0,-2.3,0,0,0,0,GO:0001666,response to hypoxia,M010000,1,0
+0,1,0,0,0,0,0,-2.2,0,0,0,0,WP447,Adipogenesis genes,M010000,1,0
+0,0,1,0,0,0,0,0,-13,0,0,0,R-MMU-9954716,ZNF598 and the Ribosome-associated Quality Trigger (RQT) complex dissociate a ribosome stalled on a no-go mRNA,M001000,1,0
+0,0,1,0,0,0,0,0,-3,0,0,0,GO:0031664,regulation of lipopolysaccharide-mediated signaling pathway,M001000,1,0
+0,0,1,0,0,0,0,0,-2.3,0,0,0,GO:0009125,nucleoside monophosphate catabolic process,M001000,1,0
+0,1,0,0,0,0,0,-2.9,0,0,0,0,R-MMU-445355,Smooth Muscle Contraction,M010000,1,0
+0,1,0,0,0,0,0,-3.4,0,0,0,0,mmu05416,Viral myocarditis - Mus musculus (house mouse),M010000,1,0
+0,1,0,0,0,0,0,-2.3,0,0,0,0,GO:0032272,negative regulation of protein polymerization,M010000,1,0
+0,0,1,0,0,0,0,0,-5.1,0,0,0,GO:0051923,sulfation,M001000,1,0
+0,0,1,0,0,0,0,0,-3.4,0,0,0,R-MMU-9018678,Biosynthesis of specialized proresolving mediators (SPMs),M001000,1,0
+0,0,1,0,0,0,0,0,-2.9,0,0,0,mmu00062,Fatty acid elongation - Mus musculus (house mouse),M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.2,GO:1905640,response to acetaldehyde,M000001,1,0
+0,0,1,0,0,0,0,0,-2.1,0,0,0,GO:0042776,proton motive force-driven mitochondrial ATP synthesis,M001000,1,0
+0,1,0,0,0,0,0,-2.9,0,0,0,0,GO:2000095,"regulation of Wnt signaling pathway, planar cell polarity pathway",M010000,1,0
+1,0,0,0,0,0,-2.8,0,0,0,0,0,GO:0051051,negative regulation of transport,M100000,1,0
+0,1,0,0,0,0,0,-3,0,0,0,0,GO:0120255,olefinic compound biosynthetic process,M010000,1,0
+0,0,1,0,0,0,0,0,-2,0,0,0,GO:0015986,proton motive force-driven ATP synthesis,M001000,1,0
+0,0,0,1,0,0,0,0,0,-5.6,0,0,GO:0007155,cell adhesion,M000100,1,0
+0,0,1,0,0,0,0,0,-8.6,0,0,0,R-MMU-8868773,rRNA processing in the nucleus and cytosol,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0007631,feeding behavior,M000010,1,0
+0,0,1,0,0,0,0,0,-2,0,0,0,GO:0006633,fatty acid biosynthetic process,M001000,1,0
+0,0,1,0,0,0,0,0,-3.1,0,0,0,GO:0010466,negative regulation of peptidase activity,M001000,1,0
+1,0,0,0,0,0,-2.3,0,0,0,0,0,mmu05226,Gastric cancer - Mus musculus (house mouse),M100000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2,WP441,Matrix metalloproteinases,M000001,1,0
+0,1,0,0,0,0,0,-2.1,0,0,0,0,GO:0034695,response to prostaglandin E,M010000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.3,0,GO:1903305,regulation of regulated secretory pathway,M000010,1,0
+0,0,0,1,0,0,0,0,0,-2.1,0,0,GO:0045933,positive regulation of muscle contraction,M000100,1,0
+0,0,0,1,0,0,0,0,0,-2.3,0,0,GO:0002009,morphogenesis of an epithelium,M000100,1,0
+1,0,0,0,0,0,-2.3,0,0,0,0,0,GO:0043271,negative regulation of monoatomic ion transport,M100000,1,0
+1,0,0,0,0,0,-2.1,0,0,0,0,0,GO:0070372,regulation of ERK1 and ERK2 cascade,M100000,1,0
+0,0,1,0,0,0,0,0,-6.3,0,0,0,GO:0006720,isoprenoid metabolic process,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.2,GO:0072677,eosinophil migration,M000001,1,0
+0,0,0,1,0,0,0,0,0,-2.1,0,0,GO:0048634,regulation of muscle organ development,M000100,1,0
+0,0,0,0,1,0,0,0,0,0,-3,0,mmu05322,Systemic lupus erythematosus - Mus musculus (house mouse),M000010,1,0
+0,1,0,0,0,0,0,-2.2,0,0,0,0,GO:0045109,intermediate filament organization,M010000,1,0
+0,1,0,0,0,0,0,-2.5,0,0,0,0,WP1274,Oxidation by cytochrome P450,M010000,1,0
+0,0,1,0,0,0,0,0,-3,0,0,0,R-MMU-8953854,Metabolism of RNA,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.2,0,GO:0050806,positive regulation of synaptic transmission,M000010,1,0
+0,0,0,1,0,0,0,0,0,-2.6,0,0,mmu00360,Phenylalanine metabolism - Mus musculus (house mouse),M000100,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0021983,pituitary gland development,M000010,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0006067,ethanol metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-3.1,0,0,0,GO:0046456,icosanoid biosynthetic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-4.6,0,0,GO:0090136,epithelial cell-cell adhesion,M000100,1,0
+1,0,0,0,0,0,-2.8,0,0,0,0,0,mmu05167,Kaposi sarcoma-associated herpesvirus infection - Mus musculus (house mouse),M100000,1,0
+0,0,1,0,0,0,0,0,-2.1,0,0,0,CORUM:3047,Parvulin-associated pre-rRNP complex,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0014063,negative regulation of serotonin secretion,M000010,1,0
+0,0,1,0,0,0,0,0,-5.1,0,0,0,GO:0009822,alkaloid catabolic process,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.7,0,R-MMU-9851695,Epigenetic regulation of adipogenesis genes by MLL3 and MLL4 complexes,M000010,1,0
+0,0,0,0,1,0,0,0,0,0,-2.2,0,GO:0001578,microtubule bundle formation,M000010,1,0
+0,0,1,0,0,0,0,0,-2.2,0,0,0,R-MMU-191273,Cholesterol biosynthesis,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.2,0,0,GO:0050849,negative regulation of calcium-mediated signaling,M000100,1,0
+0,0,1,0,0,0,0,0,-5,0,0,0,GO:0048511,rhythmic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-3.3,0,0,GO:0051122,hepoxilin biosynthetic process,M000100,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0010951,negative regulation of endopeptidase activity,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2,0,GO:0090660,cerebrospinal fluid circulation,M000010,1,0
+0,0,1,0,0,0,0,0,-12,0,0,0,R-MMU-72689,Formation of a pool of free 40S subunits,M001000,1,0
+0,1,0,0,0,0,0,-4.3,0,0,0,0,GO:0051694,pointed-end actin filament capping,M010000,1,0
+0,0,0,1,0,0,0,0,0,-2.8,0,0,GO:0098773,skin epidermis development,M000100,1,0
+0,0,1,0,0,0,0,0,-2.1,0,0,0,GO:0045333,cellular respiration,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.4,R-MMU-2672351,Stimuli-sensing channels,M000001,1,0
+1,0,0,0,0,0,-3.6,0,0,0,0,0,GO:0045923,positive regulation of fatty acid metabolic process,M100000,1,0
+0,0,0,1,0,0,0,0,0,-4.9,0,0,GO:0098609,cell-cell adhesion,M000100,1,0
+1,0,0,0,0,0,-3.3,0,0,0,0,0,R-MMU-2142753,Arachidonate metabolism,M100000,1,0
+0,1,0,0,0,0,0,-2.8,0,0,0,0,GO:0030837,negative regulation of actin filament polymerization,M010000,1,0
+0,0,1,0,0,0,0,0,-7.3,0,0,0,R-MMU-5423646,Aflatoxin activation and detoxification,M001000,1,0
+0,0,1,0,0,0,0,0,-8,0,0,0,GO:0035634,response to stilbenoid,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0070945,neutrophil-mediated killing of gram-negative bacterium,M000010,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2,GO:1903278,positive regulation of sodium ion export across plasma membrane,M000001,1,0
+0,1,0,0,0,0,0,-2.4,0,0,0,0,GO:0110053,regulation of actin filament organization,M010000,1,0
+0,0,1,0,0,0,0,0,-7.3,0,0,0,GO:0140236,translation at presynapse,M001000,1,0
+0,0,1,0,0,0,0,0,-15,0,0,0,GO:0071466,cellular response to xenobiotic stimulus,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.4,0,0,GO:0060993,kidney morphogenesis,M000100,1,0
+0,0,1,0,0,0,0,0,-2.9,0,0,0,R-MMU-72695,"Formation of the ternary complex, and subsequently, the 43S complex",M001000,1,0
+0,0,1,0,0,0,0,0,-2,0,0,0,GO:0051248,negative regulation of protein metabolic process,M001000,1,0
+0,1,0,0,0,0,0,-2.2,0,0,0,0,GO:0035022,positive regulation of Rac protein signal transduction,M010000,1,0
+1,0,0,0,0,0,-2.2,0,0,0,0,0,GO:0045444,fat cell differentiation,M100000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.5,0,R-MMU-110331,Cleavage of the damaged purine,M000010,1,0
+1,0,0,0,0,0,-2.1,0,0,0,0,0,GO:0033157,regulation of intracellular protein transport,M100000,1,0
+0,0,1,0,0,0,0,0,-2.9,0,0,0,GO:0062013,positive regulation of small molecule metabolic process,M001000,1,0
+0,1,0,0,0,0,0,-6.7,0,0,0,0,GO:0070252,actin-mediated cell contraction,M010000,1,0
+0,0,1,0,0,0,0,0,-5.3,0,0,0,GO:0044283,small molecule biosynthetic process,M001000,1,0
+0,0,1,0,0,0,0,0,-3.9,0,0,0,GO:0071353,cellular response to interleukin-4,M001000,1,0
+0,0,1,0,0,0,0,0,-5.2,0,0,0,GO:0008203,cholesterol metabolic process,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0060632,regulation of microtubule-based movement,M000010,1,0
+1,0,0,0,0,0,-2.7,0,0,0,0,0,mmu05200,Pathways in cancer - Mus musculus (house mouse),M100000,1,0
+0,1,0,0,0,0,0,-2.1,0,0,0,0,GO:0043062,extracellular structure organization,M010000,1,0
+0,0,1,0,0,0,0,0,-7.2,0,0,0,GO:0140241,translation at synapse,M001000,1,0
+0,1,0,0,0,0,0,-2.1,0,0,0,0,GO:0050848,regulation of calcium-mediated signaling,M010000,1,0
+0,0,1,0,0,0,0,0,-13,0,0,0,R-MMU-9954714,PELO:HBS1L and ABCE1 dissociate a ribosome on a non-stop mRNA,M001000,1,0
+0,1,0,0,0,0,0,-3.6,0,0,0,0,CORUM:349,Sarcoglycan-sarcospan-syntrophin-dystrobrevin complex,M010000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.5,GO:0042472,inner ear morphogenesis,M000001,1,0
+1,0,0,0,0,0,-2.7,0,0,0,0,0,mmu04064,NF-kappa B signaling pathway - Mus musculus (house mouse),M100000,1,0
+0,0,1,0,0,0,0,0,-8.6,0,0,0,R-MMU-6791226,Major pathway of rRNA processing in the nucleolus and cytosol,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.8,0,0,GO:0010649,regulation of cell communication by electrical coupling,M000100,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.7,GO:2000027,regulation of animal organ morphogenesis,M000001,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.5,GO:0048704,embryonic skeletal system morphogenesis,M000001,1,0
+0,0,1,0,0,0,0,0,-2.2,0,0,0,GO:0045475,locomotor rhythm,M001000,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,mmu05171,Coronavirus disease - Mus musculus (house mouse),M001000,1,0
+0,1,0,0,0,0,0,-3,0,0,0,0,GO:0048662,negative regulation of smooth muscle cell proliferation,M010000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.3,0,R-MMU-9818564,Epigenetic regulation of gene expression by MLL3 and MLL4 complexes,M000010,1,0
+0,0,1,0,0,0,0,0,-3.4,0,0,0,GO:0072521,purine-containing compound metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0050667,homocysteine metabolic process,M001000,1,0
+0,1,0,0,0,0,0,-2,0,0,0,0,mmu00330,Arginine and proline metabolism - Mus musculus (house mouse),M010000,1,0
+0,0,1,0,0,0,0,0,-7.1,0,0,0,GO:0006412,translation,M001000,1,0
+0,1,0,0,0,0,0,-2.5,0,0,0,0,GO:0008064,regulation of actin polymerization or depolymerization,M010000,1,0
+0,1,0,0,0,0,0,-2.4,0,0,0,0,GO:0030832,regulation of actin filament length,M010000,1,0
+0,0,0,1,0,0,0,0,0,-2.1,0,0,GO:0051924,regulation of calcium ion transport,M000100,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.1,GO:0048706,embryonic skeletal system development,M000001,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,GO:0002181,cytoplasmic translation,M001000,1,0
+0,0,1,0,0,0,0,0,-3.2,0,0,0,GO:0006111,regulation of gluconeogenesis,M001000,1,0
+0,0,1,0,0,0,0,0,-2.7,0,0,0,GO:0036196,zymosterol metabolic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.1,0,0,GO:0061333,renal tubule morphogenesis,M000100,1,0
+0,0,1,0,0,0,0,0,-3.2,0,0,0,GO:0007589,body fluid secretion,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.3,0,0,GO:0016202,regulation of striated muscle tissue development,M000100,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,R-MMU-72706,GTP hydrolysis and joining of the 60S ribosomal subunit,M001000,1,0
+0,0,1,0,0,0,0,0,-6.1,0,0,0,GO:0002933,lipid hydroxylation,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.2,0,GO:0017157,regulation of exocytosis,M000010,1,0
+0,0,1,0,0,0,0,0,-4.4,0,0,0,R-MMU-9018682,Biosynthesis of maresins,M001000,1,0
+0,0,1,0,0,0,0,0,-2.2,0,0,0,GO:0030890,positive regulation of B cell proliferation,M001000,1,0
+0,0,1,0,0,0,0,0,-13,0,0,0,GO:0032787,monocarboxylic acid metabolic process,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.5,GO:0032310,prostaglandin secretion,M000001,1,0
+0,1,0,0,0,0,0,-2.2,0,0,0,0,GO:0008016,regulation of heart contraction,M010000,1,0
+0,0,1,0,0,0,0,0,-2.1,0,0,0,GO:0006693,prostaglandin metabolic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.5,0,0,GO:0072080,nephron tubule development,M000100,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.2,GO:0051952,regulation of amine transport,M000001,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2,GO:0006590,thyroid hormone generation,M000001,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,mmu05204,Chemical carcinogenesis - DNA adducts - Mus musculus (house mouse),M001000,1,0
+0,0,1,0,0,0,0,0,-3.4,0,0,0,GO:0019216,regulation of lipid metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-2.8,0,0,0,GO:2000322,regulation of nuclear receptor-mediated glucocorticoid signaling pathway,M001000,1,0
+0,1,0,0,0,0,0,-2,0,0,0,0,GO:0007219,Notch signaling pathway,M010000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0008045,motor neuron axon guidance,M000010,1,0
+0,1,0,0,0,0,0,-5,0,0,0,0,GO:0032970,regulation of actin filament-based process,M010000,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0010038,response to metal ion,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.1,0,0,GO:1904062,regulation of monoatomic cation transmembrane transport,M000100,1,0
+0,0,0,1,0,0,0,0,0,-3.5,0,0,GO:0043500,muscle adaptation,M000100,1,0
+0,0,1,0,0,0,0,0,-2.7,0,0,0,mmu01040,Biosynthesis of unsaturated fatty acids - Mus musculus (house mouse),M001000,1,0
+0,0,1,0,0,0,0,0,-6.8,0,0,0,R-MMU-72766,Translation,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0023061,signal release,M000010,1,0
+0,0,0,1,0,0,0,0,0,-3.2,0,0,R-MMU-1442490,Collagen degradation,M000100,1,0
+0,0,1,0,0,0,0,0,-5,0,0,0,mmu04710,Circadian rhythm - Mus musculus (house mouse),M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.2,0,GO:0097485,neuron projection guidance,M000010,1,0
+0,1,0,0,0,0,0,-2.2,0,0,0,0,GO:1901880,negative regulation of protein depolymerization,M010000,1,0
+0,0,1,0,0,0,0,0,-6.4,0,0,0,GO:0009820,alkaloid metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-2.9,0,0,0,WP103,Cholesterol biosynthesis,M001000,1,0
+0,0,1,0,0,0,0,0,-2.2,0,0,0,GO:0015980,energy derivation by oxidation of organic compounds,M001000,1,0
+0,1,0,0,0,0,0,-2.7,0,0,0,0,GO:0032780,negative regulation of ATP-dependent activity,M010000,1,0
+0,0,1,0,0,0,0,0,-2.2,0,0,0,GO:0044321,response to leptin,M001000,1,0
+0,0,1,0,0,0,0,0,-2.1,0,0,0,GO:0051897,positive regulation of phosphatidylinositol 3-kinase/protein kinase B signal transduction,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.3,0,GO:0003352,regulation of cilium movement,M000010,1,0
+0,0,1,0,0,0,0,0,-2,0,0,0,GO:0019693,ribose phosphate metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-5.7,0,0,0,R-MMU-211981,Xenobiotics,M001000,1,0
+0,0,1,0,0,0,0,0,-7.2,0,0,0,GO:0140242,translation at postsynapse,M001000,1,0
+1,0,0,0,0,0,-2.6,0,0,0,0,0,mmu05163,Human cytomegalovirus infection - Mus musculus (house mouse),M100000,1,0
+0,0,1,0,0,0,0,0,-2.8,0,0,0,GO:0033865,nucleoside bisphosphate metabolic process,M001000,1,0
+0,1,0,0,0,0,0,-2.2,0,0,0,0,GO:0032781,positive regulation of ATP-dependent activity,M010000,1,0
+1,0,0,0,0,0,-2.7,0,0,0,0,0,GO:0044093,positive regulation of molecular function,M100000,1,0
+0,0,1,0,0,0,0,0,-3.4,0,0,0,GO:0007622,rhythmic behavior,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.6,0,0,mmu00350,Tyrosine metabolism - Mus musculus (house mouse),M000100,1,0
+0,0,1,0,0,0,0,0,-17,0,0,0,WP163,Cytoplasmic ribosomal proteins,M001000,1,0
+0,0,1,0,0,0,0,0,-2.9,0,0,0,GO:0006692,prostanoid metabolic process,M001000,1,0
+0,1,0,0,0,0,0,-3.9,0,0,0,0,GO:0030834,regulation of actin filament depolymerization,M010000,1,0
+0,0,0,1,0,0,0,0,0,-3.4,0,0,GO:0019372,lipoxygenase pathway,M000100,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.4,GO:0048245,eosinophil chemotaxis,M000001,1,0
+0,0,1,0,0,0,0,0,-2.3,0,0,0,GO:0061377,mammary gland lobule development,M001000,1,0
+0,0,1,0,0,0,0,0,-6.6,0,0,0,GO:0006721,terpenoid metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-2.8,0,0,0,GO:0033875,ribonucleoside bisphosphate metabolic process,M001000,1,0
+0,1,0,0,0,0,0,-2.4,0,0,0,0,GO:0036336,dendritic cell migration,M010000,1,0
+0,0,0,1,0,0,0,0,0,-2.8,0,0,GO:0070885,negative regulation of calcineurin-NFAT signaling cascade,M000100,1,0
+0,0,0,1,0,0,0,0,0,-2.7,0,0,GO:0090183,regulation of kidney development,M000100,1,0
+0,0,1,0,0,0,0,0,-5.2,0,0,0,R-MMU-9748784,Drug ADME,M001000,1,0
+0,0,1,0,0,0,0,0,-3.3,0,0,0,GO:0008610,lipid biosynthetic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.7,0,0,GO:0072234,metanephric nephron tubule development,M000100,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.7,GO:0030916,otic vesicle formation,M000001,1,0
+0,0,1,0,0,0,0,0,-2.5,0,0,0,GO:0045912,negative regulation of carbohydrate metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,mmu00140,Steroid hormone biosynthesis - Mus musculus (house mouse),M001000,1,0
+0,0,1,0,0,0,0,0,-2.2,0,0,0,GO:0015669,gas transport,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.5,GO:0007320,insemination,M000001,1,0
+0,0,0,0,1,0,0,0,0,0,-2.8,0,GO:0061564,axon development,M000010,1,0
+0,1,0,0,0,0,0,-2.4,0,0,0,0,GO:0048644,muscle organ morphogenesis,M010000,1,0
+0,0,1,0,0,0,0,0,-2.1,0,0,0,GO:0045833,negative regulation of lipid metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-2.3,0,0,0,R-MMU-194068,Bile acid and bile salt metabolism,M001000,1,0
+1,0,0,0,0,0,-2.4,0,0,0,0,0,mmu05022,Pathways of neurodegeneration - multiple diseases - Mus musculus (house mouse),M100000,1,0
+0,1,0,0,0,0,0,-2.3,0,0,0,0,GO:0043266,regulation of potassium ion transport,M010000,1,0
+0,0,0,1,0,0,0,0,0,-3.5,0,0,GO:0042759,long-chain fatty acid biosynthetic process,M000100,1,0
+0,0,0,1,0,0,0,0,0,-2.5,0,0,GO:0045618,positive regulation of keratinocyte differentiation,M000100,1,0
+0,0,1,0,0,0,0,0,-3.7,0,0,0,GO:0046394,carboxylic acid biosynthetic process,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.2,GO:0021516,dorsal spinal cord development,M000001,1,0
+0,0,1,0,0,0,0,0,-5.6,0,0,0,GO:0010817,regulation of hormone levels,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.7,0,0,GO:0001656,metanephros development,M000100,1,0
+0,0,0,1,0,0,0,0,0,-2.3,0,0,GO:0051154,negative regulation of striated muscle cell differentiation,M000100,1,0
+0,0,1,0,0,0,0,0,-6.4,0,0,0,GO:0070989,oxidative demethylation,M001000,1,0
+0,0,1,0,0,0,0,0,-3.6,0,0,0,mmu05216,Thyroid cancer - Mus musculus (house mouse),M001000,1,0
+1,0,0,0,0,0,-2.5,0,0,0,0,0,mmu04668,TNF signaling pathway - Mus musculus (house mouse),M100000,1,0
+0,1,0,0,0,0,0,-3.1,0,0,0,0,GO:2000050,regulation of non-canonical Wnt signaling pathway,M010000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.4,GO:0015816,glycine transport,M000001,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:1903804,glycine import across plasma membrane,M000010,1,0
+0,0,1,0,0,0,0,0,-18,0,0,0,GO:0006805,xenobiotic metabolic process,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0007601,visual perception,M000010,1,0
+1,0,0,0,0,0,-3.6,0,0,0,0,0,GO:0014075,response to amine,M100000,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0043255,regulation of carbohydrate biosynthetic process,M001000,1,0
+1,0,0,0,0,0,-2.1,0,0,0,0,0,mmu04934,Cushing syndrome - Mus musculus (house mouse),M100000,1,0
+0,0,1,0,0,0,0,0,-3.3,0,0,0,R-MMU-9749641,Aspirin ADME,M001000,1,0
+0,0,1,0,0,0,0,0,-13,0,0,0,R-MMU-1799339,SRP-dependent cotranslational protein targeting to membrane,M001000,1,0
+0,0,1,0,0,0,0,0,-2.7,0,0,0,R-MMU-72702,Ribosomal scanning and start codon recognition,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-3.1,mmu04024,cAMP signaling pathway - Mus musculus (house mouse),M000001,1,0
+0,1,0,0,0,0,0,-2.1,0,0,0,0,GO:0045229,external encapsulating structure organization,M010000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2,R-MMU-5654695,PI-3K cascade:FGFR2,M000001,1,0
+0,0,1,0,0,0,0,0,-2.3,0,0,0,GO:0046164,alcohol catabolic process,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-3.3,GO:0032309,icosanoid secretion,M000001,1,0
+0,0,0,0,1,0,0,0,0,0,-2.7,0,R-MMU-110330,Recognition and association of DNA glycosylase with site containing an affected purine,M000010,1,0
+0,1,0,0,0,0,0,-3.8,0,0,0,0,GO:0043502,regulation of muscle adaptation,M010000,1,0
+0,0,0,1,0,0,0,0,0,-2.8,0,0,GO:0072074,kidney mesenchyme development,M000100,1,0
+0,0,1,0,0,0,0,0,-2,0,0,0,R-MMU-9018519,Estrogen-dependent gene expression,M001000,1,0
+0,0,1,0,0,0,0,0,-6,0,0,0,GO:0070988,demethylation,M001000,1,0
+0,0,1,0,0,0,0,0,-8.5,0,0,0,GO:0019373,epoxygenase P450 pathway,M001000,1,0
+0,0,1,0,0,0,0,0,-3.7,0,0,0,GO:0000038,very long-chain fatty acid metabolic process,M001000,1,0
+1,0,0,0,0,0,-2.3,0,0,0,0,0,GO:0033673,negative regulation of kinase activity,M100000,1,0
+0,0,0,1,0,0,0,0,0,-5.6,0,0,mmu04382,Cornified envelope formation - Mus musculus (house mouse),M000100,1,0
+1,0,0,0,0,0,-2.5,0,0,0,0,0,GO:0019217,regulation of fatty acid metabolic process,M100000,1,0
+0,1,0,0,0,0,0,-2.2,0,0,0,0,GO:0010662,regulation of striated muscle cell apoptotic process,M010000,1,0
+1,0,0,0,0,0,-4,0,0,0,0,0,WP5242,Comprehensive IL 17A signaling,M100000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.5,0,R-MMU-2299718,Condensation of Prophase Chromosomes,M000010,1,0
+0,0,1,0,0,0,0,0,-3.5,0,0,0,GO:0007595,lactation,M001000,1,0
+0,0,1,0,0,0,0,0,-2.8,0,0,0,mmu01524,Platinum drug resistance - Mus musculus (house mouse),M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.8,0,0,GO:0106057,negative regulation of calcineurin-mediated signaling,M000100,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2,GO:0099587,inorganic ion import across plasma membrane,M000001,1,0
+0,0,1,0,0,0,0,0,-4.2,0,0,0,GO:0034308,primary alcohol metabolic process,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.3,0,R-MMU-8936459,RUNX1 regulates genes involved in megakaryocyte differentiation and platelet function,M000010,1,0
+0,1,0,0,0,0,0,-2.7,0,0,0,0,GO:0034762,regulation of transmembrane transport,M010000,1,0
+0,1,0,0,0,0,0,-2.7,0,0,0,0,GO:0022407,regulation of cell-cell adhesion,M010000,1,0
+0,0,1,0,0,0,0,0,-5.6,0,0,0,R-MMU-211859,Biological oxidations,M001000,1,0
+0,0,1,0,0,0,0,0,-8.6,0,0,0,R-MMU-72312,rRNA processing,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.5,0,R-MMU-9670095,Inhibition of DNA recombination at telomere,M000010,1,0
+0,0,1,0,0,0,0,0,-9.9,0,0,0,GO:0006790,sulfur compound metabolic process,M001000,1,0
+0,1,0,0,0,0,0,-3.6,0,0,0,0,GO:0014850,response to muscle activity,M010000,1,0
+0,0,0,0,1,0,0,0,0,0,-2,0,GO:0031650,regulation of heat generation,M000010,1,0
+0,1,0,0,0,0,0,-4.2,0,0,0,0,R-MMU-8935690,Digestion,M010000,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0044092,negative regulation of molecular function,M001000,1,0
+0,0,1,0,0,0,0,0,-2.6,0,0,0,GO:0044272,sulfur compound biosynthetic process,M001000,1,0
+0,1,0,0,0,0,0,-2.5,0,0,0,0,GO:0014904,myotube cell development,M010000,1,0
+1,0,0,0,0,0,-2.1,0,0,0,0,0,GO:0070665,positive regulation of leukocyte proliferation,M100000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.3,GO:2001014,regulation of skeletal muscle cell differentiation,M000001,1,0
+0,1,0,0,0,0,0,-3,0,0,0,0,GO:0055008,cardiac muscle tissue morphogenesis,M010000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.4,0,GO:0007338,single fertilization,M000010,1,0
+0,0,0,0,0,1,0,0,0,0,0,-3,R-MMU-2142770,Synthesis of 15-eicosatetraenoic acid derivatives,M000001,1,0
+0,0,1,0,0,0,0,0,-4.7,0,0,0,GO:0006575,modified amino acid metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-4.7,0,0,0,GO:0016101,diterpenoid metabolic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-3.7,0,0,GO:0043588,skin development,M000100,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.5,GO:0044703,multi-organism reproductive process,M000001,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.1,GO:1990869,cellular response to chemokine,M000001,1,0
+0,1,0,0,0,0,0,-2.7,0,0,0,0,GO:0014733,regulation of skeletal muscle adaptation,M010000,1,0
+0,1,0,0,0,0,0,-6.3,0,0,0,0,mmu05410,Hypertrophic cardiomyopathy - Mus musculus (house mouse),M010000,1,0
+1,0,0,0,0,0,-2.1,0,0,0,0,0,GO:0045216,cell-cell junction organization,M100000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.4,GO:0046888,negative regulation of hormone secretion,M000001,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.2,GO:0072513,positive regulation of secondary heart field cardioblast proliferation,M000001,1,0
+0,1,0,0,0,0,0,-3.3,0,0,0,0,GO:0045988,negative regulation of striated muscle contraction,M010000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-4,GO:0071599,otic vesicle development,M000001,1,0
+0,1,0,0,0,0,0,-5.5,0,0,0,0,GO:0030048,actin filament-based movement,M010000,1,0
+0,0,0,1,0,0,0,0,0,-2.5,0,0,GO:0072243,metanephric nephron epithelium development,M000100,1,0
+0,0,1,0,0,0,0,0,-3.1,0,0,0,GO:0062014,negative regulation of small molecule metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-2.3,0,0,0,GO:0097305,response to alcohol,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0017158,regulation of calcium ion-dependent exocytosis,M000010,1,0
+0,0,0,1,0,0,0,0,0,-2.9,0,0,R-MMU-1462054,Alpha-defensins,M000100,1,0
+0,1,0,0,0,0,0,-3.7,0,0,0,0,GO:0007015,actin filament organization,M010000,1,0
+0,0,1,0,0,0,0,0,-2.5,0,0,0,mmu00770,Pantothenate and CoA biosynthesis - Mus musculus (house mouse),M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.8,0,0,GO:0031000,response to caffeine,M000100,1,0
+0,0,1,0,0,0,0,0,-4.9,0,0,0,WP544,Exercise induced circadian regulation,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2,GO:0098659,inorganic cation import across plasma membrane,M000001,1,0
+0,1,0,0,0,0,0,-2.3,0,0,0,0,GO:0030858,positive regulation of epithelial cell differentiation,M010000,1,0
+1,0,0,0,0,0,-2.1,0,0,0,0,0,R-MMU-8978868,Fatty acid metabolism,M100000,1,0
+0,0,0,1,0,0,0,0,0,-2.2,0,0,R-MMU-1461973,Defensins,M000100,1,0
+0,0,1,0,0,0,0,0,-2.6,0,0,0,R-MMU-72662,"Activation of the mRNA upon binding of the cap-binding complex and eIFs, and subsequent binding to 43S",M001000,1,0
+0,0,1,0,0,0,0,0,-2.5,0,0,0,GO:0010906,regulation of glucose metabolic process,M001000,1,0
+1,0,0,0,0,0,-3.2,0,0,0,0,0,GO:0009611,response to wounding,M100000,1,0
+0,0,1,0,0,0,0,0,-2.5,0,0,0,GO:0006637,acyl-CoA metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-2.5,0,0,0,GO:0046320,regulation of fatty acid oxidation,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.3,GO:0071715,icosanoid transport,M000001,1,0
+0,0,0,0,1,0,0,0,0,0,-2.8,0,GO:0007389,pattern specification process,M000010,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0031998,regulation of fatty acid beta-oxidation,M001000,1,0
+0,0,1,0,0,0,0,0,-2.5,0,0,0,GO:0043252,sodium-independent organic anion transport,M001000,1,0
+1,0,0,0,0,0,-2.2,0,0,0,0,0,GO:0045598,regulation of fat cell differentiation,M100000,1,0
+1,0,0,0,0,0,-2.8,0,0,0,0,0,GO:0031214,biomineral tissue development,M100000,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,R-MMU-975957,Nonsense Mediated Decay (NMD) enhanced by the Exon Junction Complex (EJC),M001000,1,0
+0,0,0,1,0,0,0,0,0,-5.7,0,0,R-MMU-2142712,Synthesis of 12-eicosatetraenoic acid derivatives,M000100,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,R-MMU-390666,Serotonin receptors,M000010,1,0
+0,1,0,0,0,0,0,-2.7,0,0,0,0,GO:0014902,myotube differentiation,M010000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,R-MMU-774815,Nucleosome assembly,M000010,1,0
+1,0,0,0,0,0,-2.2,0,0,0,0,0,GO:0050671,positive regulation of lymphocyte proliferation,M100000,1,0
+0,0,0,1,0,0,0,0,0,-2.7,0,0,GO:0055003,cardiac myofibril assembly,M000100,1,0
+0,1,0,0,0,0,0,-3.1,0,0,0,0,GO:1901879,regulation of protein depolymerization,M010000,1,0
+0,0,0,1,0,0,0,0,0,-2.2,0,0,GO:0003338,metanephros morphogenesis,M000100,1,0
+0,0,0,0,1,0,0,0,0,0,-2.7,0,R-MMU-212300,PRC2 methylates histones and DNA,M000010,1,0
+0,0,0,1,0,0,0,0,0,-2.4,0,0,GO:0072170,metanephric tubule development,M000100,1,0
+1,0,0,0,0,0,-2.3,0,0,0,0,0,mmu04921,Oxytocin signaling pathway - Mus musculus (house mouse),M100000,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0018958,phenol-containing compound metabolic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.9,0,0,GO:0016331,morphogenesis of embryonic epithelium,M000100,1,0
+0,0,1,0,0,0,0,0,-2.5,0,0,0,GO:0015718,monocarboxylic acid transport,M001000,1,0
+0,0,1,0,0,0,0,0,-10,0,0,0,R-MMU-9948299,Ribosome-associated quality control,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,R-MMU-9609736,Assembly and cell surface presentation of NMDA receptors,M000010,1,0
+0,0,1,0,0,0,0,0,-4.8,0,0,0,GO:0016125,sterol metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-4.5,0,0,0,R-MMU-211945,Phase I - Functionalization of compounds,M001000,1,0
+0,0,1,0,0,0,0,0,-3.7,0,0,0,GO:0120162,positive regulation of cold-induced thermogenesis,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,R-MMU-73929,"Base-Excision Repair, AP Site Formation",M000010,1,0
+0,1,0,0,0,0,0,-2.5,0,0,0,0,GO:0071379,cellular response to prostaglandin stimulus,M010000,1,0
+1,0,0,0,0,0,-2.3,0,0,0,0,0,mmu04936,Alcoholic liver disease - Mus musculus (house mouse),M100000,1,0
+0,0,1,0,0,0,0,0,-8.3,0,0,0,GO:0006631,fatty acid metabolic process,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0030279,negative regulation of ossification,M000010,1,0
+0,0,1,0,0,0,0,0,-3.9,0,0,0,GO:0015849,organic acid transport,M001000,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,R-MMU-72613,Eukaryotic Translation Initiation,M001000,1,0
+0,1,0,0,0,0,0,-2.3,0,0,0,0,GO:0043244,regulation of protein-containing complex disassembly,M010000,1,0
+0,1,0,0,0,0,0,-2.2,0,0,0,0,GO:0006109,regulation of carbohydrate metabolic process,M010000,1,0
+0,0,1,0,0,0,0,0,-3.1,0,0,0,GO:0042908,xenobiotic transport,M001000,1,0
+0,0,1,0,0,0,0,0,-2.2,0,0,0,GO:0019748,secondary metabolic process,M001000,1,0
+1,0,0,0,0,0,-2.9,0,0,0,0,0,GO:0048660,regulation of smooth muscle cell proliferation,M100000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.5,0,R-MMU-73927,Depurination,M000010,1,0
+0,0,1,0,0,0,0,0,-13,0,0,0,R-MMU-975956,Nonsense Mediated Decay (NMD) independent of the Exon Junction Complex (EJC),M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.8,0,R-MMU-5689901,Metalloprotease DUBs,M000010,1,0
+0,0,1,0,0,0,0,0,-2.8,0,0,0,CORUM:382,"Respiratory chain complex I, mitochondrial",M001000,1,0
+0,0,1,0,0,0,0,0,-2.7,0,0,0,GO:0098754,detoxification,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.3,mmu04918,Thyroid hormone synthesis - Mus musculus (house mouse),M000001,1,0
+0,1,0,0,0,0,0,-4.6,0,0,0,0,GO:1903115,regulation of actin filament-based movement,M010000,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,R-MMU-927802,Nonsense-Mediated Decay (NMD),M001000,1,0
+0,0,1,0,0,0,0,0,-2,0,0,0,GO:0055088,lipid homeostasis,M001000,1,0
+0,0,0,1,0,0,0,0,0,-3.8,0,0,GO:0014888,striated muscle adaptation,M000100,1,0
+0,1,0,0,0,0,0,-2.7,0,0,0,0,R-MMU-211979,Eicosanoids,M010000,1,0
+0,1,0,0,0,0,0,-3.8,0,0,0,0,R-MMU-8963743,Digestion and absorption,M010000,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0006068,ethanol catabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-6.4,0,0,0,GO:1902652,secondary alcohol metabolic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-4.3,0,0,GO:0010880,regulation of release of sequestered calcium ion into cytosol by sarcoplasmic reticulum,M000100,1,0
+0,0,1,0,0,0,0,0,-2.7,0,0,0,GO:0036197,zymosterol biosynthetic process,M001000,1,0
+0,0,1,0,0,0,0,0,-3.3,0,0,0,GO:0043086,negative regulation of catalytic activity,M001000,1,0
+0,1,0,0,0,0,0,-2.3,0,0,0,0,GO:0010665,regulation of cardiac muscle cell apoptotic process,M010000,1,0
+1,0,0,0,0,0,-2.7,0,0,0,0,0,mmu04657,IL-17 signaling pathway - Mus musculus (house mouse),M100000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.4,GO:0150037,regulation of calcium-dependent activation of synaptic vesicle fusion,M000001,1,0
+0,0,1,0,0,0,0,0,-3,0,0,0,GO:0051346,negative regulation of hydrolase activity,M001000,1,0
+0,1,0,0,0,0,0,-2.1,0,0,0,0,GO:0034767,positive regulation of monoatomic ion transmembrane transport,M010000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.3,0,R-MMU-9940951,Interaction of NuRD complexes with transcription factors,M000010,1,0
+0,0,1,0,0,0,0,0,-6.5,0,0,0,GO:0007623,circadian rhythm,M001000,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,GO:0009410,response to xenobiotic stimulus,M001000,1,0
+0,0,1,0,0,0,0,0,-12,0,0,0,GO:1901740,negative regulation of myoblast fusion,M001000,1,0
+0,0,1,0,0,0,0,0,-3.6,0,0,0,GO:0006869,lipid transport,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.7,GO:0045162,clustering of voltage-gated sodium channels,M000001,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.2,GO:0007620,copulation,M000001,1,0
+1,0,0,0,0,0,-2.1,0,0,0,0,0,GO:0008285,negative regulation of cell population proliferation,M100000,1,0
+0,0,0,1,0,0,0,0,0,-2.1,0,0,GO:0043651,linoleic acid metabolic process,M000100,1,0
+0,1,0,0,0,0,0,-2.8,0,0,0,0,R-MMU-3000171,Non-integrin membrane-ECM interactions,M010000,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,mmu00830,Retinol metabolism - Mus musculus (house mouse),M001000,1,0
+0,1,0,0,0,0,0,-3.2,0,0,0,0,GO:0071872,cellular response to epinephrine stimulus,M010000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.2,GO:0019228,neuronal action potential,M000001,1,0
+0,0,1,0,0,0,0,0,-3.9,0,0,0,GO:0046942,carboxylic acid transport,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.4,R-MMU-983712,Ion channel transport,M000001,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,mmu05208,Chemical carcinogenesis - reactive oxygen species - Mus musculus (house mouse),M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.5,0,0,R-MMU-2022090,Assembly of collagen fibrils and other multimeric structures,M000100,1,0
+1,0,0,0,0,0,-2.2,0,0,0,0,0,GO:0043068,positive regulation of programmed cell death,M100000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.3,0,mmu05032,Morphine addiction - Mus musculus (house mouse),M000010,1,0
+0,0,1,0,0,0,0,0,-10,0,0,0,GO:1901739,regulation of myoblast fusion,M001000,1,0
+0,0,0,1,0,0,0,0,0,-3.8,0,0,GO:0035051,cardiocyte differentiation,M000100,1,0
+0,0,0,1,0,0,0,0,0,-2.5,0,0,GO:0007379,segment specification,M000100,1,0
+0,1,0,0,0,0,0,-4.4,0,0,0,0,R-MMU-9913351,Formation of the dystrophin-glycoprotein complex (DGC),M010000,1,0
+1,0,0,0,0,0,-2.7,0,0,0,0,0,GO:0050731,positive regulation of peptidyl-tyrosine phosphorylation,M100000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.8,GO:0042471,ear morphogenesis,M000001,1,0
+0,1,0,0,0,0,0,-2.6,0,0,0,0,GO:0060415,muscle tissue morphogenesis,M010000,1,0
+0,0,1,0,0,0,0,0,-3.5,0,0,0,GO:0048512,circadian behavior,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.2,0,R-MMU-9764560,Regulation of CDH1 Gene Transcription,M000010,1,0
+0,0,0,1,0,0,0,0,0,-2.2,0,0,GO:0072028,nephron morphogenesis,M000100,1,0
+0,1,0,0,0,0,0,-2,0,0,0,0,GO:0051560,mitochondrial calcium ion homeostasis,M010000,1,0
+0,0,1,0,0,0,0,0,-2.9,0,0,0,WP4351,Omega 9 fatty acid synthesis,M001000,1,0
+0,1,0,0,0,0,0,-4.1,0,0,0,0,mmu05412,Arrhythmogenic right ventricular cardiomyopathy - Mus musculus (house mouse),M010000,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,GO:0042178,xenobiotic catabolic process,M001000,1,0
+1,0,0,0,0,0,-2.3,0,0,0,0,0,mmu05224,Breast cancer - Mus musculus (house mouse),M100000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.2,0,GO:0036159,inner dynein arm assembly,M000010,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,R-MMU-606279,Deposition of new CENPA-containing nucleosomes at the centromere,M000010,1,0
+0,0,1,0,0,0,0,0,-2.1,0,0,0,GO:0009259,ribonucleotide metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-3,0,0,0,WP4346,Cholesterol metabolism with Bloch and Kandutsch Russell pathways,M001000,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0046890,regulation of lipid biosynthetic process,M001000,1,0
+0,1,0,0,0,0,0,-3.3,0,0,0,0,GO:1902307,positive regulation of sodium ion transmembrane transport,M010000,1,0
+0,0,0,0,1,0,0,0,0,0,-2,0,GO:2000155,positive regulation of cilium-dependent cell motility,M000010,1,0
+0,0,0,1,0,0,0,0,0,-2.8,0,0,GO:0048729,tissue morphogenesis,M000100,1,0
+0,0,1,0,0,0,0,0,-7.1,0,0,0,GO:0160307,protein biosynthetic process,M001000,1,0
+0,1,0,0,0,0,0,-3.4,0,0,0,0,GO:0002407,dendritic cell chemotaxis,M010000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.1,GO:0050910,detection of mechanical stimulus involved in sensory perception of sound,M000001,1,0
+0,1,0,0,0,0,0,-9,0,0,0,0,GO:0033275,actin-myosin filament sliding,M010000,1,0
+0,0,1,0,0,0,0,0,-4.5,0,0,0,R-MMU-9027307,Biosynthesis of maresin-like SPMs,M001000,1,0
+1,0,0,0,0,0,-3.4,0,0,0,0,0,GO:0035270,endocrine system development,M100000,1,0
+1,0,0,0,0,0,-3.3,0,0,0,0,0,GO:0030282,bone mineralization,M100000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.2,0,R-MMU-9764725,Negative Regulation of CDH1 Gene Transcription,M000010,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,R-MMU-629587,Highly sodium permeable postsynaptic acetylcholine nicotinic receptors,M000010,1,0
+0,0,1,0,0,0,0,0,-4.1,0,0,0,mmu00983,Drug metabolism - other enzymes - Mus musculus (house mouse),M001000,1,0
+0,0,0,1,0,0,0,0,0,-5.3,0,0,GO:0008544,epidermis development,M000100,1,0
+0,0,1,0,0,0,0,0,-14,0,0,0,mmu03010,Ribosome - Mus musculus (house mouse),M001000,1,0
+0,0,0,1,0,0,0,0,0,-3.8,0,0,GO:0072189,ureter development,M000100,1,0
+0,0,0,0,1,0,0,0,0,0,-2.3,0,mmu05320,Autoimmune thyroid disease - Mus musculus (house mouse),M000010,1,0
+0,1,0,0,0,0,0,-2.1,0,0,0,0,GO:0003007,heart morphogenesis,M010000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0051045,negative regulation of membrane protein ectodomain proteolysis,M000010,1,0
+0,0,1,0,0,0,0,0,-2.2,0,0,0,mmu05214,Glioma - Mus musculus (house mouse),M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.2,0,GO:0014072,response to isoquinoline alkaloid,M000010,1,0
+0,0,1,0,0,0,0,0,-3.1,0,0,0,GO:0032922,circadian regulation of gene expression,M001000,1,0
+0,0,1,0,0,0,0,0,-2.3,0,0,0,GO:0061179,negative regulation of insulin secretion involved in cellular response to glucose stimulus,M001000,1,0
+0,1,0,0,0,0,0,-2.8,0,0,0,0,mmu04371,Apelin signaling pathway - Mus musculus (house mouse),M010000,1,0
+0,1,0,0,0,0,0,-2.2,0,0,0,0,GO:1902305,regulation of sodium ion transmembrane transport,M010000,1,0
+0,0,1,0,0,0,0,0,-3,0,0,0,GO:0062012,regulation of small molecule metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-3.4,0,0,0,GO:0006753,nucleoside phosphate metabolic process,M001000,1,0
+0,1,0,0,0,0,0,-2.5,0,0,0,0,GO:0003334,keratinocyte development,M010000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0050955,thermoception,M000010,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.1,GO:0141163,positive regulation of cAMP/PKA signal transduction,M000001,1,0
+0,0,1,0,0,0,0,0,-3.6,0,0,0,GO:0055086,nucleobase-containing small molecule metabolic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.1,0,0,GO:0018149,peptide cross-linking,M000100,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0050965,detection of temperature stimulus involved in sensory perception of pain,M000010,1,0
+0,0,1,0,0,0,0,0,-3.6,0,0,0,GO:0010876,lipid localization,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.9,0,0,GO:0051279,regulation of release of sequestered calcium ion into cytosol,M000100,1,0
+0,0,1,0,0,0,0,0,-2.8,0,0,0,GO:0042180,ketone metabolic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-3.3,0,0,GO:0006508,proteolysis,M000100,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.5,mmu04911,Insulin secretion - Mus musculus (house mouse),M000001,1,0
+0,1,0,0,0,0,0,-7,0,0,0,0,mmu05414,Dilated cardiomyopathy - Mus musculus (house mouse),M010000,1,0
+0,0,1,0,0,0,0,0,-2.5,0,0,0,GO:0052547,regulation of peptidase activity,M001000,1,0
+0,0,1,0,0,0,0,0,-2.7,0,0,0,R-MMU-72649,Translation initiation complex formation,M001000,1,0
+1,0,0,0,0,0,-2.7,0,0,0,0,0,mmu05146,Amoebiasis - Mus musculus (house mouse),M100000,1,0
+0,0,1,0,0,0,0,0,-7.1,0,0,0,mmu00591,Linoleic acid metabolism - Mus musculus (house mouse),M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.2,0,GO:1903307,positive regulation of regulated secretory pathway,M000010,1,0
+0,0,0,0,1,0,0,0,0,0,-2,0,GO:1902093,positive regulation of flagellated sperm motility,M000010,1,0
+0,1,0,0,0,0,0,-3.1,0,0,0,0,GO:0034764,positive regulation of transmembrane transport,M010000,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0030258,lipid modification,M001000,1,0
+0,0,1,0,0,0,0,0,-4.7,0,0,0,GO:0042573,retinoic acid metabolic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-4.1,0,0,GO:0010832,negative regulation of myotube differentiation,M000100,1,0
+0,0,1,0,0,0,0,0,-2.8,0,0,0,GO:0050427,3'-phosphoadenosine 5'-phosphosulfate metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0009636,response to toxic substance,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.2,0,0,GO:0072207,metanephric epithelium development,M000100,1,0
+0,0,0,0,1,0,0,0,0,0,-2.9,0,R-MMU-9909649,Regulation of PD-L1(CD274) transcription,M000010,1,0
+0,0,0,0,1,0,0,0,0,0,-2.6,0,mmu04060,Cytokine-cytokine receptor interaction - Mus musculus (house mouse),M000010,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.2,GO:0048705,skeletal system morphogenesis,M000001,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0071907,determination of digestive tract left/right asymmetry,M000010,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2,GO:0050966,detection of mechanical stimulus involved in sensory perception of pain,M000001,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.1,GO:1990868,response to chemokine,M000001,1,0
+0,1,0,0,0,0,0,-2.9,0,0,0,0,GO:0051693,actin filament capping,M010000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2,GO:1903861,positive regulation of dendrite extension,M000001,1,0
+0,0,1,0,0,0,0,0,-3.4,0,0,0,R-MMU-9018677,Biosynthesis of DHA-derived SPMs,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.2,0,R-MMU-190242,FGFR1 ligand binding and activation,M000010,1,0
+0,0,1,0,0,0,0,0,-2.8,0,0,0,GO:0042403,thyroid hormone metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-6.5,0,0,0,R-MMU-9757110,Prednisone ADME,M001000,1,0
+0,0,1,0,0,0,0,0,-3.1,0,0,0,mmu00982,Drug metabolism - cytochrome P450 - Mus musculus (house mouse),M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:2000243,positive regulation of reproductive process,M000010,1,0
+0,0,1,0,0,0,0,0,-2,0,0,0,R-MMU-382551,Transport of small molecules,M001000,1,0
+0,0,1,0,0,0,0,0,-2,0,0,0,GO:0015721,bile acid and bile salt transport,M001000,1,0
+0,0,1,0,0,0,0,0,-3,0,0,0,mmu00980,Metabolism of xenobiotics by cytochrome P450 - Mus musculus (house mouse),M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-3.4,0,mmu05144,Malaria - Mus musculus (house mouse),M000010,1,0
+0,0,1,0,0,0,0,0,-2.2,0,0,0,GO:0050994,regulation of lipid catabolic process,M001000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.2,GO:0046697,decidualization,M000001,1,0
+0,0,0,1,0,0,0,0,0,-2.3,0,0,GO:0072078,nephron tubule morphogenesis,M000100,1,0
+0,0,0,1,0,0,0,0,0,-2.4,0,0,GO:0061326,renal tubule development,M000100,1,0
+0,0,1,0,0,0,0,0,-3.4,0,0,0,R-MMU-73621,Pyrimidine catabolism,M001000,1,0
+1,0,0,0,0,0,-2.1,0,0,0,0,0,GO:0010565,regulation of ketone metabolic process,M100000,1,0
+1,0,0,0,0,0,-2.5,0,0,0,0,0,GO:0006469,negative regulation of protein kinase activity,M100000,1,0
+0,0,1,0,0,0,0,0,-4.4,0,0,0,GO:0045721,negative regulation of gluconeogenesis,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.2,0,GO:0050953,sensory perception of light stimulus,M000010,1,0
+0,1,0,0,0,0,0,-2.7,0,0,0,0,GO:2000052,positive regulation of non-canonical Wnt signaling pathway,M010000,1,0
+0,0,1,0,0,0,0,0,-11,0,0,0,R-MMU-156827,L13a-mediated translational silencing of Ceruloplasmin expression,M001000,1,0
+0,1,0,0,0,0,0,-2.2,0,0,0,0,GO:0043270,positive regulation of monoatomic ion transport,M010000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.2,GO:0070593,dendrite self-avoidance,M000001,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.2,GO:0055024,regulation of cardiac muscle tissue development,M000001,1,0
+0,1,0,0,0,0,0,-2.7,0,0,0,0,GO:0071380,cellular response to prostaglandin E stimulus,M010000,1,0
+0,1,0,0,0,0,0,-2.3,0,0,0,0,GO:0010765,positive regulation of sodium ion transport,M010000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.8,0,GO:0007288,sperm axoneme assembly,M000010,1,0
+0,0,1,0,0,0,0,0,-3.7,0,0,0,GO:0070670,response to interleukin-4,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.2,0,0,GO:1901861,regulation of muscle tissue development,M000100,1,0
+0,1,0,0,0,0,0,-4.1,0,0,0,0,R-MMU-192456,Digestion of dietary lipid,M010000,1,0
+1,0,0,0,0,0,-2.5,0,0,0,0,0,GO:0050764,regulation of phagocytosis,M100000,1,0
+1,0,0,0,0,0,-2.3,0,0,0,0,0,GO:0042060,wound healing,M100000,1,0
+0,0,1,0,0,0,0,0,-2.9,0,0,0,GO:0000096,sulfur amino acid metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-2.1,0,0,0,GO:0052548,regulation of endopeptidase activity,M001000,1,0
+0,1,0,0,0,0,0,-2.3,0,0,0,0,GO:0032956,regulation of actin cytoskeleton organization,M010000,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0010907,positive regulation of glucose metabolic process,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.5,0,GO:0045055,regulated exocytosis,M000010,1,0
+0,0,1,0,0,0,0,0,-5.4,0,0,0,GO:0006694,steroid biosynthetic process,M001000,1,0
+0,0,1,0,0,0,0,0,-4.1,0,0,0,GO:0008210,estrogen metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-4.8,0,0,0,GO:0001523,retinoid metabolic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-2.2,0,0,GO:0072088,nephron epithelium morphogenesis,M000100,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,GO:0034310,primary alcohol catabolic process,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.3,0,GO:0007140,male meiotic nuclear division,M000010,1,0
+0,0,1,0,0,0,0,0,-6.7,0,0,0,GO:0006066,alcohol metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-9.2,0,0,0,GO:0060142,regulation of syncytium formation by plasma membrane fusion,M001000,1,0
+0,0,1,0,0,0,0,0,-3.7,0,0,0,mmu05207,Chemical carcinogenesis - receptor activation - Mus musculus (house mouse),M001000,1,0
+0,0,1,0,0,0,0,0,-3,0,0,0,GO:0008206,bile acid metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-2.9,0,0,0,GO:0010039,response to iron ion,M001000,1,0
+1,0,0,0,0,0,-3,0,0,0,0,0,GO:0031099,regeneration,M100000,1,0
+0,1,0,0,0,0,0,-2.1,0,0,0,0,GO:0030198,extracellular matrix organization,M010000,1,0
+0,1,0,0,0,0,0,-2.4,0,0,0,0,GO:0097028,dendritic cell differentiation,M010000,1,0
+0,0,1,0,0,0,0,0,-5.4,0,0,0,R-MMU-9754706,Atorvastatin ADME,M001000,1,0
+0,0,1,0,0,0,0,0,-4.7,0,0,0,R-MMU-8957322,Metabolism of steroids,M001000,1,0
+1,0,0,0,0,0,-2.4,0,0,0,0,0,GO:0050673,epithelial cell proliferation,M100000,1,0
+0,0,0,1,0,0,0,0,0,-3.2,0,0,GO:0072075,metanephric mesenchyme development,M000100,1,0
+1,0,0,0,0,0,-2.4,0,0,0,0,0,GO:0016042,lipid catabolic process,M100000,1,0
+0,0,1,0,0,0,0,0,-2.8,0,0,0,GO:0034035,purine ribonucleoside bisphosphate metabolic process,M001000,1,0
+0,0,1,0,0,0,0,0,-2.2,0,0,0,mmu05225,Hepatocellular carcinoma - Mus musculus (house mouse),M001000,1,0
+0,0,1,0,0,0,0,0,-5.5,0,0,0,R-MMU-556833,Metabolism of lipids,M001000,1,0
+0,0,1,0,0,0,0,0,-12,0,0,0,GO:0034242,negative regulation of syncytium formation by plasma membrane fusion,M001000,1,0
+1,0,0,0,0,0,-2.1,0,0,0,0,0,GO:0050730,regulation of peptidyl-tyrosine phosphorylation,M100000,1,0
+1,0,0,0,0,0,-2.7,0,0,0,0,0,mmu05010,Alzheimer disease - Mus musculus (house mouse),M100000,1,0
+0,0,1,0,0,0,0,0,-2.1,0,0,0,GO:0009116,nucleoside metabolic process,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.1,0,GO:0060664,epithelial cell proliferation involved in salivary gland morphogenesis,M000010,1,0
+1,0,0,0,0,0,-2.3,0,0,0,0,0,GO:0032386,regulation of intracellular transport,M100000,1,0
+0,0,1,0,0,0,0,0,-2.5,0,0,0,mmu05219,Bladder cancer - Mus musculus (house mouse),M001000,1,0
+0,0,1,0,0,0,0,0,-2.1,0,0,0,GO:1905039,carboxylic acid transmembrane transport,M001000,1,0
+0,0,0,0,1,0,0,0,0,0,-2.3,0,GO:0021700,developmental maturation,M000010,1,0
+0,0,1,0,0,0,0,0,-2.3,0,0,0,GO:0010288,response to lead ion,M001000,1,0
+0,0,1,0,0,0,0,0,-2.8,0,0,0,GO:0034032,purine nucleoside bisphosphate metabolic process,M001000,1,0
+0,0,0,1,0,0,0,0,0,-3.3,0,0,GO:0010830,regulation of myotube differentiation,M000100,1,0
+0,0,1,0,0,0,0,0,-2.4,0,0,0,mmu00430,Taurine and hypotaurine metabolism - Mus musculus (house mouse),M001000,1,0
+0,1,0,0,0,0,0,-4.3,0,0,0,0,GO:0070296,sarcoplasmic reticulum calcium ion transport,M010000,1,0
+0,0,0,0,0,1,0,0,0,0,0,-2.1,R-MMU-5654699,SHC-mediated cascade:FGFR2,M000001,1,0
+0,0,0,1,0,0,0,0,0,-3.7,0,0,GO:0072079,nephron tubule formation,M000100,1,0
+1,0,0,0,0,0,-2.2,0,0,0,0,0,GO:0032946,positive regulation of mononuclear cell proliferation,M100000,1,0
+0,0,1,0,0,0,0,0,-3,0,0,0,R-MMU-9969896,Lanosterol biosynthesis,M001000,1,0
+0,0,1,0,0,0,0,0,-2.3,0,0,0,GO:0072330,monocarboxylic acid biosynthetic process,M001000,1,0

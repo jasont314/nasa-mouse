@@ -1,0 +1,101 @@
+GO,Description,_LogP_DESeq2_meta_sig_12filter,_LogP_FLT_cluster_13_muscle_contractile,_LogP_FLT_cluster_14_liver_secreted,_LogP_FLT_cluster_15_contractile_mito,_LogP_FLT_cluster_3_mixed_stress,_LogP_GC_cluster_1_DE_enriched
+GO:0060537,muscle tissue development,0.0,-7.532592914005695,0.0,-7.591890885951822,0.0,0.0
+GO:0014819,regulation of skeletal muscle contraction,0.0,-2.4359554991631103,0.0,-3.758619948279801,0.0,0.0
+mmu04972,Pancreatic secretion - Mus musculus (house mouse),0.0,-4.986371418367628,0.0,-3.6739646521152993,0.0,-3.7154587804789525
+mmu04974,Protein digestion and absorption - Mus musculus (house mouse),0.0,-3.537405830031769,0.0,-5.46769134577276,0.0,-2.700828688402069
+GO:0090257,regulation of muscle system process,-2.2992307599827213,-7.394954514561299,0.0,-2.942321901946961,0.0,0.0
+R-MMU-8935690,Digestion,0.0,-4.174817765639102,0.0,0.0,0.0,0.0
+GO:0070296,sarcoplasmic reticulum calcium ion transport,0.0,-4.315210226235495,0.0,0.0,0.0,0.0
+GO:0032970,regulation of actin filament-based process,0.0,-4.95214176234679,0.0,0.0,0.0,0.0
+mmu05414,Dilated cardiomyopathy - Mus musculus (house mouse),0.0,-6.97206395155614,0.0,0.0,0.0,0.0
+GO:0048662,negative regulation of smooth muscle cell proliferation,0.0,-2.9900756249065075,0.0,0.0,0.0,0.0
+R-MMU-445355,Smooth Muscle Contraction,0.0,-2.944001938478824,0.0,0.0,0.0,0.0
+GO:0043502,regulation of muscle adaptation,0.0,-3.844479592110025,0.0,0.0,0.0,0.0
+GO:0043462,regulation of ATP-dependent activity,0.0,-3.191082980092954,0.0,0.0,0.0,0.0
+GO:2000050,regulation of non-canonical Wnt signaling pathway,0.0,-3.069197363761456,0.0,0.0,0.0,0.0
+GO:0120255,olefinic compound biosynthetic process,0.0,-3.0422944977985376,0.0,0.0,0.0,0.0
+GO:0014850,response to muscle activity,0.0,-3.629104480291683,0.0,0.0,0.0,0.0
+GO:0002407,dendritic cell chemotaxis,0.0,-3.4442732207647127,0.0,0.0,0.0,0.0
+GO:1902307,positive regulation of sodium ion transmembrane transport,0.0,-3.279545342660666,0.0,0.0,0.0,0.0
+WP385,Myometrial relaxation and contraction pathways,-2.2429070143581513,-3.1478099388618364,0.0,0.0,0.0,0.0
+GO:0043501,skeletal muscle adaptation,0.0,0.0,0.0,-6.7151403442368895,0.0,-2.952623826949292
+GO:0043269,regulation of monoatomic ion transport,0.0,0.0,0.0,-2.281084931657315,0.0,-4.348947283298967
+R-MMU-2142712,Synthesis of 12-eicosatetraenoic acid derivatives,0.0,0.0,0.0,-5.7398571091361354,0.0,0.0
+mmu04382,Cornified envelope formation - Mus musculus (house mouse),0.0,0.0,0.0,-5.608328500453859,0.0,0.0
+GO:0010832,negative regulation of myotube differentiation,0.0,0.0,0.0,-4.071196727826985,0.0,0.0
+GO:0007155,cell adhesion,0.0,0.0,0.0,-5.607189853440672,0.0,0.0
+GO:0010880,regulation of release of sequestered calcium ion into cytosol by sarcoplasmic reticulum,0.0,0.0,0.0,-4.302245628691945,0.0,0.0
+GO:0072189,ureter development,0.0,0.0,0.0,-3.758619948279801,0.0,0.0
+mmu04614,Renin-angiotensin system - Mus musculus (house mouse),0.0,0.0,0.0,-3.7413483808714703,0.0,0.0
+R-MMU-5423646,Aflatoxin activation and detoxification,0.0,0.0,-7.317780518646429,0.0,0.0,0.0
+GO:0035634,response to stilbenoid,0.0,0.0,-8.047961745040364,0.0,0.0,0.0
+GO:0007623,circadian rhythm,0.0,0.0,-6.474692596217456,0.0,0.0,0.0
+GO:0006790,sulfur compound metabolic process,0.0,0.0,-9.87942194284071,0.0,0.0,0.0
+mmu04976,Bile secretion - Mus musculus (house mouse),0.0,0.0,-4.6802477543423535,0.0,0.0,0.0
+GO:0045721,negative regulation of gluconeogenesis,0.0,0.0,-4.389337707188447,0.0,0.0,0.0
+GO:0120161,regulation of cold-induced thermogenesis,0.0,0.0,-4.725751198079654,0.0,0.0,0.0
+GO:0044283,small molecule biosynthetic process,0.0,0.0,-5.269405935002547,0.0,0.0,0.0
+mmu00983,Drug metabolism - other enzymes - Mus musculus (house mouse),0.0,0.0,-4.056617258616976,0.0,0.0,0.0
+R-MMU-556833,Metabolism of lipids,0.0,0.0,-5.544181406664779,0.0,0.0,0.0
+GO:0006805,xenobiotic metabolic process,0.0,0.0,-17.701873541914367,0.0,0.0,0.0
+GO:0008202,steroid metabolic process,0.0,0.0,-14.366525690672903,0.0,0.0,0.0
+WP163,Cytoplasmic ribosomal proteins,0.0,0.0,-16.838337709519728,0.0,0.0,0.0
+GO:0007595,lactation,0.0,0.0,-3.487584331358058,0.0,0.0,0.0
+GO:0071353,cellular response to interleukin-4,0.0,0.0,-3.918450099118038,0.0,0.0,0.0
+GO:0055086,nucleobase-containing small molecule metabolic process,0.0,0.0,-3.5589481298966064,0.0,0.0,0.0
+GO:0046942,carboxylic acid transport,0.0,0.0,-3.901945339306359,0.0,0.0,0.0
+GO:0043086,negative regulation of catalytic activity,0.0,0.0,-3.305910396441788,0.0,0.0,0.0
+GO:0042908,xenobiotic transport,0.0,0.0,-3.0531492451542204,0.0,0.0,0.0
+mmu05216,Thyroid cancer - Mus musculus (house mouse),0.0,0.0,-3.600611478658313,0.0,0.0,0.0
+R-MMU-73621,Pyrimidine catabolism,0.0,0.0,-3.352805044996045,0.0,0.0,0.0
+GO:0042403,thyroid hormone metabolic process,0.0,0.0,-2.8472786945731636,0.0,0.0,0.0
+GO:0031664,regulation of lipopolysaccharide-mediated signaling pathway,0.0,0.0,-2.9585668150128805,0.0,0.0,0.0
+GO:0043252,sodium-independent organic anion transport,0.0,0.0,-2.49182226726463,0.0,0.0,0.0
+GO:0000096,sulfur amino acid metabolic process,0.0,0.0,-2.90184921457746,0.0,0.0,0.0
+GO:0010039,response to iron ion,0.0,0.0,-2.90184921457746,0.0,0.0,0.0
+mmu00590,Arachidonic acid metabolism - Mus musculus (house mouse),-2.951752032563573,0.0,-3.5084741098196717,-2.0915745908153585,0.0,0.0
+R-MMU-3214858,RMTs methylate histone arginines,0.0,0.0,-2.4228920960570357,0.0,-2.283810006399487,0.0
+mmu05144,Malaria - Mus musculus (house mouse),0.0,0.0,0.0,0.0,-3.4051841706942456,0.0
+GO:0045923,positive regulation of fatty acid metabolic process,-3.592977424786004,0.0,0.0,0.0,0.0,0.0
+WP5242,Comprehensive IL 17A signaling,-3.9858679014162033,0.0,0.0,0.0,0.0,0.0
+GO:0098970,postsynaptic neurotransmitter receptor diffusion trapping,0.0,0.0,0.0,0.0,-2.6488831981931464,-3.537305236585828
+WP3632,Lung fibrosis,0.0,0.0,0.0,0.0,-2.168913328935735,-3.125357142656166
+R-MMU-190241,FGFR2 ligand binding and activation,0.0,0.0,0.0,0.0,-2.039381418936968,-3.3285861878073026
+GO:0007218,neuropeptide signaling pathway,0.0,0.0,0.0,0.0,-2.767117687539441,-3.286556552243466
+GO:2001256,regulation of store-operated calcium entry,0.0,0.0,0.0,0.0,-2.8152354451693062,-3.3285861878073026
+GO:0009954,proximal/distal pattern formation,0.0,0.0,0.0,0.0,-2.4118420840170005,-3.2639887396733216
+GO:0007156,homophilic cell-cell adhesion,0.0,0.0,0.0,0.0,-2.063112385841878,-2.5549948143449073
+R-MMU-5576894,Phase 1 - inactivation of fast Na+ channels,0.0,0.0,0.0,0.0,-2.9213485709770124,-2.7001837350423865
+GO:0002676,regulation of chronic inflammatory response,0.0,0.0,0.0,0.0,-2.989388957725652,-2.723515106444688
+GO:0006874,intracellular calcium ion homeostasis,0.0,0.0,0.0,0.0,-2.8038176812925513,-2.727588473982486
+mmu05033,Nicotine addiction - Mus musculus (house mouse),0.0,0.0,0.0,0.0,-3.001409482257886,-2.03561988507952
+GO:0051966,"regulation of synaptic transmission, glutamatergic",0.0,0.0,0.0,0.0,-3.363681383040531,-2.7127434688384393
+R-MMU-9955298,SLC-mediated transport of organic anions,0.0,0.0,0.0,0.0,-3.505212794393795,-2.442515010480331
+GO:0050951,sensory perception of temperature stimulus,0.0,0.0,0.0,0.0,-3.190861400449079,-2.740363342065503
+GO:0019236,response to pheromone,0.0,0.0,0.0,0.0,-3.489724202019766,-2.8290481965010312
+GO:0003351,epithelial cilium movement involved in extracellular fluid movement,0.0,0.0,0.0,0.0,-4.125394086646608,-2.968371736962117
+GO:0048240,sperm capacitation,0.0,0.0,0.0,0.0,-4.09516686809859,-3.5731611144511968
+R-MMU-381753,Olfactory Signaling Pathway,0.0,0.0,0.0,0.0,-5.343250163505116,-3.013151482735015
+GO:0009566,fertilization,0.0,0.0,0.0,0.0,-4.210948402489196,-3.1187796207844873
+R-MMU-112316,Neuronal System,0.0,0.0,0.0,0.0,-5.432895911054577,-5.519198235648141
+GO:0007204,positive regulation of cytosolic calcium ion concentration,0.0,0.0,0.0,0.0,-3.791668128605316,-3.436591800146215
+mmu04929,GnRH secretion - Mus musculus (house mouse),0.0,0.0,0.0,0.0,-3.55962443821803,-3.487659793893261
+GO:0009582,detection of abiotic stimulus,0.0,0.0,0.0,0.0,-3.4943228405543323,-4.178442428421482
+GO:0071600,otic vesicle morphogenesis,0.0,0.0,0.0,0.0,-2.4220878425190784,-4.4014462600734205
+GO:0006816,calcium ion transport,0.0,0.0,0.0,0.0,-6.580367334125325,-6.42160890870306
+WP41,GPCRs other,0.0,0.0,0.0,0.0,-8.007548390797407,-6.095632342006488
+GO:0007267,cell-cell signaling,0.0,0.0,0.0,0.0,-7.105084741206485,-6.066778196981599
+GO:0003341,cilium movement,0.0,0.0,0.0,0.0,-11.951290243331533,-9.740371879251208
+mmu04080,Neuroactive ligand-receptor interaction - Mus musculus (house mouse),0.0,0.0,0.0,0.0,-9.695618635056455,-11.804475925445024
+R-MMU-1296071,Potassium Channels,0.0,0.0,0.0,0.0,-5.160191292936891,-6.475306842556152
+R-MMU-380108,Chemokine receptors bind chemokines,0.0,-2.0792860007203244,0.0,0.0,-2.369433173044987,-2.4438801934380296
+R-MMU-5576891,Cardiac conduction,0.0,-3.8850005972059343,0.0,0.0,-2.2799628889798638,-4.2800963497264615
+GO:2001014,regulation of skeletal muscle cell differentiation,0.0,0.0,0.0,0.0,0.0,-2.327453872395099
+GO:0046888,negative regulation of hormone secretion,0.0,0.0,0.0,0.0,0.0,-2.4218869715438913
+GO:0032309,icosanoid secretion,0.0,0.0,0.0,0.0,0.0,-3.328263724190116
+mmu04024,cAMP signaling pathway - Mus musculus (house mouse),0.0,0.0,0.0,0.0,0.0,-3.123629373071351
+GO:0030001,metal ion transport,0.0,0.0,0.0,-2.240067956662652,-10.86704965356364,-11.711414181974137
+mmu04260,Cardiac muscle contraction - Mus musculus (house mouse),-2.951752032563573,-3.388986729794792,0.0,-4.474783631893381,0.0,-5.025481276773321
+mmu04020,Calcium signaling pathway - Mus musculus (house mouse),-2.509407097626966,-2.6158299478428564,0.0,-3.463181870404945,-2.2249571097373053,-4.109164076195834
+GO:0030239,myofibril assembly,-6.325606188622769,-18.671680726572596,0.0,-4.357044833475214,0.0,-3.405446038127467
+mmu04820,Cytoskeleton in muscle cells - Mus musculus (house mouse),-8.492643899250961,-30.531613387434312,0.0,-5.823130846292396,0.0,-3.0505655273692383

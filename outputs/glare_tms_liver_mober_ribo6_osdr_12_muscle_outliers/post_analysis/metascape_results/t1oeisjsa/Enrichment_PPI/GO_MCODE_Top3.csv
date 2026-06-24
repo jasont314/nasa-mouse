@@ -1,0 +1,59 @@
+Network,Annotation
+DESeq2_meta_sig_12filter,mmu04814|Motor proteins - Mus musculus (house mouse)|-10.3;mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-9.6;WP216|Striated muscle contraction|-9.6
+DESeq2_meta_sig_12filter_MCODE_ALL,mmu04814|Motor proteins - Mus musculus (house mouse)|-12.0;WP216|Striated muscle contraction|-9.2;mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-8.7
+DESeq2_meta_sig_12filter_SUB1_MCODE_1,mmu04814|Motor proteins - Mus musculus (house mouse)|-12.0;WP216|Striated muscle contraction|-9.2;mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-8.7
+FLT_cluster_13_muscle_contractile,mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-36.7;GO:0006936|muscle contraction|-30.4;GO:0003012|muscle system process|-29.5
+FLT_cluster_13_muscle_contractile_MCODE_ALL,mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-36.8;WP216|Striated muscle contraction|-34.0;R-MMU-390522|Striated Muscle Contraction|-31.1
+FLT_cluster_13_muscle_contractile_SUB1_MCODE_1,R-MMU-390522|Striated Muscle Contraction|-36.8;WP216|Striated muscle contraction|-30.6;R-MMU-397014|Muscle contraction|-27.3
+FLT_cluster_13_muscle_contractile_SUB1_MCODE_2,mmu04814|Motor proteins - Mus musculus (house mouse)|-16.1;mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-12.4;GO:0006936|muscle contraction|-9.7
+FLT_cluster_13_muscle_contractile_SUB1_MCODE_3,CORUM:349|Sarcoglycan-sarcospan-syntrophin-dystrobrevin complex|-9.6;R-MMU-9913351|Formation of the dystrophin-glycoprotein complex (DGC)|-8.0;R-MMU-3000171|Non-integrin membrane-ECM interactions|-7.0
+FLT_cluster_13_muscle_contractile_SUB3_MCODE_4,R-MMU-380108|Chemokine receptors bind chemokines|-10.3;GO:0070098|chemokine-mediated signaling pathway|-9.4;mmu04061|Viral protein interaction with cytokine and cytokine receptor - Mus musculus (house mouse)|-9.3
+FLT_cluster_13_muscle_contractile_SUB5_MCODE_5,R-MMU-192456|Digestion of dietary lipid|-10.6;R-MMU-8935690|Digestion|-9.4;R-MMU-8963743|Digestion and absorption|-9.1
+FLT_cluster_14_liver_secreted,WP163|Cytoplasmic ribosomal proteins|-21.2;mmu03010|Ribosome - Mus musculus (house mouse)|-19.0;R-MMU-9954714|PELO:HBS1L and ABCE1 dissociate a ribosome on a non-stop mRNA|-16.7
+FLT_cluster_14_liver_secreted_MCODE_ALL,WP163|Cytoplasmic ribosomal proteins|-29.9;mmu03010|Ribosome - Mus musculus (house mouse)|-25.5;GO:0002181|cytoplasmic translation|-24.1
+FLT_cluster_14_liver_secreted_SUB1_MCODE_1,WP163|Cytoplasmic ribosomal proteins|-38.6;mmu03010|Ribosome - Mus musculus (house mouse)|-34.9;GO:0002181|cytoplasmic translation|-33.5
+FLT_cluster_14_liver_secreted_SUB1_MCODE_2,GO:0071466|cellular response to xenobiotic stimulus|-23.6;GO:0006805|xenobiotic metabolic process|-22.8;mmu05204|Chemical carcinogenesis - DNA adducts - Mus musculus (house mouse)|-22.6
+FLT_cluster_14_liver_secreted_SUB1_MCODE_3,"CORUM:382|Respiratory chain complex I, mitochondrial|-10.3;mmu04714|Thermogenesis - Mus musculus (house mouse)|-9.7;GO:0042776|proton motive force-driven mitochondrial ATP synthesis|-9.6"
+FLT_cluster_14_liver_secreted_SUB1_MCODE_4,R-MMU-9018519|Estrogen-dependent gene expression|-9.4;R-MMU-8939211|ESR-mediated signaling|-8.3;R-MMU-9006931|Signaling by Nuclear Receptors|-7.8
+FLT_cluster_14_liver_secreted_SUB4_MCODE_5,R-MMU-9033241|Peroxisomal protein import|-7.4;R-MMU-9609507|Protein localization|-6.7;R-MMU-8978868|Fatty acid metabolism|-6.1
+FLT_cluster_15_contractile_mito,mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-9.5;GO:0043501|skeletal muscle adaptation|-8.9;R-MMU-1474228|Degradation of the extracellular matrix|-8.3
+FLT_cluster_15_contractile_mito_MCODE_ALL,R-MMU-1474228|Degradation of the extracellular matrix|-12.8;R-MMU-1474244|Extracellular matrix organization|-11.5;mmu04974|Protein digestion and absorption - Mus musculus (house mouse)|-10.7
+FLT_cluster_15_contractile_mito_SUB2_MCODE_1,R-MMU-1592389|Activation of Matrix Metalloproteinases|-13.8;R-MMU-1474228|Degradation of the extracellular matrix|-11.2;R-MMU-1474244|Extracellular matrix organization|-9.4
+FLT_cluster_15_contractile_mito_SUB1_MCODE_2,GO:0071805|potassium ion transmembrane transport|-5.6;GO:0006813|potassium ion transport|-5.5;GO:0030001|metal ion transport|-3.8
+FLT_cluster_15_contractile_mito_SUB1_MCODE_3,GO:0055013|cardiac muscle cell development|-7.0;GO:0055006|cardiac cell development|-6.9;GO:0031032|actomyosin structure organization|-6.6
+FLT_cluster_15_contractile_mito_SUB1_MCODE_4,GO:0055074|calcium ion homeostasis|-5.5;GO:0098771|inorganic ion homeostasis|-4.8;GO:0055080|monoatomic cation homeostasis|-4.6
+FLT_cluster_15_contractile_mito_SUB1_MCODE_5,GO:0060070|canonical Wnt signaling pathway|-7.0;GO:0016055|Wnt signaling pathway|-6.1;mmu04310|Wnt signaling pathway - Mus musculus (house mouse)|-6.1
+FLT_cluster_15_contractile_mito_SUB5_MCODE_6,R-MMU-8948216|Collagen chain trimerization|-8.3;R-MMU-2022090|Assembly of collagen fibrils and other multimeric structures|-8.0;R-MMU-1442490|Collagen degradation|-7.8
+FLT_cluster_3_mixed_stress,mmu04080|Neuroactive ligand-receptor interaction - Mus musculus (house mouse)|-19.7;GO:0030001|metal ion transport|-16.3;R-MMU-500792|GPCR ligand binding|-15.9
+FLT_cluster_3_mixed_stress_MCODE_ALL,"GO:0051899|membrane depolarization|-8.6;GO:0007271|synaptic transmission, cholinergic|-8.4;R-MMU-629587|Highly sodium permeable postsynaptic acetylcholine nicotinic receptors|-7.9"
+FLT_cluster_3_mixed_stress_SUB4_MCODE_2,"GO:0007271|synaptic transmission, cholinergic|-11.6;R-MMU-629587|Highly sodium permeable postsynaptic acetylcholine nicotinic receptors|-10.0;GO:0095500|acetylcholine receptor signaling pathway|-10.0"
+FLT_cluster_3_mixed_stress_SUB7_MCODE_3,R-MMU-8866907|Activation of the TFAP2 (AP-2) family of transcription factors|-9.7;R-MMU-8864260|Transcriptional regulation by the AP-2 (TFAP2) family of transcription factors|-8.8
+FLT_cluster_3_mixed_stress_SUB8_MCODE_4,R-MMU-2672351|Stimuli-sensing channels|-6.9;R-MMU-983712|Ion channel transport|-6.1;R-MMU-382551|Transport of small molecules|-4.4
+FLT_cluster_3_mixed_stress_SUB9_MCODE_5,GO:0035860|glial cell-derived neurotrophic factor receptor signaling pathway|-9.2;GO:0007169|cell surface receptor protein tyrosine kinase signaling pathway|-4.9;GO:0007167|enzyme-linked receptor protein signaling pathway|-4.3
+GC_cluster_1_DE_enriched,mmu04080|Neuroactive ligand-receptor interaction - Mus musculus (house mouse)|-24.8;GO:0030001|metal ion transport|-19.5;GO:0042391|regulation of membrane potential|-17.1
+GC_cluster_1_DE_enriched_MCODE_ALL,"GO:0007271|synaptic transmission, cholinergic|-10.5;GO:0051899|membrane depolarization|-10.3;GO:0030001|metal ion transport|-9.8"
+GC_cluster_1_DE_enriched_SUB2_MCODE_1,"GO:0007271|synaptic transmission, cholinergic|-13.8;R-MMU-622323|Presynaptic nicotinic acetylcholine receptors|-11.9;GO:0095500|acetylcholine receptor signaling pathway|-11.8"
+GC_cluster_1_DE_enriched_SUB3_MCODE_2,R-MMU-8866907|Activation of the TFAP2 (AP-2) family of transcription factors|-9.7;R-MMU-8864260|Transcriptional regulation by the AP-2 (TFAP2) family of transcription factors|-8.8
+GC_cluster_1_DE_enriched_SUB5_MCODE_4,GO:0035860|glial cell-derived neurotrophic factor receptor signaling pathway|-9.2;GO:0007169|cell surface receptor protein tyrosine kinase signaling pathway|-4.9;GO:0007167|enzyme-linked receptor protein signaling pathway|-4.3
+GC_cluster_1_DE_enriched_SUB6_MCODE_5,R-MMU-2672351|Stimuli-sensing channels|-6.9;R-MMU-983712|Ion channel transport|-6.1;R-MMU-382551|Transport of small molecules|-4.4
+GC_cluster_1_DE_enriched_SUB7_MCODE_6,R-MMU-1296346|Tandem pore domain potassium channels|-10.4;R-MMU-5576886|Phase 4 - resting membrane potential|-9.5;R-MMU-1296071|Potassium Channels|-6.9
+_FINAL,mmu04080|Neuroactive ligand-receptor interaction - Mus musculus (house mouse)|-35.7;GO:0030001|metal ion transport|-30.1;GO:0042391|regulation of membrane potential|-28.8
+_FINAL_MCODE_ALL,mmu04080|Neuroactive ligand-receptor interaction - Mus musculus (house mouse)|-24.5;R-MMU-397014|Muscle contraction|-24.4;WP216|Striated muscle contraction|-23.2
+_FINAL_SUB1_MCODE_1,GO:0070588|calcium ion transmembrane transport|-15.6;GO:0048240|sperm capacitation|-15.0;GO:0006816|calcium ion transport|-14.4
+_FINAL_SUB1_MCODE_2,mmu04080|Neuroactive ligand-receptor interaction - Mus musculus (house mouse)|-19.3;GO:0035235|ionotropic glutamate receptor signaling pathway|-12.8;GO:1990806|ligand-gated ion channel signaling pathway|-12.6
+_FINAL_SUB1_MCODE_3,R-MMU-390522|Striated Muscle Contraction|-33.9;WP216|Striated muscle contraction|-31.8;R-MMU-397014|Muscle contraction|-25.2
+_FINAL_SUB1_MCODE_4,WP222|Cytokines and inflammatory response|-11.6;GO:0046337|phosphatidylethanolamine metabolic process|-8.8;mmu04060|Cytokine-cytokine receptor interaction - Mus musculus (house mouse)|-8.2
+_FINAL_SUB1_MCODE_5,GO:0010880|regulation of release of sequestered calcium ion into cytosol by sarcoplasmic reticulum|-6.6;mmu04814|Motor proteins - Mus musculus (house mouse)|-5.9;GO:0060294|cilium movement involved in cell motility|-5.8
+_FINAL_SUB1_MCODE_6,GO:0003341|cilium movement|-7.4;GO:0060271|cilium assembly|-6.6;GO:0044782|cilium organization|-6.4
+_FINAL_SUB1_MCODE_7,R-MMU-380108|Chemokine receptors bind chemokines|-15.5;mmu04061|Viral protein interaction with cytokine and cytokine receptor - Mus musculus (house mouse)|-13.9;R-MMU-375276|Peptide ligand-binding receptors|-12.0
+_FINAL_SUB1_MCODE_8,R-MMU-1592389|Activation of Matrix Metalloproteinases|-13.8;R-MMU-1474228|Degradation of the extracellular matrix|-11.2;R-MMU-1474244|Extracellular matrix organization|-9.4
+_FINAL_SUB2_MCODE_9,R-MMU-5654219|Phospholipase C-mediated cascade: FGFR1|-15.6;R-MMU-5654221|Phospholipase C-mediated cascade  FGFR2|-15.5;R-MMU-190242|FGFR1 ligand binding and activation|-15.5
+_FINAL_SUB3_MCODE_10,"GO:0051932|synaptic transmission, GABAergic|-13.6;mmu05033|Nicotine addiction - Mus musculus (house mouse)|-13.3;mmu04727|GABAergic synapse - Mus musculus (house mouse)|-11.5"
+_FINAL_SUB4_MCODE_11,"GO:0007271|synaptic transmission, cholinergic|-11.6;R-MMU-629587|Highly sodium permeable postsynaptic acetylcholine nicotinic receptors|-10.0;GO:0095500|acetylcholine receptor signaling pathway|-10.0"
+_FINAL_SUB1_MCODE_12,mmu04814|Motor proteins - Mus musculus (house mouse)|-6.0;mmu04820|Cytoskeleton in muscle cells - Mus musculus (house mouse)|-5.7;GO:0006936|muscle contraction|-5.5
+_FINAL_SUB1_MCODE_13,mmu04723|Retrograde endocannabinoid signaling - Mus musculus (house mouse)|-6.4
+_FINAL_SUB1_MCODE_14,mmu04814|Motor proteins - Mus musculus (house mouse)|-6.0
+_FINAL_SUB1_MCODE_15,R-MMU-997272|Inhibition  of voltage gated Ca2+ channels via Gbeta/gamma subunits|-8.4;R-MMU-1296041|Activation of G protein gated Potassium channels|-8.4;R-MMU-1296059|G protein gated Potassium channels|-8.4
+_FINAL_SUB1_MCODE_17,R-MMU-5576894|Phase 1 - inactivation of fast Na+ channels|-10.4;R-MMU-1296072|Voltage gated Potassium channels|-8.1;R-MMU-1296071|Potassium Channels|-6.9
+_FINAL_SUB1_MCODE_18,R-MMU-418555|G alpha (s) signalling events|-6.5;mmu04081|Hormone signaling - Mus musculus (house mouse)|-5.8;R-MMU-500792|GPCR ligand binding|-5.0
+_FINAL_SUB1_MCODE_19,R-MMU-418555|G alpha (s) signalling events|-6.5;GO:0007189|adenylate cyclase-activating G protein-coupled receptor signaling pathway|-6.0;GO:0007188|adenylate cyclase-modulating G protein-coupled receptor signaling pathway|-5.5
