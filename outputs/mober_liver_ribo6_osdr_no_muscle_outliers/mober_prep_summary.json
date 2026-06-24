@@ -1,0 +1,75 @@
+{
+  "input_h5ad": "outputs/mober_liver_ribo6_osdr_no_muscle_outliers/mober_liver_ribo6_input.h5ad",
+  "output_dir": "outputs/mober_liver_ribo6_osdr_no_muscle_outliers",
+  "target_manifest": "data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+  "osdr_h5": "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5",
+  "accessions": [
+    "OSD-379",
+    "OSD-245",
+    "OSD-463",
+    "OSD-242",
+    "OSD-137",
+    "OSD-173"
+  ],
+  "shape_samples_x_genes": [
+    148,
+    21010
+  ],
+  "normalization": "log2(CPM+1) from OSDR count-like HDF5 expression",
+  "batch_column": "h5_accession",
+  "data_sources": [
+    "OSD-137",
+    "OSD-173",
+    "OSD-242",
+    "OSD-245",
+    "OSD-379",
+    "OSD-463"
+  ],
+  "conditions": [
+    "FLT",
+    "GC"
+  ],
+  "condition_counts": [
+    {
+      "h5_accession": "OSD-137",
+      "FLT": 6,
+      "GC": 6
+    },
+    {
+      "h5_accession": "OSD-173",
+      "FLT": 2,
+      "GC": 2
+    },
+    {
+      "h5_accession": "OSD-242",
+      "FLT": 5,
+      "GC": 4
+    },
+    {
+      "h5_accession": "OSD-245",
+      "FLT": 20,
+      "GC": 19
+    },
+    {
+      "h5_accession": "OSD-379",
+      "FLT": 31,
+      "GC": 31
+    },
+    {
+      "h5_accession": "OSD-463",
+      "FLT": 12,
+      "GC": 10
+    }
+  ],
+  "excluded_profiles_requested": [
+    "RR8_LVR_FLT_ISS-T_OLD_FI16",
+    "RR8_LVR_FLT_ISS-T_OLD_FI17",
+    "RR8_LVR_FLT_ISS-T_YNG_FI10",
+    "RR8_LVR_FLT_ISS-T_YNG_FI9",
+    "RR8_LVR_GC_ISS-T_YNG_GI10",
+    "RR8_LVR_GC_LAR_OLD_GL3",
+    "RR8_LVR_GC_LAR_YNG_GL18",
+    "RR8_LVR_GC_LAR_YNG_GL5"
+  ],
+  "excluded_profiles_matched": 8
+}

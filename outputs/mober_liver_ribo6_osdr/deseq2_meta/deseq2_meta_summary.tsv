@@ -1,0 +1,2 @@
+accessions_tested	genes_tested	genes_eligible_min_studies	min_studies	significant_fdr05_abs_log2fc1	significant_up	significant_down
+OSD-137,OSD-173,OSD-242,OSD-245,OSD-379,OSD-463	16521	15683	2	38	28	10

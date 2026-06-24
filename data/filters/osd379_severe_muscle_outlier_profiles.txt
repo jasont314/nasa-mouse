@@ -1,0 +1,11 @@
+# Recommended strict skeletal-muscle composition outliers from OSD-379 liver FLT/GC QC.
+# Definition: robust z >= 3.5 within OSD-379 stratum, >=10/20 muscle markers
+# above 100 normalized counts, and >=0.005% muscle-marker abundance.
+RR8_LVR_FLT_ISS-T_OLD_FI17
+RR8_LVR_GC_LAR_YNG_GL5
+RR8_LVR_FLT_ISS-T_OLD_FI16
+RR8_LVR_GC_LAR_OLD_GL3
+RR8_LVR_FLT_ISS-T_YNG_FI10
+RR8_LVR_GC_LAR_YNG_GL18
+RR8_LVR_GC_ISS-T_YNG_GI10
+RR8_LVR_FLT_ISS-T_YNG_FI9

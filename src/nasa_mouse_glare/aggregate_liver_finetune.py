@@ -100,6 +100,24 @@ def normalize_spaceflight(value: str) -> tuple[str, str] | None:
     return CONDITION_MAP.get(cleaned)
 
 
+def load_excluded_profiles(
+    exclude_profiles_file: str | Path | None = None,
+    exclude_profile: list[str] | None = None,
+) -> set[str]:
+    excluded: set[str] = set()
+    if exclude_profiles_file:
+        path = Path(exclude_profiles_file)
+        for line in path.read_text(encoding="utf-8").splitlines():
+            token = line.strip()
+            if token and not token.startswith("#"):
+                excluded.add(token)
+    for token in exclude_profile or []:
+        token = str(token).strip()
+        if token:
+            excluded.add(token)
+    return excluded
+
+
 def is_liver_material(value: str) -> bool:
     return "liver" in str(value).strip().lower()
 
@@ -154,6 +172,7 @@ def select_aggregate_profiles(
     osdr_h5: str | Path,
     accessions: list[str],
     output_dir: Path,
+    exclude_profiles: set[str] | None = None,
 ) -> dict:
     bundle = load_matrix_bundle(target_manifest)
     if bundle.profile_metadata is None:
@@ -184,6 +203,39 @@ def select_aggregate_profiles(
     selected = metadata.loc[selected_mask].copy()
     if selected.empty:
         raise ValueError("No aggregate FLT/GC liver profiles matched the selection")
+
+    excluded_requested = set(exclude_profiles or set())
+    excluded_selected = pd.DataFrame(columns=selected.columns)
+    if excluded_requested:
+        exclude_columns = [
+            column
+            for column in [
+                "profile",
+                "h5_sample_name",
+                "h5_accession_sample_name",
+                "official_sample_name",
+            ]
+            if column in selected.columns
+        ]
+        exclude_mask = pd.Series(False, index=selected.index)
+        for column in exclude_columns:
+            exclude_mask |= selected[column].astype(str).isin(excluded_requested)
+        excluded_selected = selected.loc[exclude_mask].copy()
+        selected = selected.loc[~exclude_mask].copy()
+        output_dir.mkdir(parents=True, exist_ok=True)
+        excluded_selected.to_csv(
+            output_dir / "excluded_profile_features.tsv", sep="\t", index=False
+        )
+        matched = set()
+        for column in exclude_columns:
+            matched.update(excluded_selected[column].dropna().astype(str).tolist())
+        unmatched = sorted(excluded_requested - matched)
+        if unmatched:
+            (output_dir / "unmatched_excluded_profiles.txt").write_text(
+                "\n".join(unmatched) + "\n", encoding="utf-8"
+            )
+        if selected.empty:
+            raise ValueError("All selected aggregate FLT/GC liver profiles were excluded")
 
     missing_accessions = sorted(accession_set - set(selected["h5_accession"]))
     if missing_accessions:
@@ -258,6 +310,8 @@ def select_aggregate_profiles(
         "input_path": str(target_manifest),
         "target_manifest": str(target_manifest),
         "osdr_h5": str(osdr_h5),
+        "excluded_profiles_requested": sorted(excluded_requested),
+        "excluded_profiles_matched": int(len(excluded_selected)),
     }
 
 
@@ -281,6 +335,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--seed", type=int, default=1996)
+    parser.add_argument(
+        "--exclude-profiles-file",
+        help="Text file of profile/sample IDs to exclude, one per line.",
+    )
+    parser.add_argument(
+        "--exclude-profile",
+        action="append",
+        default=[],
+        help="Profile/sample ID to exclude. Can be supplied multiple times.",
+    )
     parser.add_argument("--prepare-only", action="store_true")
     return parser.parse_args()
 
@@ -294,6 +358,7 @@ def main() -> None:
         args.osdr_h5,
         args.accessions,
         output_dir,
+        load_excluded_profiles(args.exclude_profiles_file, args.exclude_profile),
     )
     log(
         "Prepared aggregate liver FLT/GC target: "
@@ -335,6 +400,8 @@ def main() -> None:
             ),
             "condition_field": "/meta/samples/factors/study.factor value.spaceflight",
             "included_conditions": ["Space Flight", "Ground Control"],
+            "excluded_profiles_requested": prepared["excluded_profiles_requested"],
+            "excluded_profiles_matched": prepared["excluded_profiles_matched"],
         },
         "condition_counts": counts.to_dict(orient="records"),
         "target_manifest": prepared["target_manifest"],

@@ -1,0 +1,37 @@
+{
+  "run_dir": "outputs/mober_liver_ribo6_osdr_no_muscle_outliers",
+  "onto": "OSD-379",
+  "metrics": [
+    {
+      "space": "input_log2_cpm",
+      "pc1_variance_ratio": 0.2272196263074875,
+      "pc2_variance_ratio": 0.140236958861351,
+      "data_source_silhouette_pc1_10": 0.10757775604724884,
+      "condition_silhouette_pc1_10": 0.0010565317934378982,
+      "sex_silhouette_pc1_10": 0.1674472987651825,
+      "strain_silhouette_pc1_10": 0.06200150027871132
+    },
+    {
+      "space": "mober_projected_onto_OSD-379",
+      "pc1_variance_ratio": 0.35762202739715576,
+      "pc2_variance_ratio": 0.32117387652397156,
+      "data_source_silhouette_pc1_10": 0.1413397341966629,
+      "condition_silhouette_pc1_10": -0.006865522358566523,
+      "sex_silhouette_pc1_10": 0.274167537689209,
+      "strain_silhouette_pc1_10": 0.11983320116996765
+    },
+    {
+      "space": "mober_latent_onto_OSD-379",
+      "pc1_variance_ratio": null,
+      "pc2_variance_ratio": null,
+      "data_source_silhouette_pc1_10": 0.20490893721580505,
+      "condition_silhouette_pc1_10": -0.007420788053423166,
+      "sex_silhouette_pc1_10": 0.33439478278160095,
+      "strain_silhouette_pc1_10": 0.16619616746902466
+    }
+  ],
+  "notes": [
+    "Lower data_source silhouette after projection is consistent with reduced batch/source separation.",
+    "Condition, sex, and strain are partly confounded with accession in this design."
+  ]
+}

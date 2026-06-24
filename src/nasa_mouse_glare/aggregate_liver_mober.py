@@ -15,6 +15,7 @@ import pandas as pd
 from .aggregate_liver_finetune import (
     DEFAULT_OSDR_H5,
     DEFAULT_TARGET_MANIFEST,
+    load_excluded_profiles,
     select_aggregate_profiles,
 )
 from .io import require_import
@@ -82,6 +83,7 @@ def prepare(args: argparse.Namespace) -> dict:
         args.osdr_h5,
         args.accessions,
         output_dir,
+        load_excluded_profiles(args.exclude_profiles_file, args.exclude_profile),
     )
     target = np.load(output_dir / "controlled_target.npz")
     genes = target["genes"].astype(str)
@@ -146,6 +148,8 @@ def prepare(args: argparse.Namespace) -> dict:
         "data_sources": sorted(metadata["data_source"].unique().tolist()),
         "conditions": sorted(metadata["condition"].unique().tolist()),
         "condition_counts": counts.reset_index().to_dict(orient="records"),
+        "excluded_profiles_requested": prepared["excluded_profiles_requested"],
+        "excluded_profiles_matched": prepared["excluded_profiles_matched"],
     }
     (output_dir / "mober_prep_summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"
@@ -169,6 +173,11 @@ def write_prepare_report(output_dir: Path, summary: dict) -> None:
         f"- Normalization: {summary['normalization']}",
         f"- Batch/data_source column: `{summary['batch_column']}`",
         f"- Data sources: {', '.join(summary['data_sources'])}",
+        (
+            "- Excluded profiles matched: "
+            f"{summary['excluded_profiles_matched']} of "
+            f"{len(summary['excluded_profiles_requested'])} requested"
+        ),
         "",
         "```tsv",
         *count_lines,
@@ -319,6 +328,16 @@ def add_shared_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--accessions", nargs="+", default=DEFAULT_ACCESSIONS)
     parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--batch-column", default=DEFAULT_BATCH_COLUMN)
+    parser.add_argument(
+        "--exclude-profiles-file",
+        help="Text file of profile/sample IDs to exclude, one per line.",
+    )
+    parser.add_argument(
+        "--exclude-profile",
+        action="append",
+        default=[],
+        help="Profile/sample ID to exclude. Can be supplied multiple times.",
+    )
 
 
 def add_train_arguments(parser: argparse.ArgumentParser) -> None:
