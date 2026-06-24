@@ -1,0 +1,11 @@
+filter_name	genes_kept	genes_removed	scheme	fold	train_rows	test_rows	accuracy	f1	roc_auc
+remove_metascape_muscle_cytoskeleton_hits	19929	1081	random_kfold_glare	1	31886	7972	0.8835925740090316	0.8675042832667047	0.9729931801929739
+remove_metascape_muscle_cytoskeleton_hits	19929	1081	random_kfold_glare	2	31886	7972	0.8778223783241345	0.8896692342546443	0.9717672189274992
+remove_metascape_muscle_cytoskeleton_hits	19929	1081	random_kfold_glare	3	31886	7972	0.886352232814852	0.8723224351747464	0.9742141767914657
+remove_metascape_muscle_cytoskeleton_hits	19929	1081	random_kfold_glare	4	31887	7971	0.8868397942541714	0.8754487710577189	0.9742900683562079
+remove_metascape_muscle_cytoskeleton_hits	19929	1081	random_kfold_glare	5	31887	7971	0.8811943294442354	0.8673111951800476	0.9728756244089599
+remove_metascape_muscle_cytoskeleton_hits	19929	1081	gene_grouped_kfold_audit	1	31886	7972	0.8879829402910185	0.8742784738842743	0.974640764753909
+remove_metascape_muscle_cytoskeleton_hits	19929	1081	gene_grouped_kfold_audit	2	31886	7972	0.8904917210235825	0.8774736842105263	0.9759198275247863
+remove_metascape_muscle_cytoskeleton_hits	19929	1081	gene_grouped_kfold_audit	3	31886	7972	0.8843452082288008	0.869774011299435	0.9731952891316296
+remove_metascape_muscle_cytoskeleton_hits	19929	1081	gene_grouped_kfold_audit	4	31886	7972	0.8852232814851982	0.8709631927795798	0.9736710511375867
+remove_metascape_muscle_cytoskeleton_hits	19929	1081	gene_grouped_kfold_audit	5	31888	7970	0.8811794228356337	0.8661105612894104	0.9715486398964751
