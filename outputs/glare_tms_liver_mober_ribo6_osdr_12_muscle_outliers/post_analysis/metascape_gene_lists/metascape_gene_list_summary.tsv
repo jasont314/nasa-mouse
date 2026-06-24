@@ -1,0 +1,9 @@
+list	genes
+FLT_cluster_3_mixed_stress	1968
+FLT_cluster_13_muscle_contractile	326
+FLT_cluster_15_contractile_mito	278
+FLT_cluster_14_liver_secreted	303
+GC_cluster_1_DE_enriched	2185
+DESeq2_meta_sig_12filter	47
+background_all_glare_genes	21010
+background_deseq2_eligible_genes	15597
