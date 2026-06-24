@@ -1,0 +1,25 @@
+tissue	gc_samples	flt_samples	total_flt_gc	n_studies	osd_accessions	tissue_system	tissue_detail_values
+liver	98	102	200	9	OSD-137,OSD-168,OSD-173,OSD-245,OSD-379,OSD-463,OSD-47,OSD-48,OSD-686	metabolic_digestive	liver
+kidney	105	71	176	6	OSD-102,OSD-163,OSD-253,OSD-462,OSD-513,OSD-771	renal	kidney
+dorsal_skin	55	60	115	4	OSD-238,OSD-240,OSD-243,OSD-254	integumentary	dorsal skin
+thymus	40	46	86	4	OSD-244,OSD-289,OSD-421,OSD-515	immune	thymus
+retina	31	45	76	4	OSD-194,OSD-255,OSD-397,OSD-758	visual	retina
+lung	37	39	76	3	OSD-248,OSD-464,OSD-900	respiratory	lung
+spleen	37	39	76	4	OSD-246,OSD-288,OSD-420,OSD-506	immune	spleen
+colon	27	28	55	2	OSD-247,OSD-667	gastrointestinal	colon
+cerebellum	26	28	54	3	OSD-525,OSD-561,OSD-563	nervous_system	cerebellum
+soleus_muscle	24	27	51	3	OSD-104,OSD-714,OSD-770	skeletal_muscle	soleus muscle
+heart	25	26	51	3	OSD-270,OSD-580,OSD-599	cardiovascular	heart
+adrenal_gland	19	20	39	3	OSD-161,OSD-512,OSD-98	endocrine	adrenal gland
+quadriceps_muscle	19	19	38	3	OSD-103,OSD-326,OSD-666	skeletal_muscle	quadriceps muscle,right quadriceps femoris muscle
+hippocampus	17	20	37	2	OSD-562,OSD-564	nervous_system	hippocampi
+femoral_skin	16	20	36	2	OSD-239,OSD-241	integumentary	femoral skin
+optic_nerve	12	23	35	1	OSD-759	visual	optic nerve
+extensor_digitorum_longus_muscle	15	15	30	2	OSD-665,OSD-99	skeletal_muscle	extensor digitorum longus muscle,right extensor digitorum longus muscle
+tibialis_anterior_muscle	15	15	30	2	OSD-105,OSD-576	skeletal_muscle	tibialis anterior muscle
+mammary_gland	15	10	25	1	OSD-511	reproductive	mammary gland
+bone_marrow	12	12	24	1	OSD-690	hematopoietic_immune	bone marrow
+gastrocnemius_muscle	14	10	24	2	OSD-101,OSD-419	skeletal_muscle	left gastrocnemius muscle,right gastrocnemius muscle
+eye	11	11	22	2	OSD-100,OSD-162	visual	eye
+cecum	10	10	20	1	OSD-899	gastrointestinal	cecum
+spermatogonia	3	3	6	1	OSD-901	reproductive_cells	cultured spermatogonia
