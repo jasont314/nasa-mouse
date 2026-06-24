@@ -1,0 +1,21 @@
+{
+  "session_id": "tbvuggxmr",
+  "report_url": "https://metascape.org/gp/index.html#/reportfinal/tbvuggxmr",
+  "gene_lists": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/flt14_gc8_comparison/gene_lists/flt14_gc8_gene_lists.csv",
+  "background": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_background_all_glare_genes.txt",
+  "analysis_species": 10090,
+  "input_species": 10090,
+  "converted_input_genes": 1313,
+  "checked_nodes": 8,
+  "background_summary": {
+    "submitted_background_ids": 21010,
+    "recognized_background_ids": 20987,
+    "unrecognized_background_ids": 0,
+    "final_background_ids": 20979,
+    "first_unrecognized": []
+  },
+  "p_cutoff": 0.01,
+  "min_overlap": "3",
+  "min_enrichment": 1.5,
+  "disable_ppi": false
+}

@@ -1,0 +1,23 @@
+{
+  "session_id": "tbvuggxmr",
+  "found_header": true,
+  "isMultipleList": true,
+  "guess_type": [
+    {
+      "result_type": "symbol"
+    },
+    {
+      "result_type": "symbol"
+    },
+    {
+      "result_type": "symbol"
+    },
+    {
+      "result_type": "symbol"
+    },
+    {
+      "result_type": "symbol"
+    }
+  ],
+  "filename": "/home/meta_test/gp_session/tbvuggxmr/output/user_input/input_excel.csv"
+}

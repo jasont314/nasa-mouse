@@ -789,6 +789,18 @@ conda run -n nasa env PYTHONPATH=src \
 This writes a paired FLT-to-GC cluster report under
 `outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/paired_cluster_report/`.
 
+Run the focused FLT14/GC8 comparison:
+
+```bash
+conda run -n nasa env PYTHONPATH=src \
+  python -m nasa_mouse_glare.flt14_gc8_comparison \
+  --run-dir outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers
+```
+
+This writes `FLT14_all`, `FLT14_and_GC8`, `FLT14_not_GC8`, `GC8_all`, and
+`GC8_not_FLT14` summaries and Metascape-ready gene lists under
+`outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/flt14_gc8_comparison/`.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by
