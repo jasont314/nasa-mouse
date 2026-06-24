@@ -1,0 +1,32 @@
+{
+  "studies": [
+    "OSD-379",
+    "OSD-245",
+    "OSD-463"
+  ],
+  "output_dir": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence",
+  "inputs": {
+    "counts": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence/raw_deseq2_inputs/counts.tsv",
+    "metadata": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence/raw_deseq2_inputs/sample_metadata.tsv",
+    "gene_symbols": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence/raw_deseq2_inputs/gene_symbols.tsv",
+    "study_condition_counts": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence/raw_deseq2_inputs/study_condition_counts.tsv",
+    "study_stratum_condition_counts": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence/raw_deseq2_inputs/study_stratum_condition_counts.tsv"
+  },
+  "deseq2": {
+    "per_study": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence/raw_deseq2/per_study_deseq2.tsv",
+    "summary": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence/raw_deseq2/study_deseq2_summary.tsv"
+  },
+  "pathways": {
+    "rank_sum": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence/reactome_rank_sum_pathways.tsv",
+    "ora": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence/reactome_ora_significant_deseq2_pathways.tsv",
+    "recurrence": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence/recurring_reactome_pathways.tsv"
+  },
+  "report": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/study_specific_pathway_recurrence/STUDY_SPECIFIC_PATHWAY_RECURRENCE.md",
+  "aggregate_glare_support_categories": [
+    "immune_complement_coagulation",
+    "lipid_steroid_xenobiotic_metabolism",
+    "muscle_cytoskeleton",
+    "protein_processing_localization",
+    "translation_ribosome"
+  ]
+}
