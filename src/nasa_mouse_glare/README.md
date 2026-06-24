@@ -452,16 +452,36 @@ PYTHONPATH=src python -m nasa_mouse_glare.paper_analysis post \
   --official-de assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv
 ```
 
-Metascape does not provide a public API. Upload
-`biological_analysis/metascape_gene_lists/metascape_multiple_gene_lists.csv`
-from the run directory after enabling **Multiple Gene Lists** and confirm
-that the first row is detected as the column header. Choose **Custom
-Analysis**, select `Mus musculus` for input and analysis, and paste
-`biological_analysis/metascape_gene_lists/metascape_background.txt` into
-the custom enrichment-background dialog. The CSV contains one foreground
-column per eligible cluster; the background file contains all tested genes.
-Both use mouse Ensembl gene IDs to avoid ambiguous cross-species symbol
-mapping during upload.
+Metascape does not document these web-app endpoints as a stable public API,
+but the local wrapper can reproduce the browser upload, species selection,
+custom background, enrichment run, report generation, and compact result
+download:
+
+```bash
+conda run -n nasa env PYTHONPATH=src \
+  python -m nasa_mouse_glare.metascape_client submit \
+  --gene-lists outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/metascape_multiple_gene_lists.csv \
+  --background outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/metascape_background.txt \
+  --output-dir 'outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_results/{session_id}' \
+  --input-species 10090 \
+  --analysis-species 10090
+```
+
+Use `--prepare-only` to upload and validate the foreground/background without
+starting an enrichment job. Use `download` to fetch files from a session that
+was already run in the browser:
+
+```bash
+conda run -n nasa env PYTHONPATH=src \
+  python -m nasa_mouse_glare.metascape_client download \
+  --session-id <metascape_session_id> \
+  --output-dir outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_results/<metascape_session_id>
+```
+
+If Metascape changes the internal endpoints, fall back to the manual workflow:
+upload the multi-list CSV, enable **Multiple Gene Lists**, choose **Custom
+Analysis**, select `Mus musculus` for input and analysis, and paste the
+background text file into the custom enrichment-background dialog.
 
 See `outputs/glare_paper_tms_liver_osd379/RUN_SUMMARY.md` for results and
 method deviations that remain specific to the mouse adaptation.
@@ -744,6 +764,18 @@ conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.paper_clustering \
   --run-dir outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers \
   --skip-tsne
+```
+
+Run the Metascape wrapper for the 12-filter priority gene lists:
+
+```bash
+conda run -n nasa env PYTHONPATH=src \
+  python -m nasa_mouse_glare.metascape_client submit \
+  --gene-lists outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_12filter_priority_gene_lists.csv \
+  --background outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_background_all_glare_genes.txt \
+  --output-dir 'outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_results/{session_id}' \
+  --input-species 10090 \
+  --analysis-species 10090
 ```
 
 ## Reproduce Original GLARE Pretraining
