@@ -66,3 +66,16 @@ Article: https://www.nature.com/articles/s41467-021-26017-0
   - commit: `2474b51dc50654f0c6a5509cdebd179747c9e8f5`
   - purpose: manuscript reproduction code, small data assets, trained-model
     placeholders, and plotting scripts.
+
+## MOBER
+
+Method: "Multi Origin Batch Effect Remover"
+
+- `MOBER`
+  - upstream: https://github.com/Novartis/MOBER
+  - branch: `main`
+  - commit: `81a628322044eb53e95bb606a65b4359fa645085`
+  - purpose: batch/source correction for aggregate OSDR liver RNA-seq.
+  - local changes: Scanpy and MLflow are treated as optional dependencies so
+    the package can run in the existing `nasa` environment with AnnData and
+    local file logging.

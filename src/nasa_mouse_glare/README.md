@@ -596,6 +596,44 @@ conda run -n nasa env PYTHONPATH=src \
   --run-dir outputs/glare_tms_liver_aggregated_osdr_flt_gc
 ```
 
+## Aggregate Liver MOBER Batch Correction
+
+MOBER is vendored in `src/MOBER`. For batch-corrected aggregate liver analysis,
+use the six technically closer ribo-depletion paired-end datasets:
+`OSD-379`, `OSD-245`, `OSD-463`, `OSD-242`, `OSD-137`, and `OSD-173`.
+The wrapper prepares an AnnData file with samples x genes log2(CPM+1)
+expression and uses `h5_accession` as MOBER's required `data_source` field.
+The default projection target is `OSD-379`, the largest balanced study.
+
+```bash
+conda run -n nasa env PYTHONPATH=src:src/MOBER \
+  python -m nasa_mouse_glare.aggregate_liver_mober run \
+  --output-dir outputs/mober_liver_ribo6_osdr \
+  --onto OSD-379 \
+  --epochs 300 \
+  --batch-size 32 \
+  --val-set-size 0.1 \
+  --patience 50 \
+  --seed 1996
+
+conda run -n nasa env PYTHONPATH=src \
+  python -m nasa_mouse_glare.aggregate_liver_mober_qc \
+  --run-dir outputs/mober_liver_ribo6_osdr \
+  --onto OSD-379
+```
+
+The local run trained on CPU and early-stopped at epoch `118`, keeping the best
+model from epoch `67`. Key outputs:
+
+- `outputs/mober_liver_ribo6_osdr/MOBER_PREP_SUMMARY.md`
+- `outputs/mober_liver_ribo6_osdr/projection/MOBER_PROJECTION_SUMMARY.md`
+- `outputs/mober_liver_ribo6_osdr/projection/mober_latent_onto_OSD-379.tsv`
+- `outputs/mober_liver_ribo6_osdr/mober_qc/MOBER_QC_SUMMARY.md`
+
+The trained MOBER checkpoint is local under
+`outputs/mober_liver_ribo6_osdr/mober_train/models/`; it is intentionally not
+tracked because the VAE checkpoint is about 124 MB.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by

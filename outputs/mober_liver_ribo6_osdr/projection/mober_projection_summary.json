@@ -1,0 +1,16 @@
+{
+  "projected_h5ad": "outputs/mober_liver_ribo6_osdr/projection/mober_projected_onto_OSD-379.h5ad",
+  "latent_h5ad": "outputs/mober_liver_ribo6_osdr/projection/mober_latent_onto_OSD-379.h5ad",
+  "latent_tsv": "outputs/mober_liver_ribo6_osdr/projection/mober_latent_onto_OSD-379.tsv",
+  "model_dir": "outputs/mober_liver_ribo6_osdr/mober_train/models",
+  "projection_file": "outputs/mober_liver_ribo6_osdr/mober_liver_ribo6_input.h5ad",
+  "onto": "OSD-379",
+  "shape_samples_x_genes": [
+    156,
+    21010
+  ],
+  "latent_shape": [
+    156,
+    64
+  ]
+}
