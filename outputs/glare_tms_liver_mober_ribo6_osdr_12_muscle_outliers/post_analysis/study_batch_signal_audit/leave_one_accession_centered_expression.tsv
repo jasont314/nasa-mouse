@@ -1,0 +1,7 @@
+test	heldout_accession	n	accuracy	balanced_accuracy	f1	roc_auc
+expression_accession_centered_leave_one_accession_out	OSD-137	11	0.2727272727272727	0.26666666666666666	0.2	0.33333333333333337
+expression_accession_centered_leave_one_accession_out	OSD-173	4	0.25	0.25	0.4	0.5
+expression_accession_centered_leave_one_accession_out	OSD-242	8	0.625	0.6333333333333333	0.6666666666666666	0.8666666666666667
+expression_accession_centered_leave_one_accession_out	OSD-245	37	0.4864864864864865	0.48976608187134507	0.5365853658536586	0.39766081871345027
+expression_accession_centered_leave_one_accession_out	OSD-379	62	0.5	0.5	0.5079365079365079	0.4672216441207076
+expression_accession_centered_leave_one_accession_out	OSD-463	22	0.5454545454545454	0.5416666666666667	0.5833333333333334	0.55

@@ -1,0 +1,9 @@
+test	n	accuracy	balanced_accuracy	f1	roc_auc	metadata_columns
+expression_random_stratified_5fold	144	0.5833333333333334	0.5840246961219371	0.5652173913043478	0.6154736639012155	
+expression_accession_centered_random_5fold	144	0.5763888888888888	0.5773683195060776	0.5481481481481482	0.6515531545437006	
+expression_leave_one_accession_out_pooled	144	0.4791666666666667	0.4805132162840054	0.42748091603053434	0.445109010225738	
+expression_accession_centered_leave_one_accession_out_pooled	144	0.4861111111111111	0.48543314682616245	0.5131578947368421	0.46517460929963345	
+metadata_only_random_stratified_5fold	144	0.4930555555555556	0.49035307736831946	0.5780346820809249	0.48196025467875747	h5_accession,project_identifier,sex,strain,genotype,age_at_launch,duration,library_selection,library_layout,sequencing_instrument
+metadata_only_leave_one_accession_out_pooled	144	0.5138888888888888	0.508392822689562	0.6534653465346535	0.5408064827320085	h5_accession,project_identifier,sex,strain,genotype,age_at_launch,duration,library_selection,library_layout,sequencing_instrument
+accession_only_random_stratified_5fold	144	0.4444444444444444	0.44375844105730267	0.47368421052631576	0.418869380667567	
+dummy_prior_random_5fold	144	0.5069444444444444	0.5	0.6728110599078341	0.48620490063669686	

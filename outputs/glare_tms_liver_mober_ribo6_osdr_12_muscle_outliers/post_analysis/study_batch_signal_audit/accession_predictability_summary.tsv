@@ -1,0 +1,2 @@
+test	n	classes	accuracy	balanced_accuracy	macro_f1
+expression_predict_accession_random_4fold	144	6	0.7777777777777778	0.6855168951943145	0.6691384983420381
