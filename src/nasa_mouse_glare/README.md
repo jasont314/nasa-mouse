@@ -801,6 +801,36 @@ This writes `FLT14_all`, `FLT14_and_GC8`, `FLT14_not_GC8`, `GC8_all`, and
 `GC8_not_FLT14` summaries and Metascape-ready gene lists under
 `outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/flt14_gc8_comparison/`.
 
+To follow the original GLARE post-analysis style on the 12-filtered
+MOBER-corrected aggregate liver run, use direct FLT and GC consensus clusters,
+the melted-data XGBoost/SHAP verification study, and Metascape on the direct
+cluster gene lists:
+
+```bash
+conda run -n nasa env PYTHONPATH=src MPLCONFIGDIR=/tmp/nasa-matplotlib \
+  OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+  VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  python -m nasa_mouse_glare.glare_original_style_analysis \
+  --run-dir outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers \
+  --n-estimators 500
+
+conda run -n nasa env PYTHONPATH=src \
+  python -m nasa_mouse_glare.metascape_client --request-timeout 600 submit \
+  --gene-lists outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/glare_original_style/direct_clusters/metascape_gene_lists/metascape_direct_cluster_gene_lists.csv \
+  --background outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/glare_original_style/direct_clusters/metascape_gene_lists/metascape_background_all_glare_genes.txt \
+  --output-dir 'outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/glare_original_style/metascape_results/{session_id}' \
+  --input-species 10090 \
+  --analysis-species 10090 \
+  --timeout-minutes 180 \
+  --poll-interval 30
+```
+
+Because this filtered aggregate has unequal FLT and GC profile counts, the
+verification step balances feature columns within each OSD accession before
+running the GLARE-style melted classifier. The direct cluster and Metascape
+interpretation remains separate FLT/GC analysis; it does not use the paired
+`FLT14_not_GC8` extension.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by

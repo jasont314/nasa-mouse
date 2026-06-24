@@ -398,6 +398,35 @@ def compact_report_files(report_info: dict[str, Any], include_zip: bool) -> list
     return files
 
 
+def download_report_files(
+    client: MetascapeClient,
+    session_id: str,
+    files: list[str],
+    output_dir: Path,
+) -> list[dict[str, str]]:
+    warnings: list[dict[str, str]] = []
+    for file_name in files:
+        destination = output_dir / file_name
+        log(f"Downloading {file_name}")
+        try:
+            client.download_file(session_id, file_name, destination)
+        except MetascapeError as exc:
+            message = str(exc)
+            if "HTTP 404" not in message:
+                raise
+            log(f"Skipping missing optional Metascape file: {file_name}")
+            warnings.append({"file": file_name, "reason": "HTTP 404"})
+    if warnings:
+        pd_rows = ["file\treason"] + [
+            f"{row['file']}\t{row['reason']}" for row in warnings
+        ]
+        (output_dir / "download_warnings.tsv").write_text(
+            "\n".join(pd_rows) + "\n",
+            encoding="utf-8",
+        )
+    return warnings
+
+
 def submit(args: argparse.Namespace) -> None:
     output_dir_template = str(args.output_dir) if args.output_dir else None
     client = MetascapeClient(args.base_url, timeout=args.request_timeout)
@@ -529,10 +558,12 @@ def submit(args: argparse.Namespace) -> None:
     )
 
     if not args.no_download:
-        for file_name in compact_report_files(report_info, args.include_zip):
-            destination = output_dir / file_name
-            log(f"Downloading {file_name}")
-            client.download_file(session_id, file_name, destination)
+        download_report_files(
+            client,
+            session_id,
+            compact_report_files(report_info, args.include_zip),
+            output_dir,
+        )
 
     (output_dir / "metascape_run_summary.json").write_text(
         json.dumps(run_summary, indent=2) + "\n",
@@ -564,9 +595,7 @@ def download(args: argparse.Namespace) -> None:
         encoding="utf-8",
     )
     files = args.files or compact_report_files(report_info, args.include_zip)
-    for file_name in files:
-        log(f"Downloading {file_name}")
-        client.download_file(args.session_id, file_name, output_dir / file_name)
+    download_report_files(client, args.session_id, files, output_dir)
     (output_dir / "report_information.json").write_text(
         json.dumps(
             {

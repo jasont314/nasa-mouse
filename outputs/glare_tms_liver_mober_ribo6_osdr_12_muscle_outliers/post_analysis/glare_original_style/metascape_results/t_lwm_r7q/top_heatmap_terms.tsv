@@ -1,0 +1,21 @@
+GO	Description	best_logp	significant_list_count	strongest_lists
+GO:0044282	small molecule catabolic process	-62.0794894674862	6	GC_cluster_12:-62.08; FLT_cluster_11:-60.77; GC_cluster_11:-9.39; FLT_cluster_05:-8.04; GC_cluster_09:-4.10; FLT_cluster_10:-2.04
+GO:0032787	monocarboxylic acid metabolic process	-56.66030784304352	8	FLT_cluster_11:-56.66; GC_cluster_12:-53.40; FLT_cluster_14:-13.44; GC_cluster_09:-9.02; FLT_cluster_05:-6.93; GC_cluster_11:-6.33
+GO:0044283	small molecule biosynthetic process	-42.68502589728497	6	FLT_cluster_11:-42.69; GC_cluster_12:-39.27; FLT_cluster_05:-5.38; FLT_cluster_14:-5.26; GC_cluster_11:-4.16; GC_cluster_09:-3.13
+GO:0008202	steroid metabolic process	-35.3422519942967	7	GC_cluster_12:-35.34; FLT_cluster_11:-32.59; FLT_cluster_14:-14.36; FLT_cluster_10:-3.55; GC_cluster_09:-2.83; GC_cluster_11:-2.41
+mmu04610	Complement and coagulation cascades - Mus musculus (house mouse)	-31.93742263736582	3	GC_cluster_12:-31.94; FLT_cluster_11:-31.43; FLT_cluster_09:-2.33
+mmu05012	Parkinson disease - Mus musculus (house mouse)	-31.24775235180238	6	FLT_cluster_05:-31.25; GC_cluster_11:-26.26; GC_cluster_09:-19.53; FLT_cluster_11:-9.28; FLT_cluster_10:-4.43; GC_cluster_12:-3.16
+mmu04820	Cytoskeleton in muscle cells - Mus musculus (house mouse)	-30.51433784607924	4	FLT_cluster_13:-30.51; FLT_cluster_15:-5.82; GC_cluster_07:-4.46; GC_cluster_01:-3.07
+GO:0009410	response to xenobiotic stimulus	-29.698660118525297	4	FLT_cluster_11:-29.70; GC_cluster_12:-25.90; FLT_cluster_14:-10.62; GC_cluster_08:-3.29
+GO:0006790	sulfur compound metabolic process	-29.533637334641277	7	GC_cluster_12:-29.53; FLT_cluster_11:-23.59; FLT_cluster_14:-9.87; FLT_cluster_05:-5.98; GC_cluster_09:-3.61; FLT_cluster_10:-2.52
+GO:0072521	purine-containing compound metabolic process	-27.34564166630044	7	FLT_cluster_11:-27.35; GC_cluster_12:-25.26; FLT_cluster_05:-11.41; GC_cluster_09:-8.87; GC_cluster_11:-8.19; FLT_cluster_14:-3.45
+R-MMU-72766	Translation	-26.621860666740034	11	FLT_cluster_05:-26.62; GC_cluster_11:-20.13; GC_cluster_09:-18.17; FLT_cluster_11:-14.22; FLT_cluster_14:-6.78; GC_cluster_05:-5.48
+mmu05171	Coronavirus disease - Mus musculus (house mouse)	-25.60805847431135	6	FLT_cluster_11:-25.61; FLT_cluster_14:-11.39; GC_cluster_11:-11.18; GC_cluster_12:-7.70; GC_cluster_09:-6.90; FLT_cluster_05:-5.69
+R-MMU-211859	Biological oxidations	-24.70656971158009	6	GC_cluster_12:-24.71; FLT_cluster_11:-23.20; FLT_cluster_14:-5.55; GC_cluster_08:-3.91; FLT_cluster_10:-2.84; GC_cluster_09:-2.51
+GO:0010496	intercellular transport	-24.522393531159548	8	FLT_cluster_01:-24.52; GC_cluster_05:-15.61; GC_cluster_03:-14.49; GC_cluster_09:-12.70; FLT_cluster_10:-11.52; FLT_cluster_05:-9.90
+mmu01200	Carbon metabolism - Mus musculus (house mouse)	-23.18841949654783	4	GC_cluster_12:-23.19; FLT_cluster_11:-18.48; FLT_cluster_05:-10.56; GC_cluster_11:-5.30
+R-MMU-9948299	Ribosome-associated quality control	-22.58836517293241	6	GC_cluster_11:-22.59; FLT_cluster_11:-19.29; GC_cluster_09:-18.68; FLT_cluster_05:-18.39; FLT_cluster_14:-9.98; GC_cluster_12:-2.89
+GO:0006641	triglyceride metabolic process	-22.225048198819753	2	FLT_cluster_11:-22.23; GC_cluster_12:-19.00
+mmu00071	Fatty acid degradation - Mus musculus (house mouse)	-21.5766505204314	2	GC_cluster_12:-21.58; FLT_cluster_11:-21.27
+R-MMU-9609507	Protein localization	-21.201878859665577	5	FLT_cluster_11:-21.20; GC_cluster_12:-19.38; FLT_cluster_05:-6.02; GC_cluster_11:-3.59; GC_cluster_09:-2.33
+GO:0006575	modified amino acid metabolic process	-20.32312930505263	5	GC_cluster_12:-20.32; FLT_cluster_11:-16.43; FLT_cluster_14:-4.69; FLT_cluster_05:-3.84; GC_cluster_11:-2.51

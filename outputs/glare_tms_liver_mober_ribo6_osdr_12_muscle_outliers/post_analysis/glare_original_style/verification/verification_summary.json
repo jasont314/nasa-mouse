@@ -1,0 +1,31 @@
+{
+  "method": "GLARE-style melted-data XGBoost verification with within-accession balanced FLT/GC feature columns",
+  "genes": 21010,
+  "balanced_features": 69,
+  "rows": 42020,
+  "classifier": {
+    "n_estimators": 500,
+    "max_depth": 10,
+    "random_state": 1996
+  },
+  "metrics": [
+    {
+      "scheme": "gene_grouped_kfold_audit",
+      "accuracy_mean": 0.8912660637791529,
+      "accuracy_std": 0.0021058373922540705,
+      "f1_mean": 0.8786688714133462,
+      "f1_std": 0.002658293258499477,
+      "roc_auc_mean": 0.9762452026991975,
+      "roc_auc_std": 0.0009069227968313274
+    },
+    {
+      "scheme": "random_kfold_glare",
+      "accuracy_mean": 0.8879581151832461,
+      "accuracy_std": 0.0038101268511721016,
+      "f1_mean": 0.8843507714648758,
+      "f1_std": 0.012993851470745329,
+      "roc_auc_mean": 0.9761855771581726,
+      "roc_auc_std": 0.00105187847015215
+    }
+  ]
+}
