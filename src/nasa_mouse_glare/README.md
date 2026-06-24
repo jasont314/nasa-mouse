@@ -634,6 +634,32 @@ The trained MOBER checkpoint is local under
 `outputs/mober_liver_ribo6_osdr/mober_train/models/`; it is intentionally not
 tracked because the VAE checkpoint is about 124 MB.
 
+Apply GLARE to the MOBER-corrected aggregate liver expression:
+
+```bash
+conda run -n nasa env PYTHONPATH=src \
+  OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+  VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  python -m nasa_mouse_glare.aggregate_liver_mober_glare \
+  --output-dir outputs/glare_tms_liver_mober_ribo6_osdr \
+  --epochs 30 \
+  --batch-size 16 \
+  --seed 1996
+
+conda run -n nasa env PYTHONPATH=src \
+  OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+  VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  MPLCONFIGDIR=/tmp/nasa-matplotlib \
+  python -m nasa_mouse_glare.paper_clustering \
+  --run-dir outputs/glare_tms_liver_mober_ribo6_osdr \
+  --skip-tsne
+```
+
+This keeps TMS liver as the GLARE pretraining source and uses MOBER-projected
+bulk expression as the FLT/GC fine-tuning target. The local run produced
+16 FLT consensus clusters and 15 GC consensus clusters under
+`outputs/glare_tms_liver_mober_ribo6_osdr`.
+
 ## Reproduce Original GLARE Pretraining
 
 Download the Arabidopsis single-cell normalized MatrixMarket file used by

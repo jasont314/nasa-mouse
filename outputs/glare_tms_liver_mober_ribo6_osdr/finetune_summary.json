@@ -1,0 +1,86 @@
+{
+  "method": "GLARE released 16-dimensional SAE fine-tuned on MOBER-projected aggregate liver FLT/GC expression",
+  "mober_h5ad": "outputs/mober_liver_ribo6_osdr/projection/mober_projected_onto_OSD-379.h5ad",
+  "mober_projection_target": "OSD-379",
+  "target_expression_kind": "mober_projected_log2_cpm_expression",
+  "shape_samples_x_genes": [
+    156,
+    21010
+  ],
+  "condition_counts": [
+    {
+      "h5_accession": "OSD-137",
+      "FLT": 6,
+      "GC": 6
+    },
+    {
+      "h5_accession": "OSD-173",
+      "FLT": 2,
+      "GC": 2
+    },
+    {
+      "h5_accession": "OSD-242",
+      "FLT": 5,
+      "GC": 4
+    },
+    {
+      "h5_accession": "OSD-245",
+      "FLT": 20,
+      "GC": 19
+    },
+    {
+      "h5_accession": "OSD-379",
+      "FLT": 35,
+      "GC": 35
+    },
+    {
+      "h5_accession": "OSD-463",
+      "FLT": 12,
+      "GC": 10
+    }
+  ],
+  "pretrained_weights": "outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth",
+  "pretrained_input_dim": 2859,
+  "device": "cpu",
+  "seed_reused_for_each_location": 1996,
+  "architecture": [
+    128,
+    64,
+    32,
+    16
+  ],
+  "learning_rate": 0.001,
+  "weight_decay": 0,
+  "sparsity_penalty": 1e-05,
+  "batch_size": 16,
+  "locations": [
+    {
+      "location": "FLT",
+      "genes": 21010,
+      "profiles": 80,
+      "best_loss": 0.08153502,
+      "best_epoch": 29,
+      "epochs": 30,
+      "weights": "outputs/glare_tms_liver_mober_ribo6_osdr/FLT_finetuned_sae.pth",
+      "adapter": "outputs/glare_tms_liver_mober_ribo6_osdr/FLT_adapter.pth",
+      "representation": "outputs/glare_tms_liver_mober_ribo6_osdr/FLT_FTSAE_representation.npy",
+      "elapsed_seconds": 78.689,
+      "elapsed": "1m 18s"
+    },
+    {
+      "location": "GC",
+      "genes": 21010,
+      "profiles": 76,
+      "best_loss": 0.08426146,
+      "best_epoch": 30,
+      "epochs": 30,
+      "weights": "outputs/glare_tms_liver_mober_ribo6_osdr/GC_finetuned_sae.pth",
+      "adapter": "outputs/glare_tms_liver_mober_ribo6_osdr/GC_adapter.pth",
+      "representation": "outputs/glare_tms_liver_mober_ribo6_osdr/GC_FTSAE_representation.npy",
+      "elapsed_seconds": 80.258,
+      "elapsed": "1m 20s"
+    }
+  ],
+  "elapsed_seconds": 159.928,
+  "elapsed": "2m 39s"
+}
