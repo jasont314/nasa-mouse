@@ -1,0 +1,4 @@
+flt_cluster	gene_count	gc_clusters_spanned	top_gc_cluster	top_gc_overlap	top_gc_overlap_fraction	gc_cluster_entropy	query	gc_cluster	flt_clusters_spanned	top_flt_cluster	top_flt_overlap	top_flt_overlap_fraction	flt_cluster_entropy
+3.0	1968	4.0	1.0	1874.0	0.9522357723577236	0.3306021035973837	FLT_cluster_3_to_GC						
+14.0	303	8.0	8.0	163.0	0.5379537953795379	2.0863061058229047	FLT_cluster_14_to_GC						
+	2185						GC_cluster_1_to_FLT	1.0	5.0	3.0	1874.0	0.8576659038901602	0.8047055744353525
