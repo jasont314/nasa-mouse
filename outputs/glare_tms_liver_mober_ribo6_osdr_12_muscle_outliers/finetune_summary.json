@@ -1,0 +1,86 @@
+{
+  "method": "GLARE released 16-dimensional SAE fine-tuned on MOBER-projected aggregate liver FLT/GC expression",
+  "mober_h5ad": "outputs/mober_liver_ribo6_osdr_12_muscle_outliers/projection/mober_projected_onto_OSD-379.h5ad",
+  "mober_projection_target": "OSD-379",
+  "target_expression_kind": "mober_projected_log2_cpm_expression",
+  "shape_samples_x_genes": [
+    144,
+    21010
+  ],
+  "condition_counts": [
+    {
+      "h5_accession": "OSD-137",
+      "FLT": 5,
+      "GC": 6
+    },
+    {
+      "h5_accession": "OSD-173",
+      "FLT": 2,
+      "GC": 2
+    },
+    {
+      "h5_accession": "OSD-242",
+      "FLT": 5,
+      "GC": 3
+    },
+    {
+      "h5_accession": "OSD-245",
+      "FLT": 18,
+      "GC": 19
+    },
+    {
+      "h5_accession": "OSD-379",
+      "FLT": 31,
+      "GC": 31
+    },
+    {
+      "h5_accession": "OSD-463",
+      "FLT": 12,
+      "GC": 10
+    }
+  ],
+  "pretrained_weights": "outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth",
+  "pretrained_input_dim": 2859,
+  "device": "cpu",
+  "seed_reused_for_each_location": 1996,
+  "architecture": [
+    128,
+    64,
+    32,
+    16
+  ],
+  "learning_rate": 0.001,
+  "weight_decay": 0,
+  "sparsity_penalty": 1e-05,
+  "batch_size": 16,
+  "locations": [
+    {
+      "location": "FLT",
+      "genes": 21010,
+      "profiles": 73,
+      "best_loss": 0.08380858,
+      "best_epoch": 25,
+      "epochs": 30,
+      "weights": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/FLT_finetuned_sae.pth",
+      "adapter": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/FLT_adapter.pth",
+      "representation": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/FLT_FTSAE_representation.npy",
+      "elapsed_seconds": 76.465,
+      "elapsed": "1m 16s"
+    },
+    {
+      "location": "GC",
+      "genes": 21010,
+      "profiles": 71,
+      "best_loss": 0.08114952,
+      "best_epoch": 30,
+      "epochs": 30,
+      "weights": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/GC_finetuned_sae.pth",
+      "adapter": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/GC_adapter.pth",
+      "representation": "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/GC_FTSAE_representation.npy",
+      "elapsed_seconds": 79.297,
+      "elapsed": "1m 19s"
+    }
+  ],
+  "elapsed_seconds": 156.863,
+  "elapsed": "2m 36s"
+}

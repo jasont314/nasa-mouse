@@ -1,0 +1,55 @@
+# Aggregate Liver Muscle Outlier QC
+
+- Samples scored: 144
+- Muscle markers found: 20
+- High muscle-abundance samples: 7
+- Candidate muscle outliers: 2
+- Broad-review muscle outliers: 5
+
+A candidate requires high muscle-marker abundance and relative elevation
+within the finest inferred accession/condition/collection/age stratum.
+Broad-review rows meet the abundance rule and are accession-level
+relative outliers, but not stratum-level candidates.
+
+## Candidate Outliers
+
+```tsv
+h5_accession	location	collection_inferred	age_label_inferred	profile	sample	muscle_marker_fraction_percent	muscle_markers_over_100	muscle_mean_log2	liver_mean_log2	stratum_group_size	muscle_mean_log2_robust_z_within_stratum	muscle_mean_log2_robust_z_within_accession	muscle_mean_log2_robust_z_within_accession_condition	candidate_muscle_outlier	candidate_small_group_warning	broad_review_muscle_outlier	review_high_abundance_not_relative
+OSD-379	GC	LAR	OLD	RR8_LVR_GC_LAR_OLD_GL7	OSD-379_RR8_LVR_GC_LAR_OLD_GL7	0.017232438404666862	15	7.345361432460943	17.614852989539845	6	5.4111593653102705	6.249821484034655	8.552903335573738	True	False	False	False
+OSD-379	FLT	ISS-T	OLD	RR8_LVR_FLT_ISS-T_OLD_FI12	OSD-379_RR8_LVR_FLT_ISS-T_OLD_FI12	0.009436503310028052	11	6.442446017444896	17.28526433916228	8	5.527286029993173	5.099354878621085	3.1360366328758498	True	False	False	False
+```
+
+## Broad-Review Outliers
+
+```tsv
+h5_accession	location	collection_inferred	age_label_inferred	profile	sample	muscle_marker_fraction_percent	muscle_markers_over_100	muscle_mean_log2	liver_mean_log2	stratum_group_size	muscle_mean_log2_robust_z_within_stratum	muscle_mean_log2_robust_z_within_accession	muscle_mean_log2_robust_z_within_accession_condition	candidate_muscle_outlier	candidate_small_group_warning	broad_review_muscle_outlier	review_high_abundance_not_relative
+OSD-379	FLT	LAR	YNG	RR8_LVR_FLT_LAR_YNG_FL2	OSD-379_RR8_LVR_FLT_LAR_YNG_FL2	0.5638339390536974	18	11.560961503485712	17.1702603508101	8	1.7426407425305601	11.621207355663474	7.423089413585536	False	False	True	False
+OSD-379	FLT	LAR	OLD	RR8_LVR_FLT_LAR_OLD_FL8	OSD-379_RR8_LVR_FLT_LAR_OLD_FL8	0.3153552286060949	18	10.95024050367446	17.471613200258616	7	2.7227615236879354	10.843045742933507	6.911575251399458	False	False	True	False
+OSD-379	FLT	LAR	YNG	RR8_LVR_FLT_LAR_YNG_FL18	OSD-379_RR8_LVR_FLT_LAR_YNG_FL18	0.23673696903289276	19	10.512717664187582	16.72435909762364	8	1.480076120416696	10.285567813590117	6.545124566476932	False	False	True	False
+OSD-379	FLT	LAR	OLD	RR8_LVR_FLT_LAR_OLD_FL15	OSD-379_RR8_LVR_FLT_LAR_OLD_FL15	0.1008006959940858	20	10.397303491749957	17.68304774549176	7	2.514356864431058	10.138510681800458	6.448458521364554	False	False	True	False
+OSD-379	FLT	LAR	OLD	RR8_LVR_FLT_LAR_OLD_FL11	OSD-379_RR8_LVR_FLT_LAR_OLD_FL11	0.08189689436863493	20	9.707192239430032	17.177096291262277	7	2.2542505642785406	9.25919249029511	5.8704504306738645	False	False	True	False
+```
+
+## High Abundance But Not Relative Outliers
+
+```tsv
+none
+```
+
+## Accession/Condition Summary
+
+```tsv
+h5_accession	location	samples	median_muscle_fraction_percent	max_muscle_fraction_percent	median_muscle_mean_log2	max_muscle_mean_log2	high_muscle_abundance	candidate_muscle_outlier	broad_review_muscle_outlier
+OSD-379	FLT	31	0.0007025325126192403	0.5638339390536974	2.698183259030924	11.560961503485712	6	1	5
+OSD-379	GC	31	0.0006279645077542251	0.017232438404666862	2.390455388103541	7.345361432460943	1	1	0
+OSD-245	GC	19	0.00046908001691748155	0.002761906411127147	2.228559023957599	5.804261442094255	0	0	0
+OSD-245	FLT	18	0.0004992331738148491	0.0025736285155043195	2.5632490753564197	3.696878468460516	0	0	0
+OSD-137	FLT	5	0.0005400083296284845	0.000884647891499445	2.5727521939253006	3.4899781344895215	0	0	0
+OSD-137	GC	6	0.00042632550264623493	0.0007518590621165123	2.501538498611856	3.558270103951544	0	0	0
+OSD-173	GC	2	0.0005101566931904557	0.0005715961813156164	1.7262960881190863	2.045044323248006	0	0	0
+OSD-463	GC	10	0.000283186771037507	0.0005370308327729792	1.7857357748190847	2.898471283413515	0	0	0
+OSD-242	GC	3	0.00044279064257279546	0.0004967288725603816	2.221542296725674	2.257515558886028	0	0	0
+OSD-242	FLT	5	0.00033463568584699265	0.00045456521156836155	1.71709039500501	1.8950387596144203	0	0	0
+OSD-463	FLT	12	0.00029639611481575053	0.00044223639160282085	1.9998295017434158	2.736995862573488	0	0	0
+OSD-173	FLT	2	0.0003142677543905862	0.00034034589422688626	1.6519687964425982	1.756926215085573	0	0	0
+```

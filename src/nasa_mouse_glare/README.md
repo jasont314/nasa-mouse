@@ -646,6 +646,23 @@ conda run -n nasa env PYTHONPATH=src:src/MOBER \
   --seed 1996
 ```
 
+To run the broader 12-candidate muscle-outlier sensitivity filter:
+
+```bash
+conda run -n nasa env PYTHONPATH=src:src/MOBER \
+  OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+  VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  python -m nasa_mouse_glare.aggregate_liver_mober run \
+  --output-dir outputs/mober_liver_ribo6_osdr_12_muscle_outliers \
+  --exclude-profiles-file data/filters/aggregate_liver_12_muscle_candidate_profiles.txt \
+  --onto OSD-379 \
+  --epochs 300 \
+  --batch-size 24 \
+  --val-set-size 0.1 \
+  --patience 50 \
+  --seed 1996
+```
+
 The local run trained on CPU and early-stopped at epoch `118`, keeping the best
 model from epoch `67`. Key outputs:
 
@@ -704,6 +721,28 @@ conda run -n nasa env PYTHONPATH=src \
   MPLCONFIGDIR=/tmp/nasa-matplotlib \
   python -m nasa_mouse_glare.paper_clustering \
   --run-dir outputs/glare_tms_liver_mober_ribo6_osdr_no_muscle_outliers \
+  --skip-tsne
+```
+
+For the 12-candidate muscle-outlier MOBER projection:
+
+```bash
+conda run -n nasa env PYTHONPATH=src \
+  OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+  VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  python -m nasa_mouse_glare.aggregate_liver_mober_glare \
+  --mober-h5ad outputs/mober_liver_ribo6_osdr_12_muscle_outliers/projection/mober_projected_onto_OSD-379.h5ad \
+  --output-dir outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers \
+  --epochs 30 \
+  --batch-size 16 \
+  --seed 1996
+
+conda run -n nasa env PYTHONPATH=src \
+  OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+  VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
+  MPLCONFIGDIR=/tmp/nasa-matplotlib \
+  python -m nasa_mouse_glare.paper_clustering \
+  --run-dir outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers \
   --skip-tsne
 ```
 

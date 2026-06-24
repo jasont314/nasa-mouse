@@ -57,6 +57,32 @@ write_result_table <- function(result, gene_symbols, accession, output_path, alp
   table
 }
 
+run_deseq_with_dispersion_fallback <- function(dds, accession) {
+  tryCatch(
+    {
+      dds <- DESeq(dds, quiet = TRUE)
+      metadata(dds)$dispersion_fit <- "default"
+      dds
+    },
+    error = function(error) {
+      message_text <- conditionMessage(error)
+      if (!grepl("all gene-wise dispersion estimates", message_text, fixed = TRUE)) {
+        stop(error)
+      }
+      message(sprintf(
+        "DESeq2 %s: default dispersion fit failed; using gene-wise dispersion estimates",
+        accession
+      ))
+      dds <- estimateSizeFactors(dds)
+      dds <- estimateDispersionsGeneEst(dds, quiet = TRUE)
+      dispersions(dds) <- mcols(dds)$dispGeneEst
+      dds <- nbinomWaldTest(dds, quiet = TRUE)
+      metadata(dds)$dispersion_fit <- "gene_wise_fallback"
+      dds
+    }
+  )
+}
+
 run_accession_deseq2 <- function(counts, metadata, gene_symbols, accession, output_dir, alpha, lfc_cutoff, min_count, min_samples) {
   selected_metadata <- metadata[metadata$accession == accession, , drop = FALSE]
   selected_metadata <- selected_metadata[selected_metadata$condition %in% c("FLT", "GC"), , drop = FALSE]
@@ -83,7 +109,7 @@ run_accession_deseq2 <- function(counts, metadata, gene_symbols, accession, outp
     colData = selected_metadata,
     design = ~ condition
   )
-  dds <- DESeq(dds, quiet = TRUE)
+  dds <- run_deseq_with_dispersion_fallback(dds, accession)
   result <- results(
     dds,
     contrast = c("condition", "FLT", "GC"),
@@ -95,6 +121,7 @@ run_accession_deseq2 <- function(counts, metadata, gene_symbols, accession, outp
   table$n_flt <- as.integer(condition_counts[["FLT"]])
   table$n_gc <- as.integer(condition_counts[["GC"]])
   table$genes_retained_in_study <- nrow(filtered_counts)
+  table$dispersion_fit <- metadata(dds)$dispersion_fit
   table
 }
 
