@@ -2,7 +2,7 @@ file	purpose
 per_study_dgea_glare_cluster_theme_heatmap.png	manual annotation matrix for DGEA-enriched GLARE clusters
 primary_studies_flt_to_gc_cluster_matching_heatmap.png	how primary-study FLT clusters map into GC cluster representations
 recurring_dgea_glare_pathway_overlap_dotplot.png	recurring pathway terms with both DGEA and GLARE support
-aggregate_glare_vs_mober_cluster_pca_annotated.png	plain aggregate GLARE versus MOBER+GLARE cluster PCA, DEG-enriched cluster labels, and legend-only cluster descriptions with color markers
-per_study_glare_cluster_pca_annotated.png	per-study FLT/GC GLARE cluster PCA with DEG-overlap labels and legend-only cluster descriptions with color markers
-aggregate_glare_vs_mober_cluster_umap_annotated.png	UMAP counterpart to aggregate plain GLARE versus MOBER+GLARE PCA figure; fixed seed/parameters; legend-only cluster descriptions with color markers
-per_study_glare_cluster_umap_annotated.png	UMAP counterpart to per-study FLT/GC GLARE PCA figure; fixed seed/parameters; legend-only cluster descriptions with color markers
+aggregate_glare_vs_mober_cluster_pca_annotated.png	Embedding plot with split legends: interpretable DEG-enriched modules versus other/unclear clusters.
+per_study_glare_cluster_pca_annotated.png	Embedding plot with split legends: interpretable DEG-enriched modules versus other/unclear clusters.
+aggregate_glare_vs_mober_cluster_umap_annotated.png	Embedding plot with split legends: interpretable DEG-enriched modules versus other/unclear clusters.
+per_study_glare_cluster_umap_annotated.png	Embedding plot with split legends: interpretable DEG-enriched modules versus other/unclear clusters.
