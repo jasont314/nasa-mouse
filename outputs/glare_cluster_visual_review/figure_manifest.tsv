@@ -2,7 +2,8 @@ file	purpose
 per_study_dgea_glare_cluster_theme_heatmap.png	manual annotation matrix for DGEA-enriched GLARE clusters
 primary_studies_flt_to_gc_cluster_matching_heatmap.png	how primary-study FLT clusters map into GC cluster representations
 recurring_dgea_glare_pathway_overlap_dotplot.png	recurring pathway terms with both DGEA and GLARE support
-aggregate_glare_vs_mober_cluster_pca_annotated.png	Embedding plot with split legends: interpretable DEG-enriched modules versus other/unclear clusters.
-per_study_glare_cluster_pca_annotated.png	Embedding plot with split legends: interpretable DEG-enriched modules versus other/unclear clusters.
-aggregate_glare_vs_mober_cluster_umap_annotated.png	Embedding plot with split legends: interpretable DEG-enriched modules versus other/unclear clusters.
-per_study_glare_cluster_umap_annotated.png	Embedding plot with split legends: interpretable DEG-enriched modules versus other/unclear clusters.
+aggregate_glare_vs_mober_cluster_pca_annotated.png	Embedding plot with split legends, low-N DEG clusters marked unclear, and per-panel bulk profile sample sizes.
+per_study_glare_cluster_pca_annotated.png	Embedding plot with split legends, low-N DEG clusters marked unclear, and per-panel bulk profile sample sizes.
+aggregate_glare_vs_mober_cluster_umap_annotated.png	Embedding plot with split legends, low-N DEG clusters marked unclear, and per-panel bulk profile sample sizes.
+per_study_glare_cluster_umap_annotated.png	Embedding plot with split legends, low-N DEG clusters marked unclear, and per-panel bulk profile sample sizes.
+plot_panel_sample_sizes.tsv	Bulk RNA-seq profile counts shown in each embedding panel title.
