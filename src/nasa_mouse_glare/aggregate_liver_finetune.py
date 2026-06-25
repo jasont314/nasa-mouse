@@ -122,6 +122,100 @@ def is_liver_material(value: str) -> bool:
     return "liver" in str(value).strip().lower()
 
 
+def ercc_status(profile: str) -> str:
+    profile = str(profile)
+    if "_noERCC_" in profile or profile.endswith("_noERCC"):
+        return "noERCC"
+    if "_wERCC_" in profile or profile.endswith("_wERCC"):
+        return "wERCC"
+    return "not_annotated"
+
+
+def ercc_biological_key(profile: str) -> str:
+    return re.sub(r"_(?:wERCC|noERCC)(?=_|$)", "", str(profile))
+
+
+def apply_ercc_policy(
+    selected: pd.DataFrame,
+    output_dir: Path,
+    ercc_policy: str,
+) -> tuple[pd.DataFrame, dict]:
+    if ercc_policy == "keep_all":
+        return selected, {
+            "policy": ercc_policy,
+            "profiles_before": int(len(selected)),
+            "profiles_after": int(len(selected)),
+            "profiles_dropped": 0,
+            "duplicate_groups": 0,
+            "unique_wERCC_profiles_retained": int(
+                selected["profile"].astype(str).map(ercc_status).eq("wERCC").sum()
+            ),
+        }
+    if ercc_policy != "prefer_noercc":
+        raise ValueError(f"Unsupported ERCC policy: {ercc_policy}")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    working = selected.copy()
+    working["ercc_status"] = working["profile"].astype(str).map(ercc_status)
+    working["ercc_biological_key"] = working["profile"].astype(str).map(
+        ercc_biological_key
+    )
+    group_columns = ["h5_accession", "condition_label", "ercc_biological_key"]
+    audit_rows = []
+    retained_indices = []
+    for group_key, group in working.groupby(group_columns, dropna=False, sort=False):
+        statuses = set(group["ercc_status"])
+        duplicate_group = len(group) > 1
+        if "noERCC" in statuses:
+            keep = group.loc[group["ercc_status"].eq("noERCC")].sort_values(
+                "profile"
+            ).head(1)
+            decision = "kept_noERCC"
+        else:
+            keep = group.sort_values("profile").head(1)
+            decision = (
+                "kept_unique_wERCC"
+                if "wERCC" in statuses
+                else "kept_unannotated"
+            )
+        retained_indices.extend(keep.index.tolist())
+        kept_profiles = set(keep["profile"].astype(str))
+        for row in group.itertuples():
+            audit_rows.append(
+                {
+                    "h5_accession": group_key[0],
+                    "condition_label": group_key[1],
+                    "ercc_biological_key": group_key[2],
+                    "profile": row.profile,
+                    "ercc_status": row.ercc_status,
+                    "duplicate_group": duplicate_group,
+                    "retained": str(row.profile) in kept_profiles,
+                    "decision": decision,
+                }
+            )
+
+    audit = pd.DataFrame(audit_rows)
+    audit.to_csv(output_dir / "ercc_profile_policy.tsv", sep="\t", index=False)
+    retained = working.loc[retained_indices].copy()
+    retained = retained.drop(columns=["ercc_status", "ercc_biological_key"])
+    dropped = audit.loc[~audit["retained"]]
+    unique_w_ercc = audit.loc[
+        audit["retained"]
+        & audit["ercc_status"].eq("wERCC")
+        & ~audit["duplicate_group"]
+    ]
+    summary = {
+        "policy": ercc_policy,
+        "profiles_before": int(len(selected)),
+        "profiles_after": int(len(retained)),
+        "profiles_dropped": int(len(dropped)),
+        "duplicate_groups": int(audit.loc[audit["duplicate_group"], group_columns].drop_duplicates().shape[0]),
+        "unique_wERCC_profiles_retained": int(len(unique_w_ercc)),
+        "audit_path": str(output_dir / "ercc_profile_policy.tsv"),
+    }
+    return retained, summary
+
+
 def load_h5_profile_metadata(osdr_h5: str | Path, metadata: pd.DataFrame) -> pd.DataFrame:
     h5py = require_import("h5py", "pip install -r requirements-nasa-mouse-glare.txt")
 
@@ -173,6 +267,7 @@ def select_aggregate_profiles(
     accessions: list[str],
     output_dir: Path,
     exclude_profiles: set[str] | None = None,
+    ercc_policy: str = "keep_all",
 ) -> dict:
     bundle = load_matrix_bundle(target_manifest)
     if bundle.profile_metadata is None:
@@ -244,6 +339,14 @@ def select_aggregate_profiles(
             f"{missing_accessions}"
         )
 
+    selected, ercc_summary = apply_ercc_policy(selected, output_dir, ercc_policy)
+    missing_accessions = sorted(accession_set - set(selected["h5_accession"]))
+    if missing_accessions:
+        raise ValueError(
+            "No selected FLT/GC liver profiles remain after ERCC filtering for "
+            f"accessions: {missing_accessions}"
+        )
+
     selected["accession_order"] = selected["h5_accession"].map(
         {accession: index for index, accession in enumerate(accessions)}
     )
@@ -312,6 +415,7 @@ def select_aggregate_profiles(
         "osdr_h5": str(osdr_h5),
         "excluded_profiles_requested": sorted(excluded_requested),
         "excluded_profiles_matched": int(len(excluded_selected)),
+        "ercc_policy": ercc_summary,
     }
 
 
@@ -345,6 +449,15 @@ def parse_args() -> argparse.Namespace:
         default=[],
         help="Profile/sample ID to exclude. Can be supplied multiple times.",
     )
+    parser.add_argument(
+        "--ercc-policy",
+        choices=["keep_all", "prefer_noercc"],
+        default="keep_all",
+        help=(
+            "prefer_noercc collapses wERCC/noERCC duplicate profiles by keeping "
+            "noERCC when both are present."
+        ),
+    )
     parser.add_argument("--prepare-only", action="store_true")
     return parser.parse_args()
 
@@ -359,6 +472,7 @@ def main() -> None:
         args.accessions,
         output_dir,
         load_excluded_profiles(args.exclude_profiles_file, args.exclude_profile),
+        args.ercc_policy,
     )
     log(
         "Prepared aggregate liver FLT/GC target: "
@@ -402,6 +516,7 @@ def main() -> None:
             "included_conditions": ["Space Flight", "Ground Control"],
             "excluded_profiles_requested": prepared["excluded_profiles_requested"],
             "excluded_profiles_matched": prepared["excluded_profiles_matched"],
+            "ercc_policy": prepared["ercc_policy"],
         },
         "condition_counts": counts.to_dict(orient="records"),
         "target_manifest": prepared["target_manifest"],

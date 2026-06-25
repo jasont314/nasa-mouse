@@ -1,0 +1,27 @@
+{
+  "studies": [
+    "OSD-379",
+    "OSD-245",
+    "OSD-463",
+    "OSD-168",
+    "OSD-48",
+    "OSD-137"
+  ],
+  "output_dir": "outputs/glare_per_study_liver_noercc_12filter",
+  "pretrained_weights": "outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth",
+  "ercc_policy": "prefer_noercc",
+  "exclude_profiles_file": "data/filters/aggregate_liver_12_muscle_candidate_profiles.txt",
+  "min_profiles_per_condition": 5,
+  "study_summaries": [
+    "outputs/glare_per_study_liver_noercc_12filter/OSD-379/finetune_summary.json",
+    "outputs/glare_per_study_liver_noercc_12filter/OSD-245/finetune_summary.json",
+    "outputs/glare_per_study_liver_noercc_12filter/OSD-463/finetune_summary.json",
+    "outputs/glare_per_study_liver_noercc_12filter/OSD-168/finetune_summary.json",
+    "outputs/glare_per_study_liver_noercc_12filter/OSD-48/finetune_summary.json",
+    "outputs/glare_per_study_liver_noercc_12filter/OSD-137/finetune_summary.json"
+  ],
+  "enrichment": "outputs/glare_per_study_liver_noercc_12filter/glare_cluster_reactome_enrichment.tsv",
+  "recurrence": "outputs/glare_per_study_liver_noercc_12filter/recurring_glare_reactome_terms.tsv",
+  "elapsed_seconds": 1305.412,
+  "elapsed": "21m 45s"
+}

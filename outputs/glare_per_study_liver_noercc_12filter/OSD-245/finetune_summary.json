@@ -1,0 +1,85 @@
+{
+  "method": "per-study GLARE released 16-dimensional SAE with separate FLT/GC fine-tuning",
+  "accession": "OSD-245",
+  "target_manifest": "data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+  "target_expression_input": "data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+  "target_expression_kind": "aligned_osdr_liver_hdf5_expression",
+  "osdr_h5": "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5",
+  "pretrained_weights": "outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth",
+  "pretrained_input_dim": 2859,
+  "device": "cpu",
+  "seed_reused_for_each_location": 1996,
+  "architecture": [
+    128,
+    64,
+    32,
+    16
+  ],
+  "learning_rate": 0.001,
+  "weight_decay": 0,
+  "sparsity_penalty": 1e-05,
+  "batch_size": 16,
+  "selection": {
+    "accession": "OSD-245",
+    "excluded_profiles_requested": [
+      "Mmus_BAL-TAL_LVR_FLT_Rep2_F2",
+      "Mmus_C57-6J_LVR_GC_C2_Rep1_G1",
+      "Mmus_C57-6T_LVR_FLT_ISS-T_Rep1_F5",
+      "Mmus_C57-6T_LVR_FLT_ISS-T_Rep3_F9",
+      "RR8_LVR_FLT_ISS-T_OLD_FI16",
+      "RR8_LVR_FLT_ISS-T_OLD_FI17",
+      "RR8_LVR_FLT_ISS-T_YNG_FI10",
+      "RR8_LVR_FLT_ISS-T_YNG_FI9",
+      "RR8_LVR_GC_ISS-T_YNG_GI10",
+      "RR8_LVR_GC_LAR_OLD_GL3",
+      "RR8_LVR_GC_LAR_YNG_GL18",
+      "RR8_LVR_GC_LAR_YNG_GL5"
+    ],
+    "excluded_profiles_matched": 2,
+    "ercc_policy": {
+      "policy": "prefer_noercc",
+      "profiles_before": 37,
+      "profiles_after": 37,
+      "profiles_dropped": 0,
+      "duplicate_groups": 0,
+      "unique_wERCC_profiles_retained": 0,
+      "audit_path": "outputs/glare_per_study_liver_noercc_12filter/OSD-245/ercc_profile_policy.tsv"
+    }
+  },
+  "condition_counts": [
+    {
+      "h5_accession": "OSD-245",
+      "FLT": 18,
+      "GC": 19,
+      "total": 37
+    }
+  ],
+  "locations": [
+    {
+      "location": "FLT",
+      "genes": 21010,
+      "profiles": 18,
+      "best_loss": 0.15983631,
+      "best_epoch": 30,
+      "epochs": 30,
+      "weights": "outputs/glare_per_study_liver_noercc_12filter/OSD-245/FLT_finetuned_sae.pth",
+      "adapter": "outputs/glare_per_study_liver_noercc_12filter/OSD-245/FLT_adapter.pth",
+      "representation": "outputs/glare_per_study_liver_noercc_12filter/OSD-245/FLT_FTSAE_representation.npy",
+      "elapsed_seconds": 79.871,
+      "elapsed": "1m 19s"
+    },
+    {
+      "location": "GC",
+      "genes": 21010,
+      "profiles": 19,
+      "best_loss": 0.16188379,
+      "best_epoch": 30,
+      "epochs": 30,
+      "weights": "outputs/glare_per_study_liver_noercc_12filter/OSD-245/GC_finetuned_sae.pth",
+      "adapter": "outputs/glare_per_study_liver_noercc_12filter/OSD-245/GC_adapter.pth",
+      "representation": "outputs/glare_per_study_liver_noercc_12filter/OSD-245/GC_FTSAE_representation.npy",
+      "elapsed_seconds": 76.659,
+      "elapsed": "1m 16s"
+    }
+  ]
+}

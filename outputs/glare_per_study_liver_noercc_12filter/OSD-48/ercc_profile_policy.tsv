@@ -1,0 +1,15 @@
+h5_accession	condition_label	ercc_biological_key	profile	ercc_status	duplicate_group	retained	decision
+OSD-48	FLT	Mmus_C57-6J_LVR_FLT_C_Rep1_M25	Mmus_C57-6J_LVR_FLT_C_Rep1_M25	not_annotated	False	True	kept_unannotated
+OSD-48	FLT	Mmus_C57-6J_LVR_FLT_C_Rep2_M26	Mmus_C57-6J_LVR_FLT_C_Rep2_M26	not_annotated	False	True	kept_unannotated
+OSD-48	FLT	Mmus_C57-6J_LVR_FLT_C_Rep3_M27	Mmus_C57-6J_LVR_FLT_C_Rep3_M27	not_annotated	False	True	kept_unannotated
+OSD-48	FLT	Mmus_C57-6J_LVR_FLT_C_Rep4_M28	Mmus_C57-6J_LVR_FLT_C_Rep4_M28	not_annotated	False	True	kept_unannotated
+OSD-48	FLT	Mmus_C57-6J_LVR_FLT_C_Rep5_M30	Mmus_C57-6J_LVR_FLT_C_Rep5_M30	not_annotated	False	True	kept_unannotated
+OSD-48	FLT	Mmus_C57-6J_LVR_FLT_I_Rep1_M21	Mmus_C57-6J_LVR_FLT_I_Rep1_M21	not_annotated	False	True	kept_unannotated
+OSD-48	FLT	Mmus_C57-6J_LVR_FLT_I_Rep2_M22	Mmus_C57-6J_LVR_FLT_I_Rep2_M22	not_annotated	False	True	kept_unannotated
+OSD-48	GC	Mmus_C57-6J_LVR_GC_C_Rep1_M36	Mmus_C57-6J_LVR_GC_C_Rep1_M36	not_annotated	False	True	kept_unannotated
+OSD-48	GC	Mmus_C57-6J_LVR_GC_C_Rep2_M37	Mmus_C57-6J_LVR_GC_C_Rep2_M37	not_annotated	False	True	kept_unannotated
+OSD-48	GC	Mmus_C57-6J_LVR_GC_C_Rep3_M38	Mmus_C57-6J_LVR_GC_C_Rep3_M38	not_annotated	False	True	kept_unannotated
+OSD-48	GC	Mmus_C57-6J_LVR_GC_C_Rep4_M39	Mmus_C57-6J_LVR_GC_C_Rep4_M39	not_annotated	False	True	kept_unannotated
+OSD-48	GC	Mmus_C57-6J_LVR_GC_C_Rep5_M40	Mmus_C57-6J_LVR_GC_C_Rep5_M40	not_annotated	False	True	kept_unannotated
+OSD-48	GC	Mmus_C57-6J_LVR_GC_I_Rep1_M31	Mmus_C57-6J_LVR_GC_I_Rep1_M31	not_annotated	False	True	kept_unannotated
+OSD-48	GC	Mmus_C57-6J_LVR_GC_I_Rep2_M32	Mmus_C57-6J_LVR_GC_I_Rep2_M32	not_annotated	False	True	kept_unannotated
