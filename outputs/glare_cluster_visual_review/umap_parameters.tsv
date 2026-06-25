@@ -1,0 +1,2 @@
+n_neighbors	min_dist	n_components	metric	random_state	transform_seed	low_memory	input	scaling	clusters
+30	0.1	2	euclidean	42	42	True	gene-level GLARE latent dimensions	StandardScaler per embedding	existing consensus clusters, not recomputed from UMAP
