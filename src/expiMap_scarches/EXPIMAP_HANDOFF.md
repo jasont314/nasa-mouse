@@ -163,17 +163,36 @@ For expiMap, the "architecture" is the pathway membership mask:
 
 Use the same Reactome architecture for both direct OSDR and ARCHS4 reference-query experiments, so pathway scores are comparable.
 
-Recommended Reactome GMT:
+Preferred Reactome source:
+
+```text
+https://reactome.org/download/current/ReactomePathways.txt
+https://reactome.org/download/current/Ensembl2Reactome_All_Levels.txt
+```
+
+Build a native/current mouse Reactome GMT by filtering `Ensembl2Reactome_All_Levels.txt` to:
+
+```text
+species == Mus musculus
+pathway stable IDs starting with R-MMU-
+genes starting with ENSMUSG
+```
+
+Then join pathway IDs to names from `ReactomePathways.txt`, also filtered to `Mus musculus`. This gives a direct Reactome Mus musculus Ensembl-ID pathway architecture matching OSDR gene IDs.
+
+Suggested generated architecture path:
+
+```text
+data/pathways/reactome_current_mouse_ensembl.gmt
+```
+
+Historical fallback/reference only:
 
 ```text
 src/expiMap_reproducibility/metadata/c2.cp.reactome.v4.0_mouseEID.gmt
 ```
 
-Reason:
-
-- It uses mouse Ensembl IDs (`ENSMUSG...`).
-- That matches current OSDR gene IDs.
-- It avoids symbol mapping ambiguity for OSDR.
+That fallback came from the expiMap reproducibility repo and appears to be an MSigDB Reactome v4.0 symbol set converted to mouse Ensembl IDs. It is useful for reproducing older expiMap examples, but for this NASA mouse project prefer the direct/current Reactome Mus musculus mapping.
 
 Do not use `c2.cp.reactome.v7.5.1.symbols.gmt` unless doing a symbol-based ARCHS4-only test. If ARCHS4 uses symbols, map ARCHS4 symbols to Ensembl or build a careful shared gene table. The preferred comparable workflow is:
 
@@ -251,7 +270,8 @@ Prep steps:
 5. Remove profiles listed in:
    - `data/filters/aggregate_liver_12_muscle_candidate_profiles.txt`
 6. Add Reactome annotations using:
-   - `src/expiMap_reproducibility/metadata/c2.cp.reactome.v4.0_mouseEID.gmt`
+   - preferred: `data/pathways/reactome_current_mouse_ensembl.gmt`
+   - fallback only: `src/expiMap_reproducibility/metadata/c2.cp.reactome.v4.0_mouseEID.gmt`
 7. Filter genes to those in at least one retained pathway.
 8. Filter pathways by minimum gene count, likely `min_genes=12`.
 9. Store raw counts in both `adata.X` and `adata.layers["counts"]`.
@@ -387,4 +407,3 @@ Before a full training run, inspect:
 - number of Reactome terms retained
 - top/largest Reactome terms
 - whether any duplicate gene IDs need collapsing
-
