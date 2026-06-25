@@ -1,0 +1,7 @@
+accession	n_flight	n_ground	genes_tested	significant_padj05	significant_up	significant_down	design	dispersion_fit
+OSD-137	5	6	14625	1	1	0	~ condition	default
+OSD-168	9	9	16339	6	3	3	~ condition	default
+OSD-245	18	19	15798	700	338	362	~ stratum + condition	default
+OSD-379	31	31	15381	1622	1051	571	~ stratum + condition	default
+OSD-463	12	10	15362	2704	1473	1231	~ condition	default
+OSD-48	7	7	13691	82	35	47	~ condition	default
