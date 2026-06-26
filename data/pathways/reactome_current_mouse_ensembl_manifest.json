@@ -1,0 +1,30 @@
+{
+  "source": "Reactome current download",
+  "source_urls": {
+    "ReactomePathways.txt": "https://reactome.org/download/current/ReactomePathways.txt",
+    "Ensembl2Reactome_All_Levels.txt": "https://reactome.org/download/current/Ensembl2Reactome_All_Levels.txt"
+  },
+  "filters": {
+    "species": "Mus musculus",
+    "pathway_id_prefix": "R-MMU-",
+    "gene_id_prefix": "ENSMUSG"
+  },
+  "format": {
+    "gmt_columns": [
+      "R-MMU pathway ID plus sanitized pathway name",
+      "Reactome Pathway Browser URL",
+      "mouse Ensembl gene IDs"
+    ],
+    "example_term": "R-MMU-73857_RNA_POLYMERASE_II_TRANSCRIPTION"
+  },
+  "outputs": {
+    "gmt": "data/pathways/reactome_current_mouse_ensembl.gmt",
+    "terms": "data/pathways/reactome_current_mouse_ensembl_terms.tsv",
+    "genes": "data/pathways/reactome_current_mouse_ensembl_genes.tsv"
+  },
+  "counts": {
+    "mouse_pathways_in_reactome_pathways": 1838,
+    "pathways_with_ensembl_genes": 1836,
+    "unique_ensembl_genes": 9322
+  }
+}

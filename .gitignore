@@ -2,6 +2,8 @@
 assets/
 data/processed/
 data/glare_inputs/
+data/osdr_api/counts/
+data/pathways/reactome_current/raw/
 src/adversarial-gene-expression/data/E_coli_v4_Build_6/
 models/
 outputs/

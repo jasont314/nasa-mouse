@@ -1,0 +1,908 @@
+{
+  "tissues": [
+    "liver",
+    "kidney"
+  ],
+  "direct": {
+    "liver": {
+      "tissue": "liver",
+      "path": "outputs/expimap_direct_osdr_liver",
+      "input_manifest": {
+        "tissue": "liver",
+        "source": "NASA OSDR Biological Data API",
+        "metadata": "data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv",
+        "gmt": "data/pathways/reactome_current_mouse_ensembl.gmt",
+        "exclude_profiles_file": "data/filters/aggregate_liver_12_muscle_candidate_profiles.txt",
+        "filters": {
+          "organism": "Mus musculus",
+          "file.datatype": "unnormalized counts",
+          "assay": "bulk RNA-seq inferred from API assay/file text",
+          "conditions": [
+            "Space Flight",
+            "Ground Control"
+          ],
+          "controls_excluded": [
+            "Basal Control",
+            "Vivarium Control",
+            "unknown"
+          ],
+          "all_data_sources": true,
+          "min_genes_per_pathway": 12,
+          "min_per_condition": 3,
+          "max_terms": null
+        },
+        "counts": {
+          "samples": 231,
+          "flight": 118,
+          "ground_control": 113,
+          "accessions": 12,
+          "genes": 9321,
+          "pathways": 1140
+        },
+        "outputs": {
+          "profile_metadata": "outputs/expimap_direct_osdr_liver/input/profile_metadata.tsv",
+          "gene_universe": "outputs/expimap_direct_osdr_liver/input/gene_universe.tsv",
+          "reactome_terms": "outputs/expimap_direct_osdr_liver/input/reactome_terms.tsv",
+          "sample_counts_by_accession_condition": "outputs/expimap_direct_osdr_liver/input/sample_counts_by_accession_condition.tsv",
+          "sample_counts_by_metadata": "outputs/expimap_direct_osdr_liver/input/sample_counts_by_metadata.tsv",
+          "h5ad": [
+            {
+              "transformation": "raw_counts",
+              "h5ad": "outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_raw_counts.h5ad",
+              "recommended_recon_loss": "nb",
+              "validity": "primary_count_likelihood"
+            },
+            {
+              "transformation": "cpm",
+              "h5ad": "outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_cpm.h5ad",
+              "recommended_recon_loss": "mse",
+              "validity": "sensitivity_only_not_count_likelihood"
+            },
+            {
+              "transformation": "log1p_cpm",
+              "h5ad": "outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_log1p_cpm.h5ad",
+              "recommended_recon_loss": "mse",
+              "validity": "sensitivity_only_not_count_likelihood"
+            }
+          ],
+          "skipped_transformations": [],
+          "manifest": "outputs/expimap_direct_osdr_liver/input/input_manifest.json"
+        }
+      },
+      "runs": {
+        "raw_counts": {
+          "path": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch",
+          "transformation": "raw_counts",
+          "status": "primary",
+          "note": "raw NASA OSDR API counts with negative-binomial loss",
+          "exists": true,
+          "training": {
+            "input": "outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_raw_counts.h5ad",
+            "output_dir": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch",
+            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "has_EXPIMAP": true,
+            "condition_key": "id.accession",
+            "conditions": [
+              "OSD-137",
+              "OSD-164",
+              "OSD-168",
+              "OSD-173",
+              "OSD-242",
+              "OSD-245",
+              "OSD-379",
+              "OSD-457",
+              "OSD-463",
+              "OSD-47",
+              "OSD-48",
+              "OSD-686"
+            ],
+            "recon_loss": "nb",
+            "epochs": 50,
+            "hidden_layers": [
+              64
+            ],
+            "n_samples": 231,
+            "n_genes": 9321,
+            "n_terms": 1140,
+            "n_score_terms": 1140,
+            "outputs": {
+              "model": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/model",
+              "pathway_scores": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/pathway_scores.tsv",
+              "terms": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/terms.tsv",
+              "trained_h5ad": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/trained_input_with_scores.h5ad",
+              "summary": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/training_summary.json"
+            }
+          },
+          "analysis": {
+            "scores": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/pathway_scores.tsv",
+            "n_samples": 231,
+            "n_terms": 1140,
+            "outputs": {
+              "comparison": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/flt_vs_gc_pathway_comparison.tsv",
+              "accession_effects": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/flight_ground_effects_by_accession.tsv",
+              "study_aware_tests": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/flight_ground_study_aware_tests.tsv",
+              "pca_coordinates": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/pathway_score_pca.tsv",
+              "pca_by_condition": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/pathway_score_pca.png",
+              "pca_by_accession": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/pathway_score_pca_by_accession.png",
+              "umap_coordinates": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/pathway_score_umap.tsv",
+              "umap_by_condition": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/pathway_score_umap.png",
+              "umap_by_accession": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/pathway_score_umap_by_accession.png",
+              "top_pathway_heatmap": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/top_pathway_shift_heatmap.png",
+              "top_pathway_heatmap_terms": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/top_pathway_shift_heatmap_terms.tsv",
+              "readme": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/README.md",
+              "summary": "outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis/analysis_summary.json"
+            }
+          },
+          "top_term": "R-MMU-75955_RNA_POLYMERASE_II_TRANSCRIPTION_ELONGATION",
+          "top_effect": -0.5382138897196265,
+          "min_welch_fdr": 0.0120421671299803,
+          "min_mannwhitney_fdr": 0.0147216130851666,
+          "n_welch_fdr_0_10": 1,
+          "n_mannwhitney_fdr_0_10": 1,
+          "min_study_aware_fdr": 0.8504231770833334,
+          "n_study_aware_fdr_0_10": 0
+        },
+        "cpm": {
+          "path": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch",
+          "transformation": "cpm",
+          "status": "sensitivity",
+          "note": "CPM-normalized values with MSE loss",
+          "exists": true,
+          "training": {
+            "input": "outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_cpm.h5ad",
+            "output_dir": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch",
+            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "has_EXPIMAP": true,
+            "condition_key": "id.accession",
+            "conditions": [
+              "OSD-137",
+              "OSD-164",
+              "OSD-168",
+              "OSD-173",
+              "OSD-242",
+              "OSD-245",
+              "OSD-379",
+              "OSD-457",
+              "OSD-463",
+              "OSD-47",
+              "OSD-48",
+              "OSD-686"
+            ],
+            "recon_loss": "mse",
+            "epochs": 50,
+            "hidden_layers": [
+              64
+            ],
+            "n_samples": 231,
+            "n_genes": 9321,
+            "n_terms": 1140,
+            "n_score_terms": 1140,
+            "outputs": {
+              "model": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/model",
+              "pathway_scores": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/pathway_scores.tsv",
+              "terms": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/terms.tsv",
+              "trained_h5ad": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/trained_input_with_scores.h5ad",
+              "summary": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/training_summary.json"
+            }
+          },
+          "analysis": {
+            "scores": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/pathway_scores.tsv",
+            "n_samples": 231,
+            "n_terms": 1140,
+            "outputs": {
+              "comparison": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/flt_vs_gc_pathway_comparison.tsv",
+              "accession_effects": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/flight_ground_effects_by_accession.tsv",
+              "study_aware_tests": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/flight_ground_study_aware_tests.tsv",
+              "pca_coordinates": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/pathway_score_pca.tsv",
+              "pca_by_condition": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/pathway_score_pca.png",
+              "pca_by_accession": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/pathway_score_pca_by_accession.png",
+              "umap_coordinates": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/pathway_score_umap.tsv",
+              "umap_by_condition": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/pathway_score_umap.png",
+              "umap_by_accession": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/pathway_score_umap_by_accession.png",
+              "top_pathway_heatmap": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/top_pathway_shift_heatmap.png",
+              "top_pathway_heatmap_terms": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/top_pathway_shift_heatmap_terms.tsv",
+              "readme": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/README.md",
+              "summary": "outputs/expimap_direct_osdr_liver/cpm_mse_50epoch/analysis/analysis_summary.json"
+            }
+          },
+          "top_term": "R-MMU-75955_RNA_POLYMERASE_II_TRANSCRIPTION_ELONGATION",
+          "top_effect": -0.639532939148042,
+          "min_welch_fdr": 0.0111189985305623,
+          "min_mannwhitney_fdr": 0.0139464959424945,
+          "n_welch_fdr_0_10": 1,
+          "n_mannwhitney_fdr_0_10": 1,
+          "min_study_aware_fdr": 0.8274387668918919,
+          "n_study_aware_fdr_0_10": 0
+        },
+        "log1p_cpm": {
+          "path": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch",
+          "transformation": "log1p_cpm",
+          "status": "sensitivity",
+          "note": "log1p(CPM) values with MSE loss",
+          "exists": true,
+          "training": {
+            "input": "outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_log1p_cpm.h5ad",
+            "output_dir": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch",
+            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "has_EXPIMAP": true,
+            "condition_key": "id.accession",
+            "conditions": [
+              "OSD-137",
+              "OSD-164",
+              "OSD-168",
+              "OSD-173",
+              "OSD-242",
+              "OSD-245",
+              "OSD-379",
+              "OSD-457",
+              "OSD-463",
+              "OSD-47",
+              "OSD-48",
+              "OSD-686"
+            ],
+            "recon_loss": "mse",
+            "epochs": 50,
+            "hidden_layers": [
+              64
+            ],
+            "n_samples": 231,
+            "n_genes": 9321,
+            "n_terms": 1140,
+            "n_score_terms": 1140,
+            "outputs": {
+              "model": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/model",
+              "pathway_scores": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/pathway_scores.tsv",
+              "terms": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/terms.tsv",
+              "trained_h5ad": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/trained_input_with_scores.h5ad",
+              "summary": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/training_summary.json"
+            }
+          },
+          "analysis": {
+            "scores": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/pathway_scores.tsv",
+            "n_samples": 231,
+            "n_terms": 1140,
+            "outputs": {
+              "comparison": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/flt_vs_gc_pathway_comparison.tsv",
+              "accession_effects": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/flight_ground_effects_by_accession.tsv",
+              "study_aware_tests": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/flight_ground_study_aware_tests.tsv",
+              "pca_coordinates": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/pathway_score_pca.tsv",
+              "pca_by_condition": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/pathway_score_pca.png",
+              "pca_by_accession": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/pathway_score_pca_by_accession.png",
+              "umap_coordinates": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/pathway_score_umap.tsv",
+              "umap_by_condition": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/pathway_score_umap.png",
+              "umap_by_accession": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/pathway_score_umap_by_accession.png",
+              "top_pathway_heatmap": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/top_pathway_shift_heatmap.png",
+              "top_pathway_heatmap_terms": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/top_pathway_shift_heatmap_terms.tsv",
+              "readme": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/README.md",
+              "summary": "outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch/analysis/analysis_summary.json"
+            }
+          },
+          "top_term": "R-MMU-75955_RNA_POLYMERASE_II_TRANSCRIPTION_ELONGATION",
+          "top_effect": -0.4643950594945258,
+          "min_welch_fdr": 0.0112698897231955,
+          "min_mannwhitney_fdr": 0.0140729192028733,
+          "n_welch_fdr_0_10": 1,
+          "n_mannwhitney_fdr_0_10": 1,
+          "min_study_aware_fdr": 0.8504231770833334,
+          "n_study_aware_fdr_0_10": 0
+        }
+      },
+      "preprocessing_summary": "  transformation  ... top_welch_effect\n0     raw_counts  ...        -0.538214\n1            cpm  ...        -0.639533\n2      log1p_cpm  ...        -0.464395\n\n[3 rows x 15 columns]",
+      "preprocessing_correlations": "  left_transformation right_transformation  ...  top50_overlap  top50_jaccard\n0          raw_counts                  cpm  ...             24       0.315789\n1          raw_counts            log1p_cpm  ...             37       0.587302\n2                 cpm            log1p_cpm  ...             26       0.351351\n\n[3 rows x 7 columns]",
+      "preprocessing_manifest": {
+        "tissue": "liver",
+        "tissue_dir": "outputs/expimap_direct_osdr_liver",
+        "runs": {
+          "raw_counts": "raw_counts_nb_50epoch",
+          "cpm": "cpm_mse_50epoch",
+          "log1p_cpm": "log1p_cpm_mse_50epoch"
+        },
+        "outputs": {
+          "summary": "outputs/expimap_direct_osdr_liver/preprocessing_comparison_50epoch/preprocessing_run_summary.tsv",
+          "effect_correlations": "outputs/expimap_direct_osdr_liver/preprocessing_comparison_50epoch/preprocessing_effect_correlations.tsv",
+          "all_pathway_comparisons": "outputs/expimap_direct_osdr_liver/preprocessing_comparison_50epoch/preprocessing_all_pathway_comparisons.tsv",
+          "readme": "outputs/expimap_direct_osdr_liver/preprocessing_comparison_50epoch/README.md",
+          "manifest": "outputs/expimap_direct_osdr_liver/preprocessing_comparison_50epoch/preprocessing_comparison_manifest.json"
+        }
+      }
+    },
+    "kidney": {
+      "tissue": "kidney",
+      "path": "outputs/expimap_direct_osdr_kidney",
+      "input_manifest": {
+        "tissue": "kidney",
+        "source": "NASA OSDR Biological Data API",
+        "metadata": "data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv",
+        "gmt": "data/pathways/reactome_current_mouse_ensembl.gmt",
+        "exclude_profiles_file": "",
+        "filters": {
+          "organism": "Mus musculus",
+          "file.datatype": "unnormalized counts",
+          "assay": "bulk RNA-seq inferred from API assay/file text",
+          "conditions": [
+            "Space Flight",
+            "Ground Control"
+          ],
+          "controls_excluded": [
+            "Basal Control",
+            "Vivarium Control",
+            "unknown"
+          ],
+          "all_data_sources": true,
+          "min_genes_per_pathway": 12,
+          "min_per_condition": 3,
+          "max_terms": null
+        },
+        "counts": {
+          "samples": 135,
+          "flight": 68,
+          "ground_control": 67,
+          "accessions": 6,
+          "genes": 9321,
+          "pathways": 1140
+        },
+        "outputs": {
+          "profile_metadata": "outputs/expimap_direct_osdr_kidney/input/profile_metadata.tsv",
+          "gene_universe": "outputs/expimap_direct_osdr_kidney/input/gene_universe.tsv",
+          "reactome_terms": "outputs/expimap_direct_osdr_kidney/input/reactome_terms.tsv",
+          "sample_counts_by_accession_condition": "outputs/expimap_direct_osdr_kidney/input/sample_counts_by_accession_condition.tsv",
+          "sample_counts_by_metadata": "outputs/expimap_direct_osdr_kidney/input/sample_counts_by_metadata.tsv",
+          "h5ad": [
+            {
+              "transformation": "raw_counts",
+              "h5ad": "outputs/expimap_direct_osdr_kidney/input/osdr_kidney_flt_gc_reactome_raw_counts.h5ad",
+              "recommended_recon_loss": "nb",
+              "validity": "primary_count_likelihood"
+            },
+            {
+              "transformation": "cpm",
+              "h5ad": "outputs/expimap_direct_osdr_kidney/input/osdr_kidney_flt_gc_reactome_cpm.h5ad",
+              "recommended_recon_loss": "mse",
+              "validity": "sensitivity_only_not_count_likelihood"
+            },
+            {
+              "transformation": "log1p_cpm",
+              "h5ad": "outputs/expimap_direct_osdr_kidney/input/osdr_kidney_flt_gc_reactome_log1p_cpm.h5ad",
+              "recommended_recon_loss": "mse",
+              "validity": "sensitivity_only_not_count_likelihood"
+            }
+          ],
+          "skipped_transformations": [],
+          "manifest": "outputs/expimap_direct_osdr_kidney/input/input_manifest.json"
+        }
+      },
+      "runs": {
+        "raw_counts": {
+          "path": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch",
+          "transformation": "raw_counts",
+          "status": "primary",
+          "note": "raw NASA OSDR API counts with negative-binomial loss",
+          "exists": true,
+          "training": {
+            "input": "outputs/expimap_direct_osdr_kidney/input/osdr_kidney_flt_gc_reactome_raw_counts.h5ad",
+            "output_dir": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch",
+            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "has_EXPIMAP": true,
+            "condition_key": "id.accession",
+            "conditions": [
+              "OSD-102",
+              "OSD-163",
+              "OSD-253",
+              "OSD-457",
+              "OSD-513",
+              "OSD-771"
+            ],
+            "recon_loss": "nb",
+            "epochs": 50,
+            "hidden_layers": [
+              64
+            ],
+            "n_samples": 135,
+            "n_genes": 9321,
+            "n_terms": 1140,
+            "n_score_terms": 1140,
+            "outputs": {
+              "model": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/model",
+              "pathway_scores": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/pathway_scores.tsv",
+              "terms": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/terms.tsv",
+              "trained_h5ad": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/trained_input_with_scores.h5ad",
+              "summary": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/training_summary.json"
+            }
+          },
+          "analysis": {
+            "scores": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/pathway_scores.tsv",
+            "n_samples": 135,
+            "n_terms": 1140,
+            "outputs": {
+              "comparison": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/flt_vs_gc_pathway_comparison.tsv",
+              "accession_effects": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/flight_ground_effects_by_accession.tsv",
+              "study_aware_tests": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/flight_ground_study_aware_tests.tsv",
+              "pca_coordinates": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/pathway_score_pca.tsv",
+              "pca_by_condition": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/pathway_score_pca.png",
+              "pca_by_accession": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/pathway_score_pca_by_accession.png",
+              "umap_coordinates": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/pathway_score_umap.tsv",
+              "umap_by_condition": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/pathway_score_umap.png",
+              "umap_by_accession": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/pathway_score_umap_by_accession.png",
+              "top_pathway_heatmap": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/top_pathway_shift_heatmap.png",
+              "top_pathway_heatmap_terms": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/top_pathway_shift_heatmap_terms.tsv",
+              "readme": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/README.md",
+              "summary": "outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch/analysis/analysis_summary.json"
+            }
+          },
+          "top_term": "R-MMU-9006934_SIGNALING_BY_RECEPTOR_TYROSINE_KINASES",
+          "top_effect": -0.3580788957857772,
+          "min_welch_fdr": 0.6121712035311935,
+          "min_mannwhitney_fdr": 0.8563980088144415,
+          "n_welch_fdr_0_10": 0,
+          "n_mannwhitney_fdr_0_10": 0,
+          "min_study_aware_fdr": 0.9591346153846154,
+          "n_study_aware_fdr_0_10": 0
+        },
+        "cpm": {
+          "path": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch",
+          "transformation": "cpm",
+          "status": "sensitivity",
+          "note": "CPM-normalized values with MSE loss",
+          "exists": true,
+          "training": {
+            "input": "outputs/expimap_direct_osdr_kidney/input/osdr_kidney_flt_gc_reactome_cpm.h5ad",
+            "output_dir": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch",
+            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "has_EXPIMAP": true,
+            "condition_key": "id.accession",
+            "conditions": [
+              "OSD-102",
+              "OSD-163",
+              "OSD-253",
+              "OSD-457",
+              "OSD-513",
+              "OSD-771"
+            ],
+            "recon_loss": "mse",
+            "epochs": 50,
+            "hidden_layers": [
+              64
+            ],
+            "n_samples": 135,
+            "n_genes": 9321,
+            "n_terms": 1140,
+            "n_score_terms": 1140,
+            "outputs": {
+              "model": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/model",
+              "pathway_scores": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/pathway_scores.tsv",
+              "terms": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/terms.tsv",
+              "trained_h5ad": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/trained_input_with_scores.h5ad",
+              "summary": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/training_summary.json"
+            }
+          },
+          "analysis": {
+            "scores": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/pathway_scores.tsv",
+            "n_samples": 135,
+            "n_terms": 1140,
+            "outputs": {
+              "comparison": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/flt_vs_gc_pathway_comparison.tsv",
+              "accession_effects": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/flight_ground_effects_by_accession.tsv",
+              "study_aware_tests": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/flight_ground_study_aware_tests.tsv",
+              "pca_coordinates": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/pathway_score_pca.tsv",
+              "pca_by_condition": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/pathway_score_pca.png",
+              "pca_by_accession": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/pathway_score_pca_by_accession.png",
+              "umap_coordinates": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/pathway_score_umap.tsv",
+              "umap_by_condition": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/pathway_score_umap.png",
+              "umap_by_accession": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/pathway_score_umap_by_accession.png",
+              "top_pathway_heatmap": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/top_pathway_shift_heatmap.png",
+              "top_pathway_heatmap_terms": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/top_pathway_shift_heatmap_terms.tsv",
+              "readme": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/README.md",
+              "summary": "outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch/analysis/analysis_summary.json"
+            }
+          },
+          "top_term": "R-MMU-9933947_FORMATION_OF_THE_NON_CANONICAL_BAF_NCBAF_COMPLEX",
+          "top_effect": -0.3388119056077699,
+          "min_welch_fdr": 0.6305524152188412,
+          "min_mannwhitney_fdr": 0.8495895243081569,
+          "n_welch_fdr_0_10": 0,
+          "n_mannwhitney_fdr_0_10": 0,
+          "min_study_aware_fdr": 0.9591346153846154,
+          "n_study_aware_fdr_0_10": 0
+        },
+        "log1p_cpm": {
+          "path": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch",
+          "transformation": "log1p_cpm",
+          "status": "sensitivity",
+          "note": "log1p(CPM) values with MSE loss",
+          "exists": true,
+          "training": {
+            "input": "outputs/expimap_direct_osdr_kidney/input/osdr_kidney_flt_gc_reactome_log1p_cpm.h5ad",
+            "output_dir": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch",
+            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "has_EXPIMAP": true,
+            "condition_key": "id.accession",
+            "conditions": [
+              "OSD-102",
+              "OSD-163",
+              "OSD-253",
+              "OSD-457",
+              "OSD-513",
+              "OSD-771"
+            ],
+            "recon_loss": "mse",
+            "epochs": 50,
+            "hidden_layers": [
+              64
+            ],
+            "n_samples": 135,
+            "n_genes": 9321,
+            "n_terms": 1140,
+            "n_score_terms": 1140,
+            "outputs": {
+              "model": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/model",
+              "pathway_scores": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/pathway_scores.tsv",
+              "terms": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/terms.tsv",
+              "trained_h5ad": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/trained_input_with_scores.h5ad",
+              "summary": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/training_summary.json"
+            }
+          },
+          "analysis": {
+            "scores": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/pathway_scores.tsv",
+            "n_samples": 135,
+            "n_terms": 1140,
+            "outputs": {
+              "comparison": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/flt_vs_gc_pathway_comparison.tsv",
+              "accession_effects": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/flight_ground_effects_by_accession.tsv",
+              "study_aware_tests": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/flight_ground_study_aware_tests.tsv",
+              "pca_coordinates": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/pathway_score_pca.tsv",
+              "pca_by_condition": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/pathway_score_pca.png",
+              "pca_by_accession": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/pathway_score_pca_by_accession.png",
+              "umap_coordinates": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/pathway_score_umap.tsv",
+              "umap_by_condition": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/pathway_score_umap.png",
+              "umap_by_accession": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/pathway_score_umap_by_accession.png",
+              "top_pathway_heatmap": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/top_pathway_shift_heatmap.png",
+              "top_pathway_heatmap_terms": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/top_pathway_shift_heatmap_terms.tsv",
+              "readme": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/README.md",
+              "summary": "outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch/analysis/analysis_summary.json"
+            }
+          },
+          "top_term": "R-MMU-9006934_SIGNALING_BY_RECEPTOR_TYROSINE_KINASES",
+          "top_effect": -0.4041850128338451,
+          "min_welch_fdr": 0.6214194974308547,
+          "min_mannwhitney_fdr": 0.8450876849276191,
+          "n_welch_fdr_0_10": 0,
+          "n_mannwhitney_fdr_0_10": 0,
+          "min_study_aware_fdr": 0.9665697674418604,
+          "n_study_aware_fdr_0_10": 0
+        }
+      },
+      "preprocessing_summary": "  transformation  ... top_welch_effect\n0     raw_counts  ...        -0.358079\n1            cpm  ...        -0.338812\n2      log1p_cpm  ...        -0.404185\n\n[3 rows x 15 columns]",
+      "preprocessing_correlations": "  left_transformation right_transformation  ...  top50_overlap  top50_jaccard\n0          raw_counts                  cpm  ...             25       0.333333\n1          raw_counts            log1p_cpm  ...             34       0.515152\n2                 cpm            log1p_cpm  ...             24       0.315789\n\n[3 rows x 7 columns]",
+      "preprocessing_manifest": {
+        "tissue": "kidney",
+        "tissue_dir": "outputs/expimap_direct_osdr_kidney",
+        "runs": {
+          "raw_counts": "raw_counts_nb_50epoch",
+          "cpm": "cpm_mse_50epoch",
+          "log1p_cpm": "log1p_cpm_mse_50epoch"
+        },
+        "outputs": {
+          "summary": "outputs/expimap_direct_osdr_kidney/preprocessing_comparison_50epoch/preprocessing_run_summary.tsv",
+          "effect_correlations": "outputs/expimap_direct_osdr_kidney/preprocessing_comparison_50epoch/preprocessing_effect_correlations.tsv",
+          "all_pathway_comparisons": "outputs/expimap_direct_osdr_kidney/preprocessing_comparison_50epoch/preprocessing_all_pathway_comparisons.tsv",
+          "readme": "outputs/expimap_direct_osdr_kidney/preprocessing_comparison_50epoch/README.md",
+          "manifest": "outputs/expimap_direct_osdr_kidney/preprocessing_comparison_50epoch/preprocessing_comparison_manifest.json"
+        }
+      }
+    }
+  },
+  "reference_query": {
+    "liver": {
+      "tissue": "liver",
+      "path": "outputs/expimap_archs4_reference_osdr_query_liver",
+      "reference_input": {
+        "tissue": "liver",
+        "archs4_h5": "assets/archs4/mouse_gene_v2.5.h5",
+        "query_h5ad": "outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_raw_counts.h5ad",
+        "max_samples": 1000,
+        "counts": {
+          "samples": 1000,
+          "genes": 9319,
+          "pathways": 1140
+        },
+        "outputs": {
+          "h5ad": "outputs/expimap_archs4_reference_osdr_query_liver/reference_input_1000/archs4_mouse_liver_reference_reactome_raw_counts.h5ad",
+          "selected_samples": "outputs/expimap_archs4_reference_osdr_query_liver/reference_input_1000/archs4_selected_samples.tsv",
+          "manifest": "outputs/expimap_archs4_reference_osdr_query_liver/reference_input_1000/reference_input_manifest.json"
+        }
+      },
+      "reference_training": {
+        "input": "outputs/expimap_archs4_reference_osdr_query_liver/reference_input_1000/archs4_mouse_liver_reference_reactome_raw_counts.h5ad",
+        "output_dir": "outputs/expimap_archs4_reference_osdr_query_liver/reference_nb_1000_50epoch",
+        "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+        "has_EXPIMAP": true,
+        "condition_key": "archs4_condition",
+        "conditions": [
+          "GSE100983",
+          "GSE101650",
+          "GSE101657",
+          "GSE102982",
+          "GSE103069",
+          "GSE103103,GSE103108",
+          "GSE103200",
+          "GSE103885",
+          "GSE103901,GSE103904",
+          "GSE104415",
+          "GSE104447,GSE104455",
+          "GSE104496,GSE104535",
+          "GSE104503,GSE104535",
+          "GSE104555",
+          "GSE104734",
+          "GSE105048",
+          "GSE105147",
+          "GSE105944",
+          "GSE106140",
+          "GSE106793,GSE106795",
+          "GSE107787",
+          "GSE107854",
+          "GSE108129",
+          "GSE108348",
+          "GSE108582,GSE108599",
+          "GSE108593",
+          "GSE108688,GSE108690",
+          "GSE108811",
+          "GSE109200",
+          "GSE109480",
+          "GSE109863,GSE109866",
+          "GSE110574",
+          "GSE110620",
+          "GSE111097,GSE116597",
+          "GSE112860",
+          "GSE112947",
+          "GSE113032",
+          "GSE113707",
+          "GSE113756",
+          "GSE114195,GSE114198",
+          "GSE114503",
+          "GSE114579",
+          "GSE114809",
+          "GSE115888",
+          "GSE115903",
+          "GSE116140",
+          "GSE116516",
+          "GSE116897,GSE116898",
+          "GSE116987",
+          "GSE117554,GSE117560",
+          "GSE117555,GSE117560",
+          "GSE118757,GSE119219",
+          "GSE118973",
+          "GSE119017,GSE119018",
+          "GSE119219,GSE125526",
+          "GSE121558",
+          "GSE122101,GSE122103",
+          "GSE122828",
+          "GSE123103",
+          "GSE123115",
+          "GSE123116",
+          "GSE123117",
+          "GSE123312",
+          "GSE123647",
+          "GSE124167",
+          "GSE124197",
+          "GSE125095",
+          "GSE125336",
+          "GSE125439",
+          "GSE125483",
+          "GSE125688",
+          "GSE126490"
+        ],
+        "recon_loss": "nb",
+        "epochs": 50,
+        "hidden_layers": [
+          64
+        ],
+        "n_samples": 1000,
+        "n_genes": 9319,
+        "n_terms": 1140,
+        "n_score_terms": 1140,
+        "outputs": {
+          "model": "outputs/expimap_archs4_reference_osdr_query_liver/reference_nb_1000_50epoch/model",
+          "pathway_scores": "outputs/expimap_archs4_reference_osdr_query_liver/reference_nb_1000_50epoch/pathway_scores.tsv",
+          "terms": "outputs/expimap_archs4_reference_osdr_query_liver/reference_nb_1000_50epoch/terms.tsv",
+          "trained_h5ad": "outputs/expimap_archs4_reference_osdr_query_liver/reference_nb_1000_50epoch/trained_input_with_scores.h5ad",
+          "summary": "outputs/expimap_archs4_reference_osdr_query_liver/reference_nb_1000_50epoch/training_summary.json"
+        }
+      },
+      "query_mapping": {
+        "reference_model": "outputs/expimap_archs4_reference_osdr_query_liver/reference_nb_1000_50epoch/model",
+        "query_h5ad": "outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_raw_counts.h5ad",
+        "reference_condition_key": "archs4_condition",
+        "query_condition_source": "id.accession",
+        "epochs": 50,
+        "n_query_samples": 231,
+        "n_query_genes": 9319,
+        "n_score_terms": 1140,
+        "outputs": {
+          "query_model": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/query_model",
+          "query_scores": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/query_pathway_scores.tsv",
+          "mapped_h5ad": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/mapped_query_with_scores.h5ad",
+          "summary": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/query_mapping_summary.json"
+        }
+      },
+      "analysis": {
+        "scores": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/query_pathway_scores.tsv",
+        "n_samples": 231,
+        "n_terms": 1140,
+        "outputs": {
+          "comparison": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/flt_vs_gc_pathway_comparison.tsv",
+          "accession_effects": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/flight_ground_effects_by_accession.tsv",
+          "study_aware_tests": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/flight_ground_study_aware_tests.tsv",
+          "pca_coordinates": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/pathway_score_pca.tsv",
+          "pca_by_condition": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/pathway_score_pca.png",
+          "pca_by_accession": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/pathway_score_pca_by_accession.png",
+          "umap_coordinates": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/pathway_score_umap.tsv",
+          "umap_by_condition": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/pathway_score_umap.png",
+          "umap_by_accession": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/pathway_score_umap_by_accession.png",
+          "top_pathway_heatmap": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/top_pathway_shift_heatmap.png",
+          "top_pathway_heatmap_terms": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/top_pathway_shift_heatmap_terms.tsv",
+          "readme": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/README.md",
+          "summary": "outputs/expimap_archs4_reference_osdr_query_liver/query_nb_1000ref_50epoch/analysis/analysis_summary.json"
+        }
+      },
+      "top_term": "R-MMU-5654706_FRS_MEDIATED_FGFR3_SIGNALING",
+      "top_effect": 0.4140667935359982,
+      "min_welch_fdr": 0.8943879740927145,
+      "min_mannwhitney_fdr": 0.6784065045408487,
+      "n_welch_fdr_0_10": 0,
+      "n_mannwhitney_fdr_0_10": 0,
+      "min_study_aware_fdr": 0.6494140625,
+      "n_study_aware_fdr_0_10": 0
+    },
+    "kidney": {
+      "tissue": "kidney",
+      "path": "outputs/expimap_archs4_reference_osdr_query_kidney",
+      "reference_input": {
+        "tissue": "kidney",
+        "archs4_h5": "assets/archs4/mouse_gene_v2.5.h5",
+        "query_h5ad": "outputs/expimap_direct_osdr_kidney/input/osdr_kidney_flt_gc_reactome_raw_counts.h5ad",
+        "max_samples": 1000,
+        "counts": {
+          "samples": 1000,
+          "genes": 9319,
+          "pathways": 1140
+        },
+        "outputs": {
+          "h5ad": "outputs/expimap_archs4_reference_osdr_query_kidney/reference_input_1000/archs4_mouse_kidney_reference_reactome_raw_counts.h5ad",
+          "selected_samples": "outputs/expimap_archs4_reference_osdr_query_kidney/reference_input_1000/archs4_selected_samples.tsv",
+          "manifest": "outputs/expimap_archs4_reference_osdr_query_kidney/reference_input_1000/reference_input_manifest.json"
+        }
+      },
+      "reference_training": {
+        "input": "outputs/expimap_archs4_reference_osdr_query_kidney/reference_input_1000/archs4_mouse_kidney_reference_reactome_raw_counts.h5ad",
+        "output_dir": "outputs/expimap_archs4_reference_osdr_query_kidney/reference_nb_1000_50epoch",
+        "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+        "has_EXPIMAP": true,
+        "condition_key": "archs4_condition",
+        "conditions": [
+          "GSE100391",
+          "GSE101657",
+          "GSE102690",
+          "GSE103062",
+          "GSE103400",
+          "GSE103667",
+          "GSE104341",
+          "GSE104820",
+          "GSE107705",
+          "GSE107942",
+          "GSE108106",
+          "GSE108348",
+          "GSE108864",
+          "GSE109404",
+          "GSE111221",
+          "GSE111752",
+          "GSE114212",
+          "GSE114673",
+          "GSE115641",
+          "GSE117358",
+          "GSE117510",
+          "GSE117723,GSE117725",
+          "GSE118334",
+          "GSE119531",
+          "GSE120877",
+          "GSE121410",
+          "GSE123179",
+          "GSE124197",
+          "GSE125483",
+          "GSE127235",
+          "GSE129188",
+          "GSE130164",
+          "GSE133371",
+          "GSE134003",
+          "GSE134659,GSE134663",
+          "GSE135441",
+          "GSE135705",
+          "GSE135868",
+          "GSE136220",
+          "GSE136265",
+          "GSE137945",
+          "GSE138019",
+          "GSE139134",
+          "GSE139171",
+          "GSE139674",
+          "GSE139848",
+          "GSE139849",
+          "GSE139851",
+          "GSE139852",
+          "GSE139854",
+          "GSE139855",
+          "GSE141115",
+          "GSE141252",
+          "GSE141680,GSE159060",
+          "GSE142261",
+          "GSE142597,GSE142598",
+          "GSE144366",
+          "GSE146386",
+          "GSE146522",
+          "GSE146524",
+          "GSE146541,GSE146583",
+          "GSE146660"
+        ],
+        "recon_loss": "nb",
+        "epochs": 50,
+        "hidden_layers": [
+          64
+        ],
+        "n_samples": 1000,
+        "n_genes": 9319,
+        "n_terms": 1140,
+        "n_score_terms": 1140,
+        "outputs": {
+          "model": "outputs/expimap_archs4_reference_osdr_query_kidney/reference_nb_1000_50epoch/model",
+          "pathway_scores": "outputs/expimap_archs4_reference_osdr_query_kidney/reference_nb_1000_50epoch/pathway_scores.tsv",
+          "terms": "outputs/expimap_archs4_reference_osdr_query_kidney/reference_nb_1000_50epoch/terms.tsv",
+          "trained_h5ad": "outputs/expimap_archs4_reference_osdr_query_kidney/reference_nb_1000_50epoch/trained_input_with_scores.h5ad",
+          "summary": "outputs/expimap_archs4_reference_osdr_query_kidney/reference_nb_1000_50epoch/training_summary.json"
+        }
+      },
+      "query_mapping": {
+        "reference_model": "outputs/expimap_archs4_reference_osdr_query_kidney/reference_nb_1000_50epoch/model",
+        "query_h5ad": "outputs/expimap_direct_osdr_kidney/input/osdr_kidney_flt_gc_reactome_raw_counts.h5ad",
+        "reference_condition_key": "archs4_condition",
+        "query_condition_source": "id.accession",
+        "epochs": 50,
+        "n_query_samples": 135,
+        "n_query_genes": 9319,
+        "n_score_terms": 1140,
+        "outputs": {
+          "query_model": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/query_model",
+          "query_scores": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/query_pathway_scores.tsv",
+          "mapped_h5ad": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/mapped_query_with_scores.h5ad",
+          "summary": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/query_mapping_summary.json"
+        }
+      },
+      "analysis": {
+        "scores": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/query_pathway_scores.tsv",
+        "n_samples": 135,
+        "n_terms": 1140,
+        "outputs": {
+          "comparison": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/flt_vs_gc_pathway_comparison.tsv",
+          "accession_effects": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/flight_ground_effects_by_accession.tsv",
+          "study_aware_tests": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/flight_ground_study_aware_tests.tsv",
+          "pca_coordinates": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/pathway_score_pca.tsv",
+          "pca_by_condition": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/pathway_score_pca.png",
+          "pca_by_accession": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/pathway_score_pca_by_accession.png",
+          "umap_coordinates": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/pathway_score_umap.tsv",
+          "umap_by_condition": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/pathway_score_umap.png",
+          "umap_by_accession": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/pathway_score_umap_by_accession.png",
+          "top_pathway_heatmap": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/top_pathway_shift_heatmap.png",
+          "top_pathway_heatmap_terms": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/top_pathway_shift_heatmap_terms.tsv",
+          "readme": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/README.md",
+          "summary": "outputs/expimap_archs4_reference_osdr_query_kidney/query_nb_1000ref_50epoch/analysis/analysis_summary.json"
+        }
+      },
+      "top_term": "R-MMU-4641262_DISASSEMBLY_OF_THE_DESTRUCTION_COMPLEX_AND_RECRUITMENT_OF_AXIN_TO_THE_MEMBRANE",
+      "top_effect": 0.4246452235783716,
+      "min_welch_fdr": 0.7770308160091293,
+      "min_mannwhitney_fdr": 0.7990924547365391,
+      "n_welch_fdr_0_10": 0,
+      "n_mannwhitney_fdr_0_10": 0,
+      "min_study_aware_fdr": 0.9745440729483282,
+      "n_study_aware_fdr_0_10": 0
+    }
+  }
+}

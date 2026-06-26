@@ -1,0 +1,49 @@
+{
+  "leakage_terms": [
+    "NASA",
+    "GeneLab",
+    "OSD",
+    "GLDS",
+    "spaceflight",
+    "microgravity",
+    "ISS",
+    "Rodent Research",
+    "RR-",
+    "hindlimb unloading"
+  ],
+  "tissue_keywords": {
+    "liver": [
+      "liver",
+      "hepatic",
+      "hepatocyte"
+    ],
+    "kidney": [
+      "kidney",
+      "renal",
+      "nephron"
+    ],
+    "skin": [
+      "skin",
+      "dermal",
+      "epiderm"
+    ],
+    "skeletal_muscle": [
+      "skeletal muscle",
+      "soleus",
+      "gastrocnemius",
+      "quadriceps"
+    ],
+    "spleen": [
+      "spleen",
+      "splenic"
+    ],
+    "lung": [
+      "lung",
+      "pulmonary"
+    ]
+  },
+  "outputs": {
+    "summary": "data/archs4/archs4_mouse_tissue_summary.tsv",
+    "manifest": "data/archs4/archs4_mouse_inspection_manifest.json"
+  }
+}

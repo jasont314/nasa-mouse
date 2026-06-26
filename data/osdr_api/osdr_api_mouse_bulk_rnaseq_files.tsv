@@ -1,0 +1,76 @@
+id.accession	id.assay name	file.filename	n_selected_samples
+OSD-100	OSD-100_transcription-profiling_rna-sequencing-(rna-seq)	GLDS-100_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12
+OSD-101	OSD-101_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-101_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12
+OSD-102	OSD-102_transcription-profiling_rna-sequencing-(rna-seq)_Illumina HiSeq 4000	GLDS-102_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12
+OSD-103	OSD-103_transcription-profiling_rna-sequencing-(rna-seq)_Illumina HiSeq 4000	GLDS-103_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12
+OSD-104	OSD-104_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-104_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12
+OSD-105	OSD-105_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-105_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12
+OSD-137	OSD-137_transcription-profiling_rna-sequencing-(rna-seq)_illumina hiseq 4000	GLDS-137_rna_seq_Unnormalized_Counts.csv	12
+OSD-161	OSD-161_transcription-profiling_rna-sequencing-(rna-seq)_Illumina HiSeq 4000	GLDS-161_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	10
+OSD-162	OSD-162_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-162_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	10
+OSD-163	OSD-163_transcription-profiling_rna-sequencing-(rna-seq)_Illumina HiSeq 4000	GLDS-163_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12
+OSD-164	OSD-164_transcription-profiling_rna-sequencing-(rna-seq)_MiSeq	GLDS-164_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12
+OSD-168	OSD-168_transcription-profiling_rna-sequencing-(rna-seq)_Illumina HiSeq 4000	GLDS-168_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	28
+OSD-173	OSD-173_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-173_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	4
+OSD-194	OSD-194_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-194_rna_seq_Unnormalized_Counts.csv	9
+OSD-238	OSD-238_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-238_rna_seq_Unnormalized_Counts.csv	18
+OSD-239	OSD-239_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-239_rna_seq_Unnormalized_Counts.csv	17
+OSD-240	OSD-240_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-240_rna_seq_Unnormalized_Counts.csv	20
+OSD-241	OSD-241_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-241_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	19
+OSD-242	OSD-242_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-242_rna_seq_Unnormalized_Counts.csv	9
+OSD-243	OSD-243_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-243_rna_seq_Unnormalized_Counts.csv	37
+OSD-244	OSD-244_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-244_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	38
+OSD-245	OSD-245_transcription-profiling_rna-sequencing-(rna-seq)_ Illumina NovaSeq 6000	GLDS-245_rna_seq_Unnormalized_Counts.csv	39
+OSD-246	OSD-246_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-246_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	31
+OSD-247	OSD-247_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-247_rna_seq_Unnormalized_Counts.csv	36
+OSD-248	OSD-248_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-248_rna_seq_Unnormalized_Counts.csv	39
+OSD-253	OSD-253_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-253_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	39
+OSD-254	OSD-254_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-254_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	40
+OSD-255	OSD-255_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-255_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	16
+OSD-270	OSD-270_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-270_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	5
+OSD-288	OSD-288_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-288_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	9
+OSD-289	OSD-289_transcription-profiling_rna-sequencing-(rna-seq)	GLDS-289_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	15
+OSD-326	OSD-326_transcription-profiling_rna-sequencing-(rna-seq)	GLDS-326_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	8
+OSD-352	OSD-352_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-352_rna_seq_RSEM_Unnormalized_Counts.csv	6
+OSD-379	OSD-379_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq	GLDS-379_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	70
+OSD-397	OSD-397_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-397_rna_seq_RSEM_Unnormalized_Counts.csv	16
+OSD-401	OSD-401_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-401_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12
+OSD-419	OSD-419_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-419_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12
+OSD-420	OSD-420_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-420_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	20
+OSD-421	OSD-421_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-421_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	20
+OSD-426	OSD-426_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-426_rna_seq_RSEM_Unnormalized_Counts.csv	18
+OSD-457	OSD-457_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-457_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	192
+OSD-463	OSD-463_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-463_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	22
+OSD-464	OSD-464_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-464_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	19
+OSD-47	OSD-47_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-47_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	6
+OSD-48	OSD-48_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-48_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	14
+OSD-506	OSD-506_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-506_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	19
+OSD-511	OSD-511_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-511_rna_seq_RSEM_Unnormalized_Counts.csv	25
+OSD-512	OSD-512_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-512_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	20
+OSD-513	OSD-513_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-513_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	20
+OSD-515	OSD-515_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-515_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	20
+OSD-525	OSD-525_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-525_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	20
+OSD-561	OSD-561_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-556_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	26
+OSD-562	OSD-562_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-557_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	27
+OSD-563	OSD-563_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-568_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	10
+OSD-564	OSD-564_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-569_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	10
+OSD-576	OSD-576_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-570_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	18
+OSD-580	OSD-580_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-573_rna_seq_RSEM_Unnormalized_Counts.csv	40
+OSD-599	OSD-599_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-596_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	6
+OSD-612	OSD-612_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-588_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	9
+OSD-613	OSD-613_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-589_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	18
+OSD-665	OSD-665_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-604_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	20
+OSD-666	OSD-666_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-605_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	20
+OSD-667	OSD-667_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-606_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	19
+OSD-686	OSD-686_transcription-profiling_rna-sequencing-(rna-seq)_illumina novaseq 6000	GLDS-617_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	9
+OSD-690	OSD-690_transcription-profiling_rna-sequencing-(rna-seq)_dnbseq-g400 (mgi)	GLDS-620_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	24
+OSD-714	OSD-714_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-638_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	21
+OSD-758	OSD-758_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-664_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	35
+OSD-759	OSD-759_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-665_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	35
+OSD-770	OSD-770_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-673_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	20
+OSD-771	OSD-771_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-674_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	40
+OSD-899	OSD-899_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-728_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	20
+OSD-900	OSD-900_transcription-profiling_rna-sequencing-(rna-seq)_illumina	GLDS-729_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	20
+OSD-901	OSD-901_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-730_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	6
+OSD-98	OSD-98_transcription-profiling_rna-sequencing-(rna-seq)_Illumina HiSeq 4000	GLDS-98_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	11
+OSD-99	OSD-99_transcription-profiling_rna-sequencing-(rna-seq)_Illumina HiSeq 4000	GLDS-99_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12

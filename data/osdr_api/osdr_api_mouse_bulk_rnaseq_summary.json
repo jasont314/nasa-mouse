@@ -1,0 +1,27 @@
+{
+  "api_root": "https://visualization.osdr.nasa.gov/biodata/api/v2",
+  "metadata_query_url": "https://visualization.osdr.nasa.gov/biodata/api/v2/query/metadata/?study.characteristics.organism=mus%20musculus&study.factor%20value.spaceflight=Space%20Flight|Ground%20Control&file.datatype=unnormalized%20counts&id.accession&id.assay%20name&id.sample%20name&investigation.study%20assays.study%20assay%20technology%20type&investigation.study.comment.data%20source%20accession&investigation.study.comment.project%20identifier&investigation.study.comment.project%20type&study.characteristics.material%20type&study.characteristics.organism&study.characteristics.sex&study.characteristics.strain&study.characteristics.genotype&study.factor%20value.spaceflight&file.datatype&file.filename&format=csv",
+  "filters": {
+    "organism": "Mus musculus",
+    "spaceflight": [
+      "Space Flight",
+      "Ground Control"
+    ],
+    "file.datatype": "unnormalized counts",
+    "bulk_rna_seq_inferred": "include RNA-seq/count files, exclude single-cell and microarray by assay/file text",
+    "data_sources": "all OSDR sources returned by the API"
+  },
+  "counts": {
+    "samples": 1631,
+    "accessions": 75,
+    "files": 75,
+    "tissues": 24
+  },
+  "outputs": {
+    "metadata": "data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv",
+    "tissue_counts": "data/osdr_api/osdr_api_mouse_bulk_rnaseq_tissue_counts.tsv",
+    "tissue_accession_counts": "data/osdr_api/osdr_api_mouse_bulk_rnaseq_tissue_accession_counts.tsv",
+    "files": "data/osdr_api/osdr_api_mouse_bulk_rnaseq_files.tsv",
+    "summary": "data/osdr_api/osdr_api_mouse_bulk_rnaseq_summary.json"
+  }
+}
