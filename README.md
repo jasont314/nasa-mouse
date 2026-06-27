@@ -72,6 +72,47 @@ Discover OSDR mouse bulk RNA-seq Space Flight/Ground Control samples:
 PYTHONPATH=src python -m nasa_mouse_glare.fetch_osdr_mouse_transcriptomics
 ```
 
+Audit and prepare API-native multi-tissue GLARE inputs:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.multi_tissue_api_glare audit
+
+PYTHONPATH=src python -m nasa_mouse_glare.multi_tissue_api_glare prepare \
+  --tissue all \
+  --download-counts \
+  --prepare-per-study
+```
+
+Outputs are written under `outputs/glare_multi_tissue_api/`. Retina is audited
+but skipped for GLARE unless a matching TMS FACS retina pretraining source is
+added. Skeletal-muscle subtype runs use official OSDR material-type labels and
+the available TMS FACS `limb muscle` pretraining tissue.
+
+Run one prepared aggregate scope:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.multi_tissue_api_glare run-glare-scope \
+  --scope-dir outputs/glare_multi_tissue_api/liver/aggregate
+```
+
+Run MOBER-corrected aggregate GLARE for a multi-study scope:
+
+```bash
+PYTHONPATH=src:src/MOBER python -m nasa_mouse_glare.multi_tissue_api_glare run-mober-scope \
+  --scope-dir outputs/glare_multi_tissue_api/liver/aggregate
+```
+
+Run all per-study GLARE scopes for one tissue and compare against per-study
+DESeq2:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.multi_tissue_api_glare run-per-study-glare \
+  --tissue-dir outputs/glare_multi_tissue_api/liver
+
+PYTHONPATH=src python -m nasa_mouse_glare.multi_tissue_api_glare run-dgea-comparison \
+  --tissue-dir outputs/glare_multi_tissue_api/liver
+```
+
 Prepare tissue-specific expiMap inputs from API count tables:
 
 ```bash

@@ -70,11 +70,22 @@ def prepare_tms(
         rng = np.random.default_rng(random_seed)
         selected_obs = rng.choice(selected_obs, size=max_cells, replace=False)
 
-    adata = adata_backed[selected_obs, :].to_memory()
     try:
-        adata_backed.file.close()
-    except AttributeError:
-        pass
+        adata = adata_backed[selected_obs, :].to_memory()
+    except AttributeError as exc:
+        if "_validate_indices" not in str(exc):
+            raise
+        try:
+            adata_backed.file.close()
+        except AttributeError:
+            pass
+        adata_memory = anndata.read_h5ad(input_h5ad)
+        adata = adata_memory[selected_obs, :].copy()
+    else:
+        try:
+            adata_backed.file.close()
+        except AttributeError:
+            pass
     obs = adata.obs.copy()
     X, var = _matrix_from_adata(adata, matrix_source)
     genes = _gene_ids(var, gene_field)
