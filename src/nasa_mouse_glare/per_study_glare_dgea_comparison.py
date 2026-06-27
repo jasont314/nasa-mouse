@@ -649,8 +649,9 @@ def write_report(
         "# Per-Study GLARE vs DGEA",
         "",
         "Each study was analyzed separately. DESeq2 inputs were exported from the",
-        "same per-study GLARE target matrices, so this comparison uses the 12",
-        "muscle-outlier filter and the same ERCC/noERCC selections as the GLARE runs.",
+        "same API-derived raw-count sources used to prepare the GLARE target",
+        "matrices, so ERCC/noERCC selection and technical-replicate handling match",
+        "the corresponding GLARE runs.",
         "",
         "## Inputs",
         "",
@@ -771,8 +772,9 @@ def write_report(
             "that are also shifted in per-study DESeq2 rankings.",
             "",
             "Small studies can show module structure but have limited DESeq2 power;",
-            "interpret `OSD-48`, `OSD-137`, and `OSD-168` as support/sensitivity",
-            "unless their signals recur in the larger studies.",
+            "use the `n_flight` and `n_ground` columns to treat low-N or imbalanced",
+            "studies as support/sensitivity unless their signals recur in larger",
+            "studies.",
         ]
     )
     (output_dir / "GLARE_VS_DGEA_PER_STUDY.md").write_text(
