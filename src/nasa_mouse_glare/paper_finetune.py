@@ -348,7 +348,10 @@ def write_outlier_audit(
 ) -> None:
     """Export GLARE's PCA/k-means inspection without arbitrary gene removal."""
     scaled = StandardScaler().fit_transform(matrix)
-    pca = PCA(n_components=3, random_state=1).fit_transform(scaled)
+    n_components = min(3, scaled.shape[0], scaled.shape[1])
+    if n_components < 1:
+        raise ValueError(f"Cannot run outlier audit for empty {location} matrix")
+    pca = PCA(n_components=n_components, random_state=1).fit_transform(scaled)
     n_clusters = 5 if location == "FLT" else 4
     labels = KMeans(
         n_clusters=n_clusters,
@@ -356,15 +359,15 @@ def write_outlier_audit(
         n_init=10,
         random_state=1,
     ).fit_predict(pca)
-    pd.DataFrame(
-        {
-            "gene_id": genes,
-            "pc1": pca[:, 0],
-            "pc2": pca[:, 1],
-            "pc3": pca[:, 2],
-            "inspection_cluster": labels,
-        }
-    ).to_csv(output_dir / f"{location}_outlier_audit.tsv", sep="\t", index=False)
+    rows = {"gene_id": genes}
+    for index in range(3):
+        rows[f"pc{index + 1}"] = (
+            pca[:, index] if index < n_components else np.full(len(genes), np.nan)
+        )
+    rows["inspection_cluster"] = labels
+    pd.DataFrame(rows).to_csv(
+        output_dir / f"{location}_outlier_audit.tsv", sep="\t", index=False
+    )
 
 
 def infer_pretrain_input_dim(weights: Path) -> int:
