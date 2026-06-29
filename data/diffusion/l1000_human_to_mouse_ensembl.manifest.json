@@ -1,0 +1,7 @@
+{
+  "landmark_table": "/tmp/rna-diffusion-paper/data/gtex_description.csv",
+  "output": "data/diffusion/l1000_human_to_mouse_ensembl.tsv",
+  "n_human_landmarks": 974,
+  "n_mapped_rows": 980,
+  "n_unique_mouse_genes": 980
+}
