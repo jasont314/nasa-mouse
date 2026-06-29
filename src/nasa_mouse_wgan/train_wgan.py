@@ -8,7 +8,7 @@ from pathlib import Path
 
 from nasa_mouse_glare.io import require_import
 
-from .data import load_prepared_data
+from .data import CONDITIONAL_GENERATION_COVARIATES, load_prepared_data
 from .model import ConditionalWGANGP
 from .training import (
     TrainConfig,
@@ -21,6 +21,12 @@ from .training import (
 
 def parse_hidden_dims(value: str) -> tuple[int, ...]:
     return tuple(int(item) for item in value.split(",") if item.strip())
+
+
+def parse_covariates(value: str) -> tuple[str, ...]:
+    if value == "conditional_generation":
+        return CONDITIONAL_GENERATION_COVARIATES
+    return tuple(item.strip() for item in value.split(",") if item.strip())
 
 
 def cardinalities(vocabularies: dict[str, list[str]], covariates: tuple[str, ...]) -> list[int]:
@@ -51,8 +57,15 @@ def write_feature_scores(path: Path, obs, critic_score, features) -> Path:
             "muscle_group",
             "study.characteristics.material type",
             "wgan_condition",
+            "wgan_tissue",
+            "wgan_material_type",
+            "wgan_muscle_group",
             "wgan_accession",
             "wgan_source",
+            "wgan_sex",
+            "wgan_assay",
+            "wgan_platform",
+            "wgan_data_source",
         ]
         if column in obs
     ]
@@ -98,16 +111,42 @@ def write_readme(output_dir: Path, summary: dict) -> None:
     (output_dir / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def write_observed_profiles(output_dir: Path, prepared) -> Path:
+    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    frames = [prepared.query_obs]
+    if prepared.reference_obs is not None:
+        frames.insert(0, prepared.reference_obs)
+    columns = list(prepared.categorical_covariates)
+    rows = []
+    for label, frame in zip(
+        ["reference", "query"] if prepared.reference_obs is not None else ["query"],
+        frames,
+    ):
+        item = frame[columns].drop_duplicates().copy()
+        item.insert(0, "training_source", label)
+        rows.append(item)
+    profiles = pd.concat(rows, axis=0, ignore_index=True).drop_duplicates()
+    path = output_dir / "observed_conditioning_profiles.tsv"
+    profiles.to_csv(path, sep="\t", index=False)
+    return path
+
+
 def run(args) -> Path:
     np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
     torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    categorical_covariates = parse_covariates(
+        getattr(args, "categorical_covariates", "wgan_condition,wgan_accession")
+    )
 
     prepared = load_prepared_data(
         query_h5ad=args.query_h5ad,
         reference_h5ad=args.reference_h5ad,
+        query_source=getattr(args, "query_source", "osdr"),
+        reference_source=getattr(args, "reference_source", "archs4"),
+        categorical_covariates=categorical_covariates,
         clip=args.clip,
         max_genes=args.max_genes,
     )
@@ -119,6 +158,12 @@ def run(args) -> Path:
         noise_dim=args.noise_dim,
         hidden_dims=parse_hidden_dims(args.hidden_dims),
     ).to(device)
+    model_config = {
+        "expression_dim": int(len(prepared.genes)),
+        "categorical_cardinalities": [int(value) for value in card],
+        "noise_dim": int(args.noise_dim),
+        "hidden_dims": list(parse_hidden_dims(args.hidden_dims)),
+    }
 
     histories = {}
     pretrained_scores_path = None
@@ -144,6 +189,7 @@ def run(args) -> Path:
                 "genes": prepared.genes,
                 "vocabularies": prepared.vocabularies,
                 "categorical_covariates": prepared.categorical_covariates,
+                "model_config": model_config,
             },
             output_dir / "reference_pretrained_model.pt",
         )
@@ -211,6 +257,7 @@ def run(args) -> Path:
             "genes": prepared.genes,
             "vocabularies": prepared.vocabularies,
             "categorical_covariates": prepared.categorical_covariates,
+            "model_config": model_config,
         },
         output_dir / "model.pt",
     )
@@ -220,6 +267,7 @@ def run(args) -> Path:
     )
     vocab_path = output_dir / "categorical_vocabularies.json"
     vocab_path.write_text(json.dumps(prepared.vocabularies, indent=2) + "\n", encoding="utf-8")
+    profiles_path = write_observed_profiles(output_dir, prepared)
 
     mode = getattr(args, "run_mode", "") or (
         "archs4_pretrain_osdr_finetune" if prepared.reference_x is not None else "direct_osdr"
@@ -234,6 +282,8 @@ def run(args) -> Path:
         "mode": mode,
         "query_h5ad": str(args.query_h5ad),
         "reference_h5ad": str(args.reference_h5ad or ""),
+        "query_source": str(getattr(args, "query_source", "osdr")),
+        "reference_source": str(getattr(args, "reference_source", "archs4")),
         "output_dir": str(output_dir),
         "normalization": "log1p(CPM) followed by reference-gene z-score for pretrained runs or query-gene z-score for direct runs",
         "categorical_covariates": list(prepared.categorical_covariates),
@@ -268,6 +318,7 @@ def run(args) -> Path:
             "normalization_stats": str(output_dir / "normalization_stats.npz"),
             "genes": str(output_dir / "genes.tsv"),
             "vocabularies": str(vocab_path),
+            "observed_conditioning_profiles": str(profiles_path),
             "summary": str(output_dir / "training_summary.json"),
         },
     }
@@ -293,8 +344,15 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--query-h5ad", required=True)
     parser.add_argument("--reference-h5ad", default="")
+    parser.add_argument("--query-source", default="osdr", choices=["osdr", "archs4"])
+    parser.add_argument("--reference-source", default="archs4", choices=["osdr", "archs4"])
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--run-mode", default="")
+    parser.add_argument(
+        "--categorical-covariates",
+        default="wgan_condition,wgan_accession",
+        help="Comma-separated covariates, or 'conditional_generation'.",
+    )
     parser.add_argument("--reference-epochs", type=int, default=100)
     parser.add_argument("--query-epochs", type=int, default=100)
     parser.add_argument("--batch-size", type=int, default=128)

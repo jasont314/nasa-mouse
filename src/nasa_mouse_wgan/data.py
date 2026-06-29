@@ -4,11 +4,23 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 
 from nasa_mouse_glare.io import require_import
 
 
 DEFAULT_CATEGORICAL_COVARIATES = ("wgan_condition", "wgan_accession")
+CONDITIONAL_GENERATION_COVARIATES = (
+    "wgan_condition",
+    "wgan_tissue",
+    "wgan_material_type",
+    "wgan_muscle_group",
+    "wgan_accession",
+    "wgan_sex",
+    "wgan_assay",
+    "wgan_platform",
+    "wgan_data_source",
+)
 
 
 @dataclass
@@ -73,6 +85,77 @@ def subset_genes(adata, genes: list[str]):
     return adata[:, positions].copy()
 
 
+def split_h5ad_paths(value) -> list[Path]:
+    """Parse one or more h5ad paths.
+
+    Existing CLIs pass a single string. The conditional-generation workflow uses
+    a comma-separated list to train a pan-tissue model without first materializing
+    a combined AnnData file.
+    """
+
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        return [Path(item) for item in value if str(item)]
+    return [Path(item) for item in str(value).split(",") if item]
+
+
+def infer_tissue_from_path(path: str | Path) -> str:
+    name = Path(path).name
+    patterns = (
+        r"osdr_(.+?)_flt_gc",
+        r"archs4_mouse_(.+?)_reference",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, name)
+        if match:
+            return match.group(1)
+    return "unknown_tissue"
+
+
+def _common_genes(adatas) -> list[str]:
+    genes = gene_ids(adatas[0])
+    common = set(genes)
+    for adata in adatas[1:]:
+        common &= set(gene_ids(adata))
+    return [gene for gene in genes if gene in common]
+
+
+def load_h5ads(value, *, source: str):
+    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
+    paths = split_h5ad_paths(value)
+    if not paths:
+        return None
+    adatas = []
+    seen_profiles = set()
+    for path in paths:
+        adata = ad.read_h5ad(path)
+        obs = adata.obs.copy()
+        if "profile_id" not in obs:
+            obs["profile_id"] = obs.index.astype(str)
+        obs["input_h5ad"] = str(path)
+        obs["wgan_input_tissue"] = infer_tissue_from_path(path)
+        if "tissue_final" not in obs:
+            obs["tissue_final"] = obs["wgan_input_tissue"]
+        keep = ~obs["profile_id"].astype(str).isin(seen_profiles)
+        if not bool(keep.all()):
+            adata = adata[keep.to_numpy()].copy()
+            obs = obs.loc[keep].copy()
+        seen_profiles.update(obs["profile_id"].astype(str).tolist())
+        adata.obs = obs
+        adatas.append(adata)
+    if len(adatas) == 1:
+        return adatas[0]
+
+    genes = _common_genes(adatas)
+    aligned = []
+    for adata in adatas:
+        item = subset_genes(adata, genes)
+        item.var_names = genes
+        aligned.append(item)
+    return ad.concat(aligned, join="inner", merge="first", index_unique=None)
+
+
 def align_anndata(query, reference=None, *, max_genes: int = 0):
     query_genes = gene_ids(query)
     if reference is None:
@@ -94,6 +177,53 @@ def _first_existing_column(frame, columns: tuple[str, ...]) -> str | None:
     return None
 
 
+def _series_from_columns(frame, columns: tuple[str, ...], default: str):
+    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    column = _first_existing_column(frame, columns)
+    if column is None:
+        return pd.Series(default, index=frame.index, dtype="object")
+    return frame[column].fillna(default).astype(str)
+
+
+def infer_muscle_group(material, tissue) -> str:
+    text = str(material).lower().replace("-", " ").replace("_", " ")
+    tissue_text = str(tissue).lower()
+    if "soleus" in text:
+        return "soleus"
+    if "gastrocnemius" in text:
+        return "gastrocnemius"
+    if "quadriceps" in text:
+        return "quadriceps"
+    if "tibialis" in text:
+        return "tibialis_anterior"
+    if "extensor digitorum" in text or "edl" in text:
+        return "edl"
+    if "skeletal_muscle" in tissue_text or "skeletal muscle" in tissue_text:
+        return "skeletal_muscle_other"
+    return "not_skeletal_muscle"
+
+
+def simplify_platform(value: str) -> str:
+    text = str(value).lower()
+    if "hiseq 4000" in text:
+        return "illumina_hiseq_4000"
+    if "hiseq 2500" in text:
+        return "illumina_hiseq_2500"
+    if "hiseq" in text:
+        return "illumina_hiseq"
+    if "nextseq" in text:
+        return "illumina_nextseq"
+    if "novaseq" in text:
+        return "illumina_novaseq"
+    if "illumina" in text:
+        return "illumina"
+    if "rna-seq" in text or "rna seq" in text:
+        return "rna_seq"
+    if not text or text == "nan":
+        return "unknown_platform"
+    return re.sub(r"[^a-z0-9]+", "_", text).strip("_")[:80] or "unknown_platform"
+
+
 def harmonize_obs(obs, *, source: str):
     pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
     frame = obs.copy()
@@ -109,19 +239,60 @@ def harmonize_obs(obs, *, source: str):
         frame["wgan_accession"] = (
             frame[accession_col].astype(str) if accession_col else "unknown_accession"
         )
+        frame["wgan_tissue"] = _series_from_columns(
+            frame, ("tissue_final", "wgan_input_tissue"), "unknown_tissue"
+        )
+        frame["wgan_material_type"] = _series_from_columns(
+            frame, ("study.characteristics.material type",), "unknown_material_type"
+        )
+        frame["wgan_sex"] = _series_from_columns(
+            frame, ("study.characteristics.sex",), "unknown_sex"
+        )
+        frame["wgan_assay"] = _series_from_columns(
+            frame,
+            ("investigation.study assays.study assay technology type", "file.datatype"),
+            "unknown_assay",
+        )
+        raw_platform = _series_from_columns(frame, ("id.assay name",), "unknown_platform")
+        frame["wgan_platform"] = raw_platform.map(simplify_platform)
     else:
         source_col = _first_existing_column(frame, ("series_id", "archs4_condition", "geo_accession"))
         frame["wgan_condition"] = "archs4_reference"
         frame["wgan_accession"] = (
             frame[source_col].astype(str) if source_col else "unknown_archs4_source"
         )
+        frame["wgan_tissue"] = _series_from_columns(
+            frame, ("tissue_final", "wgan_input_tissue"), "unknown_tissue"
+        )
+        frame["wgan_material_type"] = frame["wgan_tissue"]
+        frame["wgan_sex"] = "unknown_sex"
+        frame["wgan_assay"] = _series_from_columns(
+            frame, ("library_strategy", "library_source"), "unknown_assay"
+        )
+        frame["wgan_platform"] = _series_from_columns(
+            frame, ("library_source",), "unknown_platform"
+        ).map(simplify_platform)
         if "condition_inferred" not in frame:
             frame["condition_inferred"] = "archs4_reference"
         if "id.accession" not in frame:
             frame["id.accession"] = frame["wgan_accession"]
 
     frame["wgan_source"] = source
-    for column in DEFAULT_CATEGORICAL_COVARIATES:
+    frame["wgan_data_source"] = source
+    if "muscle_group" in frame:
+        frame["wgan_muscle_group"] = frame["muscle_group"].fillna("").astype(str)
+    else:
+        frame["wgan_muscle_group"] = [
+            infer_muscle_group(material, tissue)
+            for material, tissue in zip(frame["wgan_material_type"], frame["wgan_tissue"])
+        ]
+    frame.loc[frame["wgan_muscle_group"].eq(""), "wgan_muscle_group"] = [
+        infer_muscle_group(material, tissue)
+        for material, tissue in zip(frame.loc[frame["wgan_muscle_group"].eq(""), "wgan_material_type"],
+                                    frame.loc[frame["wgan_muscle_group"].eq(""), "wgan_tissue"])
+    ]
+
+    for column in set(DEFAULT_CATEGORICAL_COVARIATES) | set(CONDITIONAL_GENERATION_COVARIATES):
         frame[column] = frame[column].fillna("missing").astype(str)
     return pd.DataFrame(frame)
 
@@ -151,17 +322,18 @@ def load_prepared_data(
     *,
     query_h5ad: str | Path,
     reference_h5ad: str | Path | None = None,
+    query_source: str = "osdr",
+    reference_source: str = "archs4",
     categorical_covariates: tuple[str, ...] = DEFAULT_CATEGORICAL_COVARIATES,
     clip: float = 10.0,
     max_genes: int = 0,
 ) -> PreparedData:
-    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
-    query = ad.read_h5ad(query_h5ad)
-    reference = ad.read_h5ad(reference_h5ad) if reference_h5ad else None
+    query = load_h5ads(query_h5ad, source=query_source)
+    reference = load_h5ads(reference_h5ad, source=reference_source) if reference_h5ad else None
     query, reference, genes = align_anndata(query, reference, max_genes=max_genes)
 
-    query_obs = harmonize_obs(query.obs, source="osdr")
-    reference_obs = harmonize_obs(reference.obs, source="archs4") if reference is not None else None
+    query_obs = harmonize_obs(query.obs, source=query_source)
+    reference_obs = harmonize_obs(reference.obs, source=reference_source) if reference is not None else None
 
     query_log = log1p_cpm(counts_matrix(query))
     if reference is not None:
