@@ -97,20 +97,41 @@ def write_matrix(path: Path, matrix, genes: list[str]) -> None:
     frame.to_csv(path, sep="\t", index=False)
 
 
+def scaled_to_log1p_cpm(full_scaled, center, scale):
+    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    raw = full_scaled * scale.reshape(1, -1) + center.reshape(1, -1)
+    max_log1p_cpm = float(np.log1p(1_000_000.0))
+    finite = np.isfinite(raw)
+    finite_values = raw[finite]
+    report = {
+        "n_values": int(raw.size),
+        "n_nonfinite": int((~finite).sum()),
+        "n_clipped_low": int((raw < 0.0).sum()),
+        "n_clipped_high": int((raw > max_log1p_cpm).sum()),
+        "raw_log1p_cpm_min": float(finite_values.min()) if finite_values.size else float("nan"),
+        "raw_log1p_cpm_max": float(finite_values.max()) if finite_values.size else float("nan"),
+        "max_valid_log1p_cpm": max_log1p_cpm,
+    }
+    clipped = np.nan_to_num(raw, nan=0.0, posinf=max_log1p_cpm, neginf=0.0)
+    return np.clip(clipped, 0.0, max_log1p_cpm).astype("float32"), report
+
+
 def write_one(output_dir: Path, stem: str, full_scaled, center, scale, genes: list[str], profile: dict) -> dict:
     np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    log1p_cpm = full_scaled * scale.reshape(1, -1) + center.reshape(1, -1)
-    cpm = np.maximum(np.expm1(log1p_cpm), 0.0)
+    log1p_cpm, clip_report = scaled_to_log1p_cpm(full_scaled, center, scale)
+    cpm = np.expm1(log1p_cpm).astype("float32")
     paths = {
         "scaled": output_dir / f"{stem}_scaled.tsv.gz",
         "log1p_cpm": output_dir / f"{stem}_log1p_cpm.tsv.gz",
         "cpm": output_dir / f"{stem}_cpm.tsv.gz",
         "profile": output_dir / f"{stem}_profile.json",
+        "clip_report": output_dir / f"{stem}_clip_report.json",
     }
     write_matrix(paths["scaled"], full_scaled, genes)
     write_matrix(paths["log1p_cpm"], log1p_cpm, genes)
     write_matrix(paths["cpm"], cpm, genes)
     paths["profile"].write_text(json.dumps(profile, indent=2) + "\n", encoding="utf-8")
+    paths["clip_report"].write_text(json.dumps(clip_report, indent=2) + "\n", encoding="utf-8")
     return {key: str(path) for key, path in paths.items()}
 
 
@@ -167,9 +188,9 @@ def run(args) -> Path:
         second_full = reconstruct_full(second_landmarks, checkpoint)
         outputs[first_condition] = write_one(output_dir, first_condition, first_full, center, scale, genes, first_profile)
         outputs[second_condition] = write_one(output_dir, second_condition, second_full, center, scale, genes, second_profile)
-        delta = (second_full * scale.reshape(1, -1) + center.reshape(1, -1)) - (
-            first_full * scale.reshape(1, -1) + center.reshape(1, -1)
-        )
+        first_log1p, _ = scaled_to_log1p_cpm(first_full, center, scale)
+        second_log1p, _ = scaled_to_log1p_cpm(second_full, center, scale)
+        delta = second_log1p - first_log1p
         delta_path = output_dir / f"{second_condition}_minus_{first_condition}_mean_log1p_cpm_delta.tsv"
         pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
         pd.DataFrame({"gene": genes, "mean_log1p_cpm_delta": delta.mean(axis=0)}).to_csv(delta_path, sep="\t", index=False)

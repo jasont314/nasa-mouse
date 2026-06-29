@@ -8,7 +8,13 @@ from pathlib import Path
 
 from nasa_mouse_glare.io import require_import
 
-from .data import DIFFUSION_COVARIATES, prepare_diffusion_data, write_observed_profiles
+from .data import (
+    DIFFUSION_COVARIATES,
+    prepare_diffusion_data,
+    reference_projection_categories,
+    reference_projection_obs,
+    write_observed_profiles,
+)
 from .diffusion import beta_schedule, noise_estimation_loss, sample
 from .evaluate import generated_quality, reverse_validation
 from .model import ConditionalDiffusionMLP
@@ -86,8 +92,11 @@ def encode_features(model, matrix, categories, *, batch_size: int, device):
 def write_scores(path: Path, obs, features):
     pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
     frame = obs.copy().reset_index(drop=True)
-    for idx in range(features.shape[1]):
-        frame[f"DIFFUSION_FEATURE_{idx:03d}"] = features[:, idx]
+    feature_frame = pd.DataFrame(
+        features,
+        columns=[f"DIFFUSION_FEATURE_{idx:03d}" for idx in range(features.shape[1])],
+    )
+    frame = pd.concat([frame, feature_frame], axis=1)
     path.parent.mkdir(parents=True, exist_ok=True)
     frame.to_csv(path, sep="\t", index=False)
     return path
@@ -221,17 +230,24 @@ def run(args) -> Path:
             amp=not args.no_amp,
             seed=args.seed,
         )
+        projection_categories = reference_projection_categories(prepared)
+        projection_obs = reference_projection_obs(prepared)
+        projection_obs[list(prepared.categorical_covariates)].drop_duplicates().to_csv(
+            output_dir / "pretrained_query_projection_profiles.tsv",
+            sep="\t",
+            index=False,
+        )
         pretrained_features = encode_features(
             model,
             prepared.query_landmark,
-            prepared.query_categories,
+            projection_categories,
             batch_size=args.batch_size,
             device=device,
         )
         write_scores(output_dir / "pretrained_query_diffusion_feature_scores.tsv", prepared.query_obs, pretrained_features)
         pretrained_fake = generate_full(
             model,
-            prepared.query_categories,
+            projection_categories,
             reconstructor,
             betas=betas,
             sample_steps=args.sample_steps,
@@ -333,6 +349,9 @@ def run(args) -> Path:
             "scores": str(output_dir / "diffusion_feature_scores.tsv"),
             "pretrained_query_scores": str(output_dir / "pretrained_query_diffusion_feature_scores.tsv")
             if (output_dir / "pretrained_query_diffusion_feature_scores.tsv").exists()
+            else "",
+            "pretrained_query_projection_profiles": str(output_dir / "pretrained_query_projection_profiles.tsv")
+            if (output_dir / "pretrained_query_projection_profiles.tsv").exists()
             else "",
             "model": str(output_dir / "model.pt"),
             "reference_pretrained_model": str(output_dir / "reference_pretrained_model.pt")

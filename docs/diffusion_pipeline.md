@@ -134,7 +134,15 @@ Feature analyses write:
 - top feature-shift heatmap
 
 Synthetic generation writes scaled, log1p-CPM, and CPM matrices. The scaled
-matrix is in the diffusion model's MaxAbs-scaled space.
+matrix is in the diffusion model's MaxAbs-scaled space. Inverse-transformed
+log1p-CPM values are clipped to the valid CPM range `[0, log1p(1e6)]` before
+CPM export, and each condition writes a `*_clip_report.json` file.
+
+Production summary tables are written under:
+
+- `outputs/diffusion_conditional_generation/summary/diffusion_training_summary.tsv`
+- `outputs/diffusion_conditional_generation/summary/diffusion_analysis_summary.tsv`
+- `outputs/diffusion_conditional_generation/summary/diffusion_synthetic_examples_summary.tsv`
 
 ## Current Deviations From The Paper
 
@@ -150,6 +158,10 @@ matrix is in the diffusion model's MaxAbs-scaled space.
   generated counterfactual deltas. These features are label-conditioned, so they
   should be interpreted as synthetic-generation diagnostics rather than unlabelled
   pathway modules.
+- Frozen ARCHS4 reference projection must not use OSDR-only covariate embeddings
+  that were unseen during pretraining. The workflow now keeps query expression
+  and tissue but replaces condition/accession/source/platform/material/sex with
+  trained ARCHS4 defaults by tissue before scoring `pretrained_query_*` outputs.
 
 ## Commands
 
@@ -181,4 +193,22 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse
   --set "wgan_assay=RNA Sequencing (RNA-Seq)" \
   --set wgan_platform=illumina_hiseq_4000 \
   --set wgan_data_source=osdr
+```
+
+Generate the standard per-tissue and skeletal-muscle-split examples:
+
+```bash
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_diffusion.generate_synthetic_examples --overwrite
+```
+
+Correct frozen ARCHS4 projection scores from a saved pretrained checkpoint:
+
+```bash
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_diffusion.rescore_reference_projection
+```
+
+Refresh compact result tables:
+
+```bash
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_diffusion.summarize_results
 ```

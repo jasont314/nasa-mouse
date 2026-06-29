@@ -1,41 +1,123 @@
 # Diffusion Results
 
-This file will summarize completed NASA mouse diffusion runs after smoke and
-production training finish.
+Generated from `outputs/diffusion_conditional_generation/` on 2026-06-29.
 
-## Smoke Validation
+The production run is a pan-tissue conditional DDPM/DDIM model, not eight
+independent tissue models. Tissue, material type, muscle group, accession, sex,
+platform, source, and condition are conditioning covariates. The run covers all
+requested OSDR tissues: liver, skeletal muscle, skin, kidney, thymus, spleen,
+lung, and retina. Synthetic examples were generated separately for each tissue
+and for skeletal-muscle splits: soleus, gastrocnemius, quadriceps, EDL, and
+tibialis anterior.
 
-Smoke validation was run with two OSDR tissues, 256 genes, 64 landmarks, 20
-diffusion timesteps, 5 DDIM sample steps, a 32-unit residual MLP, and one query
-epoch. It used CUDA on the NVIDIA A100-SXM4-40GB.
+Machine-readable summaries:
 
-Smoke outputs:
+- `outputs/diffusion_conditional_generation/summary/diffusion_training_summary.tsv`
+- `outputs/diffusion_conditional_generation/summary/diffusion_analysis_summary.tsv`
+- `outputs/diffusion_conditional_generation/summary/diffusion_synthetic_examples_summary.tsv`
 
-- `outputs/diffusion_smoke/osdr_only/`
-- `outputs/diffusion_smoke/osdr_only/analysis/`
-- `outputs/diffusion_smoke/synthetic_counterfactual/`
+## Completed Tracks
 
-Smoke counts:
+| track | query samples | ARCHS4 ref | genes | landmarks | device | notes |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| OSDR-only | 1,088 | 0 | 9,321 | 512 | A100 CUDA | direct conditional model |
+| ARCHS4 pretrain + OSDR fine-tune | 1,088 | 24,428 | 9,319 | 512 | A100 CUDA | reference pretrain, corrected frozen projection, then fine-tune |
+| ARCHS4-only | 24,428 | 0 | 9,319 | 512 | A100 CUDA | reference generator/control, no FLT/GC query labels |
 
-- query samples: 422
-- genes: 256
-- landmark genes: 64
-- denoiser features: 32
+Landmarks came from the mouse ortholog mapping of human L1000 genes:
+`data/diffusion/l1000_human_to_mouse_ensembl.tsv`.
 
-The smoke run wrote a model checkpoint, denoiser feature scores, generated
-quality metrics, LR reconstruction metrics, reverse-validation metrics,
-PCA/UMAP plots, feature-shift heatmap, and matched synthetic
-ground-control/flight matrices. Because the smoke subset only used the first
-256 genes, the L1000 ortholog map had insufficient coverage and the run used
-the intended variance-HVG fallback.
+## FLT vs GC Feature Signals
 
-Planned result sections:
+These are diffusion denoiser-feature signals, not named pathways. Because the
+model is conditional, these should be treated as generation/representation
+diagnostics, not independent biological modules.
 
-- OSDR-only conditional diffusion
-- ARCHS4 pretrain plus OSDR fine-tune
-- ARCHS4-only reference generator/control
-- generated-expression quality
-- FLT vs GC denoiser-feature analysis
-- synthetic counterfactual examples
-- comparison to WGAN, OntoVAE, and expiMap
-- skeletal-muscle and split-muscle interpretation
+| score set | ordinary Welch FDR < 0.05 | random-effects FDR < 0.05 | LOO-stable FDR < 0.05 |
+| --- | ---: | ---: | ---: |
+| OSDR-only post-training | 277 | 300 | 271 |
+| ARCHS4-pretrained, OSDR fine-tuned | 168 | 130 | 112 |
+| Frozen ARCHS4 projection, corrected reference covariates | 27 | 67 | 52 |
+
+Important correction: the frozen projection now replaces OSDR-only
+condition/accession/source/platform/material/sex covariates with trained ARCHS4
+reference defaults by tissue. The previous uncorrected frozen projection was
+not interpretable because it used embeddings never seen during ARCHS4 pretraining.
+
+## Generated Quality
+
+Generated-expression quality is currently weak. ARCHS4 pretraining helped some
+global metrics, but not enough to call the synthetic samples high fidelity.
+
+| track | gene mean corr | gene std corr | Frechet PCA | adversarial accuracy | synthetic-train real-test acc |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| OSDR-only | -0.017 | 0.493 | 1,135,921 | 0.800 | 0.480 |
+| ARCHS4 + fine-tune | 0.032 | 0.558 | 199,792 | 0.994 | 0.520 |
+| Frozen ARCHS4 projection | 0.135 | 0.456 | 138,038 | 0.985 | not run |
+| ARCHS4-only | 0.072 | 0.661 | 237,549 | 0.972 | not applicable |
+
+The synthetic examples had substantial clipping during inverse transformation
+to valid CPM/log1p-CPM space. OSDR-only examples clipped about 91% of exported
+values; ARCHS4 + fine-tune examples clipped about 85%. That means the current
+samples are useful as pipeline artifacts and counterfactual diagnostics, but
+not as high-confidence replacement biological samples.
+
+Synthetic example root:
+
+- `outputs/diffusion_conditional_generation/synthetic_examples/`
+
+All 26 requested model/profile examples completed for OSDR-only and ARCHS4
+fine-tuned models. Each directory contains scaled, log1p-CPM, CPM, profile,
+clip-report, and mean FLT-minus-GC delta files.
+
+## Comparison To Existing Methods
+
+Diffusion is currently complementary, not stronger.
+
+- Versus WGAN: diffusion has more post-fine-tune LOO-stable pan-tissue feature
+  hits than the WGAN conditional post-fine-tune model, but WGAN has better
+  established result documentation and stronger split-muscle evidence. Both
+  methods produce unnamed learned features requiring attribution.
+- Versus OntoVAE: OntoVAE remains more biology-facing because it reports
+  pathway/program scores and decoder gene associations. OntoVAE also recovered
+  stronger thymus/spleen/liver and soleus signals in prior summaries.
+- Versus expiMap: expiMap remains the most interpretable Reactome-module method.
+  Diffusion does not yet recover named skeletal-muscle pathways or de novo
+  gene modules better than expiMap/OntoVAE.
+
+For prior-literature alignment, diffusion currently supports that FLT/GC states
+are separable in a conditional generator, including muscle split profiles, but
+it does not by itself recover interpretable mitochondrial, contractile, calcium,
+immune, or ECM pathways. Use GLARE/OntoVAE/expiMap/DGEA for named biology and
+use diffusion mainly for synthetic-generation experiments after improving
+calibration.
+
+## Outputs And Plots
+
+Main analysis plots:
+
+- `outputs/diffusion_conditional_generation/osdr_only/analysis/diffusion_feature_pca.png`
+- `outputs/diffusion_conditional_generation/osdr_only/analysis/diffusion_feature_umap.png`
+- `outputs/diffusion_conditional_generation/osdr_only/analysis/top_diffusion_feature_shift_heatmap.png`
+- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/analysis/diffusion_feature_pca.png`
+- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/analysis/diffusion_feature_umap.png`
+- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/analysis/top_diffusion_feature_shift_heatmap.png`
+- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/pretrained_query_analysis/diffusion_feature_pca.png`
+- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/pretrained_query_analysis/diffusion_feature_umap.png`
+- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/pretrained_query_analysis/top_diffusion_feature_shift_heatmap.png`
+
+## Limitations
+
+- Learned diffusion features are not pathway modules.
+- Condition is an input covariate, so feature-level FLT/GC tests are
+  model-diagnostic rather than unsupervised biology.
+- The denoiser is much smaller than the paper's largest hidden layers.
+- Frechet distance uses PCA rather than the paper's unavailable pretrained
+  classifier embedding.
+- Reconstruction is ridge LR, not MLP.
+- Synthetic expression calibration is poor; clipping reports should be checked
+  before using generated CPM matrices downstream.
+
+Best next step: add condition-held-fixed scoring and feature/gene attribution,
+then retrain with stronger calibration before treating synthetic samples as
+biologically realistic.

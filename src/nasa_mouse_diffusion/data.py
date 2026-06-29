@@ -201,6 +201,61 @@ def prepare_diffusion_data(
     )
 
 
+def _mode_or_default(series, default: str) -> str:
+    values = series.dropna().astype(str)
+    if values.empty:
+        return default
+    counts = values.value_counts()
+    if counts.empty:
+        return default
+    return str(counts.index[0])
+
+
+def reference_projection_obs(prepared: PreparedDiffusionData):
+    """Replace query-specific covariates with trained reference defaults.
+
+    ARCHS4 pretraining never observes OSDR-only condition/accession/source
+    categories. Frozen reference projection therefore must not use those
+    untrained embeddings. The projection keeps query expression and tissue, but
+    uses per-tissue ARCHS4 defaults for all other categorical covariates.
+    """
+
+    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    if prepared.reference_obs is None:
+        return prepared.query_obs.copy()
+    ref = prepared.reference_obs
+    query = prepared.query_obs.copy()
+    global_defaults = {
+        covariate: _mode_or_default(ref[covariate], "unknown")
+        for covariate in prepared.categorical_covariates
+    }
+    by_tissue: dict[str, dict[str, str]] = {}
+    if "wgan_tissue" in ref:
+        for tissue, frame in ref.groupby("wgan_tissue", dropna=False):
+            by_tissue[str(tissue)] = {
+                covariate: _mode_or_default(frame[covariate], global_defaults[covariate])
+                for covariate in prepared.categorical_covariates
+            }
+    rows = []
+    observed_tissues = set(ref["wgan_tissue"].dropna().astype(str).tolist()) if "wgan_tissue" in ref else set()
+    for _, row in query.iterrows():
+        tissue = str(row.get("wgan_tissue", global_defaults.get("wgan_tissue", "unknown")))
+        defaults = by_tissue.get(tissue, global_defaults)
+        values = row.copy()
+        for covariate in prepared.categorical_covariates:
+            if covariate == "wgan_tissue" and tissue in observed_tissues:
+                values[covariate] = tissue
+            else:
+                values[covariate] = defaults[covariate]
+        rows.append(values)
+    return pd.DataFrame(rows, index=query.index)
+
+
+def reference_projection_categories(prepared: PreparedDiffusionData):
+    projected = reference_projection_obs(prepared)
+    return encode_categories(projected, prepared.vocabularies, prepared.categorical_covariates)
+
+
 def write_observed_profiles(path: Path, prepared: PreparedDiffusionData) -> None:
     pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
     frames = []
