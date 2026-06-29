@@ -113,6 +113,21 @@ PYTHONPATH=src python -m nasa_mouse_glare.multi_tissue_api_glare run-dgea-compar
   --tissue-dir outputs/glare_multi_tissue_api/liver
 ```
 
+Run the paper-style validation stack on the generated multi-tissue GLARE
+outputs:
+
+```bash
+PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mouse_glare.multi_tissue_validation \
+  --include-per-study \
+  --include-mober \
+  --shap-aggregate
+```
+
+This writes XGBoost verification, representation QC, clustering QC,
+DEG-enrichment comparisons, intersection-vs-GLARE-only module-score validation,
+Panglao marker enrichment, and Metascape-ready gene lists to
+`outputs/glare_multi_tissue_api/validation_stack/`.
+
 Prepare tissue-specific expiMap inputs from API count tables:
 
 ```bash
