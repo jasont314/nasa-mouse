@@ -44,6 +44,38 @@ condition/accession/source/platform/material/sex covariates with trained ARCHS4
 reference defaults by tissue. The previous uncorrected frozen projection was
 not interpretable because it used embeddings never seen during ARCHS4 pretraining.
 
+## Tissue And Muscle-Split Signals
+
+Per-tissue and split-muscle analyses are under:
+
+- `outputs/diffusion_conditional_generation/<track>/analysis_by_subgroup/<score_set>/<subgroup>/`
+- `outputs/diffusion_conditional_generation/summary/diffusion_subgroup_analysis_summary.tsv`
+
+All 39 subgroup analyses completed. Rows below show LOO-stable feature counts;
+again, these are learned-feature diagnostics rather than named pathway calls.
+
+| subgroup | OSDR-only | ARCHS4 + fine-tune | frozen ARCHS4 projection |
+| --- | ---: | ---: | ---: |
+| liver | 95 | 39 | 10 |
+| skeletal_muscle | 89 | 41 | 49 |
+| skin | 85 | 58 | 2 |
+| kidney | 53 | 30 | 1 |
+| thymus | 41 | 42 | 50 |
+| spleen | 49 | 41 | 2 |
+| lung | 11 | 18 | 0 |
+| retina | 28 | 13 | 0 |
+| soleus | 21 | 35 | 42 |
+| gastrocnemius | 2 | 3 | 3 |
+| quadriceps | 11 | 6 | 3 |
+| EDL | 0 | 0 | 0 |
+| tibialis anterior | 0 | 0 | 0 |
+
+The most relevant muscle result is that soleus retains many LOO-stable learned
+features in the ARCHS4-fine-tuned and frozen-reference score sets. That is
+consistent with prior postural-muscle expectations, but diffusion still does
+not identify named mitochondrial/contractile/calcium pathways without a separate
+attribution step.
+
 ## Generated Quality
 
 Generated-expression quality is currently weak. ARCHS4 pretraining helped some

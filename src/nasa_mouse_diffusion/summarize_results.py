@@ -121,6 +121,10 @@ def run(args) -> Path:
         path = summary_dir / name
         pd.DataFrame(rows).to_csv(path, sep="\t", index=False)
         manifest_rows.append({"file": str(path), "rows": len(rows)})
+    subgroup_path = summary_dir / "diffusion_subgroup_analysis_summary.tsv"
+    if subgroup_path.exists():
+        subgroup_rows = len(pd.read_csv(subgroup_path, sep="\t"))
+        manifest_rows.append({"file": str(subgroup_path), "rows": subgroup_rows})
     manifest_path = summary_dir / "diffusion_summary_manifest.tsv"
     pd.DataFrame(manifest_rows).to_csv(manifest_path, sep="\t", index=False)
     print(json.dumps({"manifest": str(manifest_path), "outputs": manifest_rows}, indent=2))
