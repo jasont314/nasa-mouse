@@ -32,7 +32,29 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-layer-norm", action="store_true")
     parser.add_argument("--seed", type=int, default=2020)
     parser.add_argument("--early-stopping", action="store_true")
-    parser.add_argument("--mean-latent", action="store_true")
+    parser.add_argument("--early-stopping-metric", default="val_unweighted_loss")
+    parser.add_argument("--early-stopping-threshold", type=float, default=0.0)
+    parser.add_argument("--early-stopping-patience", type=int, default=30)
+    parser.add_argument("--early-stopping-lr-patience", type=int, default=15)
+    parser.add_argument("--early-stopping-lr-factor", type=float, default=0.1)
+    parser.add_argument("--no-reduce-lr", action="store_true")
+    parser.add_argument("--batch-size", type=int, default=128)
+    parser.add_argument("--train-frac", type=float, default=0.9)
+    parser.add_argument("--no-monitor", action="store_true")
+    parser.add_argument("--monitor-only-val", action="store_true")
+    parser.set_defaults(mean_latent=True)
+    parser.add_argument(
+        "--mean-latent",
+        dest="mean_latent",
+        action="store_true",
+        help="Write posterior-mean latent scores (the default).",
+    )
+    parser.add_argument(
+        "--sample-latent",
+        dest="mean_latent",
+        action="store_false",
+        help="Write one stochastic latent sample; use only for diagnostics.",
+    )
     parser.add_argument("--only-active", action="store_true")
     return parser.parse_args()
 

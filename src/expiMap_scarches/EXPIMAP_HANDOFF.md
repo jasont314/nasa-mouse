@@ -428,6 +428,121 @@ Direct/reference agreement note:
 - Treat the direct liver signal as preprocessing-stable but not reference-query-confirmed.
 - Kidney has no aggregate FDR-significant direct or reference-query pathway signal in the current runs.
 
+### Larger stratified liver reference and accession validation
+
+The first larger liver reference is complete. It proportionally samples 5,000
+of 8,970 eligible ARCHS4 liver samples across all 518 eligible series, preserving
+the 9,319 shared genes and 1,140 Reactome pathways. Three GPU raw-count NB
+references (seed 2020/2021/2022) used a 64-unit hidden layer, 200 maximum
+epochs, and early stopping; they completed 166, 138, and 93 epochs. Each mapped
+the same 231-sample OSDR liver query for 50 epochs.
+
+Use posterior-mean latent scores for downstream testing. Earlier workflow
+tables used stochastic score draws; the CLI now defaults to posterior means and
+has an explicit `--sample-latent` diagnostic option.
+
+For direct liver, the prior Polymerase II elongation result is not supported by
+accession-aware posterior-mean validation (random-effects FDR 0.670, I2 0.904,
+and 7/12 accession effects in the meta-analysis direction). It is historical,
+not a confirmed pathway finding. It is also not FDR-significant or
+direction-stable in the three larger reference-query seeds.
+
+The only strict cross-seed, leave-one-accession-out candidate is
+`R-MMU-416700_OTHER_SEMAPHORIN_INTERACTIONS`, lower in flight in each seed.
+It still has high accession heterogeneity (I2 0.63-0.73) and must be treated as
+a priority for count-level and independent-cohort follow-up, not a conclusion.
+The full artifacts and interpretation are in:
+
+- `docs/expimap_accession_validation.md`
+- `docs/expimap_reference_seed_stability.md`
+
+### Condition-specific GC/FLT clustering
+
+The colorectal-style idea of clustering GC and FLT separately has been run on
+posterior-mean expiMap liver pathway scores. This clusters samples by Reactome
+pathway-score profiles, not genes by GLARE latent representation.
+
+Direct OSDR liver results:
+
+- `outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/condition_cluster_comparison/`
+- GC selected k = 2, silhouette 0.483.
+- FLT selected k = 3, silhouette 0.440.
+- The two large FLT clusters mirror the same accession composition as the two
+  GC clusters; the extra FLT cluster has only five samples.
+
+Larger ARCHS4 reference-query results:
+
+- `outputs/expimap_archs4_reference_osdr_query_liver/query_nb_5000stratified_seed2020_50epoch/condition_cluster_comparison/`
+- `outputs/expimap_archs4_reference_osdr_query_liver/query_nb_5000stratified_seed2021_50epoch/condition_cluster_comparison/`
+- `outputs/expimap_archs4_reference_osdr_query_liver/query_nb_5000stratified_seed2022_50epoch/condition_cluster_comparison/`
+- FLT repeatedly splits into one large cluster and one small mostly OSD-379
+  cluster. GC selected k varies from 4 to 5 across seeds.
+
+Interpretation: this is useful QC and hypothesis triage, but the present
+clusters mostly recover accession/sample substructure. They do not confirm a
+new flight-only pathway program. See `docs/expimap_condition_clustering.md`.
+
+### Tutorial-style HVG/deep/HSIC liver run
+
+A separate run now follows the scArches expiMap tutorial mechanics more closely:
+
+- 2,000 HVGs selected on the 5,000-sample ARCHS4 liver reference with
+  `batch_key="archs4_condition"`.
+- Post-HVG Reactome term filtering with strict `>12` genes.
+- Retained 1,995 genes and 364 Reactome terms.
+- Reference model: hidden layers `[300, 300, 300]`, raw-count NB loss, 400 max
+  epochs, `alpha=0.7`, `alpha_kl=0.5`, `alpha_epoch_anneal=100`, early stopping.
+- Query surgery: 3 unconstrained de novo nodes, 250 epochs, `alpha_kl=0.22`,
+  `gamma_ext=0.7`, `gamma_epoch_anneal=50`, `beta=3`, HSIC one-vs-all.
+
+Artifacts:
+
+- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_5000/input/`
+- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_5000/reference_nb_400epoch_seed2020/`
+- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_5000/query_denovo3_hsic_250epoch_seed2020/`
+
+The installed scArches HSIC implementation overflows its direct gamma-ratio
+bandwidth calculation for the 367-dimensional query latent. The mapper now
+applies a runtime stable-HSIC patch using `lgamma` when HSIC is enabled; the
+query summary records `"stable_hsic_patch": true`.
+
+Results: 70 Reactome terms have accession-aware random-effects meta FDR < 0.05;
+32 also pass every leave-one-accession-out FDR < 0.05 in the same meta-analysis
+direction. The study-aware Wilcoxon across accession effects does not reach
+FDR 0.05, expiMap `latent_enrich` gives only weak condition BF-like scores, and
+the three de novo programs are not FLT/GC-significant. The previous Polymerase
+II and semaphorin terms are absent after HVG/term filtering. See
+`docs/expimap_tutorial_style_liver.md`.
+
+### Query-specific de novo programs
+
+`map_expimap_osdr_query.py` now supports query-architecture surgery with
+`--n-de-novo-programs`. This appends `unconstrained_*` dimensions without
+altering the official Reactome architecture. Use `--gamma-ext` to control L1
+sparsity, then include those dimensions in the standard analysis and summarize
+their decoder loadings:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_glare.map_expimap_osdr_query \
+  --reference-model outputs/expimap_archs4_reference_osdr_query_liver/reference_nb_1000_50epoch/model \
+  --query-h5ad outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_raw_counts.h5ad \
+  --output-dir outputs/expimap_archs4_reference_osdr_query_liver/query_denovo10_gamma3_150epoch \
+  --epochs 150 --alpha-epoch-anneal 50 \
+  --n-de-novo-programs 10 --gamma-ext 3.0 --gamma-epoch-anneal 50
+
+PYTHONPATH=src python -m nasa_mouse_glare.analyze_expimap_pathways \
+  --scores outputs/expimap_archs4_reference_osdr_query_liver/query_denovo10_gamma3_150epoch/query_pathway_scores.tsv \
+  --output-dir outputs/expimap_archs4_reference_osdr_query_liver/query_denovo10_gamma3_150epoch/analysis \
+  --include-de-novo
+```
+
+The current liver sweep (`gamma_ext` 0.7, 1.5, and 3.0) produced either
+diffuse programs or over-sparse programs. None has aggregate or study-aware
+FLT/GC FDR below 0.05. The original unpatched `--use-hsic` run failed because
+the installed scArches HSIC normalizer overflowed and yielded NaN latent values.
+The mapper now applies a stable log-gamma HSIC bandwidth patch when HSIC is
+enabled.
+
 ## Comparison to GLARE
 
 GLARE output:

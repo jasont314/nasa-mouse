@@ -29,8 +29,10 @@ TISSUE_KEYWORDS = {
     "kidney": ["kidney", "renal", "nephron"],
     "skin": ["skin", "dermal", "epiderm"],
     "skeletal_muscle": ["skeletal muscle", "soleus", "gastrocnemius", "quadriceps"],
+    "thymus": ["thymus", "thymic"],
     "spleen": ["spleen", "splenic"],
     "lung": ["lung", "pulmonary"],
+    "retina": ["retina", "retinal"],
 }
 
 

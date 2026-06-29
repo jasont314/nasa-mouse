@@ -10,7 +10,7 @@ from .cluster_enrichment import bh_fdr
 from .io import require_import
 
 
-def pathway_columns(frame) -> list[str]:
+def pathway_columns(frame, include_de_novo: bool = False) -> list[str]:
     metadata_prefixes = {
         "obs_name",
         "profile_id",
@@ -21,10 +21,16 @@ def pathway_columns(frame) -> list[str]:
         "condition_inferred",
         "tissue_final",
     }
+    annotated_prefixes = ("R-MMU-", "MUSCLE_")
+    prefixes = (
+        (*annotated_prefixes, "unconstrained_")
+        if include_de_novo
+        else annotated_prefixes
+    )
     return [
         column
         for column in frame.columns
-        if str(column).startswith("R-MMU-") and column not in metadata_prefixes
+        if str(column).startswith(prefixes) and column not in metadata_prefixes
     ]
 
 
@@ -410,9 +416,9 @@ def run(args) -> Path:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     scores = pd.read_csv(args.scores, sep="\t", keep_default_na=False)
-    terms = pathway_columns(scores)
+    terms = pathway_columns(scores, include_de_novo=args.include_de_novo)
     if not terms:
-        raise SystemExit("No R-MMU pathway score columns found.")
+        raise SystemExit("No requested expiMap score columns found.")
 
     comparison = compare_pathways(scores, terms)
     comparison_path = output_dir / "flt_vs_gc_pathway_comparison.tsv"
@@ -432,6 +438,7 @@ def run(args) -> Path:
         "scores": str(args.scores),
         "n_samples": int(len(scores)),
         "n_terms": int(len(terms)),
+        "includes_de_novo_programs": bool(args.include_de_novo),
         "outputs": {
             "comparison": str(comparison_path),
             "accession_effects": str(effects_path),
@@ -455,6 +462,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--scores", required=True)
     parser.add_argument("--output-dir", required=True)
+    parser.add_argument(
+        "--include-de-novo",
+        action="store_true",
+        help="Include unconstrained_ expiMap programs alongside Reactome pathways.",
+    )
     return parser.parse_args()
 
 

@@ -31,6 +31,7 @@ def run(args) -> Path:
     pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
     ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
     sca = require_import("scarches", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
 
     adata = ad.read_h5ad(args.input)
     if "I" not in adata.varm:
@@ -60,6 +61,12 @@ def run(args) -> Path:
         raise SystemExit("Installed scarches does not expose sca.models.EXPIMAP.")
 
     conditions = sorted(adata.obs[args.condition_key].astype(str).unique().tolist())
+    conditions_path = output_dir / "conditions.tsv"
+    pd.DataFrame({args.condition_key: conditions}).to_csv(
+        conditions_path,
+        sep="\t",
+        index=False,
+    )
     model = sca.models.EXPIMAP(
         adata=adata,
         condition_key=args.condition_key,
@@ -80,6 +87,18 @@ def run(args) -> Path:
         weight_decay=args.weight_decay,
         seed=args.seed,
         use_early_stopping=args.early_stopping,
+        batch_size=args.batch_size,
+        train_frac=args.train_frac,
+        monitor=not args.no_monitor,
+        monitor_only_val=args.monitor_only_val,
+        early_stopping_kwargs={
+            "early_stopping_metric": args.early_stopping_metric,
+            "threshold": args.early_stopping_threshold,
+            "patience": args.early_stopping_patience,
+            "reduce_lr": not args.no_reduce_lr,
+            "lr_patience": args.early_stopping_lr_patience,
+            "lr_factor": args.early_stopping_lr_factor,
+        },
     )
 
     latent = model.get_latent(mean=args.mean_latent)
@@ -116,13 +135,34 @@ def run(args) -> Path:
     adata.write_h5ad(trained_h5ad)
     model.save(str(model_dir), overwrite=True, save_anndata=False)
 
+    history = {
+        key: [float(value) for value in values]
+        for key, values in model.trainer.logs.items()
+    }
+    history_path = output_dir / "training_history.json"
+    history_path.write_text(json.dumps(history, indent=2) + "\n", encoding="utf-8")
+    final_metrics = {
+        key: values[-1]
+        for key, values in history.items()
+        if values
+    }
     summary = {
         "input": str(args.input),
         "output_dir": str(output_dir),
         "scarches_file": scarches_file,
         "has_EXPIMAP": bool(hasattr(sca.models, "EXPIMAP")),
+        "torch": {
+            "version": str(torch.__version__),
+            "cuda_available": bool(torch.cuda.is_available()),
+            "cuda_device_count": int(torch.cuda.device_count()),
+            "cuda_device_name": (
+                torch.cuda.get_device_name(0) if torch.cuda.is_available() else ""
+            ),
+            "trainer_device": str(getattr(model.trainer, "device", "")),
+            "model_parameter_device": str(next(model.model.parameters()).device),
+        },
         "condition_key": args.condition_key,
-        "conditions": conditions,
+        "n_conditions": int(len(conditions)),
         "recon_loss": recon_loss,
         "epochs": args.epochs,
         "hidden_layers": parse_hidden_layers(args.hidden_layers),
@@ -130,11 +170,30 @@ def run(args) -> Path:
         "n_genes": int(adata.n_vars),
         "n_terms": int(len(terms)),
         "n_score_terms": int(latent.shape[1]),
+        "posterior_mean_latent": bool(args.mean_latent),
+        "training": {
+            "epochs_completed": int(len(model.trainer.logs.get("epoch_loss", []))),
+            "best_epoch": model.trainer.best_epoch,
+            "training_seconds": float(model.trainer.training_time),
+            "batch_size": args.batch_size,
+            "train_fraction": args.train_frac,
+            "early_stopping": bool(args.early_stopping),
+            "early_stopping_patience": args.early_stopping_patience,
+            "early_stopping_metric": args.early_stopping_metric,
+            "early_stopping_threshold": args.early_stopping_threshold,
+            "early_stopping_reduce_lr": not args.no_reduce_lr,
+            "early_stopping_lr_patience": args.early_stopping_lr_patience,
+            "early_stopping_lr_factor": args.early_stopping_lr_factor,
+            "monitor_only_val": bool(args.monitor_only_val),
+            "final_metrics": final_metrics,
+        },
         "outputs": {
             "model": str(model_dir),
+            "conditions": str(conditions_path),
             "pathway_scores": str(scores_path),
             "terms": str(terms_path),
             "trained_h5ad": str(trained_h5ad),
+            "training_history": str(history_path),
         },
     }
     summary_path = output_dir / "training_summary.json"
@@ -162,7 +221,29 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-layer-norm", action="store_true")
     parser.add_argument("--seed", type=int, default=2020)
     parser.add_argument("--early-stopping", action="store_true")
-    parser.add_argument("--mean-latent", action="store_true")
+    parser.add_argument("--early-stopping-metric", default="val_unweighted_loss")
+    parser.add_argument("--early-stopping-threshold", type=float, default=0.0)
+    parser.add_argument("--early-stopping-patience", type=int, default=30)
+    parser.add_argument("--early-stopping-lr-patience", type=int, default=15)
+    parser.add_argument("--early-stopping-lr-factor", type=float, default=0.1)
+    parser.add_argument("--no-reduce-lr", action="store_true")
+    parser.add_argument("--batch-size", type=int, default=128)
+    parser.add_argument("--train-frac", type=float, default=0.9)
+    parser.add_argument("--no-monitor", action="store_true")
+    parser.add_argument("--monitor-only-val", action="store_true")
+    parser.set_defaults(mean_latent=True)
+    parser.add_argument(
+        "--mean-latent",
+        dest="mean_latent",
+        action="store_true",
+        help="Write posterior-mean latent scores (the default).",
+    )
+    parser.add_argument(
+        "--sample-latent",
+        dest="mean_latent",
+        action="store_false",
+        help="Write one stochastic latent sample; use only for diagnostics.",
+    )
     parser.add_argument("--only-active", action="store_true")
     return parser.parse_args()
 
