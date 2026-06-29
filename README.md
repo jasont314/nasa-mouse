@@ -11,6 +11,8 @@ pathway architecture files, ARCHS4 mouse resources, and downstream analysis.
   adaptation, Reactome GMT generation, and analysis utilities.
 - `src/glare/`: vendored GLARE source with local runtime fixes.
 - `src/expiMap_scarches/`: expiMap/scArches source and handoff notes.
+- `src/onto-vae/`: vendored OntoVAE source used for the parallel pathway-VAE
+  evaluation.
 - [`data/pathways/reactome_current_mouse_ensembl.gmt`](data/pathways/reactome_current_mouse_ensembl.gmt):
   generated Reactome mouse GMT file for the expiMap architecture mask.
 - `assets/archs4/mouse_gene_v2.5.h5`: local ARCHS4 mouse H5 resource; ignored
@@ -145,6 +147,29 @@ The expiMap/scArches handoff and architecture notes are documented in
 
 Current expiMap run summaries and preprocessing comparisons are documented in
 [`docs/expimap_results.md`](docs/expimap_results.md).
+
+The liver query-extension de novo-program analysis is documented in
+[`docs/expimap_de_novo_liver.md`](docs/expimap_de_novo_liver.md).
+
+The tutorial-style liver expiMap run with HVG filtering, a deeper reference
+model, and HSIC de novo query nodes is documented in
+[`docs/expimap_tutorial_style_liver.md`](docs/expimap_tutorial_style_liver.md).
+
+Accession-aware direct-model validation and the larger ARCHS4 reference
+seed-stability result are documented in
+[`docs/expimap_accession_validation.md`](docs/expimap_accession_validation.md)
+and [`docs/expimap_reference_seed_stability.md`](docs/expimap_reference_seed_stability.md).
+Condition-specific GC/FLT expiMap clustering is documented in
+[`docs/expimap_condition_clustering.md`](docs/expimap_condition_clustering.md).
+
+The skeletal-muscle pathway prior-work check is documented in
+[`docs/expimap_skeletal_muscle_prior_work.md`](docs/expimap_skeletal_muscle_prior_work.md).
+
+The OntoVAE parallel pipeline, outputs, limitations, and expiMap comparison are
+documented in [`docs/ontovae_pipeline.md`](docs/ontovae_pipeline.md).
+The focused OntoVAE follow-up report with stable pathways, decoder genes, and
+plot links is documented in
+[`docs/ontovae_followup_report.md`](docs/ontovae_followup_report.md).
 
 For NASA OSDR programmatic data access, see
 [`docs/osdr_api.md`](docs/osdr_api.md).
