@@ -52,12 +52,37 @@ DEFAULT_OUTPUT_DIR = "outputs/glare_multi_tissue_api/validation_stack"
 DEFAULT_PANGLAO_GMT = "src/expiMap_reproducibility/metadata/PanglaoDB_markers_27_Mar_2020_mouseEID.gmt"
 
 ARTIFACT_RE = re.compile(
-    r"olfactory|influenza|hiv|viral|vif|rhodopsin|"
+    r"influenza|hiv|viral|vif|rhodopsin|"
     r"^signaling by gpcr$|^gpcr downstream signaling$|"
     r"^gpcr ligand binding$|class a1|peptide ligand binding receptors|"
     r"defensins|^immune system$",
     re.IGNORECASE,
 )
+OLFACTORY_RE = re.compile(r"olfactory|odorant", re.IGNORECASE)
+
+
+def is_excluded_candidate(tissue: str, clean_term: str) -> bool:
+    """Filter broad labels from candidate-module selection.
+
+    Olfactory receptor biology can be relevant in liver, so liver olfactory
+    terms are kept but marked as high-caution instead of being dropped.
+    """
+    if OLFACTORY_RE.search(clean_term):
+        return tissue != "liver"
+    return bool(ARTIFACT_RE.search(clean_term))
+
+
+def interpretation_note(tissue: str, clean_term: str) -> str:
+    if OLFACTORY_RE.search(clean_term):
+        if tissue == "liver":
+            return (
+                "liver olfactory/chemosensory candidate; interpret with caution "
+                "because large receptor gene families can dominate enrichment"
+            )
+        return "excluded olfactory/chemosensory label outside liver"
+    if ARTIFACT_RE.search(clean_term):
+        return "excluded broad or artifact-prone label"
+    return ""
 
 
 @dataclass(frozen=True)
@@ -583,13 +608,14 @@ def class_term_candidates(root: Path, tissue: str, terms_per_class: int) -> pd.D
         for row in rec.itertuples(index=False):
             clean = str(row.clean_term)
             supported_terms.add(clean)
-            if not ARTIFACT_RE.search(clean):
+            if not is_excluded_candidate(tissue, clean):
                 intersection_rows.append(
                     {
                         "tissue": tissue,
                         "module_class": "intersection",
                         "term": row.term,
                         "clean_term": clean,
+                        "interpretation_note": interpretation_note(tissue, clean),
                         "study_count": int(row.study_count),
                         "best_dgea_fdr_bh": safe_float(row.best_dgea_fdr_bh),
                         "best_glare_fdr_bh": safe_float(row.best_glare_fdr_bh),
@@ -607,7 +633,7 @@ def class_term_candidates(root: Path, tissue: str, terms_per_class: int) -> pd.D
     sig["clean_term"] = sig["term"].map(clean_reactome_term)
     hidden_rows = []
     for clean, group in sig.groupby("clean_term"):
-        if clean in supported_terms or ARTIFACT_RE.search(clean):
+        if clean in supported_terms or is_excluded_candidate(tissue, clean):
             continue
         study_count = group["accession"].nunique()
         if study_count < min(3, max(2, sig["accession"].nunique())):
@@ -618,6 +644,7 @@ def class_term_candidates(root: Path, tissue: str, terms_per_class: int) -> pd.D
                 "module_class": "glare_only",
                 "term": group.sort_values("glare_best_fdr_bh").iloc[0]["term"],
                 "clean_term": clean,
+                "interpretation_note": interpretation_note(tissue, clean),
                 "study_count": int(study_count),
                 "best_dgea_fdr_bh": math.nan,
                 "best_glare_fdr_bh": float(group["glare_best_fdr_bh"].min()),
@@ -911,7 +938,8 @@ def summarize_validation(
         [
             "- Intersection modules have the strongest support because they recur in both per-study DGEA and GLARE cluster enrichment.",
             "- GLARE-only modules are candidate hidden modules only when module-score tests are consistent across studies and stronger than random gene sets.",
-            "- Broad/artifact-prone labels such as olfactory, generic GPCR, defensins, and viral pathway labels were excluded from candidate hidden-module selection.",
+            "- Generic GPCR, defensin, viral, and similarly broad labels are excluded from candidate hidden-module selection.",
+            "- Liver olfactory/chemosensory labels are retained as high-caution candidates because liver expression can be biologically relevant, but large receptor gene families can also dominate enrichment.",
             "- Sampled EAC is a scalability audit of the GLARE paper's average-linkage EAC idea, not a full dense 20k-gene co-association matrix.",
         ]
     )

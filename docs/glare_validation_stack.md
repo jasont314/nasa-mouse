@@ -133,6 +133,7 @@ This run is close to the GLARE validation stack, but not identical:
 - Metascape gene lists were exported, but Metascape reports still require submission or automated client execution.
 - No curated mouse spaceflight stress-network or transcription-factor validation database is included in this repo.
 - Panglao enrichment is only a marker proxy and should not be interpreted as definitive cell-type deconvolution.
+- Liver olfactory/chemosensory labels should not be automatically discarded. Olfactory receptor expression can be biologically relevant in liver, but these terms remain high-caution because large receptor gene families can dominate enrichment.
 - Since GMM often outperformed consensus by DEG-enriched cluster count, we should not claim that the consensus clustering is superior in the same way as the original GLARE paper.
 
 ## Bottom Line
