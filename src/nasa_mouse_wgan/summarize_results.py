@@ -11,6 +11,7 @@ from nasa_mouse_glare.io import require_import
 
 DEFAULT_SEARCH_ROOT = Path("outputs")
 DEFAULT_OUTPUT_DIR = Path("outputs/wgan_pipeline/summary")
+EXCLUDED_OUTPUT_ROOTS = {"wgan_pipeline"}
 
 
 def load_json(path: Path) -> dict:
@@ -32,11 +33,14 @@ def parse_output_dir(path: Path) -> dict:
 
 
 def discover_run_dirs(root: Path) -> list[Path]:
-    return sorted(
-        path.parent
-        for path in root.glob("wgan_*/**/training_summary.json")
-        if "wgan_pipeline" not in str(path)
-    )
+    run_dirs = []
+    for path in root.glob("wgan_*/**/training_summary.json"):
+        relative = path.relative_to(root)
+        output_root = relative.parts[0] if relative.parts else ""
+        if output_root in EXCLUDED_OUTPUT_ROOTS or output_root.startswith("wgan_smoke"):
+            continue
+        run_dirs.append(path.parent)
+    return sorted(run_dirs)
 
 
 def stable_count(meta, loo):

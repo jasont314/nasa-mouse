@@ -81,6 +81,21 @@ Per score set analysis:
 - PCA/UMAP plots of critic features
 - heatmap of top FLT/GC shifted critic features
 
+## Validation Checkpoints
+
+Smoke validation was run for liver with 256 genes, one epoch, and a small
+32-unit critic/generator to verify the workflow rather than call biology. Both
+paths used CUDA on the NVIDIA A100-SXM4-40GB:
+
+- direct OSDR training wrote scores, FLT-vs-GC tables, random-effects and LOO
+  summaries, PCA/UMAP plots, and a top-feature heatmap under
+  `outputs/wgan_smoke_liver/direct_osdr/`;
+- ARCHS4-pretrained training wrote pretrained-query scores, post-fine-tune
+  scores, the same analysis outputs, and both pretrained/final model files under
+  `outputs/wgan_smoke_liver/archs4_pretrain_osdr_finetune/`.
+
+Smoke outputs are excluded from the aggregate production summarizer by default.
+
 ## Limitations
 
 The WGAN paper is a generative expression simulator. It does not natively
