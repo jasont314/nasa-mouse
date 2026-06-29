@@ -125,6 +125,10 @@ def run(args) -> Path:
     if subgroup_path.exists():
         subgroup_rows = len(pd.read_csv(subgroup_path, sep="\t"))
         manifest_rows.append({"file": str(subgroup_path), "rows": subgroup_rows})
+    reverse_path = summary_dir / "diffusion_reverse_validation_refresh.tsv"
+    if reverse_path.exists():
+        reverse_rows = len(pd.read_csv(reverse_path, sep="\t"))
+        manifest_rows.append({"file": str(reverse_path), "rows": reverse_rows})
     manifest_path = summary_dir / "diffusion_summary_manifest.tsv"
     pd.DataFrame(manifest_rows).to_csv(manifest_path, sep="\t", index=False)
     print(json.dumps({"manifest": str(manifest_path), "outputs": manifest_rows}, indent=2))

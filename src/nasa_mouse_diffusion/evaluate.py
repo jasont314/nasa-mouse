@@ -109,5 +109,6 @@ def reverse_validation(real, fake, labels):
     synth_model = clf().fit(fake[train_idx], labels[train_idx])
     return {
         "real_train_real_test_accuracy": float(real_model.score(real[test_idx], labels[test_idx])),
+        "real_train_synthetic_test_accuracy": float(real_model.score(fake[test_idx], labels[test_idx])),
         "synthetic_train_real_test_accuracy": float(synth_model.score(real[test_idx], labels[test_idx])),
     }

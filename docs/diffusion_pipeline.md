@@ -144,6 +144,7 @@ Production summary tables are written under:
 - `outputs/diffusion_conditional_generation/summary/diffusion_analysis_summary.tsv`
 - `outputs/diffusion_conditional_generation/summary/diffusion_synthetic_examples_summary.tsv`
 - `outputs/diffusion_conditional_generation/summary/diffusion_subgroup_analysis_summary.tsv`
+- `outputs/diffusion_conditional_generation/summary/diffusion_reverse_validation_refresh.tsv`
 
 ## Current Deviations From The Paper
 

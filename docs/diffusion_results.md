@@ -15,6 +15,8 @@ Machine-readable summaries:
 - `outputs/diffusion_conditional_generation/summary/diffusion_training_summary.tsv`
 - `outputs/diffusion_conditional_generation/summary/diffusion_analysis_summary.tsv`
 - `outputs/diffusion_conditional_generation/summary/diffusion_synthetic_examples_summary.tsv`
+- `outputs/diffusion_conditional_generation/summary/diffusion_subgroup_analysis_summary.tsv`
+- `outputs/diffusion_conditional_generation/summary/diffusion_reverse_validation_refresh.tsv`
 
 ## Completed Tracks
 
@@ -81,12 +83,12 @@ attribution step.
 Generated-expression quality is currently weak. ARCHS4 pretraining helped some
 global metrics, but not enough to call the synthetic samples high fidelity.
 
-| track | gene mean corr | gene std corr | Frechet PCA | adversarial accuracy | synthetic-train real-test acc |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| OSDR-only | -0.017 | 0.493 | 1,135,921 | 0.800 | 0.480 |
-| ARCHS4 + fine-tune | 0.032 | 0.558 | 199,792 | 0.994 | 0.520 |
-| Frozen ARCHS4 projection | 0.135 | 0.456 | 138,038 | 0.985 | not run |
-| ARCHS4-only | 0.072 | 0.661 | 237,549 | 0.972 | not applicable |
+| track | gene mean corr | gene std corr | Frechet PCA | adversarial accuracy | synthetic-train real-test acc | real-train synthetic-test acc |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| OSDR-only | -0.017 | 0.493 | 1,135,921 | 0.800 | 0.492 | 0.498 |
+| ARCHS4 + fine-tune | 0.032 | 0.558 | 199,792 | 0.994 | 0.520 | 0.508 |
+| Frozen ARCHS4 projection | 0.135 | 0.456 | 138,038 | 0.985 | not run | not run |
+| ARCHS4-only | 0.072 | 0.661 | 237,549 | 0.972 | not applicable | not applicable |
 
 The synthetic examples had substantial clipping during inverse transformation
 to valid CPM/log1p-CPM space. OSDR-only examples clipped about 91% of exported
