@@ -4,6 +4,9 @@ This document tracks the conditional WGAN-GP workflow for NASA mouse OSDR bulk
 RNA-seq. The code lives in `src/nasa_mouse_wgan/`, separate from
 `src/nasa_mouse_glare/`.
 
+Current production results and cross-method interpretation are summarized in
+[WGAN Results Summary](wgan_results.md).
+
 ## Paper Basis
 
 Reference:
