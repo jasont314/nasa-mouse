@@ -57,9 +57,13 @@ def write_feature_scores(path: Path, obs, critic_score, features) -> Path:
         if column in obs
     ]
     frame = obs[metadata_columns].copy()
-    frame.insert(len(frame.columns), "CRITIC_SCORE", critic_score)
-    for idx in range(features.shape[1]):
-        frame[f"WGAN_FEATURE_{idx:03d}"] = features[:, idx]
+    score_frame = pd.DataFrame({"CRITIC_SCORE": critic_score}, index=frame.index)
+    feature_frame = pd.DataFrame(
+        features,
+        columns=[f"WGAN_FEATURE_{idx:03d}" for idx in range(features.shape[1])],
+        index=frame.index,
+    )
+    frame = pd.concat([frame, score_frame, feature_frame], axis=1)
     path.parent.mkdir(parents=True, exist_ok=True)
     frame.to_csv(path, sep="\t", index=False)
     return path
@@ -270,7 +274,18 @@ def run(args) -> Path:
     summary_path = output_dir / "training_summary.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     write_readme(output_dir, summary)
-    print(json.dumps(summary, indent=2))
+    printed_summary = {
+        "method": summary["method"],
+        "mode": summary["mode"],
+        "output_dir": summary["output_dir"],
+        "torch": summary["torch"],
+        "counts": summary["counts"],
+        "training_design": summary["training_design"],
+        "quality": summary["quality"],
+        "pretrained_query_quality": summary["pretrained_query_quality"],
+        "outputs": summary["outputs"],
+    }
+    print(json.dumps(printed_summary, indent=2))
     return summary_path
 
 
