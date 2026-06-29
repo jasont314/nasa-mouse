@@ -7,6 +7,9 @@ Primary machine-readable outputs:
 - `outputs/wgan_pipeline/summary/wgan_run_summary.tsv`
 - `outputs/wgan_pipeline/summary/wgan_top_features.tsv`
 
+Pan-tissue conditional-generation models and synthetic FLT/GC examples are
+documented in [WGAN Conditional Generation](wgan_conditional_generation.md).
+
 Each WGAN run writes PCA, UMAP, accession-colored plots, and a top-feature heatmap under its `analysis/` directory. ARCHS4-pretrained runs also write the same plots for the frozen pretrained OSDR projection under `pretrained_query_analysis/`.
 
 ## Interpretation Rules

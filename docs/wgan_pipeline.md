@@ -41,6 +41,9 @@ Training modes:
 - `archs4_pretrain_osdr_finetune`: pretrain on tissue-matched ARCHS4 mouse
   reference samples, score/query OSDR samples through the pretrained critic,
   then fine-tune on OSDR.
+- `wgan_conditional_generation`: pan-tissue conditional generation model
+  trained as OSDR-only, ARCHS4-pretrained plus OSDR-fine-tuned, and ARCHS4-only
+  tracks. See [WGAN Conditional Generation](wgan_conditional_generation.md).
 
 Inputs:
 
@@ -62,6 +65,10 @@ Categorical covariates:
 - OSDR condition: `condition_inferred`
 - OSDR accession: `id.accession`
 - ARCHS4 reference source: `series_id`/`archs4_condition`
+
+For the pan-tissue conditional-generation runs, the covariates are expanded to
+condition, tissue, material type, muscle group, accession/study, sex, assay,
+platform, and data source.
 
 ## Planned Outputs
 
