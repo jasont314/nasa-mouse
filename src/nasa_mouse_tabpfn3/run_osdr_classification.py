@@ -24,17 +24,23 @@ from .plotting import write_plots
 def write_inventory(output_root: Path, metadata: Path, tissues: tuple[str, ...]) -> dict[str, str]:
     summary_dir = output_root / "summary"
     summary_dir.mkdir(parents=True, exist_ok=True)
-    tissue_counts, accession_counts, muscle_counts = inventory_tables(
-        metadata, tissues=tissues
-    )
+    tables = inventory_tables(metadata, tissues=tissues)
     paths = {
         "tissue_inventory": summary_dir / "osdr_tissue_inventory.tsv",
         "accession_inventory": summary_dir / "osdr_tissue_accession_inventory.tsv",
+        "design_inventory": summary_dir / "osdr_tissue_design_inventory.tsv",
         "muscle_split_inventory": summary_dir / "osdr_muscle_split_inventory.tsv",
+        "muscle_design_inventory": summary_dir / "osdr_muscle_design_inventory.tsv",
+        "sample_inventory": summary_dir / "osdr_sample_inventory.tsv",
     }
-    tissue_counts.to_csv(paths["tissue_inventory"], sep="\t", index=False)
-    accession_counts.to_csv(paths["accession_inventory"], sep="\t", index=False)
-    muscle_counts.to_csv(paths["muscle_split_inventory"], sep="\t", index=False)
+    tables["tissue"].to_csv(paths["tissue_inventory"], sep="\t", index=False)
+    tables["accession"].to_csv(paths["accession_inventory"], sep="\t", index=False)
+    tables["design"].to_csv(paths["design_inventory"], sep="\t", index=False)
+    tables["muscle_split"].to_csv(paths["muscle_split_inventory"], sep="\t", index=False)
+    tables["muscle_design"].to_csv(
+        paths["muscle_design_inventory"], sep="\t", index=False
+    )
+    tables["sample"].to_csv(paths["sample_inventory"], sep="\t", index=False)
     return {key: str(value) for key, value in paths.items()}
 
 
@@ -52,6 +58,8 @@ def write_output_readme(output_root: Path, *, backend: str) -> Path:
         "Summary tables are under summary/. Per-dataset folders contain",
         "sample metadata, fold-level predictions/metrics, feature importance,",
         "and plots when model fitting completes.",
+        "The summary inventory includes tissue, accession, material type, sex,",
+        "platform, assay, source, and per-sample covariates from the OSDR API.",
         "",
         "If summary/tabpfn3_backend_status.json reports a TabPFN license",
         "error, accept the Prior Labs license, set TABPFN_TOKEN, and rerun.",

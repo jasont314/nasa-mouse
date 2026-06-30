@@ -153,7 +153,15 @@ Expected summary outputs:
 - `outputs/tabpfn3_osdr/summary/tabpfn3_run_manifest.tsv`
 - `outputs/tabpfn3_osdr/summary/osdr_tissue_inventory.tsv`
 - `outputs/tabpfn3_osdr/summary/osdr_tissue_accession_inventory.tsv`
+- `outputs/tabpfn3_osdr/summary/osdr_tissue_design_inventory.tsv`
 - `outputs/tabpfn3_osdr/summary/osdr_muscle_split_inventory.tsv`
+- `outputs/tabpfn3_osdr/summary/osdr_muscle_design_inventory.tsv`
+- `outputs/tabpfn3_osdr/summary/osdr_sample_inventory.tsv`
+
+The design inventories include condition counts by tissue, accession, material
+type, sex, platform, assay, data source accession, and project type where those
+fields are present in the NASA API metadata. The sample inventory preserves one
+row per selected profile with the same covariates.
 
 ## Validation Run
 

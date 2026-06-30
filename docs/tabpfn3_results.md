@@ -17,6 +17,10 @@ Observed backend status:
 - production output root: `outputs/tabpfn3_osdr`
 - status file: `outputs/tabpfn3_osdr/summary/tabpfn3_backend_status.json`
 - run manifest: `outputs/tabpfn3_osdr/summary/tabpfn3_run_manifest.tsv`
+- design inventory:
+  `outputs/tabpfn3_osdr/summary/osdr_tissue_design_inventory.tsv`
+- sample inventory:
+  `outputs/tabpfn3_osdr/summary/osdr_sample_inventory.tsv`
 
 The manifest contains blocked rows for every planned tissue/split and both
 feature modes, rather than substituting a different model.
@@ -80,6 +84,7 @@ completes.
 |---|---|---|
 | new source directory under `src`, not under GLARE | `src/nasa_mouse_tabpfn3/` | complete |
 | OSDR-only, no ARCHS4/raw integrated H5 | loader reads `data/osdr_api` metadata/count CSVs | complete |
+| tissue/accession/material/sex/platform/source inventory | `osdr_tissue_design_inventory.tsv`, `osdr_sample_inventory.tsv` | complete |
 | per-tissue and muscle-split plan | `tabpfn3_planned_datasets.tsv`; inventory tables above | complete |
 | all-expressed and HVG feature modes | CLI defaults: `all_expressed hvg`; fold-local selection code | implemented, not production-run |
 | stratified/grouped/LOO CV | runner supports all three CV schemes | implemented, not production-run |

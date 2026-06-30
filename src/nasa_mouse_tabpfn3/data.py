@@ -16,6 +16,20 @@ from nasa_mouse_glare.prepare_expimap_osdr_tissue import (
 from .paths import CONDITIONS, DEFAULT_METADATA, DEFAULT_OSDR_API_DIR, MUSCLE_GROUPS
 
 
+def _clean_covariate(value: str, default: str) -> str:
+    text = str(value).strip()
+    if not text or text.lower() in {"nan", "none", "null"}:
+        return default
+    return text
+
+
+def _metadata_series(metadata, column: str, default: str):
+    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    if column not in metadata:
+        return pd.Series(default, index=metadata.index, dtype="object")
+    return metadata[column]
+
+
 @dataclass
 class OsdrExpressionDataset:
     """Expression matrix and metadata for one tissue or tissue subgroup."""
@@ -82,7 +96,26 @@ def load_metadata(path: str | Path = DEFAULT_METADATA):
     metadata["tabpfn_tissue"] = metadata["tissue_final"].map(safe_name)
     metadata["tabpfn_material_type"] = metadata[
         "study.characteristics.material type"
-    ].astype(str)
+    ].map(lambda value: _clean_covariate(value, "unknown_material_type"))
+    metadata["tabpfn_sex"] = _metadata_series(
+        metadata, "study.characteristics.sex", "unknown_sex"
+    ).map(lambda value: _clean_covariate(value, "unknown_sex"))
+    metadata["tabpfn_platform"] = _metadata_series(
+        metadata, "id.assay name", "unknown_platform"
+    ).map(lambda value: _clean_covariate(value, "unknown_platform"))
+    metadata["tabpfn_assay"] = _metadata_series(
+        metadata,
+        "investigation.study assays.study assay technology type",
+        "unknown_assay",
+    ).map(lambda value: _clean_covariate(value, "unknown_assay"))
+    metadata["tabpfn_data_source"] = _metadata_series(
+        metadata,
+        "investigation.study.comment.data source accession",
+        "unknown_data_source",
+    ).map(lambda value: _clean_covariate(value, "unknown_data_source"))
+    metadata["tabpfn_project_type"] = _metadata_series(
+        metadata, "investigation.study.comment.project type", "unknown_project_type"
+    ).map(lambda value: _clean_covariate(value, "unknown_project_type"))
     metadata["tabpfn_muscle_group"] = [
         infer_muscle_group(material, tissue)
         for material, tissue in zip(
@@ -208,45 +241,117 @@ def planned_datasets(
     return plan
 
 
+def _condition_count_table(metadata, group_cols: list[str]):
+    grouped = metadata.groupby(group_cols + ["tabpfn_condition"], dropna=False).size()
+    table = grouped.unstack(fill_value=0)
+    for condition in CONDITIONS:
+        if condition not in table:
+            table[condition] = 0
+    table["total"] = table[list(CONDITIONS)].sum(axis=1)
+    return table.reset_index()
+
+
 def inventory_tables(
     metadata_path: str | Path = DEFAULT_METADATA,
     *,
     tissues: tuple[str, ...] | None = None,
-):
+) -> dict[str, object]:
     metadata = load_metadata(metadata_path)
     if tissues is not None:
         wanted = {safe_name(tissue) for tissue in tissues}
         metadata = metadata.loc[metadata["tabpfn_tissue"].isin(wanted)].copy()
 
-    tissue_cols = ["tabpfn_tissue", "tabpfn_condition"]
-    tissue_counts = metadata.groupby(tissue_cols, dropna=False).size().unstack(fill_value=0)
-    for condition in CONDITIONS:
-        if condition not in tissue_counts:
-            tissue_counts[condition] = 0
-    tissue_counts["total"] = tissue_counts[list(CONDITIONS)].sum(axis=1)
-    tissue_counts = tissue_counts.reset_index().rename(columns={"tabpfn_tissue": "tissue"})
-
-    accession_cols = ["tabpfn_tissue", "id.accession", "tabpfn_condition"]
-    accession_counts = (
-        metadata.groupby(accession_cols, dropna=False).size().unstack(fill_value=0)
-    )
-    for condition in CONDITIONS:
-        if condition not in accession_counts:
-            accession_counts[condition] = 0
-    accession_counts["total"] = accession_counts[list(CONDITIONS)].sum(axis=1)
-    accession_counts = accession_counts.reset_index().rename(
+    tissue_counts = _condition_count_table(metadata, ["tabpfn_tissue"]).rename(
         columns={"tabpfn_tissue": "tissue"}
     )
 
+    accession_counts = _condition_count_table(
+        metadata, ["tabpfn_tissue", "id.accession"]
+    ).rename(columns={"tabpfn_tissue": "tissue"})
+
+    design_counts = _condition_count_table(
+        metadata,
+        [
+            "tabpfn_tissue",
+            "id.accession",
+            "tabpfn_material_type",
+            "tabpfn_sex",
+            "tabpfn_platform",
+            "tabpfn_assay",
+            "tabpfn_data_source",
+            "tabpfn_project_type",
+        ],
+    ).rename(
+        columns={
+            "tabpfn_tissue": "tissue",
+            "tabpfn_material_type": "material_type",
+            "tabpfn_sex": "sex",
+            "tabpfn_platform": "platform",
+            "tabpfn_assay": "assay",
+            "tabpfn_data_source": "data_source",
+            "tabpfn_project_type": "project_type",
+        }
+    )
+
     muscle = metadata.loc[metadata["tabpfn_tissue"].eq("skeletal_muscle")].copy()
-    muscle_cols = ["tabpfn_muscle_group", "tabpfn_condition"]
-    muscle_counts = muscle.groupby(muscle_cols, dropna=False).size().unstack(fill_value=0)
-    for condition in CONDITIONS:
-        if condition not in muscle_counts:
-            muscle_counts[condition] = 0
-    muscle_counts["total"] = muscle_counts[list(CONDITIONS)].sum(axis=1)
-    muscle_counts = muscle_counts.reset_index().rename(
+    muscle_counts = _condition_count_table(muscle, ["tabpfn_muscle_group"]).rename(
         columns={"tabpfn_muscle_group": "muscle_group"}
     )
-    return tissue_counts, accession_counts, muscle_counts
-
+    muscle_design_counts = _condition_count_table(
+        muscle,
+        [
+            "tabpfn_muscle_group",
+            "id.accession",
+            "tabpfn_material_type",
+            "tabpfn_sex",
+            "tabpfn_platform",
+            "tabpfn_assay",
+            "tabpfn_data_source",
+        ],
+    ).rename(
+        columns={
+            "tabpfn_muscle_group": "muscle_group",
+            "tabpfn_material_type": "material_type",
+            "tabpfn_sex": "sex",
+            "tabpfn_platform": "platform",
+            "tabpfn_assay": "assay",
+            "tabpfn_data_source": "data_source",
+        }
+    )
+    sample_inventory = metadata[
+        [
+            "profile_id",
+            "id.accession",
+            "id.sample name",
+            "tabpfn_tissue",
+            "tabpfn_condition",
+            "tabpfn_material_type",
+            "tabpfn_muscle_group",
+            "tabpfn_sex",
+            "tabpfn_platform",
+            "tabpfn_assay",
+            "tabpfn_data_source",
+            "tabpfn_project_type",
+            "file.filename",
+        ]
+    ].rename(
+        columns={
+            "tabpfn_tissue": "tissue",
+            "tabpfn_condition": "condition",
+            "tabpfn_material_type": "material_type",
+            "tabpfn_muscle_group": "muscle_group",
+            "tabpfn_sex": "sex",
+            "tabpfn_platform": "platform",
+            "tabpfn_assay": "assay",
+            "tabpfn_data_source": "data_source",
+            "tabpfn_project_type": "project_type",
+        }
+    )
+    return {
+        "tissue": tissue_counts,
+        "accession": accession_counts,
+        "design": design_counts,
+        "muscle_split": muscle_counts,
+        "muscle_design": muscle_design_counts,
+        "sample": sample_inventory,
+    }
