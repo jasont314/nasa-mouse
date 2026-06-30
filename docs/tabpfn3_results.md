@@ -9,6 +9,7 @@ a `TABPFN_TOKEN` in this non-interactive environment.
 Observed backend status:
 
 - package installed: `tabpfn==8.0.8`
+- requested model version: `v3`
 - selected device: `cuda`
 - local GPU: A100 detected
 - local token/cache: no `TABPFN_TOKEN`; a TabPFN cache directory exists after
@@ -19,6 +20,11 @@ Observed backend status:
 
 The manifest contains blocked rows for every planned tissue/split and both
 feature modes, rather than substituting a different model.
+
+The official package was also inspected locally. V3 checkpoints resolve to the
+gated `Prior-Labs/tabpfn_3` model source. The older v2 model has a direct
+download route, but using v2 would not satisfy the TabPFN3 task, so it was not
+used for production claims.
 
 ## OSDR API Inventory
 
@@ -68,3 +74,20 @@ To produce real TabPFN3 metrics:
 No significant TabPFN3 biological signals can be claimed until that run
 completes.
 
+## Completion Audit
+
+| requested item | current evidence | status |
+|---|---|---|
+| new source directory under `src`, not under GLARE | `src/nasa_mouse_tabpfn3/` | complete |
+| OSDR-only, no ARCHS4/raw integrated H5 | loader reads `data/osdr_api` metadata/count CSVs | complete |
+| per-tissue and muscle-split plan | `tabpfn3_planned_datasets.tsv`; inventory tables above | complete |
+| all-expressed and HVG feature modes | CLI defaults: `all_expressed hvg`; fold-local selection code | implemented, not production-run |
+| stratified/grouped/LOO CV | runner supports all three CV schemes | implemented, not production-run |
+| TabPFN3 production metrics | blocked by missing `TABPFN_TOKEN`/authorized V3 weights | incomplete |
+| feature importance/top genes | permutation importance implemented; Ensembl-only smoke checked | implemented, not production-run |
+| plots | smoke run wrote ROC, PR, confusion, and importance PNGs | implemented, not production-run |
+| biology/prior-literature comparison | requires real TabPFN3 feature outputs | incomplete |
+
+The remaining gap is not a data-preparation or code-path issue: the official
+TabPFN3 weights cannot be loaded in this session without Prior Labs license
+acceptance and a token.

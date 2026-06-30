@@ -12,6 +12,7 @@ class BackendStatus:
     backend: str
     available: bool
     device: str
+    model_version: str
     message: str
 
 
@@ -40,8 +41,10 @@ def make_classifier(
     backend = backend.strip().lower()
     if backend == "tabpfn":
         from tabpfn import TabPFNClassifier
+        from tabpfn.constants import ModelVersion
 
-        return TabPFNClassifier(
+        return TabPFNClassifier.create_default_for_version(
+            ModelVersion.V3,
             n_estimators=int(n_estimators),
             device=detect_device(device),
             random_state=random_state,
@@ -99,12 +102,14 @@ def backend_status(
             backend=backend,
             available=False,
             device=selected_device,
+            model_version="v3" if backend == "tabpfn" else "",
             message=f"{type(exc).__name__}: {exc}{token_hint}",
         )
     return BackendStatus(
         backend=backend,
         available=True,
         device=selected_device,
+        model_version="v3" if backend == "tabpfn" else "",
         message="backend smoke fit succeeded",
     )
 
@@ -118,4 +123,3 @@ def local_model_cache_status() -> str:
     if not existing:
         return "no local TabPFN/Hugging Face cache detected"
     return "; ".join(existing)
-

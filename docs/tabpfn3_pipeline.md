@@ -19,6 +19,10 @@ Practical constraints for this repository:
 - TabPFN3 is discriminative, not generative. It is appropriate here for
   predicting `flight` vs `ground_control` and ranking features, not for
   synthesizing RNA-seq samples.
+- The official Python input format is standard tabular supervised learning:
+  numeric `X` with shape `n_samples x n_features` and a target vector `y`.
+  The classifier exposes scikit-learn-like `fit`, `predict`, and
+  `predict_proba` methods.
 - TabPFN3 does not pretrain on ARCHS4 in this pipeline. The user request for
   this task was OSDR-only.
 - The package can run on CUDA. The local A100 was detected and the backend
@@ -26,6 +30,25 @@ Practical constraints for this repository:
 - Local inference requires Prior Labs license acceptance and model-weight
   access. In this non-interactive environment the official package stops unless
   `TABPFN_TOKEN` is set or weights are already cached.
+- The installed package defaults to model version `v3`. The pipeline now
+  requests `ModelVersion.V3` explicitly through
+  `TabPFNClassifier.create_default_for_version`.
+- Installed package inspection shows V3 checkpoints are loaded from the gated
+  `Prior-Labs/tabpfn_3` repository, with default checkpoint
+  `tabpfn-v3-classifier-v3_default.ckpt`.
+- Exact V3 pretraining limits are stored in the loaded model inference config,
+  so they cannot be confirmed locally until authorized weights are available.
+  The installed classifier documentation does state that earlier v2.5 defaults
+  support 50,000 rows and 2,000 columns, with 500-feature subsampling per
+  estimator above 500 columns. For RNA-seq, this means feature selection and a
+  sufficiently large estimator ensemble are required for interpretable coverage.
+- Probability output is available via `predict_proba`; the package also exposes
+  softmax temperature, probability balancing, and tuning options. This pipeline
+  records Brier score as a calibration-sensitive metric but does not fit a
+  separate calibration model.
+- No TabPFN3-specific gene attribution method was identified as validated for
+  high-dimensional RNA-seq. The implemented feature importance is held-out
+  permutation importance, restricted to top fold-local candidates for runtime.
 
 Sources:
 
@@ -96,6 +119,16 @@ For each tissue or split group:
 The production backend is `tabpfn`. A `sklearn_logreg` backend exists only for
 smoke validation of data loading, folds, plotting, and output writing.
 
+Leakage controls:
+
+- CPM/log transform is unsupervised and computed from each sample's own library
+  size.
+- Expression prevalence filtering, HVG/variance selection, and univariate
+  candidate ranking are fit only on each training fold.
+- Held-out fold samples are never used to select genes or tune feature ranking.
+- Accession-aware grouped CV and leave-one-accession-out are written separately
+  from random stratified CV so study-structure leakage can be seen directly.
+
 ## Production Command
 
 After accepting the Prior Labs license and exporting a token:
@@ -144,4 +177,3 @@ PYTHONPATH=src python -m nasa_mouse_tabpfn3.run_osdr_classification \
 That smoke run is not a TabPFN3 biological result. It validates that the OSDR
 API data path, fold-local feature selection, metrics, feature importance, and
 plots work.
-

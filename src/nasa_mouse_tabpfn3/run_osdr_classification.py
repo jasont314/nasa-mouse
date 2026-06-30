@@ -155,6 +155,7 @@ def run(args) -> int:
         "backend": args.backend,
         "available": status.available,
         "device": status.device,
+        "model_version": status.model_version,
         "message": status.message,
         "model_cache": local_model_cache_status(),
         "metadata": str(args.metadata),
@@ -172,6 +173,7 @@ def run(args) -> int:
                     "status": "inventory_only",
                     "backend": args.backend,
                     "device": status.device,
+                    "model_version": status.model_version,
                     "message": "wrote OSDR API inventory and planned datasets",
                 }
             ],
@@ -188,6 +190,7 @@ def run(args) -> int:
                         "status": "blocked_backend_unavailable",
                         "backend": args.backend,
                         "device": status.device,
+                        "model_version": status.model_version,
                         "message": status.message.replace("\n", " "),
                     }
                 )
@@ -224,6 +227,7 @@ def run(args) -> int:
                     "status": "skipped_data_error",
                     "backend": args.backend,
                     "device": status.device,
+                    "model_version": status.model_version,
                     "message": f"{type(exc).__name__}: {exc}",
                 }
             )
@@ -257,6 +261,7 @@ def run(args) -> int:
                         "status": "failed",
                         "backend": args.backend,
                         "device": status.device,
+                        "model_version": status.model_version,
                         "message": f"{type(exc).__name__}: {exc}",
                     }
                 )
@@ -282,6 +287,7 @@ def run(args) -> int:
                     "status": "completed",
                     "backend": args.backend,
                     "device": status.device,
+                    "model_version": status.model_version,
                     "message": (
                         f"samples={dataset.n_samples}; genes={dataset.n_genes}; "
                         f"fold_rows={len(metrics)}"
@@ -344,4 +350,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
