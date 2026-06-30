@@ -28,8 +28,8 @@ Practical constraints for this repository:
 - The package can run on CUDA. The local A100 was detected and the backend
   check selected `cuda`.
 - Local inference requires Prior Labs license acceptance and model-weight
-  access. In this non-interactive environment the official package stops unless
-  `TABPFN_TOKEN` is set or weights are already cached.
+  access. The production run used `TABPFN_TOKEN` from the local ignored `.env`
+  file and ran on CUDA.
 - The installed package defaults to model version `v3`. The pipeline now
   requests `ModelVersion.V3` explicitly through
   `TabPFNClassifier.create_default_for_version`.
@@ -131,27 +131,34 @@ Leakage controls:
 
 ## Production Command
 
-After accepting the Prior Labs license and exporting a token:
+The completed OSDR-only production run used:
 
 ```bash
-export TABPFN_TOKEN="..."
 PYTHONPATH=src python -m nasa_mouse_tabpfn3.run_osdr_classification \
   --output-root outputs/tabpfn3_osdr \
   --backend tabpfn \
   --device cuda \
   --feature-modes all_expressed hvg \
   --cv-schemes random grouped loo_accession \
-  --importance-candidates 100 \
-  --permutation-repeats 3
+  --hvg-top-n 500 \
+  --max-features 500 \
+  --importance-candidates 5 \
+  --permutation-repeats 1 \
+  --n-estimators 3
 ```
 
 The runner also reads `TABPFN_TOKEN` from a local `.env` file when the variable
 is not already exported. The `.env` file is ignored by git and should not be
 committed.
 
+This run intentionally capped each fold at 500 selected genes for practical
+runtime. With `--hvg-top-n 500` and `--max-features 500`, the `all_expressed`
+and `hvg` tracks collapse to the same fold-local top-variance feature set.
+
 Expected summary outputs:
 
 - `outputs/tabpfn3_osdr/summary/tabpfn3_metrics.tsv`
+- `outputs/tabpfn3_osdr/summary/tabpfn3_aggregate_metrics.tsv`
 - `outputs/tabpfn3_osdr/summary/tabpfn3_predictions.tsv`
 - `outputs/tabpfn3_osdr/summary/tabpfn3_feature_importance.tsv`
 - `outputs/tabpfn3_osdr/summary/tabpfn3_run_manifest.tsv`
@@ -167,10 +174,13 @@ type, sex, platform, assay, data source accession, and project type where those
 fields are present in the NASA API metadata. The sample inventory preserves one
 row per selected profile with the same covariates.
 
-## Validation Run
+## Validation Runs
 
-Because `TABPFN_TOKEN` is not available locally, the actual TabPFN3 backend is
-blocked before fitting. The code was smoke-tested with:
+The official TabPFN3 backend was smoke-tested locally on CUDA after loading the
+token from `.env`; the smoke fit completed and returned probability outputs.
+
+The code also supports a non-biological `sklearn_logreg` backend for mechanics
+testing:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_tabpfn3.run_osdr_classification \
@@ -189,3 +199,5 @@ PYTHONPATH=src python -m nasa_mouse_tabpfn3.run_osdr_classification \
 That smoke run is not a TabPFN3 biological result. It validates that the OSDR
 API data path, fold-local feature selection, metrics, feature importance, and
 plots work.
+
+Production results are documented in `docs/tabpfn3_results.md`.

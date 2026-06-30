@@ -15,7 +15,7 @@ from .data import (
     log1p_cpm,
     planned_datasets,
 )
-from .evaluation import run_cv
+from .evaluation import metric_dict, run_cv
 from .models import backend_status, detect_device, local_model_cache_status
 from .paths import DEFAULT_METADATA, DEFAULT_OSDR_API_DIR, DEFAULT_OUTPUT_ROOT, MUSCLE_GROUPS, TARGET_TISSUES
 from .plotting import write_plots
@@ -58,6 +58,8 @@ def write_output_readme(output_root: Path, *, backend: str) -> Path:
         "Summary tables are under summary/. Per-dataset folders contain",
         "sample metadata, fold-level predictions/metrics, feature importance,",
         "and plots when model fitting completes.",
+        "The aggregate metrics table summarizes each held-out prediction set",
+        "by dataset, feature mode, and CV scheme.",
         "The summary inventory includes tissue, accession, material type, sex,",
         "platform, assay, source, and per-sample covariates from the OSDR API.",
         "",
@@ -81,7 +83,13 @@ def append_manifest(output_root: Path, rows: list[dict]) -> Path:
     return path
 
 
-def write_summary_tables(output_root: Path, metrics, predictions, importance) -> dict[str, str]:
+def write_summary_tables(
+    output_root: Path,
+    metrics,
+    predictions,
+    importance,
+    aggregate_metrics,
+) -> dict[str, str]:
     summary_dir = output_root / "summary"
     summary_dir.mkdir(parents=True, exist_ok=True)
     paths = {}
@@ -93,6 +101,10 @@ def write_summary_tables(output_root: Path, metrics, predictions, importance) ->
         path = summary_dir / "tabpfn3_predictions.tsv"
         predictions.to_csv(path, sep="\t", index=False)
         paths["predictions"] = str(path)
+    if aggregate_metrics is not None and not aggregate_metrics.empty:
+        path = summary_dir / "tabpfn3_aggregate_metrics.tsv"
+        aggregate_metrics.to_csv(path, sep="\t", index=False)
+        paths["aggregate_metrics"] = str(path)
     if importance is not None and not importance.empty:
         path = summary_dir / "tabpfn3_feature_importance.tsv"
         importance.to_csv(path, sep="\t", index=False)
@@ -123,6 +135,56 @@ def aggregate_importance(importance):
             ascending=[True, True, True, False],
         )
     )
+
+
+def aggregate_predictions(metrics, predictions):
+    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    if predictions is None or predictions.empty:
+        return pd.DataFrame()
+
+    metric_keys = ["dataset_id", "feature_mode", "cv_scheme"]
+    metadata = pd.DataFrame()
+    if metrics is not None and not metrics.empty:
+        metadata = metrics[
+            ["dataset_id", "tissue", "split_group", "feature_mode", "cv_scheme"]
+        ].drop_duplicates(metric_keys)
+
+    rows = []
+    for keys, group in predictions.groupby(metric_keys, sort=True):
+        dataset_id, feature_mode, cv_scheme = keys
+        y_true = group["y_true"].astype("int64").to_numpy()
+        y_prob = group["p_flight"].astype("float64").to_numpy()
+        row = {
+            "dataset_id": dataset_id,
+            "feature_mode": feature_mode,
+            "cv_scheme": cv_scheme,
+            **metric_dict(y_true, y_prob),
+        }
+        if not metadata.empty:
+            match = metadata[
+                (metadata["dataset_id"] == dataset_id)
+                & (metadata["feature_mode"] == feature_mode)
+                & (metadata["cv_scheme"] == cv_scheme)
+            ]
+            if not match.empty:
+                row["tissue"] = match.iloc[0]["tissue"]
+                row["split_group"] = match.iloc[0]["split_group"]
+        rows.append(row)
+
+    frame = pd.DataFrame(rows)
+    front = [
+        "dataset_id",
+        "tissue",
+        "split_group",
+        "feature_mode",
+        "cv_scheme",
+        "n_test",
+        "n_flight",
+        "n_ground_control",
+    ]
+    ordered = [column for column in front if column in frame.columns]
+    ordered.extend([column for column in frame.columns if column not in ordered])
+    return frame[ordered].sort_values(["dataset_id", "feature_mode", "cv_scheme"])
 
 
 def run(args) -> int:
@@ -312,7 +374,14 @@ def run(args) -> int:
         if all_importance
         else pd.DataFrame()
     )
-    write_summary_tables(output_root, metrics_frame, predictions_frame, importance_frame)
+    aggregate_metrics = aggregate_predictions(metrics_frame, predictions_frame)
+    write_summary_tables(
+        output_root,
+        metrics_frame,
+        predictions_frame,
+        importance_frame,
+        aggregate_metrics,
+    )
     append_manifest(output_root, manifest_rows)
     return 0
 
