@@ -16,6 +16,28 @@ class BackendStatus:
     message: str
 
 
+def load_dotenv_token(path: str | Path = ".env") -> bool:
+    """Load TABPFN_TOKEN from a local .env file if the process lacks it."""
+
+    if os.environ.get("TABPFN_TOKEN"):
+        return True
+    path = Path(path)
+    if not path.exists():
+        return False
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, value = stripped.split("=", 1)
+        if key.strip() != "TABPFN_TOKEN":
+            continue
+        token = value.strip().strip("\"'")
+        if token:
+            os.environ["TABPFN_TOKEN"] = token
+            return True
+    return False
+
+
 def detect_device(requested: str = "auto") -> str:
     torch = None
     try:
@@ -40,6 +62,7 @@ def make_classifier(
 ):
     backend = backend.strip().lower()
     if backend == "tabpfn":
+        load_dotenv_token()
         from tabpfn import TabPFNClassifier
         from tabpfn.constants import ModelVersion
 

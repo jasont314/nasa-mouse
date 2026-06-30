@@ -145,6 +145,10 @@ PYTHONPATH=src python -m nasa_mouse_tabpfn3.run_osdr_classification \
   --permutation-repeats 3
 ```
 
+The runner also reads `TABPFN_TOKEN` from a local `.env` file when the variable
+is not already exported. The `.env` file is ignored by git and should not be
+committed.
+
 Expected summary outputs:
 
 - `outputs/tabpfn3_osdr/summary/tabpfn3_metrics.tsv`
