@@ -100,6 +100,12 @@ def load_metadata(path: str | Path = DEFAULT_METADATA):
     metadata["tabpfn_sex"] = _metadata_series(
         metadata, "study.characteristics.sex", "unknown_sex"
     ).map(lambda value: _clean_covariate(value, "unknown_sex"))
+    metadata["tabpfn_strain"] = _metadata_series(
+        metadata, "study.characteristics.strain", "unknown_strain"
+    ).map(lambda value: _clean_covariate(value, "unknown_strain"))
+    metadata["tabpfn_genotype"] = _metadata_series(
+        metadata, "study.characteristics.genotype", "unknown_genotype"
+    ).map(lambda value: _clean_covariate(value, "unknown_genotype"))
     metadata["tabpfn_platform"] = _metadata_series(
         metadata, "id.assay name", "unknown_platform"
     ).map(lambda value: _clean_covariate(value, "unknown_platform"))
@@ -113,6 +119,11 @@ def load_metadata(path: str | Path = DEFAULT_METADATA):
         "investigation.study.comment.data source accession",
         "unknown_data_source",
     ).map(lambda value: _clean_covariate(value, "unknown_data_source"))
+    metadata["tabpfn_project_identifier"] = _metadata_series(
+        metadata,
+        "investigation.study.comment.project identifier",
+        "unknown_project_identifier",
+    ).map(lambda value: _clean_covariate(value, "unknown_project_identifier"))
     metadata["tabpfn_project_type"] = _metadata_series(
         metadata, "investigation.study.comment.project type", "unknown_project_type"
     ).map(lambda value: _clean_covariate(value, "unknown_project_type"))

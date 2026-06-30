@@ -30,3 +30,18 @@ MUSCLE_GROUPS = (
 
 CONDITIONS = ("ground_control", "flight")
 
+DEFAULT_DESIGN_COVARIATES = (
+    "id.accession",
+    "tabpfn_tissue",
+    "tabpfn_muscle_group",
+    "tabpfn_material_type",
+    "tabpfn_sex",
+    "tabpfn_strain",
+    "tabpfn_genotype",
+    "tabpfn_platform",
+    "tabpfn_assay",
+    "tabpfn_data_source",
+    "tabpfn_project_identifier",
+    "tabpfn_project_type",
+)
+

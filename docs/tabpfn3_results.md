@@ -152,6 +152,38 @@ Top leave-one-accession-out genes from the `hvg` track:
 The repo does not currently contain a general mouse Ensembl-to-symbol mapping
 for these OSDR features, so the production summaries report Ensembl IDs.
 
+## Covariate-Augmented Check
+
+A follow-up run added fold-local one-hot encoded OSDR design covariates to the same 500-gene `hvg` feature set. It used accession, tissue, muscle group, material type, sex, strain, genotype, platform, assay, data source, project identifier, and project type. It still excluded `condition_inferred`, `study.factor value.spaceflight`, sample names, profile IDs, and file names because those fields either are the target or can encode `FLT`/`GC` in the identifier text.
+
+Output root:
+
+```text
+outputs/tabpfn3_osdr_covariates
+```
+
+Leave-one-accession-out comparison:
+
+| dataset | expr LOO acc | +cov LOO acc | delta acc | expr LOO AUC | +cov LOO AUC | delta AUC |
+|---|---:|---:|---:|---:|---:|---:|
+| liver | 0.733 | 0.683 | -0.049 | 0.822 | 0.762 | -0.060 |
+| skeletal_muscle | 0.853 | 0.906 | +0.052 | 0.950 | 0.950 | -0.001 |
+| skin | 0.596 | 0.570 | -0.026 | 0.617 | 0.551 | -0.066 |
+| kidney | 0.519 | 0.504 | -0.015 | 0.521 | 0.517 | -0.004 |
+| thymus | 0.573 | 0.632 | +0.060 | 0.678 | 0.666 | -0.012 |
+| spleen | 0.459 | 0.505 | +0.046 | 0.524 | 0.557 | +0.033 |
+| lung | 0.487 | 0.462 | -0.026 | 0.448 | 0.443 | -0.005 |
+| retina | 0.605 | 0.605 | +0.000 | 0.566 | 0.537 | -0.029 |
+| skeletal_muscle__soleus | 0.774 | 0.774 | +0.000 | 0.811 | 0.823 | +0.011 |
+| skeletal_muscle__gastrocnemius | 0.567 | 0.433 | -0.133 | 0.561 | 0.489 | -0.072 |
+| skeletal_muscle__quadriceps | 0.587 | 0.717 | +0.130 | 0.735 | 0.767 | +0.032 |
+| skeletal_muscle__edl | 0.562 | 0.562 | +0.000 | 0.516 | 0.516 | +0.000 |
+| skeletal_muscle__tibialis_anterior | 0.367 | 0.367 | +0.000 | 0.373 | 0.373 | +0.000 |
+
+Interpretation: metadata covariates do not broadly rescue weak tissues. They improve LOO accuracy for skeletal muscle and quadriceps and slightly improve spleen AUC, but liver, skin, lung, gastrocnemius, and retina get worse by AUC. This suggests most low grouped/LOO accuracy is not simply because the model lacked visible design covariates.
+
+Feature importance was also run for the covariate model. The aggregated top-candidate table contains 501 rows, only 5 of which are covariate features. The top LOO features are still genes, not metadata, under the quick `--importance-candidates 5 --permutation-repeats 1` screen.
+
 ## Comparison To Earlier Methods
 
 Compared with the expiMap/OntoVAE work, TabPFN3 gives the strongest practical

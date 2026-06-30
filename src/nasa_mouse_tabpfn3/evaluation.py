@@ -7,7 +7,7 @@ import math
 
 from nasa_mouse_glare.io import require_import
 
-from .features import select_features, top_univariate_candidate_indices
+from .features import select_features, univariate_feature_rank
 from .models import make_classifier
 
 
@@ -141,6 +141,45 @@ def permutation_importance(
     return rows
 
 
+def _clean_covariate_value(value) -> str:
+    text = str(value).strip()
+    if not text or text.lower() in {"nan", "none", "null"}:
+        return "unknown"
+    return text.replace("\t", " ").replace("\n", " ")
+
+
+def encode_covariates(obs, train_index, test_index, columns: tuple[str, ...]):
+    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+
+    train_parts = []
+    test_parts = []
+    names: list[str] = []
+    train_obs = obs.iloc[train_index]
+    test_obs = obs.iloc[test_index]
+    for column in columns:
+        if column not in obs.columns:
+            continue
+        train_values = train_obs[column].map(_clean_covariate_value).astype(str)
+        test_values = test_obs[column].map(_clean_covariate_value).astype(str)
+        categories = sorted(pd.unique(train_values).tolist())
+        if len(categories) <= 1:
+            continue
+        for category in categories:
+            feature_name = f"covariate:{column}={category}"
+            names.append(feature_name)
+            train_parts.append((train_values.to_numpy() == category).astype("float32")[:, None])
+            test_parts.append((test_values.to_numpy() == category).astype("float32")[:, None])
+
+    if not train_parts:
+        return (
+            np.zeros((len(train_index), 0), dtype="float32"),
+            np.zeros((len(test_index), 0), dtype="float32"),
+            [],
+        )
+    return np.concatenate(train_parts, axis=1), np.concatenate(test_parts, axis=1), names
+
+
 def run_cv(
     *,
     dataset,
@@ -156,6 +195,7 @@ def run_cv(
     importance_candidates: int,
     permutation_repeats: int,
     random_state: int,
+    covariate_columns: tuple[str, ...] = (),
 ):
     np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
     pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
@@ -181,6 +221,14 @@ def run_cv(
         )
         x_train = expression[fold.train_index][:, selection.indices]
         x_test = expression[fold.test_index][:, selection.indices]
+        cov_train, cov_test, covariate_names = encode_covariates(
+            dataset.obs, fold.train_index, fold.test_index, covariate_columns
+        )
+        if covariate_names:
+            x_train = np.concatenate([x_train, cov_train], axis=1)
+            x_test = np.concatenate([x_test, cov_test], axis=1)
+        combined_features = [*selection.genes, *covariate_names]
+        combined_rank = univariate_feature_rank(x_train, y[fold.train_index])
         model = make_classifier(
             backend=backend,
             device=device,
@@ -201,7 +249,9 @@ def run_cv(
                 "fold_id": fold.fold_id,
                 "heldout_accession": fold.heldout_accession,
                 "backend": backend,
-                "n_selected_features": int(len(selection.genes)),
+                "n_selected_features": int(len(combined_features)),
+                "n_selected_genes": int(len(selection.genes)),
+                "n_covariate_features": int(len(covariate_names)),
                 **metrics,
             }
         )
@@ -224,15 +274,14 @@ def run_cv(
         prediction_rows.append(fold_predictions)
 
         if importance_candidates > 0 and permutation_repeats > 0:
-            candidates = top_univariate_candidate_indices(
-                selection, min(importance_candidates, len(selection.genes))
-            )
+            candidate_count = min(int(importance_candidates), len(combined_features))
+            candidates = combined_rank[:candidate_count]
             for row in permutation_importance(
                 model,
                 x_test,
                 y[fold.test_index],
                 candidate_indices=candidates,
-                genes=selection.genes,
+                genes=combined_features,
                 repeats=permutation_repeats,
                 random_state=random_state + fold_number,
             ):

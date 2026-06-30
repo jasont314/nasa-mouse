@@ -128,6 +128,7 @@ Leakage controls:
 - Held-out fold samples are never used to select genes or tune feature ranking.
 - Accession-aware grouped CV and leave-one-accession-out are written separately
   from random stratified CV so study-structure leakage can be seen directly.
+- Optional design covariates are one-hot encoded inside each training fold with `--include-design-covariates`. Target-condition fields and sample/file/profile identifiers are not used as covariates.
 
 ## Production Command
 
@@ -200,4 +201,4 @@ That smoke run is not a TabPFN3 biological result. It validates that the OSDR
 API data path, fold-local feature selection, metrics, feature importance, and
 plots work.
 
-Production results are documented in `docs/tabpfn3_results.md`.
+Production results, including the covariate-augmented comparison, are documented in `docs/tabpfn3_results.md`.

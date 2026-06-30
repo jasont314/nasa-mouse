@@ -17,7 +17,14 @@ from .data import (
 )
 from .evaluation import metric_dict, run_cv
 from .models import backend_status, detect_device, local_model_cache_status
-from .paths import DEFAULT_METADATA, DEFAULT_OSDR_API_DIR, DEFAULT_OUTPUT_ROOT, MUSCLE_GROUPS, TARGET_TISSUES
+from .paths import (
+    DEFAULT_DESIGN_COVARIATES,
+    DEFAULT_METADATA,
+    DEFAULT_OSDR_API_DIR,
+    DEFAULT_OUTPUT_ROOT,
+    MUSCLE_GROUPS,
+    TARGET_TISSUES,
+)
 from .plotting import write_plots
 
 
@@ -60,6 +67,8 @@ def write_output_readme(output_root: Path, *, backend: str) -> Path:
         "and plots when model fitting completes.",
         "The aggregate metrics table summarizes each held-out prediction set",
         "by dataset, feature mode, and CV scheme.",
+        "Some runs may append fold-local one-hot encoded design covariates",
+        "to expression features; condition labels are never input features.",
         "The summary inventory includes tissue, accession, material type, sex,",
         "platform, assay, source, and per-sample covariates from the OSDR API.",
         "",
@@ -196,6 +205,9 @@ def run(args) -> int:
     summary_dir.mkdir(parents=True, exist_ok=True)
 
     tissues = tuple(args.tissues)
+    covariate_columns = (
+        tuple(args.covariate_columns) if args.include_design_covariates else ()
+    )
     inventory_paths = write_inventory(output_root, Path(args.metadata), tissues)
     plan = planned_datasets(
         tissues,
@@ -230,6 +242,8 @@ def run(args) -> int:
         "model_cache": local_model_cache_status(),
         "metadata": str(args.metadata),
         "api_dir": str(args.api_dir),
+        "include_design_covariates": bool(args.include_design_covariates),
+        "covariate_columns": list(covariate_columns),
         "inventory": inventory_paths,
     }
     (summary_dir / "tabpfn3_backend_status.json").write_text(
@@ -320,6 +334,7 @@ def run(args) -> int:
                     importance_candidates=args.importance_candidates,
                     permutation_repeats=args.permutation_repeats,
                     random_state=args.random_state,
+                    covariate_columns=covariate_columns,
                 )
             except Exception as exc:  # noqa: BLE001 - recorded per run.
                 manifest_rows.append(
@@ -360,6 +375,7 @@ def run(args) -> int:
                     "model_version": status.model_version,
                     "message": (
                         f"samples={dataset.n_samples}; genes={dataset.n_genes}; "
+                        f"covariate_columns={len(covariate_columns)}; "
                         f"fold_rows={len(metrics)}"
                     ),
                 }
@@ -395,6 +411,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--include-muscle-splits", action="store_true", default=True)
     parser.add_argument("--no-muscle-splits", dest="include_muscle_splits", action="store_false")
     parser.add_argument("--muscle-groups", nargs="+", default=list(MUSCLE_GROUPS))
+    parser.add_argument(
+        "--include-design-covariates",
+        action="store_true",
+        help="Append fold-local one-hot encoded OSDR design covariates to expression features.",
+    )
+    parser.add_argument(
+        "--covariate-columns",
+        nargs="+",
+        default=list(DEFAULT_DESIGN_COVARIATES),
+        help="Metadata columns to use when --include-design-covariates is set.",
+    )
     parser.add_argument("--feature-modes", nargs="+", default=["all_expressed", "hvg"])
     parser.add_argument(
         "--cv-schemes",
