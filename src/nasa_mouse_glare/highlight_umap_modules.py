@@ -18,6 +18,7 @@ DEFAULT_VALIDATION_DIR = DEFAULT_ROOT / "validation_stack_terms15"
 PRIOR_COLOR = "#2563eb"
 HIDDEN_COLOR = "#f97316"
 OTHER_COLOR = "#6b7280"
+UNCLEAR_COLOR = "#9ca3af"
 
 HIDDEN_PRIORITY_TERMS = {
     "skeletal_muscle": {
@@ -125,9 +126,14 @@ def classify_clusters(
             category_label = "Prior-work aligned"
             category_color = PRIOR_COLOR
             matched_terms = prior_matches
+        elif str(getattr(row, "annotation_status", "")) == "ambiguous":
+            category = "unclear"
+            category_label = "Unclear/ambiguous"
+            category_color = UNCLEAR_COLOR
+            matched_terms = []
         else:
             category = "other"
-            category_label = "Other/unclear"
+            category_label = "Other"
             category_color = OTHER_COLOR
             matched_terms = []
         data = row._asdict()
@@ -195,7 +201,7 @@ def plot_highlighted_umap(
     legend_axis.text(
         0.0,
         0.958,
-        "Orange edge/text = hidden/novel\nBlue edge/text = prior-work aligned",
+        "Orange text = hidden/novel\nBlue text = prior-work aligned\nDots keep cluster colors",
         fontsize=7.5,
         color="#374151",
         va="top",
@@ -205,7 +211,8 @@ def plot_highlighted_umap(
     grouped = [
         ("hidden_novel", "Hidden/novel modules"),
         ("prior_work", "Prior-work aligned modules"),
-        ("other", "Other / unclear modules"),
+        ("other", "Other modules"),
+        ("unclear", "Unclear/ambiguous modules"),
     ]
     y = 0.885
     for category, legend_title in grouped:
@@ -216,6 +223,7 @@ def plot_highlighted_umap(
             "hidden_novel": HIDDEN_COLOR,
             "prior_work": PRIOR_COLOR,
             "other": "#374151",
+            "unclear": UNCLEAR_COLOR,
         }[category]
         legend_axis.text(
             0.0,
@@ -247,12 +255,13 @@ def plot_highlighted_umap(
                 f"C{cluster} ({int(row.gene_count)} genes): "
                 f"{short_text(row.cluster_description, 56)}{suffix}"
             )
-            edge_color = str(row.highlight_color)
             text_color = (
                 HIDDEN_COLOR
                 if category == "hidden_novel"
                 else PRIOR_COLOR
                 if category == "prior_work"
+                else UNCLEAR_COLOR
+                if category == "unclear"
                 else "#374151"
             )
             wrapped = textwrap.wrap(label, width=58)
@@ -261,8 +270,8 @@ def plot_highlighted_umap(
                 [y - 0.004],
                 s=32,
                 color=[colors[cluster]],
-                edgecolors=edge_color,
-                linewidths=2.1 if category != "other" else 0.7,
+                edgecolors=[colors[cluster]],
+                linewidths=0.7,
                 transform=legend_axis.transAxes,
                 clip_on=True,
             )
@@ -335,6 +344,7 @@ def process_run(run_dir: Path, prior_terms: dict[str, set[str]], alpha: float) -
                 "hidden_novel_clusters": int(counts.get("hidden_novel", 0)),
                 "prior_work_clusters": int(counts.get("prior_work", 0)),
                 "other_clusters": int(counts.get("other", 0)),
+                "unclear_clusters": int(counts.get("unclear", 0)),
             }
         )
     return output_rows
