@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .multi_tissue_reports import clean_reactome_term, cluster_colors, short_text
+from .multi_tissue_reports import clean_reactome_term, cluster_colors
 
 
 DEFAULT_ROOT = Path("outputs/glare_multi_tissue_api")
@@ -165,8 +165,44 @@ def plot_highlighted_umap(
 
     clusters = annotations["cluster"].astype(int).tolist()
     colors = cluster_colors(clusters)
+    grouped = [
+        ("hidden_novel", "Hidden/novel modules"),
+        ("prior_work", "Prior-work aligned modules"),
+        ("other", "Other modules"),
+        ("unclear", "Unclear/ambiguous modules"),
+    ]
 
-    figure = plt.figure(figsize=(15.5, 8.6), dpi=170)
+    wrapped_groups = []
+    total_sections = 0
+    total_label_lines = 0
+    for category, legend_title in grouped:
+        subset = annotations.loc[annotations["highlight_category"].eq(category)].copy()
+        if subset.empty:
+            continue
+        entries = []
+        total_sections += 1
+        for row in subset.itertuples(index=False):
+            cluster = int(row.cluster)
+            matched = str(row.matched_highlight_terms)
+            suffix = f" [{matched}]" if matched and matched != "nan" else ""
+            label = (
+                f"C{cluster} ({int(row.gene_count)} genes): "
+                f"{row.cluster_description}{suffix}"
+            )
+            wrapped = textwrap.wrap(label, width=62)
+            entries.append((row, wrapped))
+            total_label_lines += max(1, len(wrapped))
+        wrapped_groups.append((category, legend_title, entries))
+
+    legend_height = (
+        1.0
+        + 0.32 * total_sections
+        + 0.14 * total_label_lines
+        + 0.07 * sum(len(entries) for _, _, entries in wrapped_groups)
+    )
+    figure_height = max(8.6, legend_height)
+
+    figure = plt.figure(figsize=(15.5, figure_height), dpi=170)
     grid = figure.add_gridspec(1, 2, width_ratios=[2.0, 1.35], wspace=0.04)
     axis = figure.add_subplot(grid[0, 0])
     legend_axis = figure.add_subplot(grid[0, 1])
@@ -208,17 +244,12 @@ def plot_highlighted_umap(
         transform=legend_axis.transAxes,
     )
 
-    grouped = [
-        ("hidden_novel", "Hidden/novel modules"),
-        ("prior_work", "Prior-work aligned modules"),
-        ("other", "Other modules"),
-        ("unclear", "Unclear/ambiguous modules"),
-    ]
-    y = 0.885
-    for category, legend_title in grouped:
-        subset = annotations.loc[annotations["highlight_category"].eq(category)].copy()
-        if subset.empty:
-            continue
+    line_step = 0.14 / figure_height
+    entry_gap = 0.07 / figure_height
+    section_step = 0.28 / figure_height
+    section_gap = 0.12 / figure_height
+    y = 0.89
+    for category, legend_title, entries in wrapped_groups:
         title_color = {
             "hidden_novel": HIDDEN_COLOR,
             "prior_work": PRIOR_COLOR,
@@ -235,26 +266,9 @@ def plot_highlighted_umap(
             va="top",
             transform=legend_axis.transAxes,
         )
-        y -= 0.032
-        for row in subset.itertuples(index=False):
-            if y < 0.055:
-                legend_axis.text(
-                    0.0,
-                    0.026,
-                    "... additional clusters listed in TSV",
-                    fontsize=6.7,
-                    color="#6b7280",
-                    va="top",
-                    transform=legend_axis.transAxes,
-                )
-                break
+        y -= section_step
+        for row, wrapped in entries:
             cluster = int(row.cluster)
-            matched = str(row.matched_highlight_terms)
-            suffix = f" [{short_text(matched, 46)}]" if matched and matched != "nan" else ""
-            label = (
-                f"C{cluster} ({int(row.gene_count)} genes): "
-                f"{short_text(row.cluster_description, 56)}{suffix}"
-            )
             text_color = (
                 HIDDEN_COLOR
                 if category == "hidden_novel"
@@ -264,7 +278,6 @@ def plot_highlighted_umap(
                 if category == "unclear"
                 else "#374151"
             )
-            wrapped = textwrap.wrap(label, width=58)
             legend_axis.scatter(
                 [0.018],
                 [y - 0.004],
@@ -285,21 +298,8 @@ def plot_highlighted_umap(
                 transform=legend_axis.transAxes,
                 clip_on=True,
             )
-            y -= 0.023 * max(1, len(wrapped)) + 0.014
-            if y < 0.035:
-                legend_axis.text(
-                    0.0,
-                    y,
-                    "... additional clusters listed in TSV",
-                    fontsize=6.7,
-                    color="#6b7280",
-                    va="top",
-                    transform=legend_axis.transAxes,
-                )
-                break
-        y -= 0.018
-        if y < 0.035:
-            break
+            y -= line_step * max(1, len(wrapped)) + entry_gap
+        y -= section_gap
 
     figure.savefig(output_path)
     plt.close(figure)
