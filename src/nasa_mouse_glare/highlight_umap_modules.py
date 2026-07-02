@@ -37,6 +37,75 @@ HIDDEN_PRIORITY_TERMS = {
     },
 }
 
+HIDDEN_TERM_THEMES = {
+    "Bmal1 Clock Npas2 Activates Circadian Expression": "circadian clock/regulatory",
+    "Cyclin E Associated Events During G1 S Transition": "G1/S cell-cycle/DNA replication",
+    "Signalling By Ngf": "NGF/neurotrophic signaling",
+    "Membrane Trafficking": "membrane/vesicle trafficking",
+    "Signaling By Insulin Receptor": "insulin receptor/metabolic signaling",
+    "Response To Elevated Platelet Cytosolic Ca2": "platelet-calcium/vascular remodeling",
+}
+
+THEME_RULES = [
+    (
+        "circadian clock/regulatory",
+        ("circadian", "bmal1", "clock", "npas2", "rora", "nr1d1"),
+    ),
+    (
+        "G1/S cell-cycle/DNA replication",
+        ("cell cycle", "g1 s", "cyclin", "mitotic", "dna", "cdc6", "cdt1", "orc", "p53"),
+    ),
+    (
+        "translation/RNA processing",
+        ("translation", "peptide chain", "mrna", "rna", "splicing", "utr", "eif", "srp", "nonsense mediated"),
+    ),
+    (
+        "mitochondrial/OXPHOS metabolism",
+        ("tca cycle", "respiratory electron", "atp synthesis", "mitochondrial", "oxidative phosphorylation"),
+    ),
+    (
+        "immune/antigen/cytokine signaling",
+        ("immune", "cytokine", "interferon", "antigen", "mhc", "tcr", "b cell", "ils"),
+    ),
+    (
+        "platelet/hemostasis/vascular",
+        ("platelet", "hemostasis", "clot", "gpvi", "vascular", "endothelial"),
+    ),
+    (
+        "membrane/vesicle trafficking",
+        ("membrane trafficking", "vesicle", "golgi", "endosome", "lysosome", "transport"),
+    ),
+    (
+        "lipid/xenobiotic/detox metabolism",
+        ("lipid", "fatty acid", "ketone", "xenobiotic", "phase", "glucuronidation", "bile"),
+    ),
+    (
+        "muscle/contractile/cytoskeleton",
+        ("muscle contraction", "striated", "actin", "tubulin", "cytoskeleton", "sarcomere"),
+    ),
+    (
+        "growth-factor/developmental signaling",
+        ("ngf", "insulin receptor", "fgfr", "erbb", "axon", "developmental", "wnt", "tgf"),
+    ),
+    (
+        "protein modification/glycosylation",
+        ("post translational", "glycosylation", "n linked", "protein modification"),
+    ),
+    (
+        "neuronal/sensory",
+        ("olfactory", "neuronal", "rhodopsin", "sensory"),
+    ),
+]
+
+BROAD_TOP_TERMS = {
+    "Adaptive Immune System",
+    "Immune System",
+    "Metabolism",
+    "Metabolism Of Proteins",
+    "Transcription",
+    "Translation",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -78,6 +147,21 @@ def load_prior_terms(validation_dir: Path) -> dict[str, set[str]]:
     return prior_terms
 
 
+def load_direction_meta(validation_dir: Path) -> dict[tuple[str, str], dict]:
+    path = validation_dir / "candidate_module_score_meta.tsv"
+    if not path.exists():
+        return {}
+    table = pd.read_csv(path, sep="\t")
+    directions: dict[tuple[str, str], dict] = {}
+    for row in table.itertuples(index=False):
+        data = row._asdict()
+        tissue = str(data.get("tissue", ""))
+        clean_term = str(data.get("clean_term", ""))
+        if tissue and clean_term:
+            directions[(tissue, clean_term)] = data
+    return directions
+
+
 def tissue_from_run(run_dir: Path) -> str:
     if run_dir.name in {"aggregate", "aggregate_mober"}:
         return run_dir.parent.name
@@ -99,7 +183,110 @@ def load_enrichment_terms(run_dir: Path, location: str, alpha: float) -> pd.Data
         return pd.DataFrame(columns=["cluster", "clean_term", "fdr_bh"])
     table["cluster"] = table["cluster"].astype(int)
     table["clean_term"] = table["term"].map(clean_reactome_term)
-    return table[["cluster", "clean_term", "fdr_bh"]]
+    keep = [
+        column
+        for column in [
+            "cluster",
+            "clean_term",
+            "fdr_bh",
+            "p_value",
+            "overlap",
+            "cluster_genes",
+            "term_genes_in_universe",
+        ]
+        if column in table.columns
+    ]
+    return table[keep]
+
+
+def rollup_themes(terms: list[str]) -> list[str]:
+    themes = []
+    for term in terms:
+        lower_term = str(term).lower()
+        for theme, needles in THEME_RULES:
+            if theme in themes:
+                continue
+            if any(needle in lower_term for needle in needles):
+                themes.append(theme)
+    return themes
+
+
+def format_term_list(terms: list[str], max_terms: int) -> str:
+    return "; ".join(str(term) for term in terms[:max_terms])
+
+
+def direction_summary(
+    tissue: str,
+    terms: list[str],
+    direction_meta: dict[tuple[str, str], dict],
+) -> str:
+    parts = []
+    for term in terms:
+        row = direction_meta.get((tissue, term))
+        if not row:
+            continue
+        try:
+            delta = float(row.get("mean_flight_minus_ground"))
+            fdr = float(row.get("combined_welch_fdr_bh"))
+        except (TypeError, ValueError):
+            continue
+        direction = "FLT higher" if delta > 0 else "FLT lower" if delta < 0 else "no shift"
+        studies = row.get("studies_tested", "")
+        parts.append(f"{term}: {direction} ({delta:+.3g}, FDR={fdr:.2g}, studies={studies})")
+    return "; ".join(parts)
+
+
+def build_caveats(
+    tissue: str,
+    row: pd.Series,
+    all_themes: list[str],
+    hidden_matches: list[str],
+    hidden_fdrs: list[float],
+) -> str:
+    caveats = []
+    gene_count = int(row.get("gene_count", 0))
+    top_term = str(row.get("best_reactome_term", ""))
+    if gene_count >= 3000:
+        caveats.append("large mixed cluster")
+    if len(all_themes) >= 4:
+        caveats.append("multiple enriched themes; top label alone is insufficient")
+    if top_term in BROAD_TOP_TERMS:
+        caveats.append("broad top Reactome label")
+    if hidden_matches and top_term and top_term not in hidden_matches:
+        caveats.append("hidden term differs from top Reactome label")
+    if any(fdr > 0.01 for fdr in hidden_fdrs):
+        caveats.append("one or more hidden-term enrichments are secondary/weak")
+    if (
+        tissue not in {"lung", "spleen", "thymus"}
+        and "immune/antigen/cytokine signaling" in all_themes
+    ):
+        caveats.append("immune/composition-sensitive signal")
+    if not bool(row.get("reactome_significant", False)):
+        caveats.append("no significant Reactome label at threshold")
+    return "; ".join(dict.fromkeys(caveats))
+
+
+def build_legend_description(row: pd.Series) -> str:
+    primary = str(row.get("primary_theme", ""))
+    secondary = str(row.get("secondary_themes", ""))
+    top = str(row.get("top_reactome_term", ""))
+    caveat = str(row.get("caveat", ""))
+    parts = [primary]
+    if secondary and secondary != "nan":
+        secondary_terms = [term.strip() for term in secondary.split(";") if term.strip()]
+        parts.append(f"other: {'; '.join(secondary_terms[:3])}")
+    if top and top != "nan" and top not in primary:
+        parts.append(f"top: {top}")
+    short_flags = []
+    if "large mixed cluster" in caveat:
+        short_flags.append("large/mixed")
+    if "secondary/weak" in caveat:
+        short_flags.append("weak secondary hidden term")
+    if "top label alone is insufficient" in caveat:
+        short_flags.append("multi-theme")
+    if short_flags:
+        parts.append(", ".join(short_flags))
+    return "; ".join(part for part in parts if part)
 
 
 def classify_clusters(
@@ -107,26 +294,53 @@ def classify_clusters(
     enrichment: pd.DataFrame,
     tissue: str,
     prior_terms: dict[str, set[str]],
+    direction_meta: dict[tuple[str, str], dict],
 ) -> pd.DataFrame:
     hidden = HIDDEN_PRIORITY_TERMS.get(tissue, set())
     prior = prior_terms.get(tissue, set())
     rows = []
-    for row in annotations.itertuples(index=False):
-        cluster = int(row.cluster)
-        terms = enrichment.loc[enrichment["cluster"].eq(cluster), "clean_term"].dropna().tolist()
-        hidden_matches = sorted({term for term in terms if term in hidden})
-        prior_matches = sorted({term for term in terms if term in prior})
+    for _, row in annotations.iterrows():
+        cluster = int(row["cluster"])
+        cluster_terms = enrichment.loc[enrichment["cluster"].eq(cluster)].copy()
+        if not cluster_terms.empty:
+            sort_columns = [
+                column for column in ("fdr_bh", "p_value") if column in cluster_terms.columns
+            ]
+            if sort_columns:
+                cluster_terms = cluster_terms.sort_values(sort_columns, na_position="last")
+        terms = cluster_terms["clean_term"].dropna().astype(str).tolist()
+        hidden_matches = list(dict.fromkeys(term for term in terms if term in hidden))
+        prior_matches = list(dict.fromkeys(term for term in terms if term in prior))
+        all_themes = rollup_themes(terms)
+        hidden_theme_labels = [
+            HIDDEN_TERM_THEMES.get(term, term) for term in hidden_matches
+        ]
+        primary_theme_terms = hidden_theme_labels if hidden_theme_labels else all_themes[:1]
+        if not primary_theme_terms and terms:
+            primary_theme_terms = terms[:1]
+        if not primary_theme_terms:
+            primary_theme_terms = [str(row.get("cluster_description", "ambiguous"))]
+        primary_theme = "; ".join(primary_theme_terms)
+        primary_theme_set = set(primary_theme_terms)
+        secondary_themes = [
+            theme for theme in all_themes if theme not in primary_theme_set
+        ][:5]
+        matched_terms = hidden_matches if hidden_matches else prior_matches
+        hidden_fdrs = (
+            cluster_terms.loc[cluster_terms["clean_term"].isin(hidden_matches), "fdr_bh"]
+            .dropna()
+            .astype(float)
+            .tolist()
+        )
         if hidden_matches:
             category = "hidden_novel"
             category_label = "Hidden/novel"
             category_color = HIDDEN_COLOR
-            matched_terms = hidden_matches
         elif prior_matches:
             category = "prior_work"
             category_label = "Prior-work aligned"
             category_color = PRIOR_COLOR
-            matched_terms = prior_matches
-        elif str(getattr(row, "annotation_status", "")) == "ambiguous":
+        elif str(row.get("annotation_status", "")) == "ambiguous":
             category = "unclear"
             category_label = "Unclear/ambiguous"
             category_color = UNCLEAR_COLOR
@@ -136,17 +350,34 @@ def classify_clusters(
             category_label = "Other"
             category_color = OTHER_COLOR
             matched_terms = []
-        data = row._asdict()
+        data = row.to_dict()
         data.update(
             {
+                "primary_theme": primary_theme,
+                "secondary_themes": "; ".join(secondary_themes),
+                "top_reactome_term": row.get("best_reactome_term", ""),
+                "top_reactome_fdr_bh": row.get("best_reactome_fdr_bh", ""),
+                "top_reactome_overlap": row.get("best_reactome_overlap", ""),
+                "top_enriched_terms": format_term_list(terms, 10),
                 "highlight_category": category,
                 "highlight_label": category_label,
                 "highlight_color": category_color,
                 "matched_hidden_terms": "; ".join(hidden_matches),
                 "matched_prior_terms": "; ".join(prior_matches),
                 "matched_highlight_terms": "; ".join(matched_terms[:4]),
+                "matched_direction_summary": direction_summary(
+                    tissue, matched_terms, direction_meta
+                ),
+                "caveat": build_caveats(
+                    tissue,
+                    row,
+                    all_themes,
+                    hidden_matches,
+                    hidden_fdrs,
+                ),
             }
         )
+        data["legend_description"] = build_legend_description(pd.Series(data))
         rows.append(data)
     return pd.DataFrame(rows)
 
@@ -183,16 +414,12 @@ def plot_highlighted_umap(
         total_sections += 1
         for row in subset.itertuples(index=False):
             cluster = int(row.cluster)
-            matched = str(row.matched_highlight_terms)
-            has_matched = bool(matched and matched != "nan")
-            primary_description = matched if has_matched else str(row.cluster_description)
-            source_description = str(row.cluster_description)
-            suffix = ""
-            if has_matched and primary_description != source_description:
-                suffix = f" [top cluster label: {source_description}]"
+            description = str(getattr(row, "legend_description", ""))
+            if not description or description == "nan":
+                description = str(row.cluster_description)
             label = (
                 f"C{cluster} ({int(row.gene_count)} genes): "
-                f"{primary_description}{suffix}"
+                f"{description}"
             )
             wrapped = textwrap.wrap(label, width=62)
             entries.append((row, wrapped))
@@ -201,9 +428,9 @@ def plot_highlighted_umap(
 
     legend_height = (
         1.0
-        + 0.32 * total_sections
-        + 0.14 * total_label_lines
-        + 0.07 * sum(len(entries) for _, _, entries in wrapped_groups)
+        + 0.4 * total_sections
+        + 0.19 * total_label_lines
+        + 0.09 * sum(len(entries) for _, _, entries in wrapped_groups)
     )
     figure_height = max(8.6, legend_height)
 
@@ -310,7 +537,12 @@ def plot_highlighted_umap(
     plt.close(figure)
 
 
-def process_run(run_dir: Path, prior_terms: dict[str, set[str]], alpha: float) -> list[dict]:
+def process_run(
+    run_dir: Path,
+    prior_terms: dict[str, set[str]],
+    direction_meta: dict[tuple[str, str], dict],
+    alpha: float,
+) -> list[dict]:
     tissue = tissue_from_run(run_dir)
     output_rows: list[dict] = []
     for location in ("FLT", "GC"):
@@ -324,10 +556,18 @@ def process_run(run_dir: Path, prior_terms: dict[str, set[str]], alpha: float) -
         labels = clusters["consensus"].astype(int).to_numpy()
         annotations = pd.read_csv(annotations_path, sep="\t")
         enrichment = load_enrichment_terms(run_dir, location, alpha)
-        highlighted = classify_clusters(annotations, enrichment, tissue, prior_terms)
+        highlighted = classify_clusters(
+            annotations,
+            enrichment,
+            tissue,
+            prior_terms,
+            direction_meta,
+        )
 
         output_annotations = run_dir / "plots" / f"{location}_cluster_highlight_annotations.tsv"
         highlighted.to_csv(output_annotations, sep="\t", index=False)
+        output_interpretation = run_dir / "plots" / f"{location}_cluster_interpretation.tsv"
+        highlighted.to_csv(output_interpretation, sep="\t", index=False)
 
         output_plot = run_dir / "plots" / f"{location}_umap_prior_hidden_legend.png"
         plot_highlighted_umap(
@@ -346,6 +586,7 @@ def process_run(run_dir: Path, prior_terms: dict[str, set[str]], alpha: float) -
                 "location": location,
                 "plot": str(output_plot),
                 "annotations": str(output_annotations),
+                "interpretation": str(output_interpretation),
                 "hidden_novel_clusters": int(counts.get("hidden_novel", 0)),
                 "prior_work_clusters": int(counts.get("prior_work", 0)),
                 "other_clusters": int(counts.get("other", 0)),
@@ -358,6 +599,7 @@ def process_run(run_dir: Path, prior_terms: dict[str, set[str]], alpha: float) -
 def main() -> None:
     args = parse_args()
     prior_terms = load_prior_terms(args.validation_dir)
+    direction_meta = load_direction_meta(args.validation_dir)
     manifest_rows: list[dict] = []
     for tissue_dir in sorted(args.root.iterdir()):
         if not tissue_dir.is_dir():
@@ -365,7 +607,9 @@ def main() -> None:
         for scope in args.scopes:
             run_dir = tissue_dir / scope
             if run_dir.exists():
-                manifest_rows.extend(process_run(run_dir, prior_terms, args.alpha))
+                manifest_rows.extend(
+                    process_run(run_dir, prior_terms, direction_meta, args.alpha)
+                )
 
     manifest = pd.DataFrame(manifest_rows)
     output_path = args.root / "priority_umap_highlight_manifest.tsv"
