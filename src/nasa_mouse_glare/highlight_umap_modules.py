@@ -184,10 +184,15 @@ def plot_highlighted_umap(
         for row in subset.itertuples(index=False):
             cluster = int(row.cluster)
             matched = str(row.matched_highlight_terms)
-            suffix = f" [{matched}]" if matched and matched != "nan" else ""
+            has_matched = bool(matched and matched != "nan")
+            primary_description = matched if has_matched else str(row.cluster_description)
+            source_description = str(row.cluster_description)
+            suffix = ""
+            if has_matched and primary_description != source_description:
+                suffix = f" [top cluster label: {source_description}]"
             label = (
                 f"C{cluster} ({int(row.gene_count)} genes): "
-                f"{row.cluster_description}{suffix}"
+                f"{primary_description}{suffix}"
             )
             wrapped = textwrap.wrap(label, width=62)
             entries.append((row, wrapped))
