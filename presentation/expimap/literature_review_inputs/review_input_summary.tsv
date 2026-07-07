@@ -1,0 +1,5 @@
+model	rows_for_review	flt_up	flt_down
+liver_hvg	186	90	96
+skin_hvg	212	118	94
+thymus_hvg	170	91	79
+soleus_hvg	121	57	64
