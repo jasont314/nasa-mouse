@@ -1,0 +1,33 @@
+clean_term	tissue	module_class	studies_tested	mean_flight_minus_ground	direction_consistency	median_empirical_abs_p	combined_welch_fdr_bh
+Bmal1 Clock Npas2 Activates Circadian Expression	skeletal_muscle	glare_only	13	-0.0790494514836206	0.8461538461538461	0.01	2.8731539754029864e-06
+Circadian Clock	skeletal_muscle_soleus	glare_only	3	-0.0881997788393939	0.6666666666666666	0.07	0.0002327832037597
+Circadian Clock	skeletal_muscle_tibialis_anterior	glare_only	2	-0.045235011312696	1.0	0.275	0.3723407500192187
+Creb Phosphorylation Through The Activation Of Ras	skeletal_muscle	glare_only	13	-0.0113301582825488	0.5384615384615384	0.38	0.0013616687738364
+Cyclin E Associated Events During G1 S Transition	skeletal_muscle	glare_only	13	0.0385369143934329	0.6923076923076923	0.0	2.766668986826653e-05
+Cyclin E Associated Events During G1 S Transition	skeletal_muscle_soleus	glare_only	3	-0.003753675354852	0.6666666666666666	0.0	0.0007155775759127
+Cyclin E Associated Events During G1 S Transition	skeletal_muscle_quadriceps	glare_only	4	0.019059939516915	0.5	0.205	0.0358539464327814
+Cyclin E Associated Events During G1 S Transition	skeletal_muscle_gastrocnemius	glare_only	3	-0.0021736489401922	0.3333333333333333	0.49	0.2743212360141615
+Cyclin E Associated Events During G1 S Transition	skeletal_muscle_tibialis_anterior	glare_only	2	0.1128028366300797	1.0	0.0	0.0193104019714709
+Darpp 32 Events	skeletal_muscle_soleus	glare_only	3	0.0215318556185121	0.6666666666666666	0.39	0.0471555591676492
+L1Cam Interactions	skeletal_muscle	glare_only	13	0.0082309793712746	0.5384615384615384	0.02	0.0010353696975328
+Mitochondrial Fatty Acid Beta Oxidation	skeletal_muscle_soleus	intersection	3	-0.5805182942637691	1.0	0.0	4.9435462338545914e-08
+Ngf Signalling Via Trka From The Plasma Membrane	skeletal_muscle_soleus	glare_only	3	-0.070997335292675	0.6666666666666666	0.16	0.0572134695666492
+Ngf Signalling Via Trka From The Plasma Membrane	skeletal_muscle_quadriceps	glare_only	4	0.0269506937927669	0.75	0.565	0.2743212360141615
+Peptide Chain Elongation	skeletal_muscle	intersection	13	0.0151994024586473	0.4615384615384615	0.0	7.440494869071691e-05
+Peptide Chain Elongation	skeletal_muscle_soleus	intersection	3	0.0439108919214318	0.3333333333333333	0.03	0.0079665584836799
+Peptide Chain Elongation	skeletal_muscle_quadriceps	intersection	4	-0.003438969453176	0.5	0.0	0.0338309413676448
+Peptide Chain Elongation	skeletal_muscle_gastrocnemius	intersection	3	-0.0268431504567464	0.3333333333333333	0.0	0.0832427104501737
+Peptide Chain Elongation	skeletal_muscle_edl	glare_only	2	-0.0787305169635348	1.0	0.005	0.3237744088110439
+Respiratory Electron Transport Atp Synthesis By Chemiosmotic Coupling And Heat Production By Uncoupling Proteins	skeletal_muscle	glare_only	13	-0.1009300315481986	0.6153846153846154	0.01	2.1248060182223665e-06
+Respiratory Electron Transport Atp Synthesis By Chemiosmotic Coupling And Heat Production By Uncoupling Proteins	skeletal_muscle_soleus	glare_only	3	-0.3304417265786066	1.0	0.0	1.056806963122765e-05
+Respiratory Electron Transport Atp Synthesis By Chemiosmotic Coupling And Heat Production By Uncoupling Proteins	skeletal_muscle_quadriceps	glare_only	4	-0.0829227930969662	0.5	0.155	0.0993427913186695
+Respiratory Electron Transport Atp Synthesis By Chemiosmotic Coupling And Heat Production By Uncoupling Proteins	skeletal_muscle_gastrocnemius	glare_only	3	-0.0529899994532267	0.6666666666666666	0.0	0.0988238220158571
+Respiratory Electron Transport Atp Synthesis By Chemiosmotic Coupling And Heat Production By Uncoupling Proteins	skeletal_muscle_tibialis_anterior	glare_only	2	0.002811511357625	0.5	0.03	0.1096793175383629
+Respiratory Electron Transport Atp Synthesis By Chemiosmotic Coupling And Heat Production By Uncoupling Proteins	skeletal_muscle_edl	glare_only	2	-0.029918683899774	0.5	0.0999999999999999	0.3723407500192187
+Signalling By Ngf	skeletal_muscle_soleus	glare_only	3	-0.0778095104076244	0.6666666666666666	0.04	0.0203764058379761
+Signalling By Ngf	skeletal_muscle_quadriceps	glare_only	4	0.0326085388660432	0.75	0.43	0.1756366446556419
+Tca Cycle And Respiratory Electron Transport	skeletal_muscle	intersection	13	-0.0860584852023	0.5384615384615384	0.01	9.128201358784675e-06
+Tca Cycle And Respiratory Electron Transport	skeletal_muscle_quadriceps	intersection	4	-0.0739240845044453	0.75	0.09	0.1856961775175078
+Tca Cycle And Respiratory Electron Transport	skeletal_muscle_gastrocnemius	intersection	3	-0.0544641017913818	0.3333333333333333	0.0	0.1541748975107551
+Trans Golgi Network Vesicle Budding	skeletal_muscle_quadriceps	glare_only	4	0.0022766722573173	0.25	0.3	0.3892282044599305
+Trif Mediated Tlr3 Signaling	skeletal_muscle	glare_only	13	0.0161171685426664	0.5384615384615384	0.12	0.0085528050681674

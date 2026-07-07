@@ -1,0 +1,12 @@
+module_set	symbols_requested	symbols_found	missing_symbols
+coagulation_plasma	19	8	A2M,ALB,F13A1,FGA,FGB,HRG,KNG1,PLG,SERPINA1,SERPINA3,TF
+endothelial_vascular_core	15	15	
+erythroid_blood	10	6	GATA1,GYPA,KLF1,SLC4A1
+fibroblast_ecm_stromal	17	17	
+glare_module_without_platelet_coag_endothelial	54	42	HGF,LEFTY2,LOC128192,LOC131691,LOC643997,LOC652612,LOC654188,LOC727848,POTEM,PPIAP22,PPIAP8,STX4
+glare_module_without_platelet_or_coag	55	43	HGF,LEFTY2,LOC128192,LOC131691,LOC643997,LOC652612,LOC654188,LOC727848,POTEM,PPIAP22,PPIAP8,STX4
+glare_platelet_ca_module_77	77	57	A2M,ALB,FGA,FGB,HGF,HRG,LEFTY2,LOC128192,LOC131691,LOC643997,LOC652612,LOC654188,LOC727848,PLG,POTEM,PPIAP22,PPIAP8,SERPINA1,STX4,TF
+myeloid_macrophage	13	11	CSF1R,ITGAM
+platelet_megakaryocyte_core	17	17	
+thymic_epithelial_tec	16	14	FOXN1,PSMB11
+thymocyte_t_cell	18	14	CD8A,IL7R,RAG2,ZAP70
