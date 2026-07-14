@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASGSR 2026 Abstract</title>
+<style>
+@page { size: Letter; margin: 0.72in 0.76in 0.75in; }
+@page figure-wide { size: Letter landscape; margin: 0.52in 0.60in 0.55in; }
+* { box-sizing: border-box; }
+body {
+  color: #171b1d;
+  font-family: "DejaVu Serif", Georgia, serif;
+  font-size: 10.2pt;
+  line-height: 1.46;
+  margin: 0 auto;
+  max-width: 8.1in;
+}
+h1, h2, h3 { color: #111517; font-family: "DejaVu Sans", Arial, sans-serif; }
+h1 { font-size: 20pt; line-height: 1.16; margin: 0 0 14pt; }
+h2 { border-bottom: 0.7pt solid #aeb5b8; font-size: 13pt; margin: 20pt 0 7pt; padding-bottom: 2pt; }
+h3 { font-size: 10.7pt; margin: 14pt 0 4pt; }
+p { margin: 0 0 7pt; orphans: 3; widows: 3; }
+a { color: #205f89; text-decoration: none; }
+table { border-collapse: collapse; font-size: 8.5pt; margin: 8pt 0 12pt; width: 100%; }
+th { background: #e8eef0; font-family: "DejaVu Sans", Arial, sans-serif; }
+th, td { border: 0.6pt solid #aeb5b8; padding: 4pt 5pt; text-align: left; vertical-align: top; }
+code { background: #f1f3f3; font-family: "DejaVu Sans Mono", monospace; font-size: 8.3pt; padding: 0 2pt; }
+pre { background: #f1f3f3; border-left: 2pt solid #607d86; overflow-wrap: anywhere; padding: 7pt; white-space: pre-wrap; }
+.figure { break-before: page; break-inside: avoid; margin: 0 0 7pt; text-align: center; }
+h2 + .figure { break-before: avoid; }
+.figure-wide {
+  align-items: start;
+  column-gap: 0.22in;
+  display: grid;
+  grid-template-columns: 7.55in 2.03in;
+  margin-left: -0.74in;
+  page: figure-wide;
+  width: 9.80in;
+}
+.figure img { height: auto; max-height: 8.2in; max-width: 100%; object-fit: contain; }
+.figure p { text-align: left; }
+.figure-wide p:first-child { grid-column: 1; margin: 0; text-align: center; }
+.figure-wide p:last-child { font-size: 8.1pt; grid-column: 2; line-height: 1.30; margin: 0; }
+.figure-wide img { max-height: 6.75in; width: 100%; }
+ul { margin-top: 4pt; }
+</style>
+</head>
+<body><h1>ASGSR 2026 Abstract</h1>
+<h2>Title</h2>
+<p>Reference-guided expiMap identifies tissue-specific pathway responses to spaceflight in mouse transcriptomes</p>
+<h2>Authors and affiliations</h2>
+<p><strong>Jason Trinh</strong> (presenting author)<sup>1</sup></p>
+<p><sup>1</sup> NASA Space Life Sciences Training Program (NASA/SLSTP), NASA Ames Research Center, Moffett Field, California, USA</p>
+<h2>Abstract</h2>
+<p>Spaceflight alters many organs, but study-specific designs can obscure biological processes shared across missions. We adapted expiMap, a pathway-constrained variational autoencoder, to NASA Open Science Data Repository mouse bulk RNA sequencing. Six tissue-matched non-spaceflight ARCHS4 references were trained on approximately 2,000 highly variable genes connected to current mouse Reactome programs. Thymus, skin, liver, and spleen formed the positive-result set; kidney was secondary and soleus was a supplementary sensitivity analysis. Decoder-oriented flight-minus-ground scores were balanced across accessions or mission projects. We tested directions using single-sample and preranked gene-set enrichment, held-out-project prediction, three complete reference-query trainings, broad cell-composition proxies, and member-gene review. Flight skin had lower chromatin-regulatory, DNA-repair, Hedgehog, sphingolipid, and cell-junction scores, supporting a coordinated lower tissue-maintenance state. Flight thymus had lower DNA-repair and RHOA cytoskeletal scores; lower lymphoid-stromal interaction remained an internally reproducible expiMap-specific hypothesis. Flight liver had lower MHC class II antigen-presentation and T-cell receptor scores beside heterogeneous metabolic responses. Flight spleen had lower T-cell receptor, neutrophil degranulation, and C-type lectin receptor programs across five unconfounded projects and three trainings; all three had preranked-GSEA FDR below 0.05. Kidney showed a reproducible higher ECM-proteoglycan, WNT, and IGF-transport axis, but these effects were composition-attenuated and lacked conventional FDR support. No soleus pathway passed all checks. Reference-guided pathway modeling therefore recovers known tissue biology and adds regulatory, structural, and innate-immune hypotheses while exposing model- and mission-sensitive findings. Independent cell-resolved and functional validation is required. Acknowledgment: NASA/SLSTP.</p></body>
+</html>

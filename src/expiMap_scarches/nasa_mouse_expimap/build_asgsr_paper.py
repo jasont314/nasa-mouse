@@ -2086,9 +2086,9 @@ def plot_generated_process_illustration() -> None:
 
 def write_readme(summary: pd.DataFrame) -> None:
     lines = [
-        "# ASGSR expiMap HVG paper package",
+        "# Original four-model ASGSR build",
         "",
-        "This directory contains the conference abstract, manuscript, source tables, and reproducible figures for the thymus, skin, liver, and soleus HVG expiMap analysis.",
+        "This file documents the original thymus, skin, liver, and soleus build that supplies the base tables and supplementary analyses. Run `integrate_reassessed_tissues_paper` after this builder to restore the revised six-model main figures and paper-facing tables.",
         "",
         "The primary descriptive quantity is the mean of accession-specific flight-minus-ground pathway-score differences after orienting each latent dimension with the sign of its summed decoder weights. Claims are then qualified by conventional enrichment, held-out-project prediction, full-pipeline seed retraining, and atlas-derived broad composition-proxy sensitivity. FDR and the five-check evidence status are complementary summaries, not interchangeable discovery thresholds.",
         "",
@@ -2156,7 +2156,9 @@ def write_readme(summary: pd.DataFrame) -> None:
         "- The 2026 investigator abstract deadline was June 14, 2026, so the abstract is formatted for the meeting but requires confirmation that a submission record already exists or that ASGSR will accept a late/alternate submission.",
         "",
     ]
-    (PAPER_DIR / "README.md").write_text("\n".join(lines), encoding="utf-8")
+    (PAPER_DIR / "original_four_model_build.md").write_text(
+        "\n".join(lines), encoding="utf-8"
+    )
 
 
 def run() -> None:

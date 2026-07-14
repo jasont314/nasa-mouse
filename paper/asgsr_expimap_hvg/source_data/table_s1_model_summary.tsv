@@ -1,0 +1,5 @@
+tissue	reference_samples	reference_series	query_samples	query_flight	query_ground_control	query_accessions	source_query_samples_before_primary_filter	source_query_accessions_before_primary_filter	primary_excluded_accessions	hvg_requested	genes_after_filter	reactome_programs	reference_epochs_requested	reference_epochs_completed	query_epochs	reconstruction_loss	hidden_layers	gpu	posterior_mean_scores
+thymus	1362	107	117	63	54	5	117	5		2000	1994	387	400	400	250	nb	300x300x300	NVIDIA A100-SXM4-40GB	True
+skin	2593	185	151	80	71	6	151	6		2000	1997	319	400	244	250	nb	300x300x300	NVIDIA A100-SXM4-40GB	True
+liver	5000	518	197	101	96	10	231	12	OSD-164;OSD-168	2000	1995	364	400	248	250	nb	300x300x300	NVIDIA A100-SXM4-40GB	True
+soleus	1412	88	53	28	25	3	53	3		2000	1975	357	400	400	250	nb	300x300x300	NVIDIA A100-SXM4-40GB	True
