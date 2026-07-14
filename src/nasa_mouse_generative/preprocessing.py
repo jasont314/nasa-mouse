@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
+import json
+from pathlib import Path
 from typing import Iterable
 
 import numpy as np
@@ -101,6 +103,143 @@ class FittedPreprocessor:
             return self._apply_final_scaler(harmonized)
         return self._apply_final_scaler(values)
 
+    def fit_additional_study_stats(
+        self,
+        matrix: np.ndarray,
+        studies: Iterable[object],
+        *,
+        gene_lengths: np.ndarray | None = None,
+    ) -> None:
+        """Fit harmonization statistics for additional training-only studies.
+
+        This is used after reference fitting so OSDR fine-tuning accessions can
+        receive training-fitted study transforms while unseen validation and test
+        accessions still use the reference-global fallback.
+        """
+
+        if self.spec.harmonization not in {
+            "within_study_zscore",
+            "within_study_then_global_zscore",
+        }:
+            return
+        studies_array = np.asarray(list(studies), dtype=str)
+        values = self._base_transform(matrix, gene_lengths=gene_lengths)
+        if len(studies_array) != len(values):
+            raise ValueError("studies must contain one value per sample")
+        for study in sorted(set(studies_array)):
+            mask = studies_array == study
+            self.study_stats[study] = fit_stats(values[mask], "zscore")
+
+    def inverse_transform(
+        self, values: np.ndarray, studies: Iterable[object]
+    ) -> np.ndarray:
+        """Return generated values in the configured normalized input units.
+
+        Library-size normalization is not invertible without a target library
+        size. Consequently CPM and TPM runs return CPM/TPM, while ``none`` returns
+        the original input units after reversing transform/scaling.
+        """
+
+        result = np.asarray(values, dtype=np.float32)
+        studies_array = np.asarray(list(studies), dtype=str)
+        if result.ndim != 2 or len(studies_array) != len(result):
+            raise ValueError("values and studies must be aligned samples x genes")
+        if self.final_stats is not None:
+            result = invert_stats(result, self.final_stats)
+        if self.post_harmonization_stats is not None:
+            result = invert_stats(result, self.post_harmonization_stats)
+        if self.spec.harmonization in {
+            "within_study_zscore",
+            "within_study_then_global_zscore",
+        }:
+            if self.global_stats is None:
+                raise RuntimeError("Preprocessor is not fitted")
+            restored = np.empty_like(result, dtype=np.float32)
+            for study in sorted(set(studies_array)):
+                mask = studies_array == study
+                stats = self.study_stats.get(study, self.global_stats)
+                restored[mask] = invert_stats(result[mask], stats)
+            result = restored
+        if self.spec.transform == "log1p":
+            result = np.expm1(np.clip(result, -30.0, 30.0))
+        elif self.spec.transform == "log2p1":
+            result = np.exp2(np.clip(result, -30.0, 30.0)) - 1.0
+        result = np.nan_to_num(result, nan=0.0, posinf=np.finfo(np.float32).max)
+        if self.spec.input_units == "raw_counts" or self.spec.library_normalization != "none":
+            result = np.maximum(result, 0.0)
+        return result.astype(np.float32)
+
+    @property
+    def output_units(self) -> str:
+        return (
+            self.spec.library_normalization
+            if self.spec.library_normalization != "none"
+            else self.spec.input_units
+        )
+
+    def save(self, directory: str | Path) -> tuple[Path, Path]:
+        output_dir = Path(directory)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        arrays: dict[str, np.ndarray] = {}
+        metadata: dict[str, object] = {
+            "spec": asdict(self.spec),
+            "output_units": self.output_units,
+            "stats": {},
+            "study_stats": {},
+        }
+
+        def add_stats(label: str, stats: ScaleStats | None) -> None:
+            if stats is None:
+                return
+            arrays[f"{label}_center"] = stats.center
+            arrays[f"{label}_scale"] = stats.scale
+            metadata["stats"][label] = True
+
+        add_stats("global", self.global_stats)
+        add_stats("post_harmonization", self.post_harmonization_stats)
+        add_stats("final", self.final_stats)
+        for index, (study, stats) in enumerate(sorted(self.study_stats.items())):
+            label = f"study_{index:05d}"
+            arrays[f"{label}_center"] = stats.center
+            arrays[f"{label}_scale"] = stats.scale
+            metadata["study_stats"][study] = label
+        arrays_path = output_dir / "preprocessing_stats.npz"
+        metadata_path = output_dir / "preprocessing.json"
+        np.savez_compressed(arrays_path, **arrays)
+        metadata_path.write_text(
+            json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
+        )
+        return metadata_path, arrays_path
+
+    @classmethod
+    def load(cls, directory: str | Path) -> "FittedPreprocessor":
+        input_dir = Path(directory)
+        metadata = json.loads(
+            (input_dir / "preprocessing.json").read_text(encoding="utf-8")
+        )
+        arrays = np.load(input_dir / "preprocessing_stats.npz")
+        processor = cls(PreprocessingConfig(**metadata["spec"]))
+
+        def read_stats(label: str) -> ScaleStats | None:
+            center_key = f"{label}_center"
+            if center_key not in arrays:
+                return None
+            return ScaleStats(
+                center=np.asarray(arrays[center_key], dtype=np.float32),
+                scale=np.asarray(arrays[f"{label}_scale"], dtype=np.float32),
+            )
+
+        processor.global_stats = read_stats("global")
+        processor.post_harmonization_stats = read_stats("post_harmonization")
+        processor.final_stats = read_stats("final")
+        processor.study_stats = {
+            study: read_stats(label)
+            for study, label in metadata.get("study_stats", {}).items()
+        }
+        if any(stats is None for stats in processor.study_stats.values()):
+            raise ValueError("Serialized preprocessing study statistics are incomplete")
+        return processor
+
     def _base_transform(
         self, matrix: np.ndarray, *, gene_lengths: np.ndarray | None
     ) -> np.ndarray:
@@ -175,3 +314,9 @@ def apply_stats(values: np.ndarray, stats: ScaleStats) -> np.ndarray:
     return ((np.asarray(values, dtype=np.float32) - stats.center) / stats.scale).astype(
         np.float32
     )
+
+
+def invert_stats(values: np.ndarray, stats: ScaleStats) -> np.ndarray:
+    return (
+        np.asarray(values, dtype=np.float32) * stats.scale + stats.center
+    ).astype(np.float32)

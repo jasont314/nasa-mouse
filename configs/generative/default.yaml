@@ -3,10 +3,15 @@ output_root: outputs/generative_benchmark
 
 data:
   osdr_metadata: data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv
+  osdr_h5ad: outputs/generative_benchmark/data/osdr/osdr_api_raw_counts.h5ad
   archs4_h5: assets/archs4/mouse_gene_v2.5.h5
+  archs4_catalog_dir: outputs/generative_benchmark/data_audit/archs4
+  split_dir: outputs/generative_benchmark/splits
   archs4_cohort: healthy_preferred
   archs4_max_per_tissue: 10000
   archs4_max_per_series: 100
+  archs4_sample_limit: 0
+  osdr_sample_limit: 0
   osdr_accession_scope: all_eligible
   osdr_include_accessions: []
   osdr_exclude_accessions: []
@@ -21,6 +26,7 @@ data:
 
 features:
   space: all_shared
+  selection_source: auto
   max_genes: 0
   hvg_genes: 2000
   l1000_map: data/diffusion/l1000_human_to_mouse_ensembl.tsv
@@ -37,6 +43,8 @@ preprocessing:
 
 training:
   model: vinas_wgan_gp
+  model_profile: practical_screen
+  model_parameters: {}
   task: conditional_generation
   regime: archs4_pretrain_osdr_finetune
   tissue_mode: pooled_conditioned
@@ -67,3 +75,16 @@ validation:
   allow_transductive_preprocessing: false
   pooled_validation_fraction: 0.15
   pooled_test_fraction: 0.15
+  fold_id: ""
+  max_metric_samples: 2000
+
+execution:
+  device: auto
+  resume: true
+  checkpoint_every_epochs: 10
+  num_workers: 0
+  cache_archs4: true
+  evaluate_after_training: true
+  save_generated_matrix: false
+  model_profiles: configs/generative/model_profiles.yaml
+  genejepa_source: assets/model_sources/GeneJEPA

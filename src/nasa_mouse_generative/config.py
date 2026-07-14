@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -55,6 +55,8 @@ ALLOWED_CONDITIONING_COVARIATES = {
     "data_source",
 }
 ALLOWED_TECHNICAL_REPLICATE_POLICIES = {"keep", "sum", "mean"}
+ALLOWED_DEVICES = {"auto", "cpu", "cuda"}
+ALLOWED_FEATURE_SELECTION_SOURCES = {"auto", "osdr_train", "archs4_reference"}
 
 
 @dataclass(frozen=True)
@@ -71,10 +73,15 @@ class PreprocessingConfig:
 @dataclass(frozen=True)
 class DataConfig:
     osdr_metadata: str = "data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv"
+    osdr_h5ad: str = "outputs/generative_benchmark/data/osdr/osdr_api_raw_counts.h5ad"
     archs4_h5: str = "assets/archs4/mouse_gene_v2.5.h5"
+    archs4_catalog_dir: str = "outputs/generative_benchmark/data_audit/archs4"
+    split_dir: str = "outputs/generative_benchmark/splits"
     archs4_cohort: str = "healthy_preferred"
     archs4_max_per_tissue: int = 10000
     archs4_max_per_series: int = 100
+    archs4_sample_limit: int = 0
+    osdr_sample_limit: int = 0
     osdr_accession_scope: str = "all_eligible"
     osdr_include_accessions: tuple[str, ...] = ()
     osdr_exclude_accessions: tuple[str, ...] = ()
@@ -91,6 +98,8 @@ class DataConfig:
 @dataclass(frozen=True)
 class TrainingConfig:
     model: str = "vinas_wgan_gp"
+    model_profile: str = "practical_screen"
+    model_parameters: dict[str, Any] = field(default_factory=dict)
     task: str = "conditional_generation"
     regime: str = "archs4_pretrain_osdr_finetune"
     tissue_mode: str = "pooled_conditioned"
@@ -113,6 +122,7 @@ class TrainingConfig:
 @dataclass(frozen=True)
 class FeatureConfig:
     space: str = "all_shared"
+    selection_source: str = "auto"
     max_genes: int = 0
     hvg_genes: int = 2000
     l1000_map: str = "data/diffusion/l1000_human_to_mouse_ensembl.tsv"
@@ -135,6 +145,21 @@ class ValidationConfig:
     allow_transductive_preprocessing: bool = False
     pooled_validation_fraction: float = 0.15
     pooled_test_fraction: float = 0.15
+    fold_id: str = ""
+    max_metric_samples: int = 2000
+
+
+@dataclass(frozen=True)
+class ExecutionConfig:
+    device: str = "auto"
+    resume: bool = True
+    checkpoint_every_epochs: int = 10
+    num_workers: int = 0
+    cache_archs4: bool = True
+    evaluate_after_training: bool = True
+    save_generated_matrix: bool = False
+    model_profiles: str = "configs/generative/model_profiles.yaml"
+    genejepa_source: str = "assets/model_sources/GeneJEPA"
 
 
 @dataclass(frozen=True)
@@ -147,6 +172,7 @@ class BenchmarkConfig:
     training: TrainingConfig = field(default_factory=TrainingConfig)
     generation: GenerationConfig = field(default_factory=GenerationConfig)
     validation: ValidationConfig = field(default_factory=ValidationConfig)
+    execution: ExecutionConfig = field(default_factory=ExecutionConfig)
 
     def validate(self) -> None:
         p = self.preprocessing
@@ -155,6 +181,7 @@ class BenchmarkConfig:
         t = self.training
         g = self.generation
         v = self.validation
+        e = self.execution
         if self.version != 1:
             raise ValueError(f"Unsupported configuration version: {self.version}")
         if t.model not in MODEL_REGISTRY:
@@ -241,6 +268,10 @@ class BenchmarkConfig:
             )
         if f.space not in ALLOWED_FEATURE_SPACES:
             raise ValueError(f"Unsupported feature space: {f.space}")
+        if f.selection_source not in ALLOWED_FEATURE_SELECTION_SOURCES:
+            raise ValueError(
+                f"Unsupported feature-selection source: {f.selection_source}"
+            )
         if f.max_genes < 0 or f.hvg_genes < 1:
             raise ValueError("Feature counts must be non-negative, with hvg_genes >= 1")
         if g.samples_per_covariate_profile < 1:
@@ -265,6 +296,16 @@ class BenchmarkConfig:
             raise ValueError("pooled_test_fraction must be between 0 and 0.5")
         if v.pooled_validation_fraction + v.pooled_test_fraction >= 0.8:
             raise ValueError("Pooled validation and test fractions leave too little training data")
+        if v.max_metric_samples < 5:
+            raise ValueError("validation.max_metric_samples must be at least 5")
+        if e.device not in ALLOWED_DEVICES:
+            raise ValueError(f"Unsupported execution device: {e.device}")
+        if e.checkpoint_every_epochs < 1:
+            raise ValueError("execution.checkpoint_every_epochs must be positive")
+        if e.num_workers < 0:
+            raise ValueError("execution.num_workers cannot be negative")
+        if d.archs4_sample_limit < 0 or d.osdr_sample_limit < 0:
+            raise ValueError("Runtime sample limits cannot be negative")
         for name, value in {
             "min_confirmatory_total": d.min_confirmatory_total,
             "min_confirmatory_per_condition": d.min_confirmatory_per_condition,
@@ -277,6 +318,9 @@ class BenchmarkConfig:
             if value < 1:
                 raise ValueError(f"{name} must be positive")
 
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
 
 def _construct(data: dict[str, Any]) -> BenchmarkConfig:
     data_options = dict(data.get("data", {}))
@@ -287,6 +331,10 @@ def _construct(data: dict[str, Any]) -> BenchmarkConfig:
     if "conditioning_covariates" in training_options:
         training_options["conditioning_covariates"] = tuple(
             map(str, training_options["conditioning_covariates"] or ())
+        )
+    if "model_parameters" in training_options:
+        training_options["model_parameters"] = dict(
+            training_options["model_parameters"] or {}
         )
     generation_options = dict(data.get("generation", {}))
     if "synthetic_to_real_ratios" in generation_options:
@@ -302,6 +350,7 @@ def _construct(data: dict[str, Any]) -> BenchmarkConfig:
         training=TrainingConfig(**training_options),
         generation=GenerationConfig(**generation_options),
         validation=ValidationConfig(**data.get("validation", {})),
+        execution=ExecutionConfig(**data.get("execution", {})),
     )
 
 
@@ -309,6 +358,35 @@ def load_config(path: str | Path) -> BenchmarkConfig:
     payload = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
     if not isinstance(payload, dict):
         raise ValueError("Configuration root must be a mapping")
+    config = _construct(payload)
+    config.validate()
+    return config
+
+
+def load_config_with_overrides(
+    path: str | Path, overrides: list[str] | tuple[str, ...]
+) -> BenchmarkConfig:
+    """Load YAML and apply dotted ``key=value`` overrides before validation."""
+
+    payload = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+    if not isinstance(payload, dict):
+        raise ValueError("Configuration root must be a mapping")
+    for override in overrides:
+        if "=" not in override:
+            raise ValueError(f"Expected dotted key=value override, got {override!r}")
+        dotted_key, raw_value = override.split("=", 1)
+        keys = [key for key in dotted_key.split(".") if key]
+        if not keys:
+            raise ValueError(f"Invalid override key: {dotted_key!r}")
+        cursor = payload
+        for key in keys[:-1]:
+            value = cursor.setdefault(key, {})
+            if not isinstance(value, dict):
+                raise ValueError(
+                    f"Cannot assign {dotted_key!r}; {key!r} is not a mapping"
+                )
+            cursor = value
+        cursor[keys[-1]] = yaml.safe_load(raw_value)
     config = _construct(payload)
     config.validate()
     return config
