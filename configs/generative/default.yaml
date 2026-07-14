@@ -1,0 +1,69 @@
+version: 1
+output_root: outputs/generative_benchmark
+
+data:
+  osdr_metadata: data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv
+  archs4_h5: assets/archs4/mouse_gene_v2.5.h5
+  archs4_cohort: healthy_preferred
+  archs4_max_per_tissue: 10000
+  archs4_max_per_series: 100
+  osdr_accession_scope: all_eligible
+  osdr_include_accessions: []
+  osdr_exclude_accessions: []
+  osdr_tissues: []
+  technical_replicate_policy: sum
+  min_confirmatory_total: 60
+  min_confirmatory_per_condition: 20
+  min_confirmatory_accessions: 5
+  min_exploratory_total: 30
+  min_exploratory_per_condition: 10
+  min_exploratory_accessions: 2
+
+features:
+  space: all_shared
+  max_genes: 0
+  hvg_genes: 2000
+  l1000_map: data/diffusion/l1000_human_to_mouse_ensembl.tsv
+  reactome_gmt: data/pathways/reactome_current_mouse_ensembl.gmt
+
+preprocessing:
+  input_units: raw_counts
+  library_normalization: cpm
+  transform: log1p
+  scaler: zscore
+  harmonization: none
+  unseen_study_policy: global_train_fallback
+  gene_lengths: ""
+
+training:
+  model: vinas_wgan_gp
+  task: conditional_generation
+  regime: archs4_pretrain_osdr_finetune
+  tissue_mode: pooled_conditioned
+  condition_on_flight: true
+  study_policy: not_conditioned
+  conditioning_covariates:
+    - condition
+    - tissue
+    - material_type
+    - muscle_group
+    - sex
+    - assay
+    - platform
+    - data_source
+  seed: 2020
+  repeats: 5
+
+generation:
+  samples_per_covariate_profile: 100
+  synthetic_to_real_ratios: [0.5, 1.0, 2.0]
+  paired_counterfactual: false
+
+validation:
+  split_unit: accession
+  selection_metric: heldout_fidelity_composite
+  downstream_flt_gc_secondary: true
+  final_test_locked: true
+  allow_transductive_preprocessing: false
+  pooled_validation_fraction: 0.15
+  pooled_test_fraction: 0.15

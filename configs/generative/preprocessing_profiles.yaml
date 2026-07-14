@@ -1,0 +1,64 @@
+version: 1
+
+shared_profiles:
+  shared_raw:
+    input_units: raw_counts
+    library_normalization: none
+    transform: none
+    scaler: none
+  shared_log1p_counts:
+    input_units: raw_counts
+    library_normalization: none
+    transform: log1p
+    scaler: none
+  shared_log1p_cpm:
+    input_units: raw_counts
+    library_normalization: cpm
+    transform: log1p
+    scaler: none
+  shared_log1p_cpm_zscore:
+    input_units: raw_counts
+    library_normalization: cpm
+    transform: log1p
+    scaler: zscore
+  shared_log2p1_cpm_zscore:
+    input_units: raw_counts
+    library_normalization: cpm
+    transform: log2p1
+    scaler: zscore
+  shared_log1p_cpm_robust:
+    input_units: raw_counts
+    library_normalization: cpm
+    transform: log1p
+    scaler: robust
+  shared_log1p_cpm_maxabs:
+    input_units: raw_counts
+    library_normalization: cpm
+    transform: log1p
+    scaler: maxabs
+  shared_tpm_maxabs:
+    input_units: raw_counts
+    library_normalization: tpm
+    transform: none
+    scaler: maxabs
+    requires: mouse gene lengths aligned to the selected Ensembl IDs
+
+paper_native_profiles:
+  vinas_wgan_gp:
+    input_units: raw_counts
+    library_normalization: cpm
+    transform: log1p
+    scaler: zscore
+    adaptation_note: CPM is added because OSDR provides library-size-dependent raw counts.
+  lacan_diffusion:
+    input_units: raw_counts
+    library_normalization: tpm
+    transform: none
+    scaler: maxabs
+    requires: mouse gene lengths aligned to the selected Ensembl IDs
+  genejepa:
+    input_units: raw_counts
+    library_normalization: none
+    transform: log1p
+    scaler: global_scalar_zscore_in_model_adapter
+    adaptation_note: The paper uses sparse single-cell tokens; bulk compatibility is exploratory.

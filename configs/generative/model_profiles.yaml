@@ -1,0 +1,52 @@
+version: 1
+
+profiles:
+  vinas_wgan_gp:
+    paper_native:
+      noise_dim: 64
+      hidden_dims: [256, 256]
+      batch_size: 32
+      critic_steps: 5
+      gradient_penalty: 10.0
+      optimizer: rmsprop
+      learning_rate: 0.00005
+      epochs: 2000
+    practical_screen:
+      noise_dim: 64
+      hidden_dims: [256, 256]
+      batch_size: 128
+      critic_steps: 5
+      gradient_penalty: 10.0
+      optimizer: adam
+      learning_rate: 0.0001
+      epochs: 100
+
+  lacan_diffusion:
+    paper_native:
+      diffusion_timesteps: 1000
+      sample_steps: 1000
+      beta_schedule: quad
+      beta_start: 0.0001
+      beta_end: 0.02
+      sampler: ddim
+      eta: 0.0
+      use_amp: true
+      use_ema: true
+      landmark_strategy: l1000
+    practical_screen:
+      diffusion_timesteps: 1000
+      sample_steps: 50
+      beta_schedule: quad
+      beta_start: 0.0001
+      beta_end: 0.02
+      sampler: ddim
+      eta: 0.0
+      use_amp: true
+      use_ema: true
+      landmark_strategy: l1000_or_hvg
+
+  genejepa:
+    paper_native:
+      task: representation
+      decoder: null
+      note: The paper model cannot generate expression and remains capability-blocked.
