@@ -144,6 +144,165 @@ def memorization_metrics(
     }
 
 
+def fidelity_selection(
+    fidelity: dict[str, float], memorization: dict[str, float]
+) -> dict[str, object]:
+    def bounded(value: object) -> float:
+        number = float(value)
+        if not np.isfinite(number):
+            return 0.0
+        return float(np.clip(number, 0.0, 1.0))
+
+    adversarial = float(fidelity.get("adversarial_accuracy", float("nan")))
+    adversarial_score = (
+        float(np.clip(1.0 - 2.0 * abs(adversarial - 0.5), 0.0, 1.0))
+        if np.isfinite(adversarial)
+        else 0.0
+    )
+    components = {
+        "gene_mean_correlation": bounded(
+            fidelity.get("gene_mean_correlation", float("nan"))
+        ),
+        "gene_std_correlation": bounded(
+            fidelity.get("gene_std_correlation", float("nan"))
+        ),
+        "precision_recall_f1": bounded(fidelity.get("f1", float("nan"))),
+        "adversarial_indistinguishability": adversarial_score,
+    }
+    real_std = float(fidelity.get("real_global_std", 0.0))
+    fake_std = float(fidelity.get("fake_global_std", 0.0))
+    diversity_ratio = fake_std / max(real_std, 1e-8)
+    diversity_pass = bool(
+        float(fidelity.get("recall", 0.0)) >= 0.1 and diversity_ratio >= 0.1
+    )
+    memorization_fraction = float(
+        memorization.get("fraction_below_training_p01", float("nan"))
+    )
+    memorization_pass = bool(
+        np.isfinite(memorization_fraction) and memorization_fraction <= 0.05
+    )
+    return {
+        "heldout_fidelity_composite": float(np.mean(list(components.values()))),
+        "components": components,
+        "diversity_gate": {
+            "passed": diversity_pass,
+            "recall_minimum": 0.1,
+            "global_std_ratio": diversity_ratio,
+            "global_std_ratio_minimum": 0.1,
+        },
+        "memorization_gate": {
+            "passed": memorization_pass,
+            "fraction_below_training_p01_maximum": 0.05,
+        },
+        "eligible_for_model_selection": diversity_pass and memorization_pass,
+    }
+
+
+def _plot_representation(
+    path: Path, embeddings: np.ndarray, labels: np.ndarray
+) -> str:
+    if len(embeddings) < 3 or embeddings.shape[1] < 2:
+        return ""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    coordinates = PCA(n_components=2, random_state=0).fit_transform(embeddings)
+    colors = {"flight": "#c43c39", "ground_control": "#2878b5"}
+    figure, axis = plt.subplots(figsize=(6.4, 5.0))
+    for label in sorted(set(labels)):
+        mask = labels == label
+        axis.scatter(
+            coordinates[mask, 0],
+            coordinates[mask, 1],
+            s=24,
+            alpha=0.75,
+            label=label,
+            color=colors.get(label, "#666666"),
+            edgecolors="none",
+        )
+    axis.set_xlabel("PCA 1")
+    axis.set_ylabel("PCA 2")
+    axis.set_title("Held-out representation, condition input neutralized")
+    axis.legend(frameon=False)
+    figure.tight_layout()
+    figure.savefig(path, dpi=180)
+    plt.close(figure)
+    return str(path)
+
+
+def _plot_generation(
+    output: Path,
+    real: np.ndarray,
+    fake: np.ndarray,
+    labels: np.ndarray,
+) -> dict[str, str]:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    paths: dict[str, str] = {}
+    combined = np.concatenate([real, fake])
+    if len(real) >= 3 and combined.shape[1] >= 2:
+        coordinates = PCA(n_components=2, random_state=0).fit_transform(combined)
+        real_coordinates = coordinates[: len(real)]
+        fake_coordinates = coordinates[len(real) :]
+        colors = {"flight": "#c43c39", "ground_control": "#2878b5"}
+        figure, axis = plt.subplots(figsize=(6.8, 5.2))
+        for label in sorted(set(labels)):
+            mask = labels == label
+            color = colors.get(label, "#666666")
+            axis.scatter(
+                real_coordinates[mask, 0],
+                real_coordinates[mask, 1],
+                s=26,
+                alpha=0.75,
+                color=color,
+                marker="o",
+                label=f"real {label}",
+                edgecolors="none",
+            )
+            axis.scatter(
+                fake_coordinates[mask, 0],
+                fake_coordinates[mask, 1],
+                s=28,
+                alpha=0.75,
+                color=color,
+                marker="x",
+                label=f"synthetic {label}",
+            )
+        axis.set_xlabel("PCA 1")
+        axis.set_ylabel("PCA 2")
+        axis.set_title("Held-out real and conditioned synthetic expression")
+        axis.legend(frameon=False, fontsize=8, ncol=2)
+        figure.tight_layout()
+        pca_path = output / "real_vs_synthetic_pca.png"
+        figure.savefig(pca_path, dpi=180)
+        plt.close(figure)
+        paths["real_vs_synthetic_pca"] = str(pca_path)
+
+    figure, axis = plt.subplots(figsize=(5.4, 5.2))
+    real_mean = real.mean(axis=0)
+    fake_mean = fake.mean(axis=0)
+    axis.scatter(real_mean, fake_mean, s=12, alpha=0.55, color="#3b6f8f")
+    limits = [
+        min(float(real_mean.min()), float(fake_mean.min())),
+        max(float(real_mean.max()), float(fake_mean.max())),
+    ]
+    axis.plot(limits, limits, color="#333333", linewidth=1, linestyle="--")
+    axis.set_xlabel("Real gene mean")
+    axis.set_ylabel("Synthetic gene mean")
+    axis.set_title("Gene-mean fidelity")
+    figure.tight_layout()
+    mean_path = output / "gene_mean_fidelity.png"
+    figure.savefig(mean_path, dpi=180)
+    plt.close(figure)
+    paths["gene_mean_fidelity"] = str(mean_path)
+    return paths
+
+
 def _subsample_partition(
     partition: DataPartition, max_samples: int, seed: int
 ) -> DataPartition:
@@ -238,12 +397,18 @@ def evaluate_model(
         evaluation_embeddings,
         metric_evaluation.obs["condition"].astype(str).to_numpy(),
     )
+    representation_plot = _plot_representation(
+        output / "evaluation_embedding_pca.png",
+        evaluation_embeddings,
+        metric_evaluation.obs["condition"].astype(str).to_numpy(),
+    )
     summary: dict[str, object] = {
         "adapter_id": adapter.adapter_id,
         "split": split,
         "samples": len(metric_evaluation),
         "representation_condition_input": "neutralized_to___unknown__",
         "representation_flt_gc_utility": representation_utility,
+        "plots": {"evaluation_embedding_pca": representation_plot},
         "generation": {"status": "not_supported"},
     }
 
@@ -292,12 +457,21 @@ def evaluate_model(
             "minimum": float(fake_normalized.min()),
             "maximum": float(fake_normalized.max()),
         }
+        selection = fidelity_selection(fidelity, memorization)
+        generation_plots = _plot_generation(
+            output,
+            metric_evaluation.matrix,
+            fake_evaluation,
+            metric_evaluation.obs["condition"].astype(str).to_numpy(),
+        )
+        summary["plots"].update(generation_plots)
         summary["generation"] = {
             "status": "complete",
             "fidelity_transformed": fidelity,
             "fidelity_normalized_units": normalized_quality,
             "flt_gc_effect_recovery": effect,
             "memorization": memorization,
+            "model_selection": selection,
             "expression_flt_gc_utility": expression_utility,
         }
         if save_generated_matrix:

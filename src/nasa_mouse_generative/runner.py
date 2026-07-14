@@ -132,6 +132,57 @@ def _write_readme(run_dir: Path, summary: dict) -> None:
     (run_dir / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _claim_run_identity(
+    run_dir: Path, *, identifier: str, digest: str, model: str
+) -> None:
+    """Validate every durable run marker before writing a new identity file."""
+
+    recorded: dict[str, str] = {}
+    identity_path = run_dir / "run_identity.json"
+    if identity_path.exists():
+        payload = json.loads(identity_path.read_text(encoding="utf-8"))
+        recorded["run_identity.json"] = str(payload.get("run_sha256", ""))
+    summary_path = run_dir / "run_summary.json"
+    if summary_path.exists():
+        payload = json.loads(summary_path.read_text(encoding="utf-8"))
+        recorded["run_summary.json"] = str(payload.get("run_sha256", ""))
+    resolved_path = run_dir / "resolved_config.yaml"
+    if resolved_path.exists():
+        payload = yaml.safe_load(resolved_path.read_text(encoding="utf-8")) or {}
+        recorded["resolved_config.yaml"] = str(
+            payload.get("run", {}).get("sha256", "")
+        )
+
+    missing = sorted(name for name, value in recorded.items() if not value)
+    if missing:
+        raise ValueError(f"Run markers lack a configuration digest: {missing}")
+    existing_digests = set(recorded.values())
+    if len(existing_digests) > 1:
+        raise ValueError(
+            f"Run directory {run_dir} has inconsistent configuration markers: "
+            f"{recorded}"
+        )
+    if existing_digests and digest not in existing_digests:
+        existing_digest = next(iter(existing_digests))
+        raise ValueError(
+            f"Run name {identifier!r} already belongs to configuration "
+            f"{existing_digest[:12]}; choose another --run-name"
+        )
+    if not identity_path.exists():
+        identity_path.write_text(
+            json.dumps(
+                {
+                    "run_id": identifier,
+                    "run_sha256": digest,
+                    "model": model,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+
 def train_one(
     config: BenchmarkConfig,
     *,
@@ -143,15 +194,12 @@ def train_one(
     identifier, digest = _run_identity(config, parameters, tissue, run_name)
     run_dir = Path(config.output_root) / "runs" / config.training.model / identifier
     run_dir.mkdir(parents=True, exist_ok=True)
-    existing_summary = run_dir / "run_summary.json"
-    if existing_summary.exists():
-        existing = json.loads(existing_summary.read_text(encoding="utf-8"))
-        existing_digest = str(existing.get("run_sha256", ""))
-        if existing_digest and existing_digest != digest:
-            raise ValueError(
-                f"Run name {identifier!r} already belongs to configuration "
-                f"{existing_digest[:12]}; choose another --run-name"
-            )
+    _claim_run_identity(
+        run_dir,
+        identifier=identifier,
+        digest=digest,
+        model=config.training.model,
+    )
     resolved = config.to_dict()
     resolved["resolved_model_parameters"] = parameters
     resolved["run"] = {

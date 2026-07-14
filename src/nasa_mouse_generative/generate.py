@@ -25,13 +25,29 @@ def _overrides(values: list[str]) -> dict[str, str]:
     return result
 
 
-def _default_profile(run_dir: Path, covariates: tuple[str, ...]) -> dict[str, str]:
+def _default_profile(
+    run_dir: Path,
+    covariates: tuple[str, ...],
+    constraints: dict[str, str],
+) -> tuple[dict[str, str], bool]:
     table = pd.read_csv(run_dir / "train_obs.tsv.gz", sep="\t")
-    columns = [covariate for covariate in covariates if covariate in table]
+    columns = [
+        covariate
+        for covariate in (*covariates, "study")
+        if covariate in table
+    ]
+    columns = list(dict.fromkeys(columns))
     if not columns:
-        return {}
+        return {}, False
+    candidates = table
+    for covariate, value in constraints.items():
+        if covariate in candidates:
+            candidates = candidates.loc[candidates[covariate].astype(str).eq(value)]
+    observed_match = not candidates.empty
+    if candidates.empty:
+        candidates = table
     combinations = (
-        table[columns]
+        candidates[columns]
         .fillna("__missing__")
         .astype(str)
         .value_counts(dropna=False)
@@ -39,7 +55,7 @@ def _default_profile(run_dir: Path, covariates: tuple[str, ...]) -> dict[str, st
         .sort_values(["profiles", *columns], ascending=[False, *([True] * len(columns))])
     )
     row = combinations.iloc[0]
-    return {covariate: str(row[covariate]) for covariate in columns}
+    return {covariate: str(row[covariate]) for covariate in columns}, observed_match
 
 
 def run(args: argparse.Namespace) -> Path:
@@ -52,17 +68,36 @@ def run(args: argparse.Namespace) -> Path:
         raise SystemExit(f"{adapter.adapter_id} is a representation model, not a generator")
     encoder = CategoryEncoder.load(run_dir / "categorical_encoder.json")
     preprocessor = FittedPreprocessor.load(run_dir)
-    profile = _default_profile(run_dir, encoder.covariates)
-    profile.update(_overrides(args.set))
+    constraints = _overrides(args.set)
     if args.condition:
-        profile["condition"] = args.condition
-    for covariate, value in profile.items():
-        if covariate in encoder.vocabularies and value not in encoder.vocabularies[covariate]:
+        constraints["condition"] = args.condition
+    allowed_constraints = set(encoder.covariates) | {"study"}
+    unknown_constraints = sorted(set(constraints).difference(allowed_constraints))
+    if unknown_constraints:
+        raise ValueError(
+            "The trained run cannot honor generation constraints for: "
+            f"{unknown_constraints}. Model covariates are {list(encoder.covariates)}; "
+            "study may additionally be selected for inverse preprocessing."
+        )
+    if "condition" in constraints and "condition" not in encoder.covariates:
+        raise ValueError(
+            "This run was trained without condition input and cannot generate a "
+            "requested FLT or GC condition."
+        )
+    profile, observed_match = _default_profile(
+        run_dir, encoder.covariates, constraints
+    )
+    profile.update(constraints)
+    model_profile = {
+        covariate: profile[covariate] for covariate in encoder.covariates
+    }
+    for covariate, value in model_profile.items():
+        if value not in encoder.vocabularies[covariate]:
             raise ValueError(
                 f"Unknown {covariate}={value!r}; choose a value recorded in "
                 f"{run_dir / 'categorical_encoder.json'}"
             )
-    profiles = [dict(profile) for _ in range(int(args.n))]
+    profiles = [dict(model_profile) for _ in range(int(args.n))]
     categories = encoder.encode_profiles(profiles)
     transformed = adapter.generate(categories, seed=args.seed or config.training.seed)
     studies = [profile.get("study", "__unknown__")] * len(transformed)
@@ -79,7 +114,10 @@ def run(args: argparse.Namespace) -> Path:
         "samples": len(transformed),
         "genes": len(adapter.genes),
         "normalized_units": preprocessor.output_units,
-        "conditioning_profile": profile,
+        "conditioning_profile": model_profile,
+        "generation_profile": profile,
+        "inverse_transform_study": profile.get("study", "__unknown__"),
+        "conditioning_profile_observed_in_training": observed_match,
         "outputs": {
             "matrix": str(path),
             "genes": str(run_dir / "genes.tsv"),

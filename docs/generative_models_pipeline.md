@@ -120,6 +120,13 @@ The composite is subject to hard diversity and memorization gates. A model canno
 by collapsing toward an average profile. FLT/GC effect recovery and classifier utility
 are secondary validation metrics, not the sole optimization target.
 
+The current executable composite averages gene-mean correlation, gene-standard-
+deviation correlation, precision/recall F1, and adversarial indistinguishability.
+Eligibility additionally requires manifold recall of at least 0.1, synthetic global
+standard deviation of at least 10% of held-out real data, and no more than 5% of
+synthetic samples closer to training profiles than the training leave-one-out first
+percentile. These thresholds are benchmark gates, not biological significance tests.
+
 The final test accession remains locked until model and preprocessing choices are
 fixed. Final reporting includes real-train/real-test, synthetic-train/real-test,
 real-train/synthetic-test, and real-plus-synthetic augmentation performance. FLT/GC
@@ -251,9 +258,16 @@ PYTHONPATH=src python -m nasa_mouse_generative generate \
   --condition flight --set tissue=liver --n 100
 ```
 
+Generation rejects fields that were not model-conditioning inputs. `study` is the
+only additional selector: when study conditioning is disabled, it selects a coherent
+observed profile and supplies the study identifier only to inverse preprocessing. The
+generation manifest records model inputs and the full generation profile separately,
+and flags requested combinations not observed during training.
+
 Each run contains the resolved configuration, fitted preprocessing and categorical
 vocabularies, prepared OSDR partitions, epoch history, latest resumable checkpoint,
-final model, validation metrics, embeddings, device record, and concise README.
+final model, validation metrics, PCA/fidelity plots, embeddings, device record, and
+concise README.
 
 ComBat, ComBat-seq, and MOBER remain registered experimental harmonization arms but
 do not yet have executable adapters in this runner. Selecting one fails explicitly;

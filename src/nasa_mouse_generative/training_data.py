@@ -208,11 +208,25 @@ def _osdr_rows(
             for _, row in plan.iterrows()
         }
         normalized["role"] = normalized["accession"].map(roles)
-        split_metadata = {
-            "kind": "selected_accessions_grouped",
-            "fold_id": "",
-            "accessions": int(normalized["accession"].nunique()),
-        }
+        if not normalized["role"].eq("validation").any():
+            normalized["role"] = _single_accession_roles(
+                normalized,
+                seed=config.training.seed,
+                validation_fraction=config.validation.pooled_validation_fraction,
+                test_fraction=config.validation.pooled_test_fraction,
+            )
+            split_metadata = {
+                "kind": "selected_accessions_stratified_sample_fallback",
+                "fold_id": "",
+                "accessions": int(normalized["accession"].nunique()),
+                "limitation": "selected accessions could not preserve all strata under accession holdout",
+            }
+        else:
+            split_metadata = {
+                "kind": "selected_accessions_grouped",
+                "fold_id": "",
+                "accessions": int(normalized["accession"].nunique()),
+            }
     normalized = normalized.dropna(subset=["role"]).copy()
     if normalized.empty:
         raise ValueError("No OSDR profiles remain after tissue/accession/split filters")
@@ -432,6 +446,8 @@ def extract_archs4_matrix(
     gene_indices = np.asarray([gene_map[gene] for gene in genes], dtype=np.int64)
     digest = hashlib.sha256()
     digest.update(str(source.resolve()).encode())
+    source_stat = source.stat()
+    digest.update(f"{source_stat.st_size}:{source_stat.st_mtime_ns}".encode())
     digest.update(np.asarray(sample_indices, dtype="<i8").tobytes())
     digest.update("\n".join(genes).encode())
     cache_key = digest.hexdigest()[:20]

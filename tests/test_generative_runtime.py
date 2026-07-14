@@ -19,8 +19,11 @@ from nasa_mouse_generative.config import (
 from nasa_mouse_generative.adapters import load_adapter
 from nasa_mouse_generative.adapters.diffusion import DiffusionAdapter
 from nasa_mouse_generative.adapters.wgan import WGANAdapter
+from nasa_mouse_generative.generate import _default_profile
+from nasa_mouse_generative.metrics import fidelity_selection
 from nasa_mouse_generative.preprocessing import FittedPreprocessor
 from nasa_mouse_generative.profiles import resolve_preprocessing_profile
+from nasa_mouse_generative.runner import _claim_run_identity
 from nasa_mouse_generative.training_data import (
     DataPartition,
     _single_accession_roles,
@@ -61,6 +64,21 @@ class RuntimeConfigTests(unittest.TestCase):
         self.assertEqual(resolved.preprocessing.transform, "log1p")
         self.assertEqual(resolved.preprocessing.scaler, "maxabs")
 
+    def test_run_identity_checks_legacy_summary_before_writing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "run_summary.json").write_text(
+                '{"run_sha256": "old-digest"}\n', encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "already belongs"):
+                _claim_run_identity(
+                    root,
+                    identifier="named-run",
+                    digest="new-digest",
+                    model="vinas_wgan_gp",
+                )
+            self.assertFalse((root / "run_identity.json").exists())
+
 
 class ConditioningTests(unittest.TestCase):
     def test_unseen_categories_use_explicit_unknown_code(self):
@@ -89,6 +107,45 @@ class ConditioningTests(unittest.TestCase):
             self.assertIn(condition, set(selected))
         self.assertIn("validation", set(roles))
         self.assertIn("test", set(roles))
+
+    def test_generation_default_uses_observed_joint_profile(self):
+        table = pd.DataFrame(
+            {
+                "condition": ["flight", "ground_control"],
+                "tissue": ["skin", "liver"],
+                "material_type": ["dorsal skin", "Liver"],
+                "study": ["OSD-1", "OSD-2"],
+            }
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            table.to_csv(root / "train_obs.tsv.gz", sep="\t", index=False)
+            profile, matched = _default_profile(
+                root,
+                ("condition", "tissue", "material_type"),
+                {"tissue": "skin"},
+            )
+        self.assertTrue(matched)
+        self.assertEqual(profile["material_type"], "dorsal skin")
+        self.assertEqual(profile["study"], "OSD-1")
+
+    def test_generation_default_reports_unobserved_constraint_combination(self):
+        table = pd.DataFrame(
+            {
+                "condition": ["flight", "ground_control"],
+                "tissue": ["skin", "liver"],
+                "study": ["OSD-1", "OSD-2"],
+            }
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            table.to_csv(root / "train_obs.tsv.gz", sep="\t", index=False)
+            _, matched = _default_profile(
+                root,
+                ("condition", "tissue"),
+                {"condition": "flight", "tissue": "liver"},
+            )
+        self.assertFalse(matched)
 
 
 class PreprocessorSerializationTests(unittest.TestCase):
@@ -215,6 +272,26 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(generated.shape, (3, 16))
         self.assertTrue(np.isfinite(generated).all())
 
+
+class MetricTests(unittest.TestCase):
+    def test_fidelity_gates_reject_collapse(self):
+        selection = fidelity_selection(
+            {
+                "gene_mean_correlation": 0.9,
+                "gene_std_correlation": 0.1,
+                "f1": 0.0,
+                "adversarial_accuracy": 1.0,
+                "recall": 0.0,
+                "real_global_std": 1.0,
+                "fake_global_std": 0.01,
+            },
+            {"fraction_below_training_p01": 0.0},
+        )
+        self.assertFalse(selection["diversity_gate"]["passed"])
+        self.assertFalse(selection["eligible_for_model_selection"])
+
+
+class DiffusionAdapterTests(unittest.TestCase):
     def test_diffusion_save_reload_and_generation(self):
         partition = _partition()
         with tempfile.TemporaryDirectory() as directory:
