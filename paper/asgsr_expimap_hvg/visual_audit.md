@@ -4,34 +4,36 @@ Audit date: July 14, 2026 UTC.
 
 ## Scope
 
-- Rendered and inspected all 33 manuscript PDF pages after limiting the paper-facing set to four positive tissues plus exploratory kidney and retaining soleus only in supplementary screening records.
-- Inspected a contact sheet spanning every page, then inspected the quantitative main figures, conceptual synthesis, skin protocol-context figure, and final supplementary pages at higher resolution.
-- Inspected the one-page 2026 conference abstract PDF at 160 dpi.
-- Checked that all 15 manuscript image references exist and that each HTML image container is balanced.
-- Confirmed the final-page Figure S9 caption at 200 dpi after its smaller contact-sheet rendering made the figure number appear truncated.
+- Rebuilt the manuscript HTML and PDF after replacing the legacy main figures with a five-figure quantitative set and adding Figure S10.
+- Rendered and inspected all 34 manuscript pages at 120 dpi as a contact sheet and then inspected pages 20-34 individually at full rendered resolution.
+- Inspected the one-page 2026 conference abstract at 160 dpi.
+- Checked that all 15 manuscript image references resolve, every final figure has a vector PDF copy, all PDF fonts are embedded, and the manuscript PDF contains no suspect objects or encryption.
+- Re-ran the DOI audit; all 42 manuscript DOI records resolved through Crossref with exact title matches.
 
 ## Result
 
-No text block, table cell, pathway label, legend, plot, caption, page margin, or page boundary overlaps or clips in the final render. Figure 3 was regenerated after its footer approached the bottom row labels; the revised version is clear at standalone and manuscript scale. Figure S9 contains its complete figure number and caption. The abstract title, author, NASA Ames affiliation, correspondence information, and body remain within the page boundary.
+No text block, table cell, pathway label, legend, plot, caption, page margin, or page boundary overlaps or clips in the final render. Main figures are authored at a 7.2-inch final width and exported as 300-dpi PNG plus vector PDF. Dense legacy supplementary panels use a Letter-landscape page with a 7.55-inch plot column and a separate caption column; labels remain legible at rendered size.
 
-Figure 5 is explicitly conceptual and is not presented as quantitative evidence. Figures 2-4 provide the current quantitative main-tissue, evidence-matrix, and corrected kidney/spleen views. Figures S4-S7 retain the original four-model reviewer checks, Figure S8 retains the generated biological-process artwork as an explicitly illustrative supplement, and Figure S9 records the original-tissue confound and cohort-overlap sensitivity analysis.
+The main set now exposes the workflow and model scope, tissue-specific reference-query support, project and complete-training effects, orthogonal directional checks, retained-pathway member-gene support, and skin protocol context. Figure S10 exposes individual sample distributions without treating samples as independent mission replicates. Figure S8 is a deterministic vector synthesis; no generated biological artwork remains in the final package.
 
-| Figure | PNG dimensions | PDF/vector copy | Rendering result |
+Color is not the sole encoding of a reported distinction. Flight and ground use triangle and circle markers, literature roles use distinct marker shapes, and directional-support cells contain plus or minus symbols. Axes, legends, panel labels, and captions remain readable at manuscript scale.
+
+| Figure | PNG dimensions | PDF copy | Rendering result |
 | --- | ---: | --- | --- |
-| Figure 1, workflow | 3129 x 1263 | Yes | Pass |
-| Figure 2, retained pathway shifts | 4174 x 3089 | Yes | Pass; landscape in manuscript |
-| Figure 3, directional evidence map | 4089 x 2613 | Yes | Pass; landscape in manuscript; footer spacing verified |
-| Figure 4, kidney/spleen reassessment | 4235 x 1886 | Yes | Pass; landscape in manuscript |
-| Figure 5, complementary process model | 4534 x 2796 | Yes | Pass; landscape in manuscript |
-| Figure 6, skin protocol context | 4824 x 2553 | Yes | Pass; landscape in manuscript |
-| Figure S1, broad pathway screen | 5194 x 4665 | Yes | Pass; landscape in manuscript |
-| Figure S2, skin project balance | 4954 x 2722 | Yes | Pass; landscape in manuscript |
-| Figure S3, expanded family review | 4699 x 3317 | Yes | Pass; landscape in manuscript |
-| Figure S4, conventional and held-out checks | 5400 x 2700 | Yes | Pass |
-| Figure S5, composition-proxy sensitivity | 4800 x 3300 | Yes | Pass |
-| Figure S6, full-training-seed sensitivity | 4200 x 3600 | Yes | Pass |
-| Figure S7, pathway robustness matrix | 5700 x 2550 | Yes | Pass; footer collision fixed |
-| Figure S8, generated biological processes | 4494 x 2635 | Yes | Pass; illustrative status explicit |
-| Figure S9, original-tissue sensitivity | 4894 x 2074 | Yes | Pass; caption verified at 200 dpi |
+| Figure 1, workflow and architecture | 2160 x 1395 | Yes | Pass |
+| Figure 2, latent mapping | 2160 x 1755 | Yes | Pass |
+| Figure 3, project and training shifts | 2160 x 1875 | Yes | Pass |
+| Figure 4, directional and gene support | 2160 x 2025 | Yes | Pass |
+| Figure 5, skin protocol context | 2160 x 1905 | Yes | Pass |
+| Figure S1, broad pathway screen | 2160 x 2640 | Yes | Pass; long terms shortened only in the figure |
+| Figure S2, skin project balance | 4954 x 2722 | Yes | Pass; landscape |
+| Figure S3, expanded family review | 4699 x 3317 | Yes | Pass; landscape |
+| Figure S4, conventional and held-out checks | 5400 x 2700 | Yes | Pass; landscape |
+| Figure S5, composition-proxy sensitivity | 4800 x 3300 | Yes | Pass; landscape |
+| Figure S6, complete-training sensitivity | 4200 x 3600 | Yes | Pass; landscape |
+| Figure S7, pathway robustness matrix | 2160 x 2235 | Yes | Pass; landscape |
+| Figure S8, vector process synthesis | 2160 x 1395 | Yes | Pass |
+| Figure S9, confound and overlap sensitivity | 4894 x 2074 | Yes | Pass; landscape |
+| Figure S10, sample-score distributions | 2160 x 1575 | Yes | Pass |
 
-The one-page abstract contains 240 words including its acknowledgment and renders without clipping. All 42 manuscript DOI records resolved through Crossref with exact title matches. The manuscript still contains visible placeholders for the repository DOI, funding, acknowledgments, competing-interest confirmation, and clearance details; these are editorial placeholders, not rendering defects.
+The abstract remains one page and renders without clipping. The manuscript still contains visible placeholders for the repository DOI, funding, acknowledgments, contribution review, and final clearance confirmation. These are submission and editorial tasks, not figure-rendering defects.

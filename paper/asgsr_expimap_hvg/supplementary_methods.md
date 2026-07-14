@@ -131,11 +131,14 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
   -m expiMap_scarches.nasa_mouse_expimap.integrate_reassessed_tissues_paper
 ```
 
-The integration command must run after `build_asgsr_paper`, because it replaces the original four-model main figures with the revised main-tissue set and copies the original soleus material to supplementary figure names.
+The integration command must run after `build_asgsr_paper`, because it assembles the corrected main-tissue evidence and copies the original soleus material to supplementary figure names. The final publication figures and their added source tables are then generated with:
 
-### Conceptual artwork disclosure
+```bash
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+  -m expiMap_scarches.nasa_mouse_expimap.build_publication_figures
+```
 
-The four-tissue artwork retained as Figure S8 was generated with the built-in OpenAI GPT Image 2 image-generation tool. The exact generation prompt and unannotated source image are retained in `figures/source/`. Tissue assignment, scientific text, pathway-score directions, layout, and caveats were added deterministically by `build_asgsr_paper.py`. The generated artwork is illustrative only and was not used as data or evidence.
+This final step authors the main figures, Figures S1, S7, S8, and S10 at a 7.2-inch publication width, writes both 300-dpi PNG and vector PDF copies, and records dimensions and border checks in `figure_build_manifest.tsv`. It also removes superseded duplicate figures and the retired generated artwork. Figure S8 is now a deterministic vector synthesis of reviewed results, not a generated biological image or an additional analysis.
 
 ## Source-data index
 
@@ -171,3 +174,9 @@ The four-tissue artwork retained as Figure S8 was generated with the built-in Op
 - `table_s28_kidney_spleen_manual_review.tsv`: all primary top-decile programs with complete-label tissue review and disposition.
 - `table_s29_kidney_spleen_member_gene_support.tsv`: member-gene and decoder-weight support for reviewed corrected-model pathways.
 - `table_s30_kidney_spleen_literature_sources.tsv`: primary literature links used for corrected-model interpretation.
+- `table_s31_latent_mapping_coordinates.tsv.gz`: tissue-specific reference and query PCA coordinates, project labels, and 20-PC nearest-reference distances.
+- `table_s32_latent_mapping_qc.tsv`: reference and query counts, explained variance, nearest-neighbor threshold, and query coverage for each main tissue.
+- `table_s33_representative_program_sample_scores.tsv.gz`: decoder-oriented and project-centered sample scores for the representative programs in Figure S10.
+- `table_s34_retained_pathway_member_gene_support.tsv`: retained-pathway member-gene direction fractions, measured-gene counts, GSEA support, and leading concordant genes.
+- `table_s35_retained_pathway_member_gene_effects.tsv.gz`: complete project-balanced member-gene effects behind Table S34 and Figure 4.
+- `figure_build_manifest.tsv`: final figure dimensions, file sizes, vector-copy status, and nonwhite-border check.
