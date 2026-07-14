@@ -1,0 +1,18 @@
+{
+  "source": "data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv",
+  "samples": 1631,
+  "biological_samples_after_technical_replicate_collapse": 1610,
+  "accessions": 75,
+  "canonical_tissues": 24,
+  "training_tiers": {
+    "confirmatory_per_tissue": 6,
+    "exploratory_pretrained_per_tissue": 8,
+    "pooled_only": 10
+  },
+  "outputs": {
+    "metadata": "outputs/generative_benchmark/data_audit/osdr/osdr_canonical_metadata.tsv",
+    "inventory": "outputs/generative_benchmark/data_audit/osdr/osdr_tissue_inventory.tsv",
+    "alias_audit": "outputs/generative_benchmark/data_audit/osdr/osdr_tissue_alias_audit.tsv",
+    "summary": "outputs/generative_benchmark/data_audit/osdr/osdr_inventory_summary.json"
+  }
+}

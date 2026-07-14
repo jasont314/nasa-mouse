@@ -292,7 +292,7 @@ def _cohort_summary(
     summary["nonmatchable_reason"] = np.where(
         summary["canonical_tissue"].isin(NONMATCHABLE_OSDR_CLASSES),
         "generic OSDR material label has no defensible ARCHS4 tissue match",
-        "",
+        "none",
     )
     return summary
 
