@@ -21,6 +21,7 @@ from .conditioning import (
 )
 from .config import BenchmarkConfig
 from .preprocessing import FittedPreprocessor
+from .split_plan import build_pooled_plan
 
 
 PARTITION_NAMES = ("train", "validation", "test")
@@ -167,12 +168,85 @@ def _osdr_rows(
         normalized = normalized.loc[normalized["accession"].isin(include)].copy()
     if exclude:
         normalized = normalized.loc[~normalized["accession"].isin(exclude)].copy()
-    roles, split_metadata = _load_split_roles(config, tissue)
-    normalized["role"] = normalized["accession"].map(roles)
+    scope = config.data.osdr_accession_scope
+    if scope == "all_eligible":
+        roles, split_metadata = _load_split_roles(config, tissue)
+        normalized["role"] = normalized["accession"].map(roles)
+    elif normalized["accession"].nunique() == 1:
+        normalized["role"] = _single_accession_roles(
+            normalized,
+            seed=config.training.seed,
+            validation_fraction=config.validation.pooled_validation_fraction,
+            test_fraction=config.validation.pooled_test_fraction,
+        )
+        split_metadata = {
+            "kind": "single_accession_stratified_sample_fallback",
+            "fold_id": "",
+            "limitation": "accession-held-out validation is impossible with one accession",
+        }
+    else:
+        selected_metadata = normalized.rename(
+            columns={
+                "accession": "id.accession",
+                "tissue": "tissue_canonical",
+                "condition": "condition_inferred",
+            }
+        )
+        plan = build_pooled_plan(
+            selected_metadata,
+            seed=config.training.seed,
+            validation_fraction=config.validation.pooled_validation_fraction,
+            test_fraction=config.validation.pooled_test_fraction,
+        )
+        role_map = {
+            "training": "train",
+            "validation": "validation",
+            "locked_test": "test",
+        }
+        roles = {
+            str(row["id.accession"]): role_map[str(row["role"])]
+            for _, row in plan.iterrows()
+        }
+        normalized["role"] = normalized["accession"].map(roles)
+        split_metadata = {
+            "kind": "selected_accessions_grouped",
+            "fold_id": "",
+            "accessions": int(normalized["accession"].nunique()),
+        }
     normalized = normalized.dropna(subset=["role"]).copy()
     if normalized.empty:
         raise ValueError("No OSDR profiles remain after tissue/accession/split filters")
     return adata, normalized, split_metadata
+
+
+def _single_accession_roles(
+    frame: pd.DataFrame,
+    *,
+    seed: int,
+    validation_fraction: float,
+    test_fraction: float,
+) -> pd.Series:
+    """Stratify one accession when study-level holdout is impossible."""
+
+    roles = pd.Series("train", index=frame.index, dtype="object")
+    strata = ["tissue", "condition"]
+    for keys, group in frame.groupby(strata, dropna=False, sort=True):
+        ordered = sorted(
+            group.index,
+            key=lambda index: _stable_hash(seed, "single", keys, frame.loc[index, "profile_id"]),
+        )
+        count = len(ordered)
+        if count < 3:
+            continue
+        test_count = min(max(1, round(count * test_fraction)), count - 2)
+        validation_count = min(
+            max(1, round(count * validation_fraction)), count - test_count - 1
+        )
+        for index in ordered[:test_count]:
+            roles.loc[index] = "test"
+        for index in ordered[test_count : test_count + validation_count]:
+            roles.loc[index] = "validation"
+    return roles
 
 
 def _read_gmt_genes(path: str | Path) -> set[str]:
@@ -530,9 +604,19 @@ def prepare_training_data(
 
     reference = None
     if reference_obs is not None and reference_transformed is not None:
-        weights = reference_metadata["hierarchical_sampling_weight"].to_numpy(
-            dtype=np.float64
-        )
+        tissue_studies = reference_metadata.groupby("canonical_tissue")[
+            "series_id"
+        ].transform("nunique")
+        study_sizes = reference_metadata.groupby(
+            ["canonical_tissue", "series_id"]
+        )["geo_accession"].transform("size")
+        tissue_count = max(reference_metadata["canonical_tissue"].nunique(), 1)
+        weights = (
+            1.0
+            / tissue_count
+            / tissue_studies.clip(lower=1)
+            / study_sizes.clip(lower=1)
+        ).to_numpy(dtype=np.float64)
         weights = (weights / weights.sum()).astype(np.float32)
         reference = DataPartition(
             name="reference",

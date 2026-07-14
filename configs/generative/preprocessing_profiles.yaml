@@ -60,5 +60,5 @@ paper_native_profiles:
     input_units: raw_counts
     library_normalization: none
     transform: log1p
-    scaler: global_scalar_zscore_in_model_adapter
+    scaler: global_zscore
     adaptation_note: The paper uses sparse single-cell tokens; bulk compatibility is exploratory.

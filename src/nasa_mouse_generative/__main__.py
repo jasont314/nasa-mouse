@@ -1,4 +1,4 @@
-"""Small command dispatcher for data audits and experiment planning."""
+"""Command dispatcher for generative data audits, training, and evaluation."""
 
 from __future__ import annotations
 
@@ -16,6 +16,10 @@ def main() -> None:
             "archs4-catalog",
             "split-plan",
             "experiment-plan",
+            "prepare-upstreams",
+            "train",
+            "evaluate",
+            "generate",
         ],
     )
     args = parser.parse_args(sys.argv[1:2])
@@ -36,10 +40,26 @@ def main() -> None:
         from . import split_plan
 
         split_plan.main()
-    else:
+    elif args.command == "experiment-plan":
         from . import experiment_plan
 
         experiment_plan.main()
+    elif args.command == "prepare-upstreams":
+        from . import upstreams
+
+        upstreams.main()
+    elif args.command == "train":
+        from . import runner
+
+        runner.main()
+    elif args.command == "evaluate":
+        from . import evaluate
+
+        evaluate.main()
+    else:
+        from . import generate
+
+        generate.main()
 
 
 if __name__ == "__main__":

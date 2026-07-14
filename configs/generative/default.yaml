@@ -33,6 +33,7 @@ features:
   reactome_gmt: data/pathways/reactome_current_mouse_ensembl.gmt
 
 preprocessing:
+  profile: custom
   input_units: raw_counts
   library_normalization: cpm
   transform: log1p
@@ -87,4 +88,5 @@ execution:
   evaluate_after_training: true
   save_generated_matrix: false
   model_profiles: configs/generative/model_profiles.yaml
+  preprocessing_profiles: configs/generative/preprocessing_profiles.yaml
   genejepa_source: assets/model_sources/GeneJEPA

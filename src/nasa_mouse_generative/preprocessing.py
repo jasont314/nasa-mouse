@@ -167,6 +167,9 @@ class FittedPreprocessor:
         result = np.nan_to_num(result, nan=0.0, posinf=np.finfo(np.float32).max)
         if self.spec.input_units == "raw_counts" or self.spec.library_normalization != "none":
             result = np.maximum(result, 0.0)
+        if self.spec.library_normalization in {"cpm", "tpm"}:
+            totals = result.sum(axis=1, keepdims=True, dtype=np.float64)
+            result = result / np.maximum(totals, EPSILON) * 1_000_000.0
         return result.astype(np.float32)
 
     @property
@@ -297,6 +300,9 @@ def fit_stats(values: np.ndarray, method: str) -> ScaleStats:
     if method == "zscore":
         center = array.mean(axis=0)
         scale = array.std(axis=0)
+    elif method == "global_zscore":
+        center = np.asarray([array.mean()], dtype=np.float64)
+        scale = np.asarray([array.std()], dtype=np.float64)
     elif method == "robust":
         center = np.median(array, axis=0)
         q25, q75 = np.percentile(array, [25, 75], axis=0)

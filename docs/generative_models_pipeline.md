@@ -155,9 +155,108 @@ Implemented in `src/nasa_mouse_generative/`:
   tissue eligibility tiers;
 - full ARCHS4 metadata scan and balanced reference manifests;
 - accession-grouped locked and LOO split plans;
-- fold-aware shared preprocessing and harmonization constraints.
+- fold-aware shared preprocessing and harmonization constraints;
+- executable Vinas WGAN-GP, Lacan diffusion, and GeneJEPA representation adapters;
+- full-H5 ARCHS4 extraction with content-addressed caching and hierarchical sampling;
+- direct OSDR, ARCHS4-only, and ARCHS4-pretrain/OSDR-fine-tune stage orchestration;
+- epoch checkpoints, deterministic resume, final model serialization, and GPU records;
+- conditioned generation, inverse preprocessing, held-out fidelity/diversity/
+  memorization metrics, and real/synthetic FLT/GC classifier evaluation;
+- locked-test enforcement and pooled, individual-tissue, or all-eligible-tissue CLI runs.
 
-The existing `src/nasa_mouse_wgan/` and `src/nasa_mouse_diffusion/` model cores will
-be adapted behind this interface. Full benchmark training is deliberately after the
-data/split checkpoint so the old fixed 24,428-sample inputs and sample-random
-validation are not silently reused.
+GeneJEPA uses the pinned official model source at commit
+`a2f4d7218b17f2f52cc5f1cc94420c8ef1ae3265`. It is evaluated only as a
+representation model and never appears in synthetic-expression results.
+
+## Installation
+
+```bash
+conda activate nasa-mouse
+python -m pip install -r requirements-nasa-mouse-generative.txt
+PYTHONPATH=src python -m nasa_mouse_generative prepare-upstreams
+```
+
+The upstream command checks out the pinned GeneJEPA source under ignored
+`assets/model_sources/`. WGAN and diffusion reuse the repository's existing
+`nasa_mouse_wgan` and `nasa_mouse_diffusion` PyTorch cores.
+
+## Training Commands
+
+Run the bounded end-to-end WGAN check first:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative train \
+  --config configs/generative/default.yaml \
+  --set training.regime=osdr_only \
+  --set execution.device=cuda \
+  --smoke
+```
+
+Run ARCHS4 pretraining followed by OSDR fine-tuning with explicit parameter
+overrides:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative train \
+  --set training.model=vinas_wgan_gp \
+  --set training.regime=archs4_pretrain_osdr_finetune \
+  --set features.space=hvg \
+  --set features.hvg_genes=2000 \
+  --set training.model_parameters.reference_epochs=100 \
+  --set training.model_parameters.finetune_epochs=50 \
+  --set execution.device=cuda
+```
+
+Use `training.model=lacan_diffusion` for Lacan. Named preprocessing profiles are
+selected with `--set preprocessing.profile=shared_log1p_cpm_zscore` or
+`--set preprocessing.profile=model_native`. Lacan's native TPM profile requires an
+aligned mouse gene-length table in `preprocessing.gene_lengths`.
+
+Run one tissue or every confirmatory/exploratory tissue:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative train \
+  --set training.tissue_mode=per_tissue --tissue liver
+
+PYTHONPATH=src python -m nasa_mouse_generative train --all-tissues
+```
+
+For GeneJEPA, set both `training.model=genejepa` and
+`training.task=representation`. An ARCHS4-only generator must set
+`training.condition_on_flight=false`: ARCHS4 has no flight labels, so it is only a
+tissue/reference baseline and cannot identify a spaceflight effect.
+
+One-study runs use `data.osdr_accession_scope=single` with exactly one
+`data.osdr_include_accessions` value. Because accession holdout is impossible in
+that design, the run manifest labels its deterministic condition-stratified sample
+split. Multi-study runs retain accession-grouped validation whenever possible.
+
+## Evaluation And Generation
+
+Training automatically evaluates held-out validation accessions. Representation
+metrics neutralize the supplied condition token before FLT/GC classification so the
+model cannot score by reading its conditioning label. The final test remains locked:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative evaluate \
+  --run-dir outputs/generative_benchmark/runs/vinas_wgan_gp/RUN_ID \
+  --split test --unlock-test
+```
+
+Generate FLT samples from an observed joint covariate profile, overriding fields as
+needed:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative generate \
+  --run-dir outputs/generative_benchmark/runs/vinas_wgan_gp/RUN_ID \
+  --condition flight --set tissue=liver --n 100
+```
+
+Each run contains the resolved configuration, fitted preprocessing and categorical
+vocabularies, prepared OSDR partitions, epoch history, latest resumable checkpoint,
+final model, validation metrics, embeddings, device record, and concise README.
+
+ComBat, ComBat-seq, and MOBER remain registered experimental harmonization arms but
+do not yet have executable adapters in this runner. Selecting one fails explicitly;
+`none`, `within_study_zscore`, and `within_study_then_global_zscore` are executable.
+The completed one-epoch outputs under `outputs/generative_benchmark/runs/` are
+mechanics tests, not biological results.

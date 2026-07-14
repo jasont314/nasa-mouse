@@ -1,7 +1,7 @@
 # Generative Benchmark Outputs
 
 This directory contains current OSDR/ARCHS4 data audits, resolved experiment plans,
-and future model runs for `src/nasa_mouse_generative/`.
+and executable model runs for `src/nasa_mouse_generative/`.
 
 Large compressed per-profile ARCHS4 manifests are generated locally and ignored by
 Git. Small summaries and manifests retain the selection rules and provenance.
@@ -18,3 +18,8 @@ Current audited inputs:
 `splits/` contains accession-grouped validation plans. No model should use the
 locked-test assignments for preprocessing, checkpoint selection, or hyperparameter
 tuning.
+
+`runs/<model>/<run-id>/` contains resolved configurations, fitted preprocessing,
+prepared OSDR partitions, resumable checkpoints, final models, embeddings, and
+held-out validation metrics. One-epoch directories with `smoke` in the name validate
+mechanics only and are not biological results.

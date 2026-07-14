@@ -20,7 +20,7 @@ ALLOWED_TISSUE_MODES = {"pooled_conditioned", "per_tissue"}
 ALLOWED_INPUT_UNITS = {"raw_counts", "cpm", "tpm"}
 ALLOWED_LIBRARY_NORMALIZATIONS = {"none", "cpm", "tpm"}
 ALLOWED_TRANSFORMS = {"none", "log1p", "log2p1"}
-ALLOWED_SCALERS = {"none", "zscore", "robust", "maxabs"}
+ALLOWED_SCALERS = {"none", "zscore", "global_zscore", "robust", "maxabs"}
 ALLOWED_HARMONIZERS = {
     "none",
     "within_study_zscore",
@@ -61,6 +61,7 @@ ALLOWED_FEATURE_SELECTION_SOURCES = {"auto", "osdr_train", "archs4_reference"}
 
 @dataclass(frozen=True)
 class PreprocessingConfig:
+    profile: str = "custom"
     input_units: str = "raw_counts"
     library_normalization: str = "cpm"
     transform: str = "log1p"
@@ -159,6 +160,7 @@ class ExecutionConfig:
     evaluate_after_training: bool = True
     save_generated_matrix: bool = False
     model_profiles: str = "configs/generative/model_profiles.yaml"
+    preprocessing_profiles: str = "configs/generative/preprocessing_profiles.yaml"
     genejepa_source: str = "assets/model_sources/GeneJEPA"
 
 
@@ -206,6 +208,12 @@ class BenchmarkConfig:
         if t.condition_on_flight and "condition" not in t.conditioning_covariates:
             raise ValueError(
                 "condition_on_flight=true requires condition in conditioning_covariates"
+            )
+        if t.regime == "archs4_only" and t.condition_on_flight:
+            raise ValueError(
+                "ARCHS4 has no flight/ground-control labels. Use "
+                "condition_on_flight=false for the ARCHS4-only tissue baseline; "
+                "FLT/GC generation requires OSDR fine-tuning."
             )
         if t.study_policy == "conditioned" and "study" not in t.conditioning_covariates:
             raise ValueError(
