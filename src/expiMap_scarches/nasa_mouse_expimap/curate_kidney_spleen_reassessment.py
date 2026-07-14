@@ -556,7 +556,12 @@ def main() -> None:
     matrix = pd.read_csv(OUTPUT_DIR / "pathway_evidence_matrix.tsv", sep="\t")
     review = build_manual_review(matrix)
     detail, by_seed, summary = build_gene_support(review)
-    review.to_csv(OUTPUT_DIR / "top_decile_manual_review.tsv", sep="\t", index=False)
+    review.to_csv(
+        OUTPUT_DIR / "top_decile_manual_review.tsv",
+        sep="\t",
+        index=False,
+        na_rep="NA",
+    )
     detail.to_csv(
         OUTPUT_DIR / "top_decile_member_gene_effects.tsv", sep="\t", index=False
     )

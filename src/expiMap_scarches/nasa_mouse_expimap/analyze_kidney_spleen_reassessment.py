@@ -435,7 +435,12 @@ def main() -> None:
     primary_seed_effects.to_csv(
         OUTPUT_DIR / "primary_seed_pathway_effects.tsv", sep="\t", index=False
     )
-    seeds.to_csv(OUTPUT_DIR / "primary_seed_consensus.tsv", sep="\t", index=False)
+    seeds.to_csv(
+        OUTPUT_DIR / "primary_seed_consensus.tsv",
+        sep="\t",
+        index=False,
+        na_rep="NA",
+    )
     seed_summary.to_csv(
         OUTPUT_DIR / "primary_seed_summary.tsv", sep="\t", index=False
     )
@@ -493,7 +498,12 @@ def main() -> None:
         index=False,
         compression="gzip",
     )
-    heldout.to_csv(OUTPUT_DIR / "heldout_project_summary.tsv", sep="\t", index=False)
+    heldout.to_csv(
+        OUTPUT_DIR / "heldout_project_summary.tsv",
+        sep="\t",
+        index=False,
+        na_rep="NA",
+    )
     composition.to_csv(
         OUTPUT_DIR / "composition_proxy_adjusted_effects.tsv", sep="\t", index=False
     )
