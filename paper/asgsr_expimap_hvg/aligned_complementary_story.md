@@ -1,6 +1,6 @@
 # Aligned and Complementary Program Audit
 
-> **Scope update (July 14, 2026):** This document records the original thymus, skin, liver, and soleus audit. The revised manuscript promotes corrected spleen as a main positive tissue, adds kidney as secondary exploratory evidence, and moves soleus to supplementary sensitivity analysis. Use `tissue_selection_audit.md`, `source_data/table_2_retained_pathway_evidence.tsv`, and the manuscript for the current interpretation. The historical discussion below is retained as provenance rather than silently rewritten.
+> **Scope update (July 14, 2026):** This document records the original thymus, skin, liver, and soleus audit. The revised manuscript promotes corrected spleen as a main positive tissue, adds kidney as secondary exploratory evidence, and does not advance soleus beyond the supplementary screening record. Use `tissue_selection_audit.md`, `source_data/table_2_retained_pathway_evidence.tsv`, and the manuscript for the current interpretation. The historical discussion below is retained as provenance rather than silently rewritten.
 
 ## Bottom line
 

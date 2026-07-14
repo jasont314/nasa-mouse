@@ -105,7 +105,7 @@ def build_model_scope() -> pd.DataFrame:
             "thymus": "main",
             "skin": "main",
             "liver": "main",
-            "soleus": "supplementary_sensitivity",
+            "soleus": "not_advanced_supplementary_record",
         }
     )
 
@@ -401,7 +401,7 @@ def plot_workflow(scope: pd.DataFrame) -> None:
     ax.text(
         0.5,
         0.09,
-        f"Main positive tissues: {main_text}  |  Secondary: Kidney 135  |  Supplementary sensitivity: Soleus 53",
+        f"Main positive tissues: {main_text}  |  Secondary: Kidney 135  |  Non-advanced screens: supplement",
         ha="center",
         va="center",
         fontsize=8.3,
@@ -763,7 +763,7 @@ def run() -> None:
             {
                 "main_tissues": list(MAIN_TISSUES),
                 "secondary_tissues": ["kidney"],
-                "supplementary_sensitivity_tissues": ["soleus"],
+                "non_advanced_screening_tissues": ["soleus"],
                 "retained_pathways": int(len(evidence)),
             },
             indent=2,

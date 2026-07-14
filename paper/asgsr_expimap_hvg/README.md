@@ -1,6 +1,6 @@
 # ASGSR expiMap HVG paper package
 
-This directory contains the abstract, manuscript, source tables, and reproducible figures for six tissue-specific HVG expiMap models. Thymus, skin, liver, and spleen form the main positive-result set. Kidney is a secondary exploratory result, and soleus is retained as a supplementary negative sensitivity analysis.
+This directory contains the abstract, manuscript, source tables, and reproducible figures from a six-model tissue screen. Thymus, skin, liver, and spleen form the main positive-result set, and kidney is a secondary exploratory result. Soleus did not meet the advancement criteria and is retained only in supplementary screening and sensitivity records.
 
 The primary descriptive quantity is the equally weighted project- or accession-specific flight-minus-ground pathway-score difference after decoder sign orientation. Claims are qualified by conventional enrichment, held-out-project prediction, complete seed retraining, broad composition-proxy sensitivity, member-gene review, tissue fit, and prior literature. FDR and the five-check directional status are reported separately and are not interchangeable discovery thresholds.
 
@@ -12,7 +12,7 @@ The primary descriptive quantity is the equally weighted project- or accession-s
 - `tissue_selection_audit.md`: reconstruction of the eight-tissue screen and corrected kidney/spleen reassessment.
 - `figures/`: publication figures in PNG and vector PDF formats.
 - `source_data/table_2_retained_pathway_evidence.tsv`: the 16 retained main and secondary pathway records.
-- `source_data/table_s25_revised_model_scope.tsv`: six-model scope and main, secondary, or supplementary role.
+- `source_data/table_s25_revised_model_scope.tsv`: complete six-model screening scope and analysis role.
 - `source_data/table_s26_kidney_spleen_training_manifest.tsv`: corrected-model training provenance.
 - `source_data/table_s27_kidney_spleen_pathway_evidence.tsv`: complete corrected kidney/spleen evidence matrix.
 - `source_data/table_s28_kidney_spleen_manual_review.tsv`: manual review of every corrected-model top-decile pathway.
@@ -47,7 +47,7 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_sc
 | liver | main | 5,000 | 197 | 197 | 9 | 1,995 | 364 |
 | spleen | main | 6,289 | 109 | 100 | 5 | 1,994 | 360 |
 | kidney | secondary exploratory | 2,464 | 135 | 135 | 6 | 1,996 | 336 |
-| soleus | supplementary sensitivity | 1,412 | 53 | 53 | 3 | 1,975 | 357 |
+| soleus | not advanced; supplementary record | 1,412 | 53 | 53 | 3 | 1,975 | 357 |
 
 ## Interpretation safeguards
 
@@ -60,4 +60,4 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_sc
 - `Triangulated` means five supported directions; it is not a significance level. Kidney passes five directional checks but remains exploratory because all three GSEA FDR values exceed 0.05 and composition adjustment attenuates the effects.
 - Spleen T-cell receptor, neutrophil degranulation, and C-type lectin receptor programs are lower across five unconfounded projects and three trainings and each has GSEA FDR below 0.05.
 - The neutrophil degranulation score is a transcriptomic program, not a direct assay of neutrophil degranulation or suppressive function.
-- No reviewed soleus pathway passes all five checks; this is a negative result for the current three-project bulk model, not evidence that soleus is unaffected by spaceflight.
+- No reviewed soleus pathway passes all five checks; the model was not advanced into the paper-facing tissue set, but its complete screening record is preserved.

@@ -4,7 +4,7 @@ Audit date: July 14, 2026 UTC.
 
 ## Scope
 
-- Rendered and inspected all 33 manuscript PDF pages after integrating the corrected spleen and kidney models, retaining soleus as supplementary sensitivity evidence, and revising the evidence hierarchy.
+- Rendered and inspected all 33 manuscript PDF pages after limiting the paper-facing set to four positive tissues plus exploratory kidney and retaining soleus only in supplementary screening records.
 - Inspected a contact sheet spanning every page, then inspected the quantitative main figures, conceptual synthesis, skin protocol-context figure, and final supplementary pages at higher resolution.
 - Inspected the one-page 2026 conference abstract PDF at 160 dpi.
 - Checked that all 15 manuscript image references exist and that each HTML image container is balanced.
@@ -34,4 +34,4 @@ Figure 5 is explicitly conceptual and is not presented as quantitative evidence.
 | Figure S8, generated biological processes | 4494 x 2635 | Yes | Pass; illustrative status explicit |
 | Figure S9, original-tissue sensitivity | 4894 x 2074 | Yes | Pass; caption verified at 200 dpi |
 
-The one-page abstract contains 237 words including its acknowledgment and renders without clipping. All 42 manuscript DOI records resolved through Crossref with exact title matches. The manuscript still contains visible placeholders for the repository DOI, funding, acknowledgments, competing-interest confirmation, and clearance details; these are editorial placeholders, not rendering defects.
+The one-page abstract contains 240 words including its acknowledgment and renders without clipping. All 42 manuscript DOI records resolved through Crossref with exact title matches. The manuscript still contains visible placeholders for the repository DOI, funding, acknowledgments, competing-interest confirmation, and clearance details; these are editorial placeholders, not rendering defects.

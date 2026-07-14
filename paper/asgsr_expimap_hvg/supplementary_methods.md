@@ -2,7 +2,7 @@
 
 ## Analysis scope
 
-The paper reports six retrospectively reassessed reference-query, 2,000-HVG models. Thymus, skin, liver, and spleen form the positive-result set; kidney is secondary exploratory evidence; soleus is supplementary negative sensitivity evidence. The broader repository screen also included lung, retina, and aggregate skeletal muscle, and the tissue set was not prespecified. Each model contains only constrained Reactome latent dimensions. The word *complementary* describes a Reactome pathway interpretation that adds tissue context beyond the principal prior-literature phenotype. It does not denote an unconstrained de novo latent program. De novo variants were evaluated separately during development but are outside this comparison because their leading programs were less stable and often overlapped existing pathway biology.
+The analysis screened six retrospectively reassessed reference-query, 2,000-HVG models. Thymus, skin, liver, and spleen form the positive-result set, and kidney is secondary exploratory evidence. Soleus did not meet the advancement criteria and is retained only as a supplementary screening and sensitivity record. The broader repository screen also included lung, retina, and aggregate skeletal muscle, and the tissue set was not prespecified. Each model contains only constrained Reactome latent dimensions. The word *complementary* describes a Reactome pathway interpretation that adds tissue context beyond the principal prior-literature phenotype. It does not denote an unconstrained de novo latent program. De novo variants were evaluated separately during development but are outside this comparison because their leading programs were less stable and often overlapped existing pathway biology.
 
 This package supersedes older presentation annotations that assigned biological direction directly from raw latent signs. Raw signs are arbitrary; only the decoder-oriented effects in this package should be used for higher or lower pathway statements.
 
@@ -20,7 +20,7 @@ Each of the original 153 pathways was assigned explicitly to a tissue-specific p
 | Liver full-input sensitivity | `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_2000/query_nb_250epoch_seed2020` |
 | Spleen corrected | `outputs/expimap_archs4_reference_osdr_query_spleen/reassessment_hvg_2000/query_nb_250epoch_seed2020` |
 | Kidney corrected, secondary | `outputs/expimap_archs4_reference_osdr_query_kidney/reassessment_hvg_2000/query_nb_250epoch_seed2020` |
-| Soleus, supplementary | `outputs/expimap_muscle_targeted_combined_min8/tutorial_hvg_soleus_2000/query_nb_250epoch_seed2020` |
+| Soleus, non-advanced supplementary screen | `outputs/expimap_muscle_targeted_combined_min8/tutorial_hvg_soleus_2000/query_nb_250epoch_seed2020` |
 
 ## Direction and effect definitions
 
@@ -165,7 +165,7 @@ The four-tissue artwork retained as Figure S8 was generated with the built-in Op
 - `table_s23_training_seed_manifest.tsv`: inputs, outputs, epochs, timing, and GPU provenance for 12 reference-query runs.
 - `table_s24_pathway_robustness_evidence.tsv`: five-check evidence matrix and descriptive robustness status for 29 reviewed pathways.
 - `table_2_retained_pathway_evidence.tsv`: standardized evidence fields for the 13 main-tissue and 3 secondary kidney pathways retained in the revised manuscript.
-- `table_s25_revised_model_scope.tsv`: six-model samples, roles, programs, training, and hardware provenance.
+- `table_s25_revised_model_scope.tsv`: complete six-model screening samples, roles, programs, training, and hardware provenance.
 - `table_s26_kidney_spleen_training_manifest.tsv`: corrected kidney and spleen three-seed training provenance.
 - `table_s27_kidney_spleen_pathway_evidence.tsv`: complete corrected-model pathway evidence matrix.
 - `table_s28_kidney_spleen_manual_review.tsv`: all primary top-decile programs with complete-label tissue review and disposition.

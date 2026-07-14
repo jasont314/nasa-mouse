@@ -6,7 +6,7 @@ Verified against the official [ASGSR 2026 abstract instructions](https://asgsr.o
 - [x] Presenting author is identified.
 - [x] Submission content is a title, authors and affiliations, and one abstract paragraph.
 - [x] Abstract is no more than 300 words, including acknowledgment and funding language.
-- [x] Abstract paragraph is 237 words, including the acknowledgment sentence.
+- [x] Abstract paragraph is 240 words, including the acknowledgment sentence.
 - [x] Abstract contains no figure, graph, or table.
 - [x] Abstract avoids confidential or proprietary information because accepted abstracts are public.
 - [x] Affiliation confirmed as NASA Space Life Sciences Training Program, NASA Ames Research Center, Moffett Field, California, USA.
