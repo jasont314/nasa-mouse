@@ -322,16 +322,23 @@ def plot_workflow(scope: pd.DataFrame) -> None:
     cohort_ax.set_yticks(y)
     cohort_ax.set_yticklabels([name.title() for name in plot_scope["tissue"]], fontsize=7.2)
     cohort_ax.set_xlabel("Samples, log scale")
-    cohort_ax.set_title("Analysis scope", loc="left", fontsize=8.1, fontweight="bold")
+    cohort_ax.set_title(
+        "Analysis scope",
+        loc="left",
+        y=1.15,
+        fontsize=8.1,
+        fontweight="bold",
+    )
     cohort_ax.legend(
         frameon=False,
-        loc="upper right",
-        bbox_to_anchor=(1.0, 1.08),
+        loc="upper left",
+        bbox_to_anchor=(0.0, 1.06),
         ncol=2,
         fontsize=6.8,
+        borderaxespad=0,
     )
     clean_axis(cohort_ax)
-    panel_label(cohort_ax, "c", x=-0.18, y=1.02)
+    panel_label(cohort_ax, "c", x=-0.18, y=1.15)
     save_figure(fig, "figure_1_workflow_architecture")
 
 
@@ -523,7 +530,7 @@ def plot_pathway_shifts(evidence: pd.DataFrame) -> None:
                 float(row.seed_effect_minimum),
                 float(row.seed_effect_maximum),
                 color=ROLE_COLORS[role],
-                linewidth=2.6,
+                linewidth=1.4,
                 zorder=3,
             )
             ax.scatter(
@@ -568,7 +575,7 @@ def plot_pathway_shifts(evidence: pd.DataFrame) -> None:
                 [0],
                 marker=ROLE_MARKERS[role],
                 color=ROLE_COLORS[role],
-                linewidth=2.4,
+                linewidth=1.4,
                 markersize=5,
                 label=label_text,
             )

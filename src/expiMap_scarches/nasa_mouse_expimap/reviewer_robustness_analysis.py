@@ -742,6 +742,10 @@ def plot_method_benchmark(
         ax.tick_params(axis="x", labelsize=8)
         for index, value in enumerate(values):
             ax.text(index, min(value + 0.035, 0.97), f"{value:.0%}", ha="center", fontsize=9)
+    for ax in axes.flat:
+        ax.spines[["top", "right"]].set_visible(False)
+        ax.spines[["left", "bottom"]].set_linewidth(0.6)
+        ax.tick_params(width=0.6)
     fig.suptitle(
         "Method-independent and held-out-project robustness",
         fontsize=16,
