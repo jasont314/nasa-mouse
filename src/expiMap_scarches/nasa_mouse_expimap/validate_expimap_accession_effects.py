@@ -6,8 +6,8 @@ import argparse
 import json
 from pathlib import Path
 
-from .cluster_enrichment import bh_fdr
-from .io import require_import
+from nasa_mouse_glare.cluster_enrichment import bh_fdr
+from nasa_mouse_glare.io import require_import
 
 
 def score_columns(frame) -> list[str]:

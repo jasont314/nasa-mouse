@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from .analyze_muscle_targeted_modules import muscle_group
-from .io import require_import
+from nasa_mouse_glare.io import require_import
 
 
 DEFAULT_INPUT = (

@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 
-from .io import require_import
+from nasa_mouse_glare.io import require_import
 
 
 def patch_stable_expimap_hsic() -> None:

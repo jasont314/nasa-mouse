@@ -6,8 +6,8 @@ import argparse
 import json
 from pathlib import Path
 
-from .cluster_enrichment import bh_fdr
-from .io import require_import
+from nasa_mouse_glare.cluster_enrichment import bh_fdr
+from nasa_mouse_glare.io import require_import
 
 
 def pathway_columns(frame, include_de_novo: bool = False) -> list[str]:
@@ -124,7 +124,7 @@ def accession_effects(scores, terms: list[str]):
                 p_value = float("nan")
             else:
                 try:
-                    p_value = scipy_stats.wilcoxon(values).pvalue
+                    p_value = scipy_stats.wilcoxon(values, method="asymptotic").pvalue
                 except ValueError:
                     p_value = 1.0
             tests.append(

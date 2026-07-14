@@ -10,7 +10,7 @@ from typing import Any
 
 import numpy as np
 
-from .io import require_import
+from nasa_mouse_glare.io import require_import
 
 
 def log(message: str) -> None:
@@ -90,15 +90,33 @@ def prepare(args: argparse.Namespace) -> Path:
     query = query[:, common_genes].copy()
 
     hvg_adata = reference.copy()
+    batch_key = args.batch_key if args.batch_key in hvg_adata.obs else None
+    hvg_excluded_samples = 0
+    hvg_excluded_batches = 0
+    if batch_key is not None and args.min_batch_size_for_hvg > 1:
+        batch_values = hvg_adata.obs[batch_key].astype(str)
+        batch_sizes = batch_values.value_counts()
+        eligible_batches = batch_sizes.loc[
+            batch_sizes.ge(args.min_batch_size_for_hvg)
+        ].index
+        eligible = batch_values.isin(eligible_batches).to_numpy()
+        hvg_excluded_samples = int((~eligible).sum())
+        hvg_excluded_batches = int((batch_sizes < args.min_batch_size_for_hvg).sum())
+        if not eligible.any():
+            raise SystemExit(
+                "No reference samples remain after applying "
+                f"min_batch_size_for_hvg={args.min_batch_size_for_hvg}."
+            )
+        hvg_adata = hvg_adata[eligible].copy()
     hvg_adata.X = hvg_adata.layers["counts"].copy()
     sc.pp.normalize_total(hvg_adata)
     sc.pp.log1p(hvg_adata)
 
-    batch_key = args.batch_key if args.batch_key in hvg_adata.obs else None
     hvg_error = None
     log(
         "Selecting HVGs with scanpy.pp.highly_variable_genes "
-        f"n_top_genes={args.n_top_genes} batch_key={batch_key!r}"
+        f"n_top_genes={args.n_top_genes} batch_key={batch_key!r} "
+        f"selection_samples={hvg_adata.n_obs}"
     )
     try:
         sc.pp.highly_variable_genes(
@@ -148,6 +166,10 @@ def prepare(args: argparse.Namespace) -> Path:
                 "tutorial_style_hvg": True,
                 "hvg_method": hvg_method,
                 "hvg_batch_key": batch_key,
+                "hvg_minimum_batch_size": int(args.min_batch_size_for_hvg),
+                "hvg_selection_samples": int(hvg_adata.n_obs),
+                "hvg_excluded_samples": hvg_excluded_samples,
+                "hvg_excluded_batches": hvg_excluded_batches,
                 "n_top_genes_requested": int(args.n_top_genes),
                 "min_genes_per_term_strict_gt": int(args.min_genes_per_term),
                 "recommended_recon_loss": "nb",
@@ -200,6 +222,10 @@ def prepare(args: argparse.Namespace) -> Path:
         "min_genes_per_term_strict_gt": int(args.min_genes_per_term),
         "hvg_method": hvg_method,
         "hvg_batch_key": batch_key,
+        "hvg_minimum_batch_size": int(args.min_batch_size_for_hvg),
+        "hvg_selection_samples": int(hvg_adata.n_obs),
+        "hvg_excluded_samples": hvg_excluded_samples,
+        "hvg_excluded_batches": hvg_excluded_batches,
         "hvg_error": hvg_error,
         "outputs": {
             "reference_h5ad": str(reference_out),
@@ -236,6 +262,15 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--n-top-genes", type=int, default=2000)
     parser.add_argument("--batch-key", default="archs4_condition")
+    parser.add_argument(
+        "--min-batch-size-for-hvg",
+        type=int,
+        default=1,
+        help=(
+            "Exclude batches smaller than this threshold from HVG ranking only; "
+            "all reference samples remain in the generated training input."
+        ),
+    )
     parser.add_argument("--min-genes-per-term", type=int, default=12)
     parser.add_argument(
         "--allow-no-batch-fallback",

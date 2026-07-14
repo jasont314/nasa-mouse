@@ -265,31 +265,31 @@ Scripts now implemented:
 
 ```text
 src/nasa_mouse_glare/fetch_osdr_mouse_transcriptomics.py
-src/nasa_mouse_glare/prepare_expimap_osdr_tissue.py
-src/nasa_mouse_glare/train_expimap_direct.py
-src/nasa_mouse_glare/analyze_expimap_pathways.py
-src/nasa_mouse_glare/compare_expimap_transformations.py
+src/expiMap_scarches/nasa_mouse_expimap/prepare_expimap_osdr_tissue.py
+src/expiMap_scarches/nasa_mouse_expimap/train_expimap_direct.py
+src/expiMap_scarches/nasa_mouse_expimap/analyze_expimap_pathways.py
+src/expiMap_scarches/nasa_mouse_expimap/compare_expimap_transformations.py
 ```
 
 Prepare API-derived direct OSDR tissue inputs:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.fetch_osdr_mouse_transcriptomics
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.prepare_expimap_osdr_tissue --tissue liver
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.prepare_expimap_osdr_tissue --tissue kidney
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue liver
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue kidney
 ```
 
 Primary direct expiMap runs:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.train_expimap_direct \
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.train_expimap_direct \
   --input outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_raw_counts.h5ad \
   --output-dir outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch \
   --recon-loss nb \
   --epochs 50 \
   --hidden-layer-sizes 64
 
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.train_expimap_direct \
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.train_expimap_direct \
   --input outputs/expimap_direct_osdr_kidney/input/osdr_kidney_flt_gc_reactome_raw_counts.h5ad \
   --output-dir outputs/expimap_direct_osdr_kidney/raw_counts_nb_50epoch \
   --recon-loss nb \
@@ -300,28 +300,28 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse
 Sensitivity runs:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.train_expimap_direct \
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.train_expimap_direct \
   --input outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_cpm.h5ad \
   --output-dir outputs/expimap_direct_osdr_liver/cpm_mse_50epoch \
   --recon-loss mse \
   --epochs 50 \
   --hidden-layer-sizes 64
 
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.train_expimap_direct \
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.train_expimap_direct \
   --input outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_log1p_cpm.h5ad \
   --output-dir outputs/expimap_direct_osdr_liver/log1p_cpm_mse_50epoch \
   --recon-loss mse \
   --epochs 50 \
   --hidden-layer-sizes 64
 
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.train_expimap_direct \
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.train_expimap_direct \
   --input outputs/expimap_direct_osdr_kidney/input/osdr_kidney_flt_gc_reactome_cpm.h5ad \
   --output-dir outputs/expimap_direct_osdr_kidney/cpm_mse_50epoch \
   --recon-loss mse \
   --epochs 50 \
   --hidden-layer-sizes 64
 
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.train_expimap_direct \
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.train_expimap_direct \
   --input outputs/expimap_direct_osdr_kidney/input/osdr_kidney_flt_gc_reactome_log1p_cpm.h5ad \
   --output-dir outputs/expimap_direct_osdr_kidney/log1p_cpm_mse_50epoch \
   --recon-loss mse \
@@ -332,11 +332,11 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse
 Analysis commands:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.analyze_expimap_pathways \
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.analyze_expimap_pathways \
   --scores outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/pathway_scores.tsv \
   --output-dir outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/analysis
 
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.compare_expimap_transformations \
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.compare_expimap_transformations \
   --tissue liver \
   --tissue-dir outputs/expimap_direct_osdr_liver \
   --output-dir outputs/expimap_direct_osdr_liver/preprocessing_comparison_50epoch
@@ -387,10 +387,10 @@ Current local status:
 Scripts now implemented:
 
 ```text
-src/nasa_mouse_glare/inspect_archs4_mouse.py
-src/nasa_mouse_glare/prepare_expimap_archs4_reference.py
-src/nasa_mouse_glare/train_expimap_archs4_reference.py
-src/nasa_mouse_glare/map_expimap_osdr_query.py
+src/expiMap_scarches/nasa_mouse_expimap/inspect_archs4_mouse.py
+src/expiMap_scarches/nasa_mouse_expimap/prepare_expimap_archs4_reference.py
+src/expiMap_scarches/nasa_mouse_expimap/train_expimap_archs4_reference.py
+src/expiMap_scarches/nasa_mouse_expimap/map_expimap_osdr_query.py
 ```
 
 ARCHS4 inspection output:
@@ -497,9 +497,9 @@ A separate run now follows the scArches expiMap tutorial mechanics more closely:
 
 Artifacts:
 
-- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_5000/input/`
-- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_5000/reference_nb_400epoch_seed2020/`
-- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_5000/query_denovo3_hsic_250epoch_seed2020/`
+- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_2000/input/`
+- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_2000/reference_nb_400epoch_seed2020/`
+- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_2000/query_denovo3_hsic_250epoch_seed2020/`
 
 The installed scArches HSIC implementation overflows its direct gamma-ratio
 bandwidth calculation for the 367-dimensional query latent. The mapper now
@@ -523,14 +523,14 @@ sparsity, then include those dimensions in the standard analysis and summarize
 their decoder loadings:
 
 ```bash
-PYTHONPATH=src python -m nasa_mouse_glare.map_expimap_osdr_query \
+PYTHONPATH=src python -m expiMap_scarches.nasa_mouse_expimap.map_expimap_osdr_query \
   --reference-model outputs/expimap_archs4_reference_osdr_query_liver/reference_nb_1000_50epoch/model \
   --query-h5ad outputs/expimap_direct_osdr_liver/input/osdr_liver_flt_gc_reactome_raw_counts.h5ad \
   --output-dir outputs/expimap_archs4_reference_osdr_query_liver/query_denovo10_gamma3_150epoch \
   --epochs 150 --alpha-epoch-anneal 50 \
   --n-de-novo-programs 10 --gamma-ext 3.0 --gamma-epoch-anneal 50
 
-PYTHONPATH=src python -m nasa_mouse_glare.analyze_expimap_pathways \
+PYTHONPATH=src python -m expiMap_scarches.nasa_mouse_expimap.analyze_expimap_pathways \
   --scores outputs/expimap_archs4_reference_osdr_query_liver/query_denovo10_gamma3_150epoch/query_pathway_scores.tsv \
   --output-dir outputs/expimap_archs4_reference_osdr_query_liver/query_denovo10_gamma3_150epoch/analysis \
   --include-de-novo
@@ -603,8 +603,8 @@ Re-run API discovery and tissue input preparation:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.fetch_osdr_mouse_transcriptomics
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.prepare_expimap_osdr_tissue --tissue liver
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.prepare_expimap_osdr_tissue --tissue kidney
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue liver
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue kidney
 ```
 
 Before a full training run, inspect:
@@ -623,11 +623,11 @@ Validation command:
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m py_compile \
   src/nasa_mouse_glare/build_reactome_mouse_gmt.py \
   src/nasa_mouse_glare/fetch_osdr_mouse_transcriptomics.py \
-  src/nasa_mouse_glare/prepare_expimap_osdr_tissue.py \
-  src/nasa_mouse_glare/train_expimap_direct.py \
-  src/nasa_mouse_glare/analyze_expimap_pathways.py \
-  src/nasa_mouse_glare/inspect_archs4_mouse.py \
-  src/nasa_mouse_glare/prepare_expimap_archs4_reference.py \
-  src/nasa_mouse_glare/map_expimap_osdr_query.py \
-  src/nasa_mouse_glare/compare_expimap_transformations.py
+  src/expiMap_scarches/nasa_mouse_expimap/prepare_expimap_osdr_tissue.py \
+  src/expiMap_scarches/nasa_mouse_expimap/train_expimap_direct.py \
+  src/expiMap_scarches/nasa_mouse_expimap/analyze_expimap_pathways.py \
+  src/expiMap_scarches/nasa_mouse_expimap/inspect_archs4_mouse.py \
+  src/expiMap_scarches/nasa_mouse_expimap/prepare_expimap_archs4_reference.py \
+  src/expiMap_scarches/nasa_mouse_expimap/map_expimap_osdr_query.py \
+  src/expiMap_scarches/nasa_mouse_expimap/compare_expimap_transformations.py
 ```

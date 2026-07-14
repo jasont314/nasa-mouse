@@ -6,7 +6,7 @@ import argparse
 from pathlib import Path
 import re
 
-from .io import require_import
+from nasa_mouse_glare.io import require_import
 
 
 def safe_name(value: str, max_len: int = 120) -> str:

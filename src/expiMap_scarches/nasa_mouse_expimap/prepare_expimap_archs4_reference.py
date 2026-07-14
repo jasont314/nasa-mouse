@@ -12,7 +12,7 @@ from .inspect_archs4_mouse import (
     load_sample_metadata,
     TISSUE_KEYWORDS,
 )
-from .io import require_import
+from nasa_mouse_glare.io import require_import
 
 
 def decode_array(values) -> list[str]:

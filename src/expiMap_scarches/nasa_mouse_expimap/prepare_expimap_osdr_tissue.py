@@ -7,7 +7,7 @@ from io import BytesIO
 import json
 from pathlib import Path
 
-from .fetch_osdr_mouse_transcriptomics import (
+from nasa_mouse_glare.fetch_osdr_mouse_transcriptomics import (
     DEFAULT_OUTPUT_DIR as DEFAULT_OSDR_API_DIR,
     data_query_url,
     discover_metadata,
@@ -15,7 +15,7 @@ from .fetch_osdr_mouse_transcriptomics import (
     read_url_bytes,
     write_metadata_outputs,
 )
-from .io import require_import
+from nasa_mouse_glare.io import require_import
 
 
 DEFAULT_METADATA = (

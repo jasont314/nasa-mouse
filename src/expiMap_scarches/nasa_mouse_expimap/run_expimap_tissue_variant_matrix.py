@@ -89,7 +89,12 @@ class Variant:
 
 
 def module_cmd(python: Path, module: str, *args: str | Path) -> tuple[str, ...]:
-    return (str(python), "-m", f"nasa_mouse_glare.{module}", *(str(arg) for arg in args))
+    return (
+        str(python),
+        "-m",
+        f"expiMap_scarches.nasa_mouse_expimap.{module}",
+        *(str(arg) for arg in args),
+    )
 
 
 def direct_input(tissue: str) -> Path:
@@ -151,8 +156,6 @@ def reference_query_run_dir(tissue: str, label: str) -> Path:
 
 
 def hvg_root(tissue: str) -> Path:
-    if tissue == "liver":
-        return reference_root(tissue) / "tutorial_hvg_5000"
     return reference_root(tissue) / "tutorial_hvg_2000"
 
 
@@ -662,13 +665,13 @@ def write_readme(variants: list[Variant], steps: list[Step], output_root: Path) 
             "Run the audit only:",
             "",
             "```bash",
-            "python3 src/nasa_mouse_glare/run_expimap_tissue_variant_matrix.py",
+            "python3 src/expiMap_scarches/nasa_mouse_expimap/run_expimap_tissue_variant_matrix.py",
             "```",
             "",
             "Run missing steps deliberately:",
             "",
             "```bash",
-            "PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.run_expimap_tissue_variant_matrix --execute",
+            "PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.run_expimap_tissue_variant_matrix --execute",
             "```",
             "",
             "Use `--max-steps N` to submit a bounded chunk of work.",
@@ -676,7 +679,7 @@ def write_readme(variants: list[Variant], steps: list[Step], output_root: Path) 
             "Run only one core variant block, for example all-gene de novo query mapping:",
             "",
             "```bash",
-            "PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.run_expimap_tissue_variant_matrix --variants reference_query_de_novo --core-only --execute",
+            "PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.run_expimap_tissue_variant_matrix --variants reference_query_de_novo --core-only --execute",
             "```",
             "",
         ]

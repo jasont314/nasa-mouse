@@ -5,9 +5,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .cluster_enrichment import bh_fdr
+from nasa_mouse_glare.cluster_enrichment import bh_fdr
 from .inspect_archs4_mouse import DEFAULT_ARCHS4
-from .io import require_import
+from nasa_mouse_glare.io import require_import
 
 
 def decode(values) -> list[str]:

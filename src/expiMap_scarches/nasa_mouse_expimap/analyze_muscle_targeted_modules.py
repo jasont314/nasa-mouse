@@ -9,8 +9,8 @@ import time
 import urllib.parse
 import urllib.request
 
-from .cluster_enrichment import bh_fdr
-from .io import require_import
+from nasa_mouse_glare.cluster_enrichment import bh_fdr
+from nasa_mouse_glare.io import require_import
 from .prepare_expimap_osdr_tissue import load_counts_from_api_tables
 from .validate_expimap_accession_effects import random_effects
 

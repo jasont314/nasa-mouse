@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import re
 
-from .io import require_import
+from nasa_mouse_glare.io import require_import
 
 
 DEFAULT_ARCHS4 = "assets/archs4/mouse_gene_v2.5.h5"

@@ -6,7 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
-from .io import require_import
+from nasa_mouse_glare.io import require_import
 
 
 DEFAULT_TISSUES = ("liver", "kidney")
