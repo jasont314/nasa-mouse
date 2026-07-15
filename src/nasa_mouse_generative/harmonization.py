@@ -40,21 +40,24 @@ HARMONIZATION_REGISTRY = {
         "combat",
         "ComBat",
         "transductive_for_unseen_batches",
-        "scanpy_or_R_sva_adapter",
-        "Frontiers 2023 found library-preparation/ComBat best for its seven-study liver case; not a universal choice.",
+        "built_in_parametric_empirical_bayes_adapter",
+        "Frozen parameters are used for known batches; unseen held-out batches "
+        "require an explicitly enabled transductive estimate.",
     ),
     "combat_seq": HarmonizationMethod(
         "combat_seq",
         "ComBat-seq",
         "transductive_for_unseen_batches",
         "R_sva_adapter",
-        "Requires integer counts and an R environment with sva; unavailable in the current environment.",
+        "Calls Bioconductor sva::ComBat_seq on integer counts; fractional "
+        "count-like input and singleton batches require explicit policies.",
     ),
     "mober": HarmonizationMethod(
         "mober",
         "MOBER batch-aware VAE projection",
         "inductive_projection_to_trained_source",
-        "official_mober_adapter",
-        "Must preserve FLT/GC while adversarially reducing source information; validate by held-out accession.",
+        "official_architecture_compatible_pytorch_adapter",
+        "Projects held-out samples through a frozen encoder and target-batch "
+        "decoder; validate preservation of FLT/GC by accession.",
     ),
 }

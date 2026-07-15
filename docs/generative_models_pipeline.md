@@ -76,6 +76,11 @@ study is an explicitly labeled transductive sensitivity analysis.
 
 ## Harmonization Arms
 
+Primary implementation references are the
+[Scanpy ComBat documentation](https://scanpy.readthedocs.io/en/stable/api/generated/scanpy.pp.combat.html),
+[Bioconductor `sva` package](https://bioconductor.org/packages/release/bioc/html/sva.html),
+and [official MOBER repository](https://github.com/Novartis/MOBER).
+
 - `within_study_zscore` implements the study-by-study log and gene scaling design
   used by Ilangovan et al. 2024.
 - `within_study_then_global_zscore` adds the mentor-proposed second scaling after
@@ -89,6 +94,45 @@ study is an explicitly labeled transductive sensitivity analysis.
 ComBat and ComBat-seq have no natural inductive transform for a new batch. Any use
 on a held-out accession is marked transductive. MOBER can project new samples onto a
 trained source and is evaluated as an inductive model-based harmonizer.
+
+All three adapters are executable and serialized with each run:
+
+| Method | Fit and held-out behavior | Main controls |
+| --- | --- | --- |
+| `combat` | Parametric empirical-Bayes fit; frozen correction for known batches and unlabeled transductive estimation for a new batch | `batch_key`, `max_batches`, `confounded_covariate_policy` |
+| `combat_seq` | Bioconductor `sva::ComBat_seq`; each held-out partition is corrected with training anchors | `rscript`, `anchor_samples`, `noninteger_policy`, `singleton_batch_policy`, `confounded_covariate_policy` |
+| `mober` | Batch-aware adversarial VAE fit; frozen encoder mean decoded onto one trained target batch | `target_batch`, `encoding_dim`, `epochs`, `batch_size`, `learning_rate`, `adversary_weight`, `kl_weight` |
+
+`batch_key=auto` uses `source` when ARCHS4 and OSDR are jointly fitted, and
+`study` for OSDR-only runs. In the pretrain/fine-tune regime, complex harmonizers
+fit on ARCHS4 plus the OSDR training partition only. Validation and test samples
+never enter that fit. MOBER automatically targets the OSDR source in this regime.
+
+ComBat variants require
+`validation.allow_transductive_preprocessing=true`; this is a deliberate opt-in,
+not a leakage-free inductive benchmark. Their preservation covariates default to
+`condition`, `tissue`, and `sex`. A preservation variable that is rank-confounded
+with batch fails by default. `confounded_covariate_policy=drop` is available only
+as an audited sensitivity arm. Preserving `condition` also makes preprocessing
+outcome-informed, so FLT/GC classifier metrics from that arm are labeled unsuitable
+as blind prediction estimates. Run a complementary outcome-blind arm with
+`preprocessing.harmonization_covariates=[tissue,sex]`.
+
+ComBat-seq is stricter because it operates on counts. NASA API-derived count-like
+profiles include fractional values, so the default is to stop. An exploratory run
+may set `noninteger_policy=round`; the fraction and maximum distance rounded are
+recorded per partition. One-sample batches also stop by default. Set
+`singleton_batch_policy=identity` to leave those samples uncorrected or `pool` for
+an explicitly exploratory pooled-singleton arm. The R and `sva` versions, anchor
+size, rounding, singleton handling, and confounded covariates are written to
+`harmonizer.json` and evaluation summaries.
+
+MOBER follows the published encoder/decoder and adversarial batch-classifier design
+in a self-contained PyTorch adapter. Projection is deterministic: the encoder mean
+is decoded onto the selected target batch. MOBER does not consume biological
+preservation covariates itself, so FLT/GC preservation must be checked empirically.
+The implementation is architecture-compatible with the official repository but is
+not a vendored invocation of its training script.
 
 ## Shared And Native Preprocessing
 
@@ -163,6 +207,8 @@ Implemented in `src/nasa_mouse_generative/`:
 - full ARCHS4 metadata scan and balanced reference manifests;
 - accession-grouped locked and LOO split plans;
 - fold-aware shared preprocessing and harmonization constraints;
+- reloadable ComBat, R `sva::ComBat_seq`, and MOBER harmonization adapters with
+  fold behavior and fallback audits;
 - executable Vinas WGAN-GP, Lacan diffusion, and GeneJEPA representation adapters;
 - full-H5 ARCHS4 extraction with content-addressed caching and hierarchical sampling;
 - direct OSDR, ARCHS4-only, and ARCHS4-pretrain/OSDR-fine-tune stage orchestration;
@@ -180,6 +226,7 @@ representation model and never appears in synthetic-expression results.
 ```bash
 conda activate nasa-mouse
 python -m pip install -r requirements-nasa-mouse-generative.txt
+conda install -c conda-forge -c bioconda r-base=4.5 bioconductor-sva=3.58
 PYTHONPATH=src python -m nasa_mouse_generative prepare-upstreams
 ```
 
@@ -210,6 +257,40 @@ PYTHONPATH=src python -m nasa_mouse_generative train \
   --set features.hvg_genes=2000 \
   --set training.model_parameters.reference_epochs=100 \
   --set training.model_parameters.finetune_epochs=50 \
+  --set execution.device=cuda
+```
+
+Enable the inductive MOBER adapter on the same regime:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative train \
+  --set training.regime=archs4_pretrain_osdr_finetune \
+  --set preprocessing.harmonization=mober \
+  --set preprocessing.harmonization_parameters.epochs=300 \
+  --set execution.device=cuda
+```
+
+Run ComBat as a transductive sensitivity arm:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative train \
+  --set training.regime=archs4_pretrain_osdr_finetune \
+  --set preprocessing.harmonization=combat \
+  --set 'preprocessing.harmonization_covariates=[tissue,sex]' \
+  --set validation.allow_transductive_preprocessing=true \
+  --set execution.device=cuda
+```
+
+Run ComBat-seq with explicit policies required by the current API-derived matrix:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative train \
+  --set training.regime=osdr_only \
+  --set preprocessing.harmonization=combat_seq \
+  --set 'preprocessing.harmonization_covariates=[condition,sex]' \
+  --set preprocessing.harmonization_parameters.noninteger_policy=round \
+  --set preprocessing.harmonization_parameters.singleton_batch_policy=identity \
+  --set validation.allow_transductive_preprocessing=true \
   --set execution.device=cuda
 ```
 
@@ -269,8 +350,7 @@ vocabularies, prepared OSDR partitions, epoch history, latest resumable checkpoi
 final model, validation metrics, PCA/fidelity plots, embeddings, device record, and
 concise README.
 
-ComBat, ComBat-seq, and MOBER remain registered experimental harmonization arms but
-do not yet have executable adapters in this runner. Selecting one fails explicitly;
-`none`, `within_study_zscore`, and `within_study_then_global_zscore` are executable.
-The completed one-epoch outputs under `outputs/generative_benchmark/runs/` are
-mechanics tests, not biological results.
+ComBat, ComBat-seq, and MOBER now have executable, reloadable adapters. ComBat-seq
+uses R 4.5 and Bioconductor `sva`; the other two run in the Python environment.
+One-epoch outputs under `outputs/generative_benchmark/runs/` validate mechanics and
+GPU/R integration only. They are not biological results or model-selection evidence.
