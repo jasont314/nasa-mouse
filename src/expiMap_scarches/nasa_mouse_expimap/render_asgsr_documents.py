@@ -78,7 +78,11 @@ def render(source_name: str, title: str) -> Path:
 def run() -> None:
     outputs = [
         render("asgsr_2026_abstract.md", "ASGSR 2026 Abstract"),
-        render("manuscript.md", "Reference-guided expiMap spaceflight manuscript"),
+        render(
+            "manuscript.md",
+            "Reference-guided expiMap prioritizes reproducible tissue-specific "
+            "pathway shifts in mouse spaceflight transcriptomes",
+        ),
     ]
     try:
         from weasyprint import HTML

@@ -31,6 +31,7 @@ from .integrate_reassessed_tissues_paper import (
 PAPER_DIR = ROOT / "paper/asgsr_expimap_hvg"
 SOURCE_DIR = PAPER_DIR / "source_data"
 FIGURE_DIR = PAPER_DIR / "figures"
+PRESENTATION_DIR = ROOT / "presentation/expimap"
 REASSESSMENT_DIR = ROOT / "outputs/expimap_kidney_spleen_reassessment"
 
 FIGURE_WIDTH = 7.2
@@ -122,6 +123,9 @@ OBSOLETE_FIGURE_STEMS = (
     "figure_6_skin_protocol_context",
     "figure_7_skin_protocol_context",
     "figure_s8_generated_biological_processes",
+    "figure_s8_process_summary",
+    "figure_s9_original_tissue_sensitivity",
+    "figure_s10_program_score_distributions",
 )
 
 
@@ -147,10 +151,11 @@ def configure_style() -> None:
     )
 
 
-def save_figure(fig: plt.Figure, name: str) -> None:
+def save_figure(fig: plt.Figure, name: str, output_dir: Path = FIGURE_DIR) -> None:
     """Preserve the authored final dimensions in both raster and vector output."""
-    fig.savefig(FIGURE_DIR / f"{name}.png", dpi=300, facecolor="white")
-    fig.savefig(FIGURE_DIR / f"{name}.pdf", facecolor="white")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_dir / f"{name}.png", dpi=300, facecolor="white")
+    fig.savefig(output_dir / f"{name}.pdf", facecolor="white")
     plt.close(fig)
 
 
@@ -723,7 +728,7 @@ def plot_program_score_distributions(scores: pd.DataFrame, evidence: pd.DataFram
         ax.set_ylabel("Project-centered pathway score")
         clean_axis(ax, keep_left=True)
         panel_label(ax, label)
-    save_figure(fig, "figure_s10_program_score_distributions")
+    save_figure(fig, "figure_s9_program_score_distributions")
 
 
 def build_member_gene_tables(evidence: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -1196,7 +1201,7 @@ def plot_original_robustness_matrix() -> None:
     save_figure(fig, "figure_s7_pathway_robustness_matrix")
 
 
-def plot_process_summary() -> None:
+def plot_presentation_process_summary() -> None:
     rows = (
         (
             "Thymus",
@@ -1260,7 +1265,7 @@ def plot_process_summary() -> None:
         fontsize=6.8,
         color="#596267",
     )
-    save_figure(fig, "figure_s8_process_summary")
+    save_figure(fig, "asgsr_process_summary", output_dir=PRESENTATION_DIR)
 
 
 def clean_obsolete_assets() -> None:
@@ -1323,8 +1328,7 @@ def validate_new_figures(manifest: pd.DataFrame) -> None:
         "figure_5_skin_protocol_context",
         "figure_s1_broad_pathway_screen",
         "figure_s7_pathway_robustness_matrix",
-        "figure_s8_process_summary",
-        "figure_s10_program_score_distributions",
+        "figure_s9_program_score_distributions",
     }
     available = set(manifest["figure"])
     missing = expected - available
@@ -1362,13 +1366,13 @@ def run() -> None:
     plot_skin_protocol_context()
     plot_broad_pathway_screen()
     plot_original_robustness_matrix()
-    plot_process_summary()
+    plot_presentation_process_summary()
     clean_obsolete_assets()
     manifest = write_figure_manifest()
     validate_new_figures(manifest)
     print(
         manifest.loc[
-            manifest["figure"].str.match(r"figure_(?:[1-5]|s1|s7|s8|s10)_"),
+            manifest["figure"].str.match(r"figure_(?:[1-5]|s1|s7|s9)_"),
             ["figure", "png_width_pixels", "png_height_pixels", "pdf_exists"],
         ].to_string(index=False),
         flush=True,

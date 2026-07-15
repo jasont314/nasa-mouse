@@ -19,7 +19,7 @@ The primary descriptive quantity is the equally weighted project- or accession-s
 - `source_data/table_s29_kidney_spleen_member_gene_support.tsv`: member-gene and decoder-weight audit.
 - `source_data/table_s30_kidney_spleen_literature_sources.tsv`: source links used in the reassessment.
 - `source_data/table_s31_latent_mapping_coordinates.tsv.gz` and `table_s32_latent_mapping_qc.tsv`: reference-query coordinates and mapping-coverage diagnostics.
-- `source_data/table_s33_representative_program_sample_scores.tsv.gz`: project-centered sample scores behind Figure S10.
+- `source_data/table_s33_representative_program_sample_scores.tsv.gz`: project-centered sample scores behind Figure S9.
 - `source_data/table_s34_retained_pathway_member_gene_support.tsv` and `table_s35_retained_pathway_member_gene_effects.tsv.gz`: pathway-level and gene-level directional support behind Figure 4.
 - `source_data/figure_build_manifest.tsv`: dimensions, file sizes, vector-copy status, and border checks for every figure.
 - `source_data/table_s3_all_pathway_effects.tsv` and `table_s9_systematic_pathway_screen.tsv`: complete original thymus, skin, liver, and soleus results.
@@ -43,7 +43,7 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_sc
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.render_asgsr_documents
 ```
 
-`build_publication_figures` authors the final main figures and dense supplementary summaries at a 7.2-inch publication width, writes 300-dpi PNG and vector PDF copies, and checks image borders and dimensions. It also produces the latent-mapping, sample-score, and retained-member-gene source tables. Figure S8 is a deterministic vector synthesis built from reviewed results; no generated artwork is used in the final paper.
+`build_publication_figures` authors the final main figures and dense supplementary summaries at a 7.2-inch publication width, writes 300-dpi PNG and vector PDF copies, and checks image borders and dimensions. It also produces the latent-mapping, sample-score, and retained-member-gene source tables. The non-evidentiary process synthesis is written separately to `presentation/expimap/asgsr_process_summary.*` and is not part of the scientific manuscript.
 
 ## Model scope
 

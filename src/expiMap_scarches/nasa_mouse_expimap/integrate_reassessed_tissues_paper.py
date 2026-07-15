@@ -322,8 +322,7 @@ def copy_reassessment_tables() -> None:
 def copy_reassigned_figures() -> None:
     pairs = {
         "figure_7_skin_protocol_context": "figure_6_skin_protocol_context",
-        "figure_6_generated_biological_processes": "figure_s8_generated_biological_processes",
-        "figure_4_primary_analysis_sensitivity": "figure_s9_original_tissue_sensitivity",
+        "figure_4_primary_analysis_sensitivity": "figure_s8_original_tissue_sensitivity",
     }
     for source, destination in pairs.items():
         for suffix in ("png", "pdf"):

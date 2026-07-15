@@ -1,4 +1,4 @@
-# Reference-guided expiMap identifies tissue-specific pathway responses to spaceflight in mouse transcriptomes
+# Reference-guided expiMap prioritizes reproducible tissue-specific pathway shifts in mouse spaceflight transcriptomes
 
 **Jason Trinh<sup>1</sup>**
 
@@ -102,7 +102,7 @@ We also performed broader rule-based reviews rather than limiting interpretation
 
 The five retained models mapped 709 OSDR samples to 17,708 tissue-matched ARCHS4 profiles across 1,434 GEO series (Table 1; Fig. 1). The primary effect analyses used 700 samples after excluding OSD-288 spleen; the four positive-result tissues contributed 565 samples. HVG and pathway-membership filtering retained 1,994-1,997 genes and 319-387 Reactome programs per retained model. This provided hundreds of interpretable programs while keeping the input space comparable among tissues.
 
-In the four main tissue models, every mapped OSDR query fell within the tissue reference's 95th-percentile nearest-neighbor distance in 20-dimensional reference PC space (Fig. 2; Tables S31-S32). The first two reference PCs retained visible study structure, and flight and ground samples overlapped rather than forming a universal condition cluster. Project-centroid segments and project-centered representative-program distributions expose the within-project shifts underlying the balanced pathway effects (Fig. S10; Table S33). These plots support reference coverage and sample-level transparency; they do not substitute for the project-aware comparisons below.
+In the four main tissue models, every mapped OSDR query fell within the tissue reference's 95th-percentile nearest-neighbor distance in 20-dimensional reference PC space (Fig. 2; Tables S31-S32). The first two reference PCs retained visible study structure, and flight and ground samples overlapped rather than forming a universal condition cluster. Project-centroid segments and project-centered representative-program distributions expose the within-project shifts underlying the balanced pathway effects (Fig. S9; Table S33). These plots support reference coverage and sample-level transparency; they do not substitute for the project-aware comparisons below.
 
 **Table 1. Revised model scope.**
 
@@ -118,7 +118,7 @@ Supplementary source tables preserve all 1,427 pathways from the original thymus
 
 ### Orthogonal checks separate robust directions from statistical strength
 
-Among the original primary top-decile programs for the retained thymus, skin, and liver models, ssGSEA and preranked GSEA direction agreement was 86% and 86%, 77% and 87%, and 83% and 91%, respectively (Fig. S4; Tables S12-S14). Held-out-project direction prediction was 99%, 75%, and 75%. Complete retraining further narrowed the primary-score narrative: 71% of reviewed thymus, 71% of skin, and 67% of liver programs retained one direction across all three runs. Corresponding results for the non-advanced soleus screen remain in Figures S4-S9 and the supplementary source tables.
+Among the original primary top-decile programs for the retained thymus, skin, and liver models, ssGSEA and preranked GSEA direction agreement was 86% and 86%, 77% and 87%, and 83% and 91%, respectively (Fig. S4; Tables S12-S14). Held-out-project direction prediction was 99%, 75%, and 75%. Complete retraining further narrowed the primary-score narrative: 71% of reviewed thymus, 71% of skin, and 67% of liver programs retained one direction across all three runs. Corresponding results for the non-advanced soleus screen remain in Figures S4-S8 and the supplementary source tables.
 
 The corrected spleen and kidney models used the same five directional checks plus member-gene and decoder-weight review (Figs. 3, 4; Tables S27-S29 and S34-S35). Three spleen programs passed all five checks, were lower in all five unconfounded projects, and had preranked-GSEA FDR below 0.05. Three kidney programs also passed all five directional checks, but their GSEA FDR values were 0.156-1.000 and composition adjustment retained only 29%-36% of their unadjusted magnitude. Directional triangulation therefore supports repeatability, whereas conventional FDR and attenuation determine the strength of the biological claim.
 
@@ -174,7 +174,7 @@ The evidence remains secondary. Preranked-GSEA FDR was 0.156 for ECM proteoglyca
 
 ### Cross-tissue synthesis is coherent but not universal
 
-The positive core is tissue specific (Fig. S8). Thymus contributes a lower repair-cytoskeletal state and possible niche-interaction layer. Skin contributes a coordinated lower regulatory, repair, regenerative, barrier-lipid, and junction state. Liver contributes a lower adaptive-immune communication axis beside heterogeneous metabolism. Spleen connects lower adaptive activation to lower innate sensing and effector programs. Kidney extends the structural theme as a weaker higher matrix and growth-factor axis. No single direction or process is shared strongly enough to claim a universal spaceflight pathway.
+The positive core is tissue specific. Thymus contributes a lower repair-cytoskeletal state and possible niche-interaction layer. Skin contributes a coordinated lower regulatory, repair, regenerative, barrier-lipid, and junction state. Liver contributes a lower adaptive-immune communication axis beside heterogeneous metabolism. Spleen connects lower adaptive activation to lower innate sensing and effector programs. Kidney extends the structural theme as a weaker higher matrix and growth-factor axis. No single direction or process is shared strongly enough to claim a universal spaceflight pathway.
 
 These programs are also not statistically independent. Reactome terms overlap, and low-overlap latent scores can covary because of cell composition, model structure, or a common condition axis. The biological contribution is therefore organization into nonredundant tissue-state hypotheses, not multiplication of every significant or high-magnitude pathway into a separate mechanism.
 
@@ -184,7 +184,7 @@ This study applies an interpretable reference-mapping architecture to a use case
 
 ### Alternative perspective after robustness filtering
 
-The robustness-filtered perspective has four main tissue stories and one weaker secondary extension (Figs. 3-5 and Fig. S8). Skin links established barrier injury and inflammation to a lower regulatory, repair, regenerative, barrier-lipid, and cell-junction state. The pathway family is coherent even though individual terms differ in conventional FDR and one junction result lacks ssGSEA support. This is more informative than saying only that wound healing is altered: it proposes that flight skin enters a lower tissue-maintenance state whose magnitude depends on gravity, anatomical site, recovery, strain, and duration.
+The robustness-filtered perspective has four main tissue stories and one weaker secondary extension (Figs. 3-5). Skin links established barrier injury and inflammation to a lower regulatory, repair, regenerative, barrier-lipid, and cell-junction state. The pathway family is coherent even though individual terms differ in conventional FDR and one junction result lacks ssGSEA support. This is more informative than saying only that wound healing is altered: it proposes that flight skin enters a lower tissue-maintenance state whose magnitude depends on gravity, anatomical site, recovery, strain, and duration.
 
 Thymus narrows from a broad adaptive-to-innate remodeling narrative to lower repair and cytoskeletal programs with a possible lower lymphoid-stromal interaction layer. The higher innate and matrix nodes that initially looked compelling were not stable after full retraining or composition adjustment. The revised interpretation therefore complements known involution without claiming an unsupported innate switch.
 
@@ -345,20 +345,14 @@ The author declares no competing interests. [Confirm before submission.]
 **Figure S7. Original four-model pathway-level robustness evidence matrix.** Blue cells and plus symbols indicate directional support from ssGSEA, preranked GSEA, held-out projects, all-three-seed concordance, or composition adjustment for 29 reviewed thymus, skin, liver, and soleus pathways; pale cells and minus symbols indicate no support. These are descriptive evidence categories, not statistical significance levels.
 </div>
 
-<div class="figure" markdown="1">
-<img src="figures/figure_s8_process_summary.png" alt="Vector synthesis of retained pathway directions, complementary perspectives, and interpretation boundaries">
-
-**Figure S8. Programmatic vector synthesis of the positive-result tissue stories.** Observed lower program directions are organized beside the complementary biological perspective and the principal interpretation boundary for thymus, skin, liver, and spleen. This is a deterministic synthesis of measured pathway directions, not an additional analysis, causal diagram, cell-resolved result, or generated biological image.
-</div>
-
 <div class="figure figure-wide" markdown="1">
-<img src="figures/figure_s9_original_tissue_sensitivity.png" alt="Sensitivity to thymus and soleus confounding and overlapping liver cohorts">
+<img src="figures/figure_s8_original_tissue_sensitivity.png" alt="Sensitivity to thymus and soleus confounding and overlapping liver cohorts">
 
-**Figure S9. Original-tissue confound and cohort-overlap sensitivity.** Thymus and soleus effects are compared before and after excluding OSD-289 or OSD-714. Liver compares the de-duplicated 10-accession primary remap with the original 12-accession input containing overlapping cohort representations. Thymus directions were preserved, liver immune directions sharpened after de-duplication, and several soleus directions changed or attenuated.
+**Figure S8. Original-tissue confound and cohort-overlap sensitivity.** Thymus and soleus effects are compared before and after excluding OSD-289 or OSD-714. Liver compares the de-duplicated 10-accession primary remap with the original 12-accession input containing overlapping cohort representations. Thymus directions were preserved, liver immune directions sharpened after de-duplication, and several soleus directions changed or attenuated.
 </div>
 
 <div class="figure" markdown="1">
-<img src="figures/figure_s10_program_score_distributions.png" alt="Sample-level project-centered scores for representative retained programs in thymus, skin, liver, and spleen">
+<img src="figures/figure_s9_program_score_distributions.png" alt="Sample-level project-centered scores for representative retained programs in thymus, skin, liver, and spleen">
 
-**Figure S10. Sample-level distributions for representative retained programs.** Individual OSDR samples are shown after decoder orientation and centering within OSD accession. Blue circles are ground controls and orange triangles are flight samples; gray segments connect condition means within a project. Black diamonds and bars show the condition median and interquartile range. The annotated shift is the primary project-balanced expiMap effect, which is not estimated by treating individual points as independent. Skin uses the broad flight label; protocol-defined contrasts are shown in Figure 5.
+**Figure S9. Sample-level distributions for representative retained programs.** Individual OSDR samples are shown after decoder orientation and centering within OSD accession. Blue circles are ground controls and orange triangles are flight samples; gray segments connect condition means within a project. Black diamonds and bars show the condition median and interquartile range. The annotated shift is the primary project-balanced expiMap effect, which is not estimated by treating individual points as independent. Skin uses the broad flight label; protocol-defined contrasts are shown in Figure 5.
 </div>

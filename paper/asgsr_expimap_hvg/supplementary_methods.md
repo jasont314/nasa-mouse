@@ -138,7 +138,7 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
   -m expiMap_scarches.nasa_mouse_expimap.build_publication_figures
 ```
 
-This final step authors the main figures, Figures S1, S7, S8, and S10 at a 7.2-inch publication width, writes both 300-dpi PNG and vector PDF copies, and records dimensions and border checks in `figure_build_manifest.tsv`. It also removes superseded duplicate figures and the retired generated artwork. Figure S8 is now a deterministic vector synthesis of reviewed results, not a generated biological image or an additional analysis.
+This final step authors the main figures and Figures S1, S7, and S9 at a 7.2-inch publication width, writes both 300-dpi PNG and vector PDF copies, and records dimensions and border checks in `figure_build_manifest.tsv`. It also removes superseded duplicate figures and retired generated artwork. A deterministic process synthesis is written to `presentation/expimap/asgsr_process_summary.*` for presentation use only and is not included in the scientific manuscript.
 
 ## Source-data index
 
@@ -176,7 +176,7 @@ This final step authors the main figures, Figures S1, S7, S8, and S10 at a 7.2-i
 - `table_s30_kidney_spleen_literature_sources.tsv`: primary literature links used for corrected-model interpretation.
 - `table_s31_latent_mapping_coordinates.tsv.gz`: tissue-specific reference and query PCA coordinates, project labels, and 20-PC nearest-reference distances.
 - `table_s32_latent_mapping_qc.tsv`: reference and query counts, explained variance, nearest-neighbor threshold, and query coverage for each main tissue.
-- `table_s33_representative_program_sample_scores.tsv.gz`: decoder-oriented and project-centered sample scores for the representative programs in Figure S10.
+- `table_s33_representative_program_sample_scores.tsv.gz`: decoder-oriented and project-centered sample scores for the representative programs in Figure S9.
 - `table_s34_retained_pathway_member_gene_support.tsv`: retained-pathway member-gene direction fractions, measured-gene counts, GSEA support, and leading concordant genes.
 - `table_s35_retained_pathway_member_gene_effects.tsv.gz`: complete project-balanced member-gene effects behind Table S34 and Figure 4.
 - `figure_build_manifest.tsv`: final figure dimensions, file sizes, vector-copy status, and nonwhite-border check.
