@@ -402,10 +402,17 @@ def evaluate_model(
         evaluation_embeddings,
         metric_evaluation.obs["condition"].astype(str).to_numpy(),
     )
+    harmonization_audit = preprocessor.audit()
     summary: dict[str, object] = {
         "adapter_id": adapter.adapter_id,
         "split": split,
         "samples": len(metric_evaluation),
+        "harmonization": harmonization_audit,
+        "prediction_metric_interpretation": (
+            "outcome_informed_preprocessing_not_valid_for_blind_flt_gc_prediction"
+            if harmonization_audit["outcome_informed"]
+            else "outcome_blind_preprocessing"
+        ),
         "representation_condition_input": "neutralized_to___unknown__",
         "representation_flt_gc_utility": representation_utility,
         "plots": {"evaluation_embedding_pca": representation_plot},

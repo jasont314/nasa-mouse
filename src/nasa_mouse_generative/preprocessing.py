@@ -8,8 +8,15 @@ from pathlib import Path
 from typing import Iterable
 
 import numpy as np
+import pandas as pd
 
 from .config import PreprocessingConfig
+from .harmonizers import (
+    Harmonizer,
+    create_harmonizer,
+    load_harmonizer,
+    save_harmonizer,
+)
 
 
 EPSILON = 1e-8
@@ -24,10 +31,13 @@ class ScaleStats:
 @dataclass
 class FittedPreprocessor:
     spec: PreprocessingConfig
+    device_spec: str = "auto"
+    seed: int = 0
     global_stats: ScaleStats | None = None
     study_stats: dict[str, ScaleStats] = field(default_factory=dict)
     post_harmonization_stats: ScaleStats | None = None
     final_stats: ScaleStats | None = None
+    harmonizer: Harmonizer | None = field(default=None, repr=False)
 
     def fit_transform(
         self,
@@ -35,11 +45,38 @@ class FittedPreprocessor:
         studies: Iterable[object],
         *,
         gene_lengths: np.ndarray | None = None,
+        metadata: pd.DataFrame | None = None,
     ) -> np.ndarray:
         studies_array = np.asarray(list(studies), dtype=str)
-        values = self._base_transform(matrix, gene_lengths=gene_lengths)
-        if values.shape[0] != studies_array.shape[0]:
+        raw_values = np.asarray(matrix)
+        if raw_values.shape[0] != studies_array.shape[0]:
             raise ValueError("studies must contain one value per sample")
+
+        if self.spec.harmonization in {"combat", "combat_seq", "mober"}:
+            self.harmonizer = create_harmonizer(
+                self.spec.harmonization,
+                covariates=self.spec.harmonization_covariates,
+                parameters=self.spec.harmonization_parameters,
+                device_spec=self.device_spec,
+                seed=self.seed,
+            )
+            if self.harmonizer.requires_raw_counts:
+                harmonized_raw = self.harmonizer.fit_transform(
+                    raw_values, studies_array, metadata
+                )
+                values = self._base_transform(
+                    harmonized_raw, gene_lengths=gene_lengths
+                )
+            else:
+                values = self._base_transform(
+                    raw_values, gene_lengths=gene_lengths
+                )
+                values = self.harmonizer.fit_transform(
+                    values, studies_array, metadata
+                )
+            return self._fit_final_scaler(values)
+
+        values = self._base_transform(raw_values, gene_lengths=gene_lengths)
 
         if self.spec.harmonization in {
             "within_study_zscore",
@@ -57,13 +94,8 @@ class FittedPreprocessor:
                 harmonized = apply_stats(harmonized, self.post_harmonization_stats)
             return self._fit_final_scaler(harmonized)
 
-        if self.spec.harmonization not in {"none", "combat", "combat_seq", "mober"}:
-            raise ValueError(f"Unsupported harmonization: {self.spec.harmonization}")
         if self.spec.harmonization != "none":
-            raise NotImplementedError(
-                f"{self.spec.harmonization} is a model-based/transductive harmonizer and "
-                "must be invoked through its dedicated adapter."
-            )
+            raise ValueError(f"Unsupported harmonization: {self.spec.harmonization}")
         return self._fit_final_scaler(values)
 
     def transform(
@@ -73,11 +105,38 @@ class FittedPreprocessor:
         *,
         gene_lengths: np.ndarray | None = None,
         allow_transductive: bool = False,
+        metadata: pd.DataFrame | None = None,
     ) -> np.ndarray:
         studies_array = np.asarray(list(studies), dtype=str)
-        values = self._base_transform(matrix, gene_lengths=gene_lengths)
-        if values.shape[0] != studies_array.shape[0]:
+        raw_values = np.asarray(matrix)
+        if raw_values.shape[0] != studies_array.shape[0]:
             raise ValueError("studies must contain one value per sample")
+        if self.spec.harmonization in {"combat", "combat_seq", "mober"}:
+            if self.harmonizer is None:
+                raise RuntimeError("Dedicated harmonizer is not fitted")
+            if self.harmonizer.requires_raw_counts:
+                harmonized_raw = self.harmonizer.transform(
+                    raw_values,
+                    studies_array,
+                    metadata,
+                    allow_transductive=allow_transductive,
+                )
+                values = self._base_transform(
+                    harmonized_raw, gene_lengths=gene_lengths
+                )
+            else:
+                values = self._base_transform(
+                    raw_values, gene_lengths=gene_lengths
+                )
+                values = self.harmonizer.transform(
+                    values,
+                    studies_array,
+                    metadata,
+                    allow_transductive=allow_transductive,
+                )
+            return self._apply_final_scaler(values)
+
+        values = self._base_transform(raw_values, gene_lengths=gene_lengths)
         if self.spec.harmonization in {
             "within_study_zscore",
             "within_study_then_global_zscore",
@@ -187,6 +246,7 @@ class FittedPreprocessor:
         metadata: dict[str, object] = {
             "spec": asdict(self.spec),
             "output_units": self.output_units,
+            "runtime": {"device_spec": self.device_spec, "seed": self.seed},
             "stats": {},
             "study_stats": {},
         }
@@ -208,6 +268,9 @@ class FittedPreprocessor:
             metadata["study_stats"][study] = label
         arrays_path = output_dir / "preprocessing_stats.npz"
         metadata_path = output_dir / "preprocessing.json"
+        if self.harmonizer is not None:
+            save_harmonizer(self.harmonizer, output_dir)
+            metadata["harmonizer"] = self.harmonizer.audit()
         np.savez_compressed(arrays_path, **arrays)
         metadata_path.write_text(
             json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
@@ -221,7 +284,17 @@ class FittedPreprocessor:
             (input_dir / "preprocessing.json").read_text(encoding="utf-8")
         )
         arrays = np.load(input_dir / "preprocessing_stats.npz")
-        processor = cls(PreprocessingConfig(**metadata["spec"]))
+        spec_options = dict(metadata["spec"])
+        if "harmonization_covariates" in spec_options:
+            spec_options["harmonization_covariates"] = tuple(
+                spec_options["harmonization_covariates"]
+            )
+        runtime = metadata.get("runtime", {})
+        processor = cls(
+            PreprocessingConfig(**spec_options),
+            device_spec=str(runtime.get("device_spec", "auto")),
+            seed=int(runtime.get("seed", 0)),
+        )
 
         def read_stats(label: str) -> ScaleStats | None:
             center_key = f"{label}_center"
@@ -241,7 +314,20 @@ class FittedPreprocessor:
         }
         if any(stats is None for stats in processor.study_stats.values()):
             raise ValueError("Serialized preprocessing study statistics are incomplete")
+        processor.harmonizer = load_harmonizer(input_dir)
         return processor
+
+    def audit(self) -> dict[str, object]:
+        return {
+            "method": self.spec.harmonization,
+            "covariates": list(self.spec.harmonization_covariates),
+            "outcome_informed": (
+                self.harmonizer.audit().get("outcome_informed", False)
+                if self.harmonizer is not None
+                else False
+            ),
+            "adapter": self.harmonizer.audit() if self.harmonizer is not None else None,
+        }
 
     def _base_transform(
         self, matrix: np.ndarray, *, gene_lengths: np.ndarray | None

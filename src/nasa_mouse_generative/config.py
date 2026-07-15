@@ -67,6 +67,8 @@ class PreprocessingConfig:
     transform: str = "log1p"
     scaler: str = "zscore"
     harmonization: str = "none"
+    harmonization_covariates: tuple[str, ...] = ("condition", "tissue", "sex")
+    harmonization_parameters: dict[str, Any] = field(default_factory=dict)
     unseen_study_policy: str = "global_train_fallback"
     gene_lengths: str = ""
 
@@ -235,6 +237,34 @@ class BenchmarkConfig:
             raise ValueError(f"Unsupported scaler: {p.scaler}")
         if p.harmonization not in ALLOWED_HARMONIZERS:
             raise ValueError(f"Unsupported harmonization: {p.harmonization}")
+        unknown_harmonization_covariates = set(
+            p.harmonization_covariates
+        ).difference(ALLOWED_CONDITIONING_COVARIATES)
+        if unknown_harmonization_covariates:
+            raise ValueError(
+                "Unsupported harmonization covariates: "
+                f"{sorted(unknown_harmonization_covariates)}"
+            )
+        if p.harmonization in {"combat", "combat_seq"} and not (
+            v.allow_transductive_preprocessing
+        ):
+            raise ValueError(
+                f"{p.harmonization} has no frozen transform for unseen batches. "
+                "Set validation.allow_transductive_preprocessing=true and treat "
+                "the run as a transductive sensitivity analysis."
+            )
+        if p.harmonization == "combat_seq" and p.input_units != "raw_counts":
+            raise ValueError("ComBat-seq requires raw-count input")
+        if (
+            p.harmonization in {"combat", "combat_seq"}
+            and not t.condition_on_flight
+            and "condition" in p.harmonization_covariates
+        ):
+            raise ValueError(
+                "An unconditional negative-control run cannot preserve condition "
+                "inside ComBat preprocessing; remove condition from "
+                "preprocessing.harmonization_covariates."
+            )
         if p.unseen_study_policy not in ALLOWED_UNSEEN_STUDY_POLICIES:
             raise ValueError(
                 f"Unsupported unseen-study policy: {p.unseen_study_policy}"
@@ -344,6 +374,15 @@ def _construct(data: dict[str, Any]) -> BenchmarkConfig:
         training_options["model_parameters"] = dict(
             training_options["model_parameters"] or {}
         )
+    preprocessing_options = dict(data.get("preprocessing", {}))
+    if "harmonization_covariates" in preprocessing_options:
+        preprocessing_options["harmonization_covariates"] = tuple(
+            map(str, preprocessing_options["harmonization_covariates"] or ())
+        )
+    if "harmonization_parameters" in preprocessing_options:
+        preprocessing_options["harmonization_parameters"] = dict(
+            preprocessing_options["harmonization_parameters"] or {}
+        )
     generation_options = dict(data.get("generation", {}))
     if "synthetic_to_real_ratios" in generation_options:
         generation_options["synthetic_to_real_ratios"] = tuple(
@@ -352,7 +391,7 @@ def _construct(data: dict[str, Any]) -> BenchmarkConfig:
     return BenchmarkConfig(
         version=int(data.get("version", 1)),
         output_root=str(data.get("output_root", "outputs/generative_benchmark")),
-        preprocessing=PreprocessingConfig(**data.get("preprocessing", {})),
+        preprocessing=PreprocessingConfig(**preprocessing_options),
         data=DataConfig(**data_options),
         features=FeatureConfig(**data.get("features", {})),
         training=TrainingConfig(**training_options),

@@ -62,6 +62,26 @@ def _smoke_config(config: BenchmarkConfig) -> BenchmarkConfig:
         }
     parameters.update(common)
     parameters.update(specific)
+    harmonization_parameters = dict(
+        config.preprocessing.harmonization_parameters
+    )
+    if config.preprocessing.harmonization == "mober":
+        harmonization_parameters.update(
+            {
+                "epochs": 1,
+                "batch_size": 16,
+                "encoding_dim": 8,
+                "projection_batch_size": 64,
+            }
+        )
+    elif config.preprocessing.harmonization == "combat":
+        harmonization_parameters.setdefault("confounded_covariate_policy", "drop")
+    elif config.preprocessing.harmonization == "combat_seq":
+        harmonization_parameters["anchor_samples"] = min(
+            int(harmonization_parameters.get("anchor_samples", 32)), 32
+        )
+        harmonization_parameters.setdefault("singleton_batch_policy", "pool")
+        harmonization_parameters.setdefault("confounded_covariate_policy", "drop")
     return replace(
         config,
         data=replace(
@@ -73,6 +93,10 @@ def _smoke_config(config: BenchmarkConfig) -> BenchmarkConfig:
             config.features,
             max_genes=min(config.features.max_genes or 64, 64),
             hvg_genes=min(config.features.hvg_genes, 64),
+        ),
+        preprocessing=replace(
+            config.preprocessing,
+            harmonization_parameters=harmonization_parameters,
         ),
         training=replace(config.training, model_parameters=parameters),
         validation=replace(config.validation, max_metric_samples=64),

@@ -20,6 +20,7 @@ from nasa_mouse_generative.adapters import load_adapter
 from nasa_mouse_generative.adapters.diffusion import DiffusionAdapter
 from nasa_mouse_generative.adapters.wgan import WGANAdapter
 from nasa_mouse_generative.generate import _default_profile
+from nasa_mouse_generative.harmonizers import CombatHarmonizer, CombatSeqHarmonizer
 from nasa_mouse_generative.metrics import fidelity_selection
 from nasa_mouse_generative.preprocessing import FittedPreprocessor
 from nasa_mouse_generative.profiles import resolve_preprocessing_profile
@@ -52,6 +53,25 @@ class RuntimeConfigTests(unittest.TestCase):
             )
         )
         with self.assertRaisesRegex(ValueError, "ARCHS4 has no flight"):
+            config.validate()
+
+    def test_combat_requires_explicit_transductive_permission(self):
+        config = BenchmarkConfig(
+            preprocessing=PreprocessingConfig(harmonization="combat")
+        )
+        with self.assertRaisesRegex(ValueError, "transductive sensitivity"):
+            config.validate()
+
+    def test_unconditional_combat_cannot_preserve_condition(self):
+        config = BenchmarkConfig(
+            preprocessing=PreprocessingConfig(harmonization="combat"),
+            training=replace(TrainingConfig(), condition_on_flight=False),
+            validation=replace(
+                BenchmarkConfig().validation,
+                allow_transductive_preprocessing=True,
+            ),
+        )
+        with self.assertRaisesRegex(ValueError, "unconditional negative-control"):
             config.validate()
 
     def test_shared_preprocessing_profile_is_resolved(self):
@@ -183,6 +203,135 @@ class PreprocessorSerializationTests(unittest.TestCase):
         transformed = processor.fit_transform(matrix, ["A", "B"])
         inverted = processor.inverse_transform(transformed, ["A", "B"])
         np.testing.assert_allclose(inverted.sum(axis=1), 1_000_000.0, rtol=1e-6)
+
+    @staticmethod
+    def _harmonization_data():
+        rng = np.random.default_rng(12)
+        matrix = rng.normal(5.0, 0.5, size=(16, 8)).astype(np.float32)
+        studies = np.asarray(["A"] * 8 + ["B"] * 8)
+        matrix[8:] += 3.0
+        metadata = pd.DataFrame(
+            {
+                "study": studies,
+                "condition": ["flight", "ground_control"] * 8,
+                "tissue": ["liver"] * 16,
+                "sex": ["female"] * 16,
+                "source": ["osdr"] * 16,
+            }
+        )
+        return matrix, studies, metadata
+
+    def test_combat_corrects_batch_location_and_round_trips(self):
+        matrix, studies, metadata = self._harmonization_data()
+        processor = FittedPreprocessor(
+            PreprocessingConfig(
+                input_units="cpm",
+                library_normalization="none",
+                transform="none",
+                scaler="none",
+                harmonization="combat",
+                harmonization_parameters={"batch_key": "study"},
+            ),
+            device_spec="cpu",
+            seed=3,
+        )
+        corrected = processor.fit_transform(
+            matrix, studies, metadata=metadata
+        )
+        self.assertLess(abs(float(corrected[:8].mean() - corrected[8:].mean())), 0.2)
+        with tempfile.TemporaryDirectory() as directory:
+            processor.save(directory)
+            restored = FittedPreprocessor.load(directory)
+            second = restored.transform(
+                matrix, studies, metadata=metadata
+            )
+        np.testing.assert_allclose(second, corrected, atol=1e-5)
+
+    def test_mober_projects_with_frozen_serialized_model(self):
+        matrix, studies, metadata = self._harmonization_data()
+        processor = FittedPreprocessor(
+            PreprocessingConfig(
+                input_units="cpm",
+                library_normalization="none",
+                transform="none",
+                scaler="zscore",
+                harmonization="mober",
+                harmonization_parameters={
+                    "batch_key": "study",
+                    "epochs": 1,
+                    "batch_size": 4,
+                    "encoding_dim": 4,
+                    "projection_batch_size": 8,
+                },
+            ),
+            device_spec="cpu",
+            seed=3,
+        )
+        corrected = processor.fit_transform(
+            matrix, studies, metadata=metadata
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            processor.save(directory)
+            restored = FittedPreprocessor.load(directory)
+            projected = restored.transform(
+                matrix[:4], studies[:4], metadata=metadata.iloc[:4]
+            )
+        self.assertEqual(corrected.shape, matrix.shape)
+        self.assertEqual(projected.shape, (4, matrix.shape[1]))
+        self.assertTrue(np.isfinite(projected).all())
+
+
+class CombatSeqPolicyTests(unittest.TestCase):
+    def test_fractional_counts_require_explicit_rounding_policy(self):
+        values = np.asarray([[1.2, 3.0], [2.0, 4.7]])
+        strict = CombatSeqHarmonizer(
+            covariates=("condition",),
+            parameters={},
+            device_spec="cpu",
+            seed=1,
+        )
+        with self.assertRaisesRegex(ValueError, "fractional count-like"):
+            strict._integer_counts(values)
+        rounded = CombatSeqHarmonizer(
+            covariates=("condition",),
+            parameters={"noninteger_policy": "round"},
+            device_spec="cpu",
+            seed=1,
+        )
+        observed = rounded._integer_counts(values)
+        np.testing.assert_array_equal(observed, [[1, 3], [2, 5]])
+        self.assertEqual(rounded.rounding_audit[0]["entries_rounded"], 2)
+
+    def test_combat_confounded_covariate_is_strict_by_default(self):
+        values = np.arange(24, dtype=np.float32).reshape(6, 4)
+        studies = ["A"] * 3 + ["B"] * 3
+        metadata = pd.DataFrame(
+            {
+                "study": studies,
+                "condition": ["flight"] * 3 + ["ground_control"] * 3,
+            }
+        )
+        strict = CombatHarmonizer(
+            covariates=("condition",),
+            parameters={"batch_key": "study"},
+            device_spec="cpu",
+            seed=1,
+        )
+        with self.assertRaisesRegex(ValueError, "confounded with batch"):
+            strict.fit_transform(values, studies, metadata)
+
+        permissive = CombatHarmonizer(
+            covariates=("condition",),
+            parameters={
+                "batch_key": "study",
+                "confounded_covariate_policy": "drop",
+            },
+            device_spec="cpu",
+            seed=1,
+        )
+        corrected = permissive.fit_transform(values, studies, metadata)
+        self.assertEqual(corrected.shape, values.shape)
+        self.assertEqual(permissive.audit()["dropped_covariates"], ["condition"])
 
 
 class Archs4ExtractionTests(unittest.TestCase):

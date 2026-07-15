@@ -582,33 +582,77 @@ def prepare_training_data(
     if reference_obs is not None:
         encoder_frames.insert(0, reference_obs)
     encoder = CategoryEncoder.fit(encoder_frames, covariates)
-    processor = FittedPreprocessor(config.preprocessing)
+    processor = FittedPreprocessor(
+        config.preprocessing,
+        device_spec=config.execution.device,
+        seed=config.training.seed,
+    )
     lengths = _gene_lengths(config, genes)
+    dedicated_harmonizer = config.preprocessing.harmonization in {
+        "combat",
+        "combat_seq",
+        "mober",
+    }
+    joint_harmonizer_fit = dedicated_harmonizer and config.training.regime == (
+        "archs4_pretrain_osdr_finetune"
+    )
 
     if reference_matrix is not None:
-        reference_transformed = processor.fit_transform(
-            reference_matrix, reference_obs["study"], gene_lengths=lengths
-        )
-        processor.fit_additional_study_stats(
-            raw_partitions["train"][0],
-            train_obs["study"],
-            gene_lengths=lengths,
-        )
+        if joint_harmonizer_fit:
+            combined_matrix = np.concatenate(
+                [reference_matrix, raw_partitions["train"][0]]
+            )
+            combined_obs = pd.concat(
+                [reference_obs, train_obs], ignore_index=True, sort=False
+            ).fillna("__missing__")
+            combined_transformed = processor.fit_transform(
+                combined_matrix,
+                combined_obs["study"],
+                gene_lengths=lengths,
+                metadata=combined_obs,
+            )
+            reference_transformed = combined_transformed[: len(reference_matrix)]
+            train_transformed = combined_transformed[len(reference_matrix) :]
+        else:
+            reference_transformed = processor.fit_transform(
+                reference_matrix,
+                reference_obs["study"],
+                gene_lengths=lengths,
+                metadata=reference_obs,
+            )
+            processor.fit_additional_study_stats(
+                raw_partitions["train"][0],
+                train_obs["study"],
+                gene_lengths=lengths,
+            )
     else:
         reference_transformed = None
         train_transformed = processor.fit_transform(
             raw_partitions["train"][0],
             train_obs["study"],
             gene_lengths=lengths,
+            metadata=train_obs,
         )
 
     partitions: dict[str, DataPartition] = {}
     for role, (matrix, obs) in raw_partitions.items():
-        if role == "train" and reference_matrix is None:
+        if role == "train" and (reference_matrix is None or joint_harmonizer_fit):
             transformed = train_transformed
+        elif len(matrix) == 0:
+            transformed = np.empty((0, len(genes)), dtype=np.float32)
         else:
             transformed = processor.transform(
-                matrix, obs["study"], gene_lengths=lengths
+                matrix,
+                obs["study"],
+                gene_lengths=lengths,
+                allow_transductive=(
+                    config.validation.allow_transductive_preprocessing
+                    and (
+                        role in {"validation", "test"}
+                        or config.training.regime == "archs4_only"
+                    )
+                ),
+                metadata=obs,
             )
         partitions[role] = DataPartition(
             name=role,
@@ -662,12 +706,20 @@ def prepare_training_data(
             "split": split_metadata,
             "features": feature_metadata,
             "archs4": cache_metadata,
+            "harmonization": processor.audit(),
+            "transductive_preprocessing_enabled": (
+                config.validation.allow_transductive_preprocessing
+            ),
             "partition_samples": {
                 name: len(partition) for name, partition in partitions.items()
             },
             "reference_samples": len(reference) if reference is not None else 0,
             "preprocessing_fit_source": (
-                "archs4_reference" if reference is not None else "osdr_train"
+                "archs4_reference_plus_osdr_train"
+                if reference is not None and joint_harmonizer_fit
+                else "archs4_reference"
+                if reference is not None
+                else "osdr_train"
             ),
         },
     )

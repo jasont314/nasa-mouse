@@ -39,6 +39,8 @@ preprocessing:
   transform: log1p
   scaler: zscore
   harmonization: none
+  harmonization_covariates: [condition, tissue, sex]
+  harmonization_parameters: {}
   unseen_study_policy: global_train_fallback
   gene_lengths: ""
 
