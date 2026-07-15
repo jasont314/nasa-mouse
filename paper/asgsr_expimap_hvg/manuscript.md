@@ -184,7 +184,7 @@ This study applies an interpretable reference-mapping architecture to a use case
 
 ### Alternative perspective after robustness filtering
 
-The robustness-filtered perspective has four main tissue stories and one weaker secondary extension (Figs. 3-5). Skin links established barrier injury and inflammation to a lower regulatory, repair, regenerative, barrier-lipid, and cell-junction state. The pathway family is coherent even though individual terms differ in conventional FDR and one junction result lacks ssGSEA support. This is more informative than saying only that wound healing is altered: it proposes that flight skin enters a lower tissue-maintenance state whose magnitude depends on gravity, anatomical site, recovery, strain, and duration.
+The robustness-filtered perspective has four main tissue stories and one weaker secondary extension (Figs. 3-6). Figure 6 intentionally separates the observed lower program-score patterns from their proposed tissue-state interpretations; its dotted links do not represent a causal pathway sequence. Skin links established barrier injury and inflammation to a lower regulatory, repair, regenerative, barrier-lipid, and cell-junction state. The pathway family is coherent even though individual terms differ in conventional FDR and one junction result lacks ssGSEA support. This is more informative than saying only that wound healing is altered: it proposes that flight skin enters a lower tissue-maintenance state whose magnitude depends on gravity, anatomical site, recovery, strain, and duration.
 
 Thymus narrows from a broad adaptive-to-innate remodeling narrative to lower repair and cytoskeletal programs with a possible lower lymphoid-stromal interaction layer. The higher innate and matrix nodes that initially looked compelling were not stable after full retraining or composition adjustment. The revised interpretation therefore complements known involution without claiming an unsupported innate switch.
 
@@ -301,6 +301,12 @@ The author declares no competing interests. [Confirm before submission.]
 <img src="figures/figure_5_skin_protocol_context.png" alt="Skin pathway effects separated by gravity, anatomical site, collection endpoint, duration, and strain">
 
 **Figure 5. Depooled skin pathway effects by protocol context.** Cell values are decoder-oriented flight-minus-matched-ground scores calculated from fixed sample scores, with exact flight and ground sample counts under each contrast. **a,** MHU-2 microgravity and onboard artificial 1 g subgroups share Earth 1 g controls and are separated by dorsal and femoral site. **b,** RR-5 was collected after terrestrial recovery, whereas RR-6 separates live-return and ISS-terminal collection. **c,** RR-7 separates strain and duration. Paired sites and shared controls are not independent experiments. These post hoc contrasts expose cancellation and context dependence but are not independent confirmatory tests.
+</div>
+
+<div class="figure" markdown="1">
+<img src="figures/figure_6_tissue_state_hypotheses.png" alt="Observed lower expiMap pathway scores and qualified tissue-state hypotheses for thymus, skin, liver, and spleen">
+
+**Figure 6. Proposed tissue-state interpretation of retained flight-associated pathway-score directions.** Observed lower scores for retained thymus, skin, liver, and spleen programs are shown between stylized tissue contexts and qualified tissue-state hypotheses. Dotted arrows denote interpretation, not mechanistic or causal order. The illustrations provide tissue context and do not assign bulk-tissue signals to specific cell types. Lower expiMap scores do not prove biochemical pathway inhibition, and cell-composition changes may contribute. This deterministic schematic synthesizes results in Figures 3-4 and contains no additional analysis.
 </div>
 
 <div class="figure figure-wide" markdown="1">

@@ -43,7 +43,7 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_sc
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.render_asgsr_documents
 ```
 
-`build_publication_figures` authors the final main figures and dense supplementary summaries at a 7.2-inch publication width, writes 300-dpi PNG and vector PDF copies, and checks image borders and dimensions. It also produces the latent-mapping, sample-score, and retained-member-gene source tables. The non-evidentiary process synthesis is written separately to `presentation/expimap/asgsr_process_summary.*` and is not part of the scientific manuscript.
+`build_publication_figures` authors the final main figures and dense supplementary summaries at a 7.2-inch publication width, writes 300-dpi PNG and vector PDF copies, and checks image borders and dimensions. It also produces the latent-mapping, sample-score, and retained-member-gene source tables. Figure 6 is a deterministic Discussion schematic that explicitly separates observed pathway-score directions from tissue-state hypotheses. The broader non-evidentiary process summary remains separate in `presentation/expimap/asgsr_process_summary.*`.
 
 ## Model scope
 

@@ -138,7 +138,7 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
   -m expiMap_scarches.nasa_mouse_expimap.build_publication_figures
 ```
 
-This final step authors the main figures and Figures S1, S7, and S9 at a 7.2-inch publication width, writes both 300-dpi PNG and vector PDF copies, and records dimensions and border checks in `figure_build_manifest.tsv`. It also removes superseded duplicate figures and retired generated artwork. A deterministic process synthesis is written to `presentation/expimap/asgsr_process_summary.*` for presentation use only and is not included in the scientific manuscript.
+This final step authors the main figures and Figures S1, S7, and S9 at a 7.2-inch publication width, writes both 300-dpi PNG and vector PDF copies, and records dimensions and border checks in `figure_build_manifest.tsv`. Figure 6 is drawn deterministically from the retained pathway labels and interpretation boundaries; it contains no additional analysis and uses dotted links to distinguish inference from causal order. The builder also removes superseded duplicate figures and retired generated artwork. A broader process summary remains in `presentation/expimap/asgsr_process_summary.*` for presentation use only.
 
 ## Source-data index
 

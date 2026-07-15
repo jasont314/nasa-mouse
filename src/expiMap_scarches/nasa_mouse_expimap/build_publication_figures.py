@@ -10,7 +10,7 @@ import anndata as ad
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+from matplotlib.patches import Circle, Ellipse, FancyArrowPatch, FancyBboxPatch, Polygon, Rectangle
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -1268,6 +1268,255 @@ def plot_presentation_process_summary() -> None:
     save_figure(fig, "asgsr_process_summary", output_dir=PRESENTATION_DIR)
 
 
+def plot_tissue_state_hypotheses() -> None:
+    """Separate observed bulk-tissue scores from their proposed interpretation."""
+    rows = (
+        (
+            "A",
+            "Thymus",
+            (
+                "DNA repair",
+                "RHOA cytoskeletal cycle",
+                "Lymphoid-stromal interactions",
+            ),
+            "Consistent with reduced repair, cell motility, and niche coordination",
+        ),
+        (
+            "B",
+            "Skin",
+            (
+                "Chromatin-modifying enzymes",
+                "DNA repair",
+                "Hedgehog signaling",
+                "Sphingolipid metabolism",
+                "Cell-cell junction organization",
+            ),
+            "Consistent with reduced tissue maintenance, barrier support, and cell coordination",
+        ),
+        (
+            "C",
+            "Liver",
+            (
+                "MHC class II antigen presentation",
+                "T-cell receptor signaling",
+            ),
+            "Consistent with lower adaptive immune communication",
+        ),
+        (
+            "D",
+            "Spleen",
+            (
+                "T-cell receptor signaling",
+                "Neutrophil degranulation",
+                "C-type lectin receptor signaling",
+            ),
+            "Consistent with lower adaptive activation, innate sensing, and effector-related transcription",
+        ),
+    )
+
+    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH, 6.35), layout="constrained")
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
+    ax.text(
+        0.5,
+        0.985,
+        "Flight-associated pathway-score patterns and tissue-state hypotheses",
+        ha="center",
+        va="top",
+        fontsize=10.0,
+        fontweight="bold",
+    )
+    ax.text(0.11, 0.925, "Tissue context", ha="center", va="center", fontsize=7.2, fontweight="bold")
+    ax.text(
+        0.425,
+        0.925,
+        "Observed lower expiMap\nprogram scores in flight",
+        ha="center",
+        va="center",
+        fontsize=6.9,
+        fontweight="bold",
+        linespacing=1.15,
+    )
+    ax.text(
+        0.68,
+        0.925,
+        "Interpretive link\n(not causal order)",
+        ha="center",
+        va="center",
+        fontsize=6.4,
+        color="#596267",
+        linespacing=1.15,
+    )
+    ax.text(
+        0.855,
+        0.925,
+        "Tissue-state hypothesis",
+        ha="center",
+        va="center",
+        fontsize=7.2,
+        fontweight="bold",
+    )
+
+    def draw_thymus(y: float) -> None:
+        color = TISSUE_COLORS["thymus"]
+        for x, angle in ((0.085, 25), (0.125, -25)):
+            ax.add_patch(
+                Ellipse(
+                    (x, y),
+                    0.065,
+                    0.095,
+                    angle=angle,
+                    facecolor="#E7E0F2",
+                    edgecolor=color,
+                    linewidth=1.0,
+                )
+            )
+        for x, offset in ((0.055, 0.008), (0.09, -0.018), (0.13, 0.018), (0.155, -0.012)):
+            ax.add_patch(
+                Circle(
+                    (x, y + offset),
+                    0.012,
+                    facecolor="#9CC8E8",
+                    edgecolor=GROUND_COLOR,
+                    linewidth=0.7,
+                )
+            )
+        ax.plot([0.045, 0.16], [y - 0.052, y - 0.052], color=color, linewidth=1.2)
+
+    def draw_skin(y: float) -> None:
+        colors = ("#F5C7B4", "#EFA88F", "#D9826B")
+        for index, color in enumerate(colors):
+            bottom = y - 0.055 + index * 0.037
+            ax.add_patch(
+                Rectangle(
+                    (0.045, bottom),
+                    0.12,
+                    0.034,
+                    facecolor=color,
+                    edgecolor="#A85B49",
+                    linewidth=0.6,
+                )
+            )
+            for x in np.linspace(0.06, 0.15, 4):
+                ax.add_patch(Circle((x, bottom + 0.017), 0.006, facecolor="#8F6681", edgecolor="none"))
+        for x in (0.075, 0.105, 0.135):
+            ax.plot([x, x], [y - 0.047, y + 0.05], color=GROUND_COLOR, linewidth=0.8)
+
+    def draw_liver(y: float) -> None:
+        color = TISSUE_COLORS["liver"]
+        ax.add_patch(
+            Polygon(
+                (
+                    (0.045, y - 0.035),
+                    (0.065, y - 0.06),
+                    (0.13, y - 0.055),
+                    (0.16, y - 0.01),
+                    (0.145, y + 0.05),
+                    (0.075, y + 0.06),
+                ),
+                closed=True,
+                facecolor="#F2C69E",
+                edgecolor="#B86F3B",
+                linewidth=0.9,
+            )
+        )
+        ax.add_patch(Circle((0.095, y), 0.022, facecolor="#B97867", edgecolor="#8A5147", linewidth=0.6))
+        ax.add_patch(Circle((0.145, y + 0.035), 0.014, facecolor="#DCD2EA", edgecolor=color, linewidth=0.8))
+        ax.add_patch(Circle((0.165, y + 0.012), 0.012, facecolor="#9CC8E8", edgecolor=GROUND_COLOR, linewidth=0.7))
+        ax.plot([0.145, 0.16], [y + 0.03, y + 0.016], color="#596267", linewidth=0.8)
+
+    def draw_spleen(y: float) -> None:
+        color = TISSUE_COLORS["spleen"]
+        ax.add_patch(Ellipse((0.105, y), 0.12, 0.115, angle=-12, facecolor="#E9D4DB", edgecolor=color, linewidth=1.0))
+        ax.add_patch(Circle((0.075, y + 0.02), 0.014, facecolor="#9CC8E8", edgecolor=GROUND_COLOR, linewidth=0.7))
+        ax.add_patch(Circle((0.11, y), 0.019, facecolor="#C7A4D8", edgecolor="#6B4C9A", linewidth=0.7))
+        for angle in np.linspace(0, 2 * np.pi, 5, endpoint=False):
+            ax.add_patch(
+                Circle(
+                    (0.11 + 0.009 * np.cos(angle), y + 0.009 * np.sin(angle)),
+                    0.006,
+                    facecolor="#7A4B8C",
+                    edgecolor="none",
+                )
+            )
+        ax.add_patch(Circle((0.14, y - 0.027), 0.014, facecolor="#A9CFAE", edgecolor="#477A55", linewidth=0.7))
+
+    icon_drawers = {
+        "Thymus": draw_thymus,
+        "Skin": draw_skin,
+        "Liver": draw_liver,
+        "Spleen": draw_spleen,
+    }
+    row_centers = (0.805, 0.61, 0.415, 0.22)
+    for index, ((letter, tissue, programs, hypothesis), y) in enumerate(zip(rows, row_centers, strict=True)):
+        color = TISSUE_COLORS[tissue.lower()]
+        ax.text(0.02, y + 0.07, letter, ha="left", va="top", fontsize=8.5, fontweight="bold")
+        ax.text(0.045, y + 0.07, tissue.upper(), ha="left", va="top", fontsize=8.2, fontweight="bold", color=color)
+        icon_drawers[tissue](y - 0.005)
+
+        spread = min(0.125, 0.034 * (len(programs) - 1))
+        program_ys = np.linspace(y + spread / 2, y - spread / 2, len(programs))
+        for program, program_y in zip(programs, program_ys, strict=True):
+            ax.add_patch(
+                FancyArrowPatch(
+                    (0.235, program_y + 0.012),
+                    (0.235, program_y - 0.012),
+                    arrowstyle="-|>",
+                    mutation_scale=7.0,
+                    linewidth=1.0,
+                    color=GROUND_COLOR,
+                )
+            )
+            ax.text(0.252, program_y, program, ha="left", va="center", fontsize=6.25)
+
+        ax.add_patch(
+            FancyArrowPatch(
+                (0.635, y),
+                (0.72, y),
+                arrowstyle="-|>",
+                mutation_scale=9.0,
+                linewidth=1.0,
+                linestyle=(0, (2, 2)),
+                color="#6B7478",
+            )
+        )
+        ax.add_patch(
+            FancyBboxPatch(
+                (0.735, y - 0.062),
+                0.245,
+                0.124,
+                boxstyle="round,pad=0.008,rounding_size=0.01",
+                facecolor="#F7F8F8",
+                edgecolor=color,
+                linewidth=1.0,
+            )
+        )
+        ax.text(
+            0.857,
+            y,
+            textwrap.fill(hypothesis, width=34),
+            ha="center",
+            va="center",
+            fontsize=6.2,
+            linespacing=1.2,
+        )
+        if index < len(rows) - 1:
+            ax.plot([0.02, 0.98], [y - 0.098, y - 0.098], color="#E0E3E4", linewidth=0.8)
+
+    ax.text(
+        0.5,
+        0.035,
+        "Conceptual synthesis of bulk-tissue pathway scores. Lower scores do not prove pathway inhibition; "
+        "cell-composition shifts may contribute.",
+        ha="center",
+        va="center",
+        fontsize=6.3,
+        color="#596267",
+    )
+    save_figure(fig, "figure_6_tissue_state_hypotheses")
+
+
 def clean_obsolete_assets() -> None:
     for stem in OBSOLETE_FIGURE_STEMS:
         for suffix in ("png", "pdf"):
@@ -1326,6 +1575,7 @@ def validate_new_figures(manifest: pd.DataFrame) -> None:
         "figure_3_tissue_pathway_shifts",
         "figure_4_evidence_gene_support",
         "figure_5_skin_protocol_context",
+        "figure_6_tissue_state_hypotheses",
         "figure_s1_broad_pathway_screen",
         "figure_s7_pathway_robustness_matrix",
         "figure_s9_program_score_distributions",
@@ -1364,6 +1614,7 @@ def run() -> None:
     gene_summary, _ = build_member_gene_tables(evidence)
     plot_evidence_and_gene_support(evidence, gene_summary)
     plot_skin_protocol_context()
+    plot_tissue_state_hypotheses()
     plot_broad_pathway_screen()
     plot_original_robustness_matrix()
     plot_presentation_process_summary()
@@ -1372,7 +1623,7 @@ def run() -> None:
     validate_new_figures(manifest)
     print(
         manifest.loc[
-            manifest["figure"].str.match(r"figure_(?:[1-5]|s1|s7|s9)_"),
+            manifest["figure"].str.match(r"figure_(?:[1-6]|s1|s7|s9)_"),
             ["figure", "png_width_pixels", "png_height_pixels", "pdf_exists"],
         ].to_string(index=False),
         flush=True,
