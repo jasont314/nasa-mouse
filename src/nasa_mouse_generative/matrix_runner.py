@@ -134,7 +134,14 @@ def config_for_row(base: BenchmarkConfig, row: dict[str, Any]) -> BenchmarkConfi
     harmonization = str(row.get("harmonization", base.preprocessing.harmonization))
     transductive = bool(
         base.validation.allow_transductive_preprocessing
-        or harmonization in {"combat", "combat_seq"}
+        or harmonization
+        in {
+            "combat",
+            "combat_seq",
+            "mbatch_median_polish",
+            "mbatch_empirical_bayes",
+            "mbatch_anova",
+        }
     )
     config = replace(
         base,

@@ -276,6 +276,9 @@ class MatrixResolutionTests(unittest.TestCase):
             "within_study_then_global_zscore",
             "combat",
             "combat_seq",
+            "mbatch_median_polish",
+            "mbatch_empirical_bayes",
+            "mbatch_anova",
             "mober",
         ):
             row = _matrix_row(
@@ -287,7 +290,13 @@ class MatrixResolutionTests(unittest.TestCase):
             with self.subTest(method=method):
                 config = config_for_row(base, row)
                 self.assertEqual(config.preprocessing.harmonization, method)
-                if method in {"combat", "combat_seq"}:
+                if method in {
+                    "combat",
+                    "combat_seq",
+                    "mbatch_median_polish",
+                    "mbatch_empirical_bayes",
+                    "mbatch_anova",
+                }:
                     self.assertTrue(
                         config.validation.allow_transductive_preprocessing
                     )

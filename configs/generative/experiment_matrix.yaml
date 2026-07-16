@@ -165,6 +165,10 @@ phases:
         - within_study_zscore
         - within_study_then_global_zscore
         - combat
+        - combat_seq
+        - mbatch_median_polish
+        - mbatch_empirical_bayes
+        - mbatch_anova
         - mober
       training_regime: [osdr_only, archs4_pretrain_osdr_finetune]
       accession_scope: [all_eligible]

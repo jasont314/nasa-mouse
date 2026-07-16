@@ -34,6 +34,9 @@ ALLOWED_HARMONIZERS = {
     "within_study_then_global_zscore",
     "combat",
     "combat_seq",
+    "mbatch_median_polish",
+    "mbatch_empirical_bayes",
+    "mbatch_anova",
     "mober",
 }
 ALLOWED_STUDY_POLICIES = {"not_conditioned", "conditioned"}
@@ -261,7 +264,13 @@ class BenchmarkConfig:
                 "Unsupported harmonization covariates: "
                 f"{sorted(unknown_harmonization_covariates)}"
             )
-        if p.harmonization in {"combat", "combat_seq"} and not (
+        if p.harmonization in {
+            "combat",
+            "combat_seq",
+            "mbatch_median_polish",
+            "mbatch_empirical_bayes",
+            "mbatch_anova",
+        } and not (
             v.allow_transductive_preprocessing
         ):
             raise ValueError(
@@ -272,7 +281,14 @@ class BenchmarkConfig:
         if p.harmonization == "combat_seq" and p.input_units != "raw_counts":
             raise ValueError("ComBat-seq requires raw-count input")
         if (
-            p.harmonization in {"combat", "combat_seq"}
+            p.harmonization
+            in {
+                "combat",
+                "combat_seq",
+                "mbatch_median_polish",
+                "mbatch_empirical_bayes",
+                "mbatch_anova",
+            }
             and not t.condition_on_flight
             and "condition" in p.harmonization_covariates
         ):

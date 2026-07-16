@@ -52,6 +52,30 @@ HARMONIZATION_REGISTRY = {
         "Calls Bioconductor sva::ComBat_seq on integer counts; fractional "
         "count-like input and singleton batches require explicit policies.",
     ),
+    "mbatch_median_polish": HarmonizationMethod(
+        "mbatch_median_polish",
+        "MBatch Median Polish",
+        "transductive_for_unseen_batches",
+        "official_MBatch_R_source_adapter",
+        "Runs the official MBatch batch-wise median-polish implementation with "
+        "training anchors for held-out batches.",
+    ),
+    "mbatch_empirical_bayes": HarmonizationMethod(
+        "mbatch_empirical_bayes",
+        "MBatch Empirical Bayes",
+        "transductive_for_unseen_batches",
+        "official_MBatch_R_source_adapter",
+        "Runs the official MBatch parametric empirical-Bayes correction with "
+        "training anchors for held-out batches.",
+    ),
+    "mbatch_anova": HarmonizationMethod(
+        "mbatch_anova",
+        "MBatch ANOVA",
+        "transductive_for_unseen_batches",
+        "official_MBatch_R_source_adapter",
+        "Runs the official variance-adjusted MBatch ANOVA correction with "
+        "training anchors for held-out batches.",
+    ),
     "mober": HarmonizationMethod(
         "mober",
         "MOBER batch-aware VAE projection",

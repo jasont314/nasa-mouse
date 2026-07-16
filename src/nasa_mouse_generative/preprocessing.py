@@ -52,7 +52,14 @@ class FittedPreprocessor:
         if raw_values.shape[0] != studies_array.shape[0]:
             raise ValueError("studies must contain one value per sample")
 
-        if self.spec.harmonization in {"combat", "combat_seq", "mober"}:
+        if self.spec.harmonization in {
+            "combat",
+            "combat_seq",
+            "mbatch_median_polish",
+            "mbatch_empirical_bayes",
+            "mbatch_anova",
+            "mober",
+        }:
             self.harmonizer = create_harmonizer(
                 self.spec.harmonization,
                 covariates=self.spec.harmonization_covariates,
@@ -111,7 +118,14 @@ class FittedPreprocessor:
         raw_values = np.asarray(matrix)
         if raw_values.shape[0] != studies_array.shape[0]:
             raise ValueError("studies must contain one value per sample")
-        if self.spec.harmonization in {"combat", "combat_seq", "mober"}:
+        if self.spec.harmonization in {
+            "combat",
+            "combat_seq",
+            "mbatch_median_polish",
+            "mbatch_empirical_bayes",
+            "mbatch_anova",
+            "mober",
+        }:
             if self.harmonizer is None:
                 raise RuntimeError("Dedicated harmonizer is not fitted")
             if self.harmonizer.requires_raw_counts:

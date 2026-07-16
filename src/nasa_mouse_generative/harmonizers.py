@@ -763,6 +763,14 @@ def create_harmonizer(
         return CombatHarmonizer(**common)
     if method == "combat_seq":
         return CombatSeqHarmonizer(**common)
+    if method in {
+        "mbatch_median_polish",
+        "mbatch_empirical_bayes",
+        "mbatch_anova",
+    }:
+        from .mbatch_harmonizer import MBatchHarmonizer
+
+        return MBatchHarmonizer(method_id=method, **common)
     if method == "mober":
         from .mober_harmonizer import MoberHarmonizer
 
@@ -787,6 +795,14 @@ def load_harmonizer(directory: Path) -> Harmonizer | None:
         return CombatHarmonizer.load(directory, payload)
     if method == "combat_seq":
         return CombatSeqHarmonizer.load(directory, payload)
+    if method in {
+        "mbatch_median_polish",
+        "mbatch_empirical_bayes",
+        "mbatch_anova",
+    }:
+        from .mbatch_harmonizer import MBatchHarmonizer
+
+        return MBatchHarmonizer.load(directory, payload)
     if method == "mober":
         from .mober_harmonizer import MoberHarmonizer
 
