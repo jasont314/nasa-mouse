@@ -22,6 +22,49 @@ def _nested(payload: dict[str, Any], *keys: str, default: Any = np.nan) -> Any:
     return value
 
 
+def _per_tissue_diagnostics(value: object) -> dict[str, float | int]:
+    if isinstance(value, dict):
+        rows = list(value.values())
+    elif isinstance(value, list):
+        rows = value
+    else:
+        rows = []
+    composites: list[float] = []
+    condition_passes = 0
+    condition_evaluable = 0
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        composite = float(row.get("fidelity_composite", np.nan))
+        if not np.isfinite(composite):
+            components = [
+                float(row.get("gene_mean_correlation", np.nan)),
+                float(row.get("gene_std_correlation", np.nan)),
+                float(row.get("precision_recall_f1", np.nan)),
+                float(row.get("adversarial_indistinguishability", np.nan)),
+            ]
+            if np.isfinite(components).all():
+                composite = float(np.mean(np.clip(components, 0.0, 1.0)))
+        if np.isfinite(composite):
+            composites.append(composite)
+        correlation = float(row.get("flt_gc_delta_correlation", np.nan))
+        direction = float(row.get("flt_gc_direction_agreement", np.nan))
+        if np.isfinite(correlation) and np.isfinite(direction):
+            condition_evaluable += 1
+            condition_passes += int(correlation >= 0.30 and direction >= 0.55)
+    return {
+        "per_tissue_evaluated": int(len(composites)),
+        "per_tissue_fidelity_min": (
+            float(np.min(composites)) if composites else np.nan
+        ),
+        "per_tissue_fidelity_median": (
+            float(np.median(composites)) if composites else np.nan
+        ),
+        "per_tissue_condition_evaluable": int(condition_evaluable),
+        "per_tissue_condition_passes": int(condition_passes),
+    }
+
+
 def _unified_row(summary_path: Path) -> dict[str, Any]:
     run = json.loads(summary_path.read_text(encoding="utf-8"))
     validation_path = str(_nested(run, "outputs", "validation", default=""))
@@ -55,6 +98,9 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
         "expression_tissue_utility",
         "real_train_real_evaluation",
         default={},
+    )
+    tissue_diagnostics = _per_tissue_diagnostics(
+        generation.get("per_tissue_generation", [])
     )
     return {
         "run_id": run.get("run_id", summary_path.parent.name),
@@ -107,6 +153,7 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
             "balanced_accuracy", np.nan
         ),
         "augmentation_status": ratio_one.get("augmentation_status", ""),
+        **tissue_diagnostics,
         "summary_path": str(summary_path),
     }
 
@@ -171,6 +218,9 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
         )
     composite = selection.get("heldout_fidelity_composite", legacy_composite)
     eligible = bool(selection.get("eligible_for_model_selection", False))
+    tissue_diagnostics = _per_tissue_diagnostics(
+        evaluation.get("per_tissue_fidelity", {})
+    )
     return {
         "run_id": summary_path.parent.name,
         "model": "lacan_diffusion",
@@ -215,6 +265,7 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
             "real_train_to_test_tissue_classifier", {}
         ).get("balanced_accuracy", np.nan),
         "augmentation_status": "not_applicable_archs4_tissue_baseline",
+        **tissue_diagnostics,
         "summary_path": str(summary_path),
     }
 
@@ -245,6 +296,9 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
         }
     )
     regime = str(run.get("regime", "osdr_only"))
+    tissue_diagnostics = _per_tissue_diagnostics(
+        evaluation.get("per_tissue_fidelity", {})
+    )
     return {
         "run_id": summary_path.parent.name,
         "model": "lacan_diffusion",
@@ -298,6 +352,7 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
         ),
         "expression_tissue_balanced_accuracy": np.nan,
         "augmentation_status": utility.get("augmentation_status", ""),
+        **tissue_diagnostics,
         "summary_path": str(summary_path),
     }
 

@@ -38,6 +38,7 @@ from nasa_mouse_generative.metrics import (
 from nasa_mouse_generative.preprocessing import FittedPreprocessor, ScaleStats
 from nasa_mouse_generative.profiles import resolve_preprocessing_profile
 from nasa_mouse_generative.runner import _claim_run_identity
+from nasa_mouse_generative.scoreboard import _per_tissue_diagnostics
 from nasa_mouse_generative.training_data import (
     DataPartition,
     _retain_readable_archs4_metadata,
@@ -49,6 +50,26 @@ from nasa_mouse_generative.training_data import (
 
 
 class RuntimeConfigTests(unittest.TestCase):
+    def test_scoreboard_summarizes_worst_tissue_without_changing_global_gate(self):
+        result = _per_tissue_diagnostics(
+            [
+                {
+                    "fidelity_composite": 0.8,
+                    "flt_gc_delta_correlation": 0.4,
+                    "flt_gc_direction_agreement": 0.6,
+                },
+                {
+                    "fidelity_composite": 0.2,
+                    "flt_gc_delta_correlation": 0.1,
+                    "flt_gc_direction_agreement": 0.7,
+                },
+            ]
+        )
+        self.assertEqual(result["per_tissue_evaluated"], 2)
+        self.assertAlmostEqual(result["per_tissue_fidelity_min"], 0.2)
+        self.assertAlmostEqual(result["per_tissue_fidelity_median"], 0.5)
+        self.assertEqual(result["per_tissue_condition_passes"], 1)
+
     def test_dotted_overrides_resolve_model_parameters(self):
         config = load_config_with_overrides(
             "configs/generative/default.yaml",
