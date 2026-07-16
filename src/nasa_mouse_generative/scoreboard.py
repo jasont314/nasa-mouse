@@ -10,6 +10,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from .metrics import fidelity_selection
+
 
 def _nested(payload: dict[str, Any], *keys: str, default: Any = np.nan) -> Any:
     value: Any = payload
@@ -32,11 +34,28 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
     generation = validation.get("generation", {})
     selection = generation.get("model_selection", {})
     fidelity = generation.get("fidelity_transformed", {})
+    if "fidelity_gate" not in selection and fidelity:
+        selection = fidelity_selection(
+            fidelity, generation.get("memorization", {})
+        )
     effect = generation.get("flt_gc_effect_recovery", {})
+    condition_effect_gate = generation.get("conditional_effect_gate", {})
     utilities = generation.get("expression_flt_gc_utility_by_ratio", {})
     ratio_one = utilities.get("ratio_1", {})
     augmented = ratio_one.get("real_plus_synthetic_train_real_evaluation", {})
     real = ratio_one.get("real_train_real_evaluation", {})
+    representation_tissue = _nested(
+        validation,
+        "representation_tissue_utility",
+        "real_train_real_evaluation",
+        default={},
+    )
+    expression_tissue = _nested(
+        validation,
+        "expression_tissue_utility",
+        "real_train_real_evaluation",
+        default={},
+    )
     return {
         "run_id": run.get("run_id", summary_path.parent.name),
         "model": run.get("model", ""),
@@ -59,6 +78,14 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
         "eligible_for_model_selection": selection.get(
             "eligible_for_model_selection", False
         ),
+        "fidelity_gate": _nested(
+            selection, "fidelity_gate", "passed", default=False
+        ),
+        "conditional_effect_gate": condition_effect_gate.get("passed", False),
+        "eligible_for_conditional_generation": bool(
+            selection.get("eligible_for_model_selection", False)
+            and condition_effect_gate.get("passed", False)
+        ),
         "diversity_gate": _nested(selection, "diversity_gate", "passed", default=False),
         "memorization_gate": _nested(
             selection, "memorization_gate", "passed", default=False
@@ -71,6 +98,12 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
         "flt_gc_delta_correlation": effect.get("delta_correlation", np.nan),
         "real_validation_balanced_accuracy": real.get("balanced_accuracy", np.nan),
         "augmented_validation_balanced_accuracy": augmented.get(
+            "balanced_accuracy", np.nan
+        ),
+        "representation_tissue_balanced_accuracy": representation_tissue.get(
+            "balanced_accuracy", np.nan
+        ),
+        "expression_tissue_balanced_accuracy": expression_tissue.get(
             "balanced_accuracy", np.nan
         ),
         "augmentation_status": ratio_one.get("augmentation_status", ""),
@@ -115,6 +148,27 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
         float(np.mean(components)) if np.isfinite(components).all() else np.nan
     )
     selection = quality.get("model_selection", {})
+    if "fidelity_gate" not in selection and np.isfinite(components).all():
+        selection = fidelity_selection(
+            {
+                "gene_mean_correlation": components[0],
+                "gene_std_correlation": components[1],
+                "f1": components[2],
+                "adversarial_accuracy": adversarial,
+                "recall": recall,
+                "real_global_std": 1.0,
+                "fake_global_std": float(
+                    _nested(
+                        quality,
+                        "model_selection",
+                        "diversity_gate",
+                        "global_std_ratio",
+                        default=1.0,
+                    )
+                ),
+            },
+            quality.get("memorization", {}),
+        )
     composite = selection.get("heldout_fidelity_composite", legacy_composite)
     eligible = bool(selection.get("eligible_for_model_selection", False))
     return {
@@ -133,6 +187,11 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
         "generation_status": "complete" if evaluation else "missing",
         "heldout_fidelity_composite": composite,
         "eligible_for_model_selection": eligible,
+        "fidelity_gate": bool(
+            _nested(selection, "fidelity_gate", "passed", default=eligible)
+        ),
+        "conditional_effect_gate": False,
+        "eligible_for_conditional_generation": False,
         "diversity_gate": bool(
             _nested(selection, "diversity_gate", "passed", default=False)
         ),
@@ -149,6 +208,12 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
         "flt_gc_delta_correlation": np.nan,
         "real_validation_balanced_accuracy": np.nan,
         "augmented_validation_balanced_accuracy": np.nan,
+        "representation_tissue_balanced_accuracy": quality.get(
+            "synthetic_to_real_test_tissue_classifier", {}
+        ).get("balanced_accuracy", np.nan),
+        "expression_tissue_balanced_accuracy": quality.get(
+            "real_train_to_test_tissue_classifier", {}
+        ).get("balanced_accuracy", np.nan),
         "augmentation_status": "not_applicable_archs4_tissue_baseline",
         "summary_path": str(summary_path),
     }
@@ -165,6 +230,7 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
     fidelity = evaluation.get("fidelity_transformed", {})
     selection = evaluation.get("model_selection", {})
     utility = evaluation.get("flt_gc_classifier_utility", {})
+    condition_effect_gate = evaluation.get("conditional_effect_gate", {})
     real_utility = utility.get("real_train_real_evaluation", {})
     augmented_utility = utility.get(
         "real_plus_synthetic_train_real_evaluation", {}
@@ -199,6 +265,14 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
         "eligible_for_model_selection": selection.get(
             "eligible_for_model_selection", False
         ),
+        "fidelity_gate": _nested(
+            selection, "fidelity_gate", "passed", default=False
+        ),
+        "conditional_effect_gate": condition_effect_gate.get("passed", False),
+        "eligible_for_conditional_generation": bool(
+            selection.get("eligible_for_model_selection", False)
+            and condition_effect_gate.get("passed", False)
+        ),
         "diversity_gate": _nested(
             selection, "diversity_gate", "passed", default=False
         ),
@@ -219,6 +293,10 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
         "augmented_validation_balanced_accuracy": augmented_utility.get(
             "balanced_accuracy", np.nan
         ),
+        "representation_tissue_balanced_accuracy": _nested(
+            evaluation, "tissue_consistency", "balanced_accuracy"
+        ),
+        "expression_tissue_balanced_accuracy": np.nan,
         "augmentation_status": utility.get("augmentation_status", ""),
         "summary_path": str(summary_path),
     }

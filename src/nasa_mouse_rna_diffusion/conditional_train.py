@@ -45,6 +45,18 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _scaled_optimizer_step(
+    scaler: torch.amp.GradScaler, optimizer: torch.optim.Optimizer
+) -> tuple[bool, float, float]:
+    """Advance AMP and report whether GradScaler actually ran the optimizer."""
+
+    scale_before = float(scaler.get_scale())
+    scaler.step(optimizer)
+    scaler.update()
+    scale_after = float(scaler.get_scale())
+    return scale_after >= scale_before, scale_before, scale_after
+
+
 def _checkpoint(
     *,
     model,
@@ -78,6 +90,7 @@ def _expanded_condition_state(
     old_classes: list[str],
     new_classes: list[str],
     embedding_dim: int,
+    strategy: str = "reference_only",
 ) -> tuple[dict[str, torch.Tensor], dict[str, Any]]:
     """Map tissue-class weights into tissue/reference columns of a larger model."""
 
@@ -91,6 +104,17 @@ def _expanded_condition_state(
             and tuple(value.shape) == tuple(expanded[key].shape)
         ):
             expanded[key] = value.detach().cpu().clone()
+
+    if strategy == "function_preserving_tissue":
+        return _function_preserving_tissue_state(
+            expanded,
+            source,
+            old_classes=old_classes,
+            new_classes=new_classes,
+            embedding_dim=embedding_dim,
+        )
+    if strategy != "reference_only":
+        raise ValueError(f"Unsupported pretrained condition strategy: {strategy}")
 
     new_map = {label: index for index, label in enumerate(new_classes)}
     class_mapping = {
@@ -123,11 +147,93 @@ def _expanded_condition_state(
             ].cpu()
         condition_keys.append(key)
     return expanded, {
+        "condition_initialization": strategy,
         "old_classes": old_classes,
         "new_classes": new_classes,
         "mapped_classes": len(class_mapping),
         "mapped_condition_weight_keys": sorted(condition_keys),
         "new_flt_gc_condition_columns_randomly_initialized": True,
+    }
+
+
+def _function_preserving_tissue_state(
+    expanded: dict[str, torch.Tensor],
+    source: dict[str, torch.Tensor],
+    *,
+    old_classes: list[str],
+    new_classes: list[str],
+    embedding_dim: int,
+) -> tuple[dict[str, torch.Tensor], dict[str, Any]]:
+    """Expand one-hot condition columns while preserving each source tissue function."""
+
+    targets = {
+        old_index: [
+            new_index
+            for new_index, label in enumerate(new_classes)
+            if label.startswith(f"tissue={tissue}||condition=")
+        ]
+        for old_index, tissue in enumerate(old_classes)
+    }
+    if "y_emb.weight" not in source:
+        raise ValueError("Function-preserving transfer requires y_emb.weight")
+    one_hot_embedding_rows = min(
+        2,
+        len(source["y_emb.weight"]),
+        len(expanded["y_emb.weight"]),
+    )
+    expanded["y_emb.weight"][:one_hot_embedding_rows] = source[
+        "y_emb.weight"
+    ][:one_hot_embedding_rows].cpu()
+    embedding_zero = source["y_emb.weight"][0].detach().cpu()
+    embedding_zero = embedding_zero * torch.sigmoid(embedding_zero)
+
+    condition_keys: list[str] = []
+    adjusted_bias_keys: list[str] = []
+    old_width = len(old_classes) * int(embedding_dim)
+    new_width = len(new_classes) * int(embedding_dim)
+    for key, old_value in source.items():
+        if key == "y_emb.weight" or key not in expanded or old_value.ndim != 2:
+            continue
+        new_value = expanded[key]
+        if old_value.shape[1] - old_width != new_value.shape[1] - new_width:
+            continue
+        base = int(old_value.shape[1] - old_width)
+        new_value[:, :base] = old_value[:, :base].cpu()
+        new_value[:, base:] = 0.0
+        old_blocks = old_value[:, base:].detach().cpu().reshape(
+            old_value.shape[0], len(old_classes), int(embedding_dim)
+        )
+        new_blocks = new_value[:, base:].reshape(
+            new_value.shape[0], len(new_classes), int(embedding_dim)
+        )
+        for old_index, new_indices in targets.items():
+            for new_index in new_indices:
+                new_blocks[:, new_index, :] = old_blocks[:, old_index, :]
+
+        bias_key = key.removesuffix(".weight") + ".bias"
+        if bias_key in source and bias_key in expanded:
+            old_baseline = torch.einsum("ocd,d->o", old_blocks, embedding_zero)
+            new_baseline = torch.einsum("ocd,d->o", new_blocks, embedding_zero)
+            expanded[bias_key] = (
+                source[bias_key].detach().cpu() + old_baseline - new_baseline
+            )
+            adjusted_bias_keys.append(bias_key)
+        condition_keys.append(key)
+
+    mapped_old_classes = sum(bool(indices) for indices in targets.values())
+    mapped_new_classes = sum(len(indices) for indices in targets.values())
+    return expanded, {
+        "condition_initialization": "function_preserving_tissue",
+        "old_classes": old_classes,
+        "new_classes": new_classes,
+        "mapped_classes": int(mapped_old_classes),
+        "mapped_new_joint_classes": int(mapped_new_classes),
+        "mapped_condition_weight_keys": sorted(condition_keys),
+        "adjusted_condition_bias_keys": sorted(adjusted_bias_keys),
+        "copied_one_hot_embedding_rows": int(one_hot_embedding_rows),
+        "new_flt_gc_condition_columns_randomly_initialized": False,
+        "unmatched_tissue_condition_columns_zero_initialized": True,
+        "function_preservation_scope": "shared pretrained tissues before fine-tuning",
     }
 
 
@@ -187,12 +293,16 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
             pretrained_path, map_location="cpu", weights_only=False
         )
         old_classes = list(map(str, pretrained_payload["metadata"]["classes"]))
+        condition_initialization = str(
+            training.get("pretrained_condition_initialization", "reference_only")
+        )
         expanded, pretraining_audit = _expanded_condition_state(
             model.state_dict(),
             pretrained_payload["model_state_dict"],
             old_classes=old_classes,
             new_classes=prepared["classes"],
             embedding_dim=int(model_options["tissue_embedding_dim"]),
+            strategy=condition_initialization,
         )
         model.load_state_dict(expanded)
         pretraining_audit.update(
@@ -239,6 +349,11 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
             old_classes=list(map(str, pretrained_payload["metadata"]["classes"])),
             new_classes=prepared["classes"],
             embedding_dim=int(model_options["tissue_embedding_dim"]),
+            strategy=str(
+                training.get(
+                    "pretrained_condition_initialization", "reference_only"
+                )
+            ),
         )
         ema.load_state_dict(expanded_ema, device)
         del expanded_ema, expanded, pretrained_payload
@@ -330,6 +445,9 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
             epoch_loss = 0.0
             epoch_error = 0.0
             epoch_profiles = 0
+            epoch_optimizer_steps = 0
+            epoch_skipped_optimizer_steps = 0
+            final_grad_scale = float(scaler.get_scale())
             epoch_started = time.time()
             for clean, labels in loader:
                 clean = clean.to(device, non_blocking=True)
@@ -351,11 +469,16 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
                         f"Non-finite loss at epoch={epoch_index + 1} step={global_step + 1}"
                     )
                 scaler.scale(loss).backward()
-                scaler.step(optimizer)
-                scaler.update()
-                ema.update(model)
-                scheduler.step()
-                global_step += 1
+                step_succeeded, _, final_grad_scale = _scaled_optimizer_step(
+                    scaler, optimizer
+                )
+                if step_succeeded:
+                    ema.update(model)
+                    scheduler.step()
+                    global_step += 1
+                    epoch_optimizer_steps += 1
+                else:
+                    epoch_skipped_optimizer_steps += 1
                 epoch_profiles += batch_size
                 epoch_loss += float(loss.detach().cpu()) * batch_size
                 epoch_error += float(absolute_error.detach().cpu()) * batch_size
@@ -366,6 +489,9 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
                 "loss": epoch_loss / epoch_profiles,
                 "noise_absolute_error": epoch_error / epoch_profiles,
                 "learning_rate": float(optimizer.param_groups[0]["lr"]),
+                "optimizer_steps": int(epoch_optimizer_steps),
+                "skipped_optimizer_steps": int(epoch_skipped_optimizer_steps),
+                "grad_scale": float(final_grad_scale),
                 "epoch_seconds": float(time.time() - epoch_started),
                 "cuda_peak_memory_gb": float(
                     torch.cuda.max_memory_allocated(device) / 1024**3
@@ -452,6 +578,9 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
         "prepared_data": str(prepared_path),
         "device": metadata["device"],
         "parameter_count": parameter_count,
+        "regime": regime,
+        "pretraining": pretraining_audit,
+        "normalization": config["data"]["normalization"],
         "classes": prepared["classes"],
         "conditioning_covariates": prepared["conditioning_covariates"],
         "profiles": {
@@ -460,6 +589,9 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
         },
         "epochs": completed_epoch,
         "global_steps": global_step,
+        "skipped_optimizer_steps": int(
+            sum(int(row.get("skipped_optimizer_steps", 0)) for row in history)
+        ),
         "training_seconds_this_invocation": float(time.time() - started),
         "final_loss": history[-1]["loss"],
         "final_noise_absolute_error": history[-1]["noise_absolute_error"],

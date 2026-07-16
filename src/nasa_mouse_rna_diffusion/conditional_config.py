@@ -46,5 +46,16 @@ def load_conditional_config(path: str | Path) -> dict[str, Any]:
         ):
             if key not in training:
                 raise ValueError(f"Pretrain/fine-tune config requires training.{key}")
+        initialization = str(
+            training.get("pretrained_condition_initialization", "reference_only")
+        )
+        if initialization not in {
+            "reference_only",
+            "function_preserving_tissue",
+        }:
+            raise ValueError(
+                "Unsupported training.pretrained_condition_initialization"
+            )
+        training["pretrained_condition_initialization"] = initialization
     payload["_config_path"] = str(config_path.resolve())
     return payload

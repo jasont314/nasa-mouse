@@ -22,7 +22,10 @@ from nasa_mouse_generative.adapters.diffusion import DiffusionAdapter
 from nasa_mouse_generative.adapters.wgan import WGANAdapter
 from nasa_mouse_generative.generate import _default_profile
 from nasa_mouse_generative.harmonizers import CombatHarmonizer, CombatSeqHarmonizer
-from nasa_mouse_generative.metrics import fidelity_selection
+from nasa_mouse_generative.metrics import (
+    conditional_effect_selection,
+    fidelity_selection,
+)
 from nasa_mouse_generative.preprocessing import FittedPreprocessor
 from nasa_mouse_generative.profiles import resolve_preprocessing_profile
 from nasa_mouse_generative.runner import _claim_run_identity
@@ -585,6 +588,36 @@ class MetricTests(unittest.TestCase):
             {"fraction_below_training_p01": 0.0},
         )
         self.assertFalse(selection["diversity_gate"]["passed"])
+        self.assertFalse(selection["eligible_for_model_selection"])
+
+    def test_condition_effect_gate_requires_correlation_and_direction(self):
+        self.assertTrue(
+            conditional_effect_selection(
+                {"delta_correlation": 0.31, "direction_agreement": 0.56}
+            )["passed"]
+        )
+        self.assertFalse(
+            conditional_effect_selection(
+                {"delta_correlation": 0.29, "direction_agreement": 0.80}
+            )["passed"]
+        )
+
+    def test_fidelity_gate_rejects_distinguishable_low_fidelity_samples(self):
+        selection = fidelity_selection(
+            {
+                "gene_mean_correlation": 0.32,
+                "gene_std_correlation": 0.56,
+                "f1": 0.53,
+                "adversarial_accuracy": 0.95,
+                "recall": 0.49,
+                "real_global_std": 1.0,
+                "fake_global_std": 0.84,
+            },
+            {"fraction_below_training_p01": 0.0},
+        )
+        self.assertFalse(selection["fidelity_gate"]["passed"])
+        self.assertTrue(selection["diversity_gate"]["passed"])
+        self.assertTrue(selection["memorization_gate"]["passed"])
         self.assertFalse(selection["eligible_for_model_selection"])
 
 

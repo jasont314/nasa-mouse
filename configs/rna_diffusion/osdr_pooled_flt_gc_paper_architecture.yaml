@@ -58,7 +58,7 @@ training:
 evaluation:
   split: validation
   unlock_test: false
-  quality_samples: 240
+  quality_samples: 1093
   quality_batch_size: 240
   diffusion_steps: 1000
   metric_samples: 240

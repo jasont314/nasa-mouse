@@ -2,7 +2,7 @@ version: 1
 contract: lacan_modelddim_osdr_extension_v1
 
 run:
-  output_dir: outputs/generative_benchmark/runs/lacan_diffusion/osdr_archs4_pretrain_flt_gc_paper_architecture_seed2020
+  output_dir: outputs/generative_benchmark/runs/lacan_diffusion/osdr_archs4_pretrain_flt_gc_function_preserving_5000_seed2020
   seed: 2020
   source_root: assets/model_sources/rna-diffusion
 
@@ -40,6 +40,7 @@ model:
 training:
   regime: archs4_pretrain_osdr_finetune
   pretrained_model: outputs/generative_benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_seed1234/model.pt
+  pretrained_condition_initialization: function_preserving_tissue
   epochs: 15000
   batch_size: 2048
   optimizer: Adam
@@ -54,10 +55,10 @@ training:
   weighted_sampling: false
   amp: true
   num_workers: 8
-  checkpoint_every_epochs: 2500
+  checkpoint_every_epochs: 1000
   log_every_epochs: 50
   retain_training_checkpoint: false
-  finetune_epochs: 15000
+  finetune_epochs: 5000
   finetune_learning_rate: 0.0001
   finetune_one_cycle_peak_step: 1000
 

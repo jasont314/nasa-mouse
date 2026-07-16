@@ -200,6 +200,7 @@ def ddim_trajectory(
     sequence: Iterable[int],
     snapshot_timesteps: Iterable[int] = (1000, 200, 0),
     eta: float = 0.0,
+    generator: torch.Generator | None = None,
 ) -> dict[int, torch.Tensor]:
     """Run upstream-equivalent generalized steps while retaining requested states."""
 
@@ -238,7 +239,13 @@ def ddim_trajectory(
             c2 = ((1 - alpha_next) - c1**2).sqrt()
             current = (
                 alpha_next.sqrt() * predicted_clean
-                + c1 * torch.randn_like(initial_noise)
+                + c1
+                * torch.randn(
+                    initial_noise.shape,
+                    dtype=initial_noise.dtype,
+                    device=initial_noise.device,
+                    generator=generator,
+                )
                 + c2 * predicted_noise
             )
             display_timestep = next_t + 1

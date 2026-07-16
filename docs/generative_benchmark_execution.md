@@ -55,6 +55,24 @@ landmarks; MaxAbs is fitted on training accessions only. The default joint class
 Study conditioning is not silently enabled because a held-out accession is an unseen
 study class for this upstream joint-class architecture.
 
+An epoch is not a comparable unit across the reference and query cohorts. The
+ARCHS4 paper-parity training partition has five batches per epoch and therefore
+executes about 75,000 optimizer steps. The OSDR partition fits in one batch and
+executes 15,000 optimizer steps at the same nominal 15,000-epoch duration. This is
+the paper-duration baseline; any step-matched extension must be named and reported
+as a NASA duration adaptation.
+
+The ARCHS4-transfer arm uses the exact completed tissue model and the ARCHS4-fitted
+MaxAbs scale. Every pretrained tissue embedding and corresponding condition-input
+column is mapped to a `tissue=<name>||condition=reference` class. New FLT and GC
+condition columns retain their seeded initialization and all parameters are then
+fine-tuned on accession-grouped OSDR training data. OSDR values under the reference
+scale have median absolute value 0.00856, 95th percentile 0.0726, and only 0.007% of
+entries above one, so the transfer input scale is not grossly out of distribution.
+AMP overflow handling advances the optimizer, EMA, scheduler, and global step only
+when `GradScaler` actually executes an optimizer step; skipped steps are audited in
+the history and run summary.
+
 ```bash
 PYTHONPATH=src python -m nasa_mouse_rna_diffusion prepare-osdr
 PYTHONPATH=src python -m nasa_mouse_rna_diffusion train-osdr
@@ -80,6 +98,13 @@ both the configuration and `--unlock-test` must opt in after model selection.
 
 GeneJEPA is representation-only. Any GeneJEPA-guided diffusion is a new experimental
 method and must be compared against the unguided exact DDIM.
+
+The exact released architecture fits one A100 40 GB. Batch 92 with accumulation two
+peaked at 29.88 GB and processed 184 profile exposures in 6.57 seconds. Extrapolating
+that measured throughput to the released 50-million-exposure duration is roughly 20
+GPU-days on this single device. Therefore a shorter run can test representation
+quality, but must be labeled as a duration adaptation and cannot be described as a
+paper-duration reproduction.
 
 ## Execution
 
@@ -135,11 +160,19 @@ Build the scoreboard after each bounded batch:
 PYTHONPATH=src python -m nasa_mouse_generative scoreboard
 ```
 
-Promotion is based on held-out fidelity subject to hard diversity and memorization
-gates. FLT/GC effect recovery and classifier utility are secondary. The locked OSDR
-test accessions remain unavailable until preprocessing, architecture, and seed policy
-are fixed. A failing screen should redirect the next run; it should not trigger the
-full Cartesian matrix.
+Promotion is based on held-out fidelity subject to fixed gates selected before the
+conditional results are inspected. Fidelity requires composite >= 0.70, gene-mean
+correlation >= 0.80, gene-SD correlation >= 0.70, precision/recall F1 >= 0.50, and
+adversarial indistinguishability >= 0.50. Diversity requires recall >= 0.10 and a
+synthetic-to-real global-SD ratio >= 0.10; memorization requires no more than 5% of
+synthetic samples below the first percentile of real training nearest-neighbor
+distances. Conditional-effect eligibility additionally requires FLT-minus-GC delta
+correlation >= 0.30 and direction agreement >= 0.55. FLT/GC classifier augmentation
+is not scored as eligible unless all four gates pass.
+
+The locked OSDR test accessions remain unavailable until preprocessing, architecture,
+and seed policy are fixed. A failing screen should redirect the next run; it should
+not trigger the full Cartesian matrix.
 
 The exact ARCHS4 DDIM is currently the only full generator that passes the broad
 tissue benchmark. The one-epoch study-conditioned WGAN orchestration check correctly

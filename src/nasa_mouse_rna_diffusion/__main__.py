@@ -55,6 +55,14 @@ def parse_args() -> argparse.Namespace:
         default="configs/rna_diffusion/osdr_pooled_flt_gc_paper_architecture.yaml",
     )
     conditional_evaluate.add_argument("--unlock-test", action="store_true")
+    conditional_evaluate.add_argument(
+        "--eta", type=float, default=None, help="Override DDIM sampling stochasticity"
+    )
+    conditional_evaluate.add_argument(
+        "--evaluation-variant",
+        default="",
+        help="Write evaluation to a named validation/test variant directory",
+    )
     return parser.parse_args()
 
 
@@ -71,7 +79,12 @@ def main() -> None:
     elif args.command == "train-osdr":
         train_conditional(args.config, restart=args.restart)
     elif args.command == "evaluate-osdr":
-        evaluate_conditional(args.config, unlock_test=args.unlock_test)
+        evaluate_conditional(
+            args.config,
+            unlock_test=args.unlock_test,
+            eta_override=args.eta,
+            evaluation_variant=args.evaluation_variant,
+        )
 
 
 if __name__ == "__main__":

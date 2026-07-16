@@ -25,3 +25,24 @@ not a substitute for the resolved configurations and per-run manifests.
    512-latent, 24-block architecture but runs only two profiles. It will not be called
    paper-native duration; a longer representation baseline is scheduled only if the
    exact architecture fits and one-step runtime is tractable.
+6. **Reject the strict broad WGAN as a fidelity finalist.** Released-code timing
+   restored epoch 11 and stopped at epoch 61 after 3,533 seconds. The run has mean/SD
+   correlations 0.323/0.563, precision/recall 0.586/0.490, and adversarial accuracy
+   0.950. It passes diversity and memorization but fails the fixed fidelity gate, so
+   additional seeds would not resolve the model-class mismatch.
+7. **Keep GeneJEPA representation-only and bound its duration.** Exact batch 92 with
+   accumulation two fits the A100 40 GB at 29.88 GB and takes 6.57 seconds per 184
+   profile exposures. A literal 50-million-exposure run is about 20 single-GPU days.
+   Any shorter mouse run is a declared duration adaptation and GeneJEPA guidance is
+   attempted only if its held-out tissue representation improves over expression and
+   the existing practical screen.
+8. **Reject direct OSDR ModelDDIM.** It reached mean correlation 0.804 but SD
+   correlation 0.153, precision/recall 0.196/0.700, composite 0.367, and global
+   FLT-minus-GC delta correlation 0.125. Tissue consistency was useful, but fidelity
+   and condition-effect gates failed; the locked test and extra seeds remain blocked.
+9. **Continue exact ARCHS4 transfer before changing architecture or duration.** The
+   reference MaxAbs distribution is compatible with OSDR, all tissue weights are
+   explicitly mapped, and new FLT/GC columns are learnable during fine-tuning. The
+   first AMP overflows exposed an accounting bug; the clean restart advances EMA,
+   scheduler, and global step only after a successful optimizer step and records each
+   skip. Validation, not training loss, decides whether transfer warrants replication.

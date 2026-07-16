@@ -53,6 +53,20 @@ def _condition_effect(
     }
 
 
+def conditional_effect_selection(effect: dict[str, float]) -> dict[str, object]:
+    minimums = {"delta_correlation": 0.30, "direction_agreement": 0.55}
+    observed = {
+        name: float(effect.get(name, float("nan"))) for name in minimums
+    }
+    passed = bool(
+        all(
+            np.isfinite(observed[name]) and observed[name] >= minimum
+            for name, minimum in minimums.items()
+        )
+    )
+    return {"passed": passed, "observed": observed, "minimums": minimums}
+
+
 def _classifier() -> Any:
     return make_pipeline(
         StandardScaler(),
@@ -243,6 +257,24 @@ def fidelity_selection(
     real_std = float(fidelity.get("real_global_std", 0.0))
     fake_std = float(fidelity.get("fake_global_std", 0.0))
     diversity_ratio = fake_std / max(real_std, 1e-8)
+    composite = float(np.mean(list(components.values())))
+    fidelity_thresholds = {
+        "heldout_fidelity_composite": 0.70,
+        "gene_mean_correlation": 0.80,
+        "gene_std_correlation": 0.70,
+        "precision_recall_f1": 0.50,
+        "adversarial_indistinguishability": 0.50,
+    }
+    fidelity_observed = {
+        "heldout_fidelity_composite": composite,
+        **components,
+    }
+    fidelity_pass = bool(
+        all(
+            fidelity_observed[name] >= minimum
+            for name, minimum in fidelity_thresholds.items()
+        )
+    )
     diversity_pass = bool(
         float(fidelity.get("recall", 0.0)) >= 0.1 and diversity_ratio >= 0.1
     )
@@ -253,8 +285,13 @@ def fidelity_selection(
         np.isfinite(memorization_fraction) and memorization_fraction <= 0.05
     )
     return {
-        "heldout_fidelity_composite": float(np.mean(list(components.values()))),
+        "heldout_fidelity_composite": composite,
         "components": components,
+        "fidelity_gate": {
+            "passed": fidelity_pass,
+            "observed": fidelity_observed,
+            "minimums": fidelity_thresholds,
+        },
         "diversity_gate": {
             "passed": diversity_pass,
             "recall_minimum": 0.1,
@@ -265,12 +302,18 @@ def fidelity_selection(
             "passed": memorization_pass,
             "fraction_below_training_p01_maximum": 0.05,
         },
-        "eligible_for_model_selection": diversity_pass and memorization_pass,
+        "eligible_for_model_selection": (
+            fidelity_pass and diversity_pass and memorization_pass
+        ),
     }
 
 
 def _plot_representation(
-    path: Path, embeddings: np.ndarray, labels: np.ndarray
+    path: Path,
+    embeddings: np.ndarray,
+    labels: np.ndarray,
+    *,
+    title: str = "Held-out representation, condition input neutralized",
 ) -> str:
     if len(embeddings) < 3 or embeddings.shape[1] < 2:
         return ""
@@ -280,9 +323,15 @@ def _plot_representation(
     import matplotlib.pyplot as plt
 
     coordinates = PCA(n_components=2, random_state=0).fit_transform(embeddings)
-    colors = {"flight": "#c43c39", "ground_control": "#2878b5"}
+    unique_labels = sorted(set(labels))
+    fixed_colors = {"flight": "#c43c39", "ground_control": "#2878b5"}
+    palette = plt.get_cmap("turbo", max(len(unique_labels), 1))
+    colors = {
+        label: fixed_colors.get(label, palette(index))
+        for index, label in enumerate(unique_labels)
+    }
     figure, axis = plt.subplots(figsize=(6.4, 5.0))
-    for label in sorted(set(labels)):
+    for label in unique_labels:
         mask = labels == label
         axis.scatter(
             coordinates[mask, 0],
@@ -295,10 +344,71 @@ def _plot_representation(
         )
     axis.set_xlabel("PCA 1")
     axis.set_ylabel("PCA 2")
-    axis.set_title("Held-out representation, condition input neutralized")
-    axis.legend(frameon=False)
+    axis.set_title(title)
+    axis.legend(
+        frameon=False,
+        fontsize=7,
+        ncol=2 if len(unique_labels) > 8 else 1,
+        bbox_to_anchor=(1.02, 1.0) if len(unique_labels) > 8 else None,
+        loc="upper left" if len(unique_labels) > 8 else "best",
+    )
     figure.tight_layout()
     figure.savefig(path, dpi=180)
+    plt.close(figure)
+    return str(path)
+
+
+def _plot_representation_umap(
+    path: Path,
+    embeddings: np.ndarray,
+    labels: np.ndarray,
+    *,
+    title: str,
+    seed: int,
+) -> str:
+    if len(embeddings) < 5 or embeddings.shape[1] < 2:
+        return ""
+    try:
+        from umap import UMAP
+    except ImportError:
+        return ""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    coordinates = UMAP(
+        n_components=2,
+        n_neighbors=min(15, len(embeddings) - 1),
+        min_dist=0.2,
+        random_state=int(seed),
+    ).fit_transform(embeddings)
+    unique_labels = sorted(set(labels))
+    palette = plt.get_cmap("turbo", max(len(unique_labels), 1))
+    figure, axis = plt.subplots(figsize=(6.4, 5.0))
+    for index, label in enumerate(unique_labels):
+        mask = labels == label
+        axis.scatter(
+            coordinates[mask, 0],
+            coordinates[mask, 1],
+            s=22,
+            alpha=0.72,
+            label=label,
+            color=palette(index),
+            edgecolors="none",
+        )
+    axis.set_xlabel("UMAP 1")
+    axis.set_ylabel("UMAP 2")
+    axis.set_title(title)
+    axis.legend(
+        frameon=False,
+        fontsize=7,
+        ncol=2 if len(unique_labels) > 8 else 1,
+        bbox_to_anchor=(1.02, 1.0) if len(unique_labels) > 8 else None,
+        loc="upper left" if len(unique_labels) > 8 else "best",
+    )
+    figure.tight_layout()
+    figure.savefig(path, dpi=180, bbox_inches="tight")
     plt.close(figure)
     return str(path)
 
@@ -475,6 +585,35 @@ def evaluate_model(
         evaluation_embeddings,
         metric_evaluation.obs["condition"].astype(str).to_numpy(),
     )
+    tissue_train_labels = metric_train.obs["tissue"].astype(str).to_numpy()
+    tissue_evaluation_labels = (
+        metric_evaluation.obs["tissue"].astype(str).to_numpy()
+    )
+    representation_tissue_utility = classifier_utility(
+        train_embeddings,
+        tissue_train_labels,
+        evaluation_embeddings,
+        tissue_evaluation_labels,
+    )
+    expression_tissue_utility = classifier_utility(
+        metric_train.matrix,
+        tissue_train_labels,
+        metric_evaluation.matrix,
+        tissue_evaluation_labels,
+    )
+    tissue_pca_plot = _plot_representation(
+        output / "evaluation_embedding_pca_by_tissue.png",
+        evaluation_embeddings,
+        tissue_evaluation_labels,
+        title="Held-out representation by tissue",
+    )
+    tissue_umap_plot = _plot_representation_umap(
+        output / "evaluation_embedding_umap_by_tissue.png",
+        evaluation_embeddings,
+        tissue_evaluation_labels,
+        title="Held-out representation by tissue",
+        seed=seed,
+    )
     harmonization_audit = preprocessor.audit()
     summary: dict[str, object] = {
         "adapter_id": adapter.adapter_id,
@@ -488,7 +627,13 @@ def evaluate_model(
         ),
         "representation_condition_input": "neutralized_to___unknown__",
         "representation_flt_gc_utility": representation_utility,
-        "plots": {"evaluation_embedding_pca": representation_plot},
+        "representation_tissue_utility": representation_tissue_utility,
+        "expression_tissue_utility": expression_tissue_utility,
+        "plots": {
+            "evaluation_embedding_pca": representation_plot,
+            "evaluation_embedding_pca_by_tissue": tissue_pca_plot,
+            "evaluation_embedding_umap_by_tissue": tissue_umap_plot,
+        },
         "generation": {"status": "not_supported"},
     }
 
@@ -530,6 +675,7 @@ def evaluate_model(
             "maximum": float(fake_normalized.max()),
         }
         selection = fidelity_selection(fidelity, memorization)
+        condition_effect_gate = conditional_effect_selection(effect)
         utility_by_ratio: dict[str, object] = {}
         generation_audit: dict[str, object] = {}
         for ratio_index, ratio in enumerate(synthetic_to_real_ratios):
@@ -554,6 +700,7 @@ def evaluate_model(
                 synthetic_labels=synthetic_labels,
                 allow_augmentation=bool(
                     selection["eligible_for_model_selection"]
+                    and condition_effect_gate["passed"]
                 ),
             )
         generation_plots = _plot_generation(
@@ -568,6 +715,7 @@ def evaluate_model(
             "fidelity_transformed": fidelity,
             "fidelity_normalized_units": normalized_quality,
             "flt_gc_effect_recovery": effect,
+            "conditional_effect_gate": condition_effect_gate,
             "memorization": memorization,
             "model_selection": selection,
             "configured_generation": generation_audit,

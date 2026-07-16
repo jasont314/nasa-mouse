@@ -14,7 +14,14 @@ from nasa_mouse_rna_diffusion.conditional_data import (
     _full_transcriptome_tpm,
     _joint_class_labels,
 )
-from nasa_mouse_rna_diffusion.conditional_train import _expanded_condition_state
+from nasa_mouse_rna_diffusion.conditional_evaluate import (
+    _class_probe,
+    _per_tissue_fidelity,
+)
+from nasa_mouse_rna_diffusion.conditional_train import (
+    _expanded_condition_state,
+    _scaled_optimizer_step,
+)
 from nasa_mouse_rna_diffusion.config import load_config
 from nasa_mouse_rna_diffusion.evaluate import (
     _nearest_neighbor_adversarial_accuracy,
@@ -103,6 +110,31 @@ class UpstreamParityTests(unittest.TestCase):
             initial.clone(), range(8), model, betas, y=labels, eta=0.0
         )[0][-1]
         torch.testing.assert_close(observed, expected)
+
+    def test_stochastic_ddim_is_deterministic_with_explicit_generator(self):
+        model = self._model()
+        initial = torch.randn(4, 12)
+        labels = torch.nn.functional.one_hot(
+            torch.tensor([0, 1, 2, 1]), num_classes=3
+        )
+        betas = quadratic_beta_schedule(
+            beta_start=0.0001, beta_end=0.02, timesteps=8
+        )
+        outputs = []
+        for _ in range(2):
+            outputs.append(
+                ddim_trajectory(
+                    initial.clone(),
+                    labels,
+                    model,
+                    betas,
+                    sequence=range(8),
+                    snapshot_timesteps=(0,),
+                    eta=0.5,
+                    generator=torch.Generator().manual_seed(41),
+                )[0]
+            )
+        torch.testing.assert_close(outputs[0], outputs[1])
 
 
 class PaperConfigurationTests(unittest.TestCase):
@@ -199,8 +231,106 @@ class ConditionalDataTests(unittest.TestCase):
         torch.testing.assert_close(expanded["y_emb.weight"][2], source["y_emb.weight"][1])
         self.assertEqual(audit["mapped_classes"], 2)
 
+    def test_function_preserving_tissue_expansion_matches_source_outputs(self):
+        old_classes = ["a", "b"]
+        new_classes = [
+            "tissue=a||condition=flight",
+            "tissue=a||condition=ground_control",
+            "tissue=a||condition=reference",
+            "tissue=b||condition=flight",
+            "tissue=b||condition=ground_control",
+            "tissue=b||condition=reference",
+        ]
+        torch.manual_seed(17)
+        old_model = upstream_model_class()(
+            model_config(expression_dim=12, num_classes=2, model=SMALL_MODEL)
+        ).eval()
+        torch.manual_seed(23)
+        new_model = upstream_model_class()(
+            model_config(expression_dim=12, num_classes=6, model=SMALL_MODEL)
+        ).eval()
+        expanded, audit = _expanded_condition_state(
+            new_model.state_dict(),
+            old_model.state_dict(),
+            old_classes=old_classes,
+            new_classes=new_classes,
+            embedding_dim=2,
+            strategy="function_preserving_tissue",
+        )
+        new_model.load_state_dict(expanded)
+        expression = torch.randn(4, 12)
+        timesteps = torch.tensor([0, 2, 5, 7])
+        for old_index, new_indices in ((0, (0, 1, 2)), (1, (3, 4, 5))):
+            old_labels = torch.nn.functional.one_hot(
+                torch.full((4,), old_index), num_classes=2
+            )
+            expected = old_model(expression, timesteps, old_labels)
+            for new_index in new_indices:
+                new_labels = torch.nn.functional.one_hot(
+                    torch.full((4,), new_index), num_classes=6
+                )
+                observed = new_model(expression, timesteps, new_labels)
+                torch.testing.assert_close(observed, expected, atol=2e-6, rtol=2e-6)
+        self.assertEqual(audit["mapped_new_joint_classes"], 6)
+        self.assertEqual(audit["copied_one_hot_embedding_rows"], 2)
+
+    def test_amp_skip_detection_uses_scale_backoff(self):
+        class FakeScaler:
+            def __init__(self, before, after):
+                self.values = iter((before, after))
+
+            def get_scale(self):
+                return next(self.values)
+
+            def step(self, optimizer):
+                return None
+
+            def update(self):
+                return None
+
+        succeeded, before, after = _scaled_optimizer_step(
+            FakeScaler(65536.0, 32768.0), object()
+        )
+        self.assertFalse(succeeded)
+        self.assertEqual((before, after), (65536.0, 32768.0))
+
+        succeeded, _, _ = _scaled_optimizer_step(
+            FakeScaler(32768.0, 32768.0), object()
+        )
+        self.assertTrue(succeeded)
+
 
 class EvaluationMetricTests(unittest.TestCase):
+    def test_per_tissue_fidelity_reports_each_sufficient_group(self):
+        rng = np.random.default_rng(9)
+        real = rng.normal(size=(12, 8))
+        synthetic = real + rng.normal(scale=0.1, size=real.shape)
+        samples = pd.DataFrame({"tissue": ["a"] * 6 + ["b"] * 6})
+        table = _per_tissue_fidelity(real, synthetic, samples)
+        self.assertEqual(table["tissue"].tolist(), ["a", "b"])
+        self.assertEqual(table["profiles"].tolist(), [6, 6])
+        self.assertTrue(
+            table["adversarial_indistinguishability"].between(0.0, 1.0).all()
+        )
+
+    def test_class_probe_excludes_training_classes_absent_from_evaluation(self):
+        real_train = np.asarray(
+            [[-2.0], [-1.0], [1.0], [2.0], [100.0], [101.0]], dtype=float
+        )
+        synthetic = np.asarray([[-1.5], [1.5]], dtype=float)
+        result = _class_probe(
+            real_train,
+            ["a", "a", "b", "b", "unused", "unused"],
+            synthetic,
+            ["a", "b"],
+            seed=0,
+        )
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["train_profiles"], 4)
+        self.assertEqual(result["excluded_train_profiles"], 2)
+        self.assertEqual(result["evaluation_classes"], ["a", "b"])
+        self.assertEqual(result["balanced_accuracy"], 1.0)
+
     def test_nearest_neighbor_adversarial_accuracy_extremes(self):
         real = np.asarray([[0.0], [1.0], [2.0], [3.0]])
         self.assertEqual(

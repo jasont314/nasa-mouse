@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import time
 from typing import Iterable
 
@@ -21,6 +22,7 @@ from nasa_mouse_generative.effect_validation import compare_real_synthetic_effec
 from nasa_mouse_generative.metrics import (
     _condition_effect,
     classifier_utility,
+    conditional_effect_selection,
     fidelity_selection,
     memorization_metrics,
 )
@@ -71,6 +73,7 @@ def _sample(
     timesteps: int,
     batch_size: int,
     seed: int,
+    eta: float,
     device: torch.device,
 ) -> np.ndarray:
     generator = torch.Generator(device=device).manual_seed(int(seed))
@@ -93,7 +96,8 @@ def _sample(
             betas,
             sequence=range(int(timesteps)),
             snapshot_timesteps=(0,),
-            eta=0.0,
+            eta=float(eta),
+            generator=generator,
         )[0]
         collected.append(generated.numpy().astype(np.float32))
         print(
@@ -176,6 +180,204 @@ def _plot_real_synthetic_pca(
     return path
 
 
+def _plot_accession_pca(
+    real: np.ndarray,
+    synthetic: np.ndarray,
+    samples: pd.DataFrame,
+    output: Path,
+) -> Path:
+    coordinates = PCA(n_components=2, random_state=0).fit_transform(
+        np.concatenate([real, synthetic])
+    )
+    real_coordinates = coordinates[: len(real)]
+    synthetic_coordinates = coordinates[len(real) :]
+    accessions = sorted(samples["accession"].astype(str).unique())
+    palette = plt.get_cmap("turbo", max(len(accessions), 1))
+    figure, axis = plt.subplots(figsize=(8.2, 5.6))
+    for index, accession in enumerate(accessions):
+        mask = samples["accession"].astype(str).eq(accession).to_numpy()
+        axis.scatter(
+            real_coordinates[mask, 0],
+            real_coordinates[mask, 1],
+            s=24,
+            color=palette(index),
+            marker="o",
+            alpha=0.42,
+            edgecolors="none",
+        )
+        axis.scatter(
+            synthetic_coordinates[mask, 0],
+            synthetic_coordinates[mask, 1],
+            s=27,
+            color=palette(index),
+            marker="x",
+            alpha=0.78,
+            label=accession,
+        )
+    axis.set_xlabel("PCA 1")
+    axis.set_ylabel("PCA 2")
+    axis.set_title("Held-out real (circle) and synthetic (x) by accession")
+    axis.grid(alpha=0.16)
+    axis.legend(frameon=False, fontsize=7, ncol=2, bbox_to_anchor=(1.02, 1.0))
+    figure.tight_layout()
+    path = output / "real_vs_synthetic_pca_by_accession.png"
+    figure.savefig(path, dpi=220, bbox_inches="tight")
+    figure.savefig(path.with_suffix(".pdf"), bbox_inches="tight")
+    plt.close(figure)
+    return path
+
+
+def _plot_effect_recovery(
+    table: pd.DataFrame,
+    *,
+    real_column: str,
+    synthetic_column: str,
+    output: Path,
+    title: str,
+) -> Path | None:
+    if table.empty:
+        return None
+    real = table[real_column].to_numpy(dtype=float)
+    synthetic = table[synthetic_column].to_numpy(dtype=float)
+    finite = np.isfinite(real) & np.isfinite(synthetic)
+    if finite.sum() < 2:
+        return None
+    figure, axis = plt.subplots(figsize=(6.2, 5.4))
+    if "tissue" in table:
+        tissues = sorted(table["tissue"].astype(str).unique())
+        palette = plt.get_cmap("turbo", max(len(tissues), 1))
+        for index, tissue in enumerate(tissues):
+            mask = finite & table["tissue"].astype(str).eq(tissue).to_numpy()
+            axis.scatter(
+                real[mask],
+                synthetic[mask],
+                s=13,
+                alpha=0.55,
+                color=palette(index),
+                edgecolors="none",
+                label=tissue,
+            )
+        axis.legend(
+            frameon=False, fontsize=7, ncol=2, bbox_to_anchor=(1.02, 1.0)
+        )
+    else:
+        axis.scatter(
+            real[finite], synthetic[finite], s=13, alpha=0.5, edgecolors="none"
+        )
+    lower = float(min(real[finite].min(), synthetic[finite].min()))
+    upper = float(max(real[finite].max(), synthetic[finite].max()))
+    axis.plot([lower, upper], [lower, upper], color="#333333", linestyle="--")
+    axis.set_xlabel("Real FLT - GC effect")
+    axis.set_ylabel("Synthetic FLT - GC effect")
+    axis.set_title(title)
+    axis.grid(alpha=0.16)
+    figure.tight_layout()
+    figure.savefig(output, dpi=220, bbox_inches="tight")
+    plt.close(figure)
+    return output
+
+
+def _plot_per_tissue_utility(table: pd.DataFrame, output: Path) -> Path | None:
+    if table.empty:
+        return None
+    columns = [
+        ("real_train_balanced_accuracy", "Real train"),
+        ("synthetic_train_balanced_accuracy", "Synthetic train"),
+        ("augmented_train_balanced_accuracy", "Augmented train"),
+    ]
+    positions = np.arange(len(table))
+    width = 0.24
+    figure, axis = plt.subplots(figsize=(max(7.0, len(table) * 0.75), 5.2))
+    for index, (column, label) in enumerate(columns):
+        if column in table and table[column].notna().any():
+            axis.bar(
+                positions + (index - 1) * width,
+                table[column].to_numpy(dtype=float),
+                width=width,
+                label=label,
+            )
+    axis.axhline(0.5, color="#444444", linewidth=1, linestyle="--")
+    axis.set_xticks(positions)
+    axis.set_xticklabels(table["tissue"].astype(str), rotation=45, ha="right")
+    axis.set_ylim(0.0, 1.0)
+    axis.set_ylabel("Held-out balanced accuracy")
+    axis.set_title("FLT/GC classifier utility by tissue")
+    axis.legend(frameon=False)
+    axis.grid(axis="y", alpha=0.16)
+    figure.tight_layout()
+    figure.savefig(output, dpi=220, bbox_inches="tight")
+    plt.close(figure)
+    return output
+
+
+def _per_tissue_fidelity(
+    real: np.ndarray,
+    synthetic: np.ndarray,
+    samples: pd.DataFrame,
+) -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    for tissue in sorted(samples["tissue"].astype(str).unique()):
+        mask = samples["tissue"].astype(str).eq(tissue).to_numpy()
+        if mask.sum() < 5:
+            continue
+        quality = generated_quality(
+            real[mask], synthetic[mask], max_pr_samples=int(mask.sum())
+        )
+        adversarial_accuracy = float(quality["adversarial_accuracy"])
+        rows.append(
+            {
+                "tissue": tissue,
+                "profiles": int(mask.sum()),
+                "gene_mean_correlation": quality["gene_mean_correlation"],
+                "gene_std_correlation": quality["gene_std_correlation"],
+                "precision": quality["precision"],
+                "recall": quality["recall"],
+                "precision_recall_f1": quality["f1"],
+                "nearest_neighbor_adversarial_accuracy": adversarial_accuracy,
+                "adversarial_indistinguishability": max(
+                    0.0, 1.0 - 2.0 * abs(adversarial_accuracy - 0.5)
+                ),
+                "synthetic_to_real_global_std_ratio": float(
+                    quality["fake_global_std"]
+                    / max(float(quality["real_global_std"]), 1e-8)
+                ),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _plot_per_tissue_fidelity(table: pd.DataFrame, output: Path) -> Path | None:
+    if table.empty:
+        return None
+    columns = [
+        ("gene_mean_correlation", "Gene mean"),
+        ("gene_std_correlation", "Gene SD"),
+        ("precision_recall_f1", "PR F1"),
+        ("adversarial_indistinguishability", "NN indistinguishability"),
+    ]
+    positions = np.arange(len(table))
+    width = 0.19
+    figure, axis = plt.subplots(figsize=(max(8.0, len(table) * 0.9), 5.4))
+    for index, (column, label) in enumerate(columns):
+        axis.bar(
+            positions + (index - 1.5) * width,
+            table[column].to_numpy(dtype=float),
+            width=width,
+            label=label,
+        )
+    axis.set_xticks(positions)
+    axis.set_xticklabels(table["tissue"].astype(str), rotation=45, ha="right")
+    axis.set_ylim(0.0, 1.0)
+    axis.set_ylabel("Held-out score")
+    axis.set_title("Conditional synthetic fidelity by tissue")
+    axis.legend(frameon=False, ncol=2)
+    axis.grid(axis="y", alpha=0.16)
+    figure.tight_layout()
+    figure.savefig(output, dpi=220, bbox_inches="tight")
+    plt.close(figure)
+    return output
+
+
 def _read_pathways(path: str | Path, genes: list[str]) -> dict[str, np.ndarray]:
     gene_map = {gene: index for index, gene in enumerate(genes)}
     result: dict[str, np.ndarray] = {}
@@ -228,6 +430,16 @@ def _write_accession_validation(
             path = directory / f"{level}_{name}.tsv.gz"
             table.to_csv(path, sep="\t", index=False, compression="gzip")
             paths[f"{level}_{name}"] = str(path)
+        plot_path = directory / f"{level}_meta_effect_recovery.png"
+        plotted = _plot_effect_recovery(
+            tables["comparison"],
+            real_column="real_meta_effect",
+            synthetic_column="synthetic_meta_effect",
+            output=plot_path,
+            title=f"Accession-aware {level} effect recovery",
+        )
+        if plotted is not None:
+            paths[f"{level}_meta_effect_recovery_plot"] = str(plotted)
     summary = {"gene": gene_summary, "pathway": pathway_summary}
     summary_path = directory / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
@@ -295,18 +507,109 @@ def _class_probe(
     expected_labels: Iterable[str],
     *,
     seed: int,
-) -> dict[str, float]:
-    return _classifier_predictions(
-        real_train,
-        np.asarray(list(train_labels), dtype=str),
+) -> dict[str, object]:
+    train_labels_array = np.asarray(list(train_labels), dtype=str)
+    expected_labels_array = np.asarray(list(expected_labels), dtype=str)
+    expected_classes = np.unique(expected_labels_array)
+    retained = np.isin(train_labels_array, expected_classes)
+    retained_classes = np.unique(train_labels_array[retained])
+    if len(expected_classes) < 2 or len(retained_classes) < 2:
+        return {
+            "status": "insufficient_shared_classes",
+            "balanced_accuracy": float("nan"),
+            "accuracy": float("nan"),
+            "train_profiles": int(retained.sum()),
+            "excluded_train_profiles": int((~retained).sum()),
+            "evaluation_classes": expected_classes.tolist(),
+        }
+    metrics = _classifier_predictions(
+        real_train[retained],
+        train_labels_array[retained],
         synthetic,
-        np.asarray(list(expected_labels), dtype=str),
+        expected_labels_array,
         seed=seed,
     )[0]
+    return {
+        "status": "complete",
+        **metrics,
+        "train_profiles": int(retained.sum()),
+        "excluded_train_profiles": int((~retained).sum()),
+        "evaluation_classes": expected_classes.tolist(),
+    }
+
+
+def _per_tissue_classifier_utility(
+    *,
+    real_train: np.ndarray,
+    train_samples: pd.DataFrame,
+    synthetic_train: np.ndarray,
+    synthetic_samples: pd.DataFrame,
+    real_evaluation: np.ndarray,
+    evaluation_samples: pd.DataFrame,
+    allow_augmentation: bool,
+) -> tuple[dict[str, object], pd.DataFrame]:
+    results: dict[str, object] = {}
+    rows: list[dict[str, object]] = []
+    for tissue in sorted(evaluation_samples["tissue"].astype(str).unique()):
+        train_mask = train_samples["tissue"].astype(str).eq(tissue).to_numpy()
+        synthetic_mask = (
+            synthetic_samples["tissue"].astype(str).eq(tissue).to_numpy()
+        )
+        evaluation_mask = (
+            evaluation_samples["tissue"].astype(str).eq(tissue).to_numpy()
+        )
+        train_labels = train_samples.loc[train_mask, "condition"].astype(str).to_numpy()
+        evaluation_labels = (
+            evaluation_samples.loc[evaluation_mask, "condition"].astype(str).to_numpy()
+        )
+        if (
+            len(np.unique(train_labels)) < 2
+            or len(np.unique(evaluation_labels)) < 2
+            or train_mask.sum() < 4
+            or evaluation_mask.sum() < 4
+        ):
+            results[tissue] = {"status": "insufficient_two_condition_data"}
+            continue
+        synthetic_labels = (
+            synthetic_samples.loc[synthetic_mask, "condition"].astype(str).to_numpy()
+        )
+        utility = classifier_utility(
+            real_train[train_mask],
+            train_labels,
+            real_evaluation[evaluation_mask],
+            evaluation_labels,
+            synthetic_train=synthetic_train[synthetic_mask],
+            synthetic_labels=synthetic_labels,
+            allow_augmentation=allow_augmentation,
+        )
+        results[tissue] = utility
+        rows.append(
+            {
+                "tissue": tissue,
+                "real_train_profiles": int(train_mask.sum()),
+                "synthetic_train_profiles": int(synthetic_mask.sum()),
+                "heldout_real_profiles": int(evaluation_mask.sum()),
+                "real_train_balanced_accuracy": utility.get(
+                    "real_train_real_evaluation", {}
+                ).get("balanced_accuracy", float("nan")),
+                "synthetic_train_balanced_accuracy": utility.get(
+                    "synthetic_train_real_evaluation", {}
+                ).get("balanced_accuracy", float("nan")),
+                "augmented_train_balanced_accuracy": utility.get(
+                    "real_plus_synthetic_train_real_evaluation", {}
+                ).get("balanced_accuracy", float("nan")),
+                "augmentation_status": utility.get("augmentation_status", ""),
+            }
+        )
+    return results, pd.DataFrame(rows)
 
 
 def evaluate_conditional(
-    config_path: str | Path, *, unlock_test: bool = False
+    config_path: str | Path,
+    *,
+    unlock_test: bool = False,
+    eta_override: float | None = None,
+    evaluation_variant: str = "",
 ) -> Path:
     config = load_conditional_config(config_path)
     options = config["evaluation"]
@@ -332,7 +635,14 @@ def evaluate_conditional(
         beta_end=float(config["model"]["beta_end"]),
         timesteps=int(config["model"]["diffusion_timesteps"]),
     ).to(device)
-    output = Path(config["run"]["output_dir"]) / "evaluation" / split
+    eta = float(options.get("eta", 0.0) if eta_override is None else eta_override)
+    if not 0.0 <= eta <= 1.0:
+        raise ValueError("DDIM sampling eta must be between zero and one")
+    variant = str(evaluation_variant).strip()
+    if variant and not re.fullmatch(r"[A-Za-z0-9_.-]+", variant):
+        raise ValueError("Evaluation variant may contain only letters, digits, ._- characters")
+    output_name = split if not variant else f"{split}_{variant}"
+    output = Path(config["run"]["output_dir"]) / "evaluation" / output_name
     output.mkdir(parents=True, exist_ok=True)
     history_plot = _plot_training_history(Path(config["run"]["output_dir"]), output)
     metric_indices = _balanced_indices(
@@ -351,6 +661,7 @@ def evaluate_conditional(
         timesteps=int(config["model"]["diffusion_timesteps"]),
         batch_size=int(options["quality_batch_size"]),
         seed=int(config["run"]["seed"]) + 101,
+        eta=eta,
         device=device,
     )
     sampling_seconds = time.time() - started
@@ -374,6 +685,17 @@ def evaluate_conditional(
         synthetic,
         sample_frame["condition"].astype(str).to_numpy(),
     )
+    condition_effect_gate = conditional_effect_selection(effect)
+    per_tissue_fidelity_table = _per_tissue_fidelity(
+        real, synthetic, sample_frame
+    )
+    per_tissue_fidelity_path = output / "per_tissue_fidelity.tsv"
+    per_tissue_fidelity_table.to_csv(
+        per_tissue_fidelity_path, sep="\t", index=False
+    )
+    per_tissue_fidelity_plot = _plot_per_tissue_fidelity(
+        per_tissue_fidelity_table, output / "per_tissue_fidelity.png"
+    )
 
     train_indices = _balanced_indices(
         prepared["train"]["class_index"],
@@ -389,6 +711,7 @@ def evaluate_conditional(
         timesteps=int(config["model"]["diffusion_timesteps"]),
         batch_size=int(options["quality_batch_size"]),
         seed=int(config["run"]["seed"]) + 211,
+        eta=eta,
         device=device,
     )
     train_condition = train_samples.iloc[train_indices]["condition"].astype(str).to_numpy()
@@ -400,7 +723,31 @@ def evaluate_conditional(
         evaluation_condition,
         synthetic_train=synthetic_train,
         synthetic_labels=train_condition,
-        allow_augmentation=bool(selection["eligible_for_model_selection"]),
+        allow_augmentation=bool(
+            selection["eligible_for_model_selection"]
+            and condition_effect_gate["passed"]
+        ),
+    )
+    synthetic_train_samples = train_samples.iloc[train_indices].reset_index(drop=True)
+    per_tissue_utility, per_tissue_utility_table = _per_tissue_classifier_utility(
+        real_train=prepared["train"]["expression"],
+        train_samples=train_samples,
+        synthetic_train=synthetic_train,
+        synthetic_samples=synthetic_train_samples,
+        real_evaluation=prepared[split]["expression"],
+        evaluation_samples=evaluation_samples,
+        allow_augmentation=bool(
+            selection["eligible_for_model_selection"]
+            and condition_effect_gate["passed"]
+        ),
+    )
+    per_tissue_utility_path = output / "per_tissue_flt_gc_classifier_utility.tsv"
+    per_tissue_utility_table.to_csv(
+        per_tissue_utility_path, sep="\t", index=False
+    )
+    per_tissue_utility_plot = _plot_per_tissue_utility(
+        per_tissue_utility_table,
+        output / "per_tissue_flt_gc_classifier_utility.png",
     )
     condition_consistency = _class_probe(
         prepared["train"]["expression"],
@@ -417,6 +764,9 @@ def evaluate_conditional(
         seed=int(config["run"]["seed"]),
     )
     pca_path = _plot_real_synthetic_pca(real, synthetic, sample_frame, output)
+    accession_pca_path = _plot_accession_pca(
+        real, synthetic, sample_frame, output
+    )
     gene_effects, pathway_effects = _effect_tables(
         real_tpm_all,
         synthetic_tpm_all,
@@ -440,6 +790,20 @@ def evaluate_conditional(
     pathway_effects.to_csv(
         pathway_effect_path, sep="\t", index=False, compression="gzip"
     )
+    gene_effect_plot = _plot_effect_recovery(
+        gene_effects,
+        real_column="real_log1p_tpm_delta",
+        synthetic_column="synthetic_log1p_tpm_delta",
+        output=output / "flt_gc_gene_effect_recovery.png",
+        title="Per-tissue gene effect recovery",
+    )
+    pathway_effect_plot = _plot_effect_recovery(
+        pathway_effects,
+        real_column="real_mean_gene_delta",
+        synthetic_column="synthetic_mean_gene_delta",
+        output=output / "flt_gc_pathway_effect_recovery.png",
+        title="Per-tissue Reactome effect recovery",
+    )
     pathway_summary = {
         "rows": int(len(pathway_effects)),
         "delta_correlation": _correlation(
@@ -456,6 +820,7 @@ def evaluate_conditional(
         output / "conditional_synthetic_expression.npz",
         scaled_expression=synthetic_all,
         tpm_unclipped=synthetic_tpm_all.astype(np.float32),
+        tpm_nonnegative=np.maximum(synthetic_tpm_all, 0.0).astype(np.float32),
         class_index=all_class_indices,
         source_row=prepared[split]["source_row"],
         genes=np.asarray(prepared["genes"]),
@@ -471,11 +836,23 @@ def evaluate_conditional(
         "samples": int(len(synthetic_all)),
         "fidelity_metric_samples": int(len(real)),
         "sampling_seconds": float(sampling_seconds),
+        "sampling_eta": eta,
+        "evaluation_variant": variant,
         "fidelity_transformed": fidelity,
         "memorization": memorization,
         "model_selection": selection,
+        "per_tissue_fidelity": {
+            str(row["tissue"]): {
+                key: value
+                for key, value in row.items()
+                if key != "tissue"
+            }
+            for row in per_tissue_fidelity_table.to_dict(orient="records")
+        },
         "flt_gc_effect_recovery": effect,
+        "conditional_effect_gate": condition_effect_gate,
         "flt_gc_classifier_utility": utility,
+        "per_tissue_flt_gc_classifier_utility": per_tissue_utility,
         "condition_consistency": condition_consistency,
         "tissue_consistency": tissue_consistency,
         "pathway_effect_recovery": pathway_summary,
@@ -484,13 +861,41 @@ def evaluate_conditional(
         "synthetic_tpm_negative_fraction": float(
             (synthetic_tpm_all < 0).mean()
         ),
+        "inverse_transform_policy": {
+            "audit_matrix": "tpm_unclipped",
+            "downstream_export_matrix": "tpm_nonnegative",
+            "negative_values": "clip_to_zero_after_quality_metrics",
+        },
         "plots": {
             "real_vs_synthetic_pca": str(pca_path),
+            "real_vs_synthetic_pca_by_accession": str(accession_pca_path),
             "training_history": str(history_plot),
+            "gene_effect_recovery": (
+                str(gene_effect_plot) if gene_effect_plot is not None else ""
+            ),
+            "pathway_effect_recovery": (
+                str(pathway_effect_plot)
+                if pathway_effect_plot is not None
+                else ""
+            ),
+            "per_tissue_flt_gc_classifier_utility": (
+                str(per_tissue_utility_plot)
+                if per_tissue_utility_plot is not None
+                else ""
+            ),
+            "per_tissue_fidelity": (
+                str(per_tissue_fidelity_plot)
+                if per_tissue_fidelity_plot is not None
+                else ""
+            ),
         },
         "tables": {
             "gene_effect_recovery": str(gene_effect_path),
             "pathway_effect_recovery": str(pathway_effect_path),
+            "per_tissue_flt_gc_classifier_utility": str(
+                per_tissue_utility_path
+            ),
+            "per_tissue_fidelity": str(per_tissue_fidelity_path),
             **accession_paths,
         },
     }
