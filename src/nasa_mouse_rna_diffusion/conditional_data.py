@@ -372,7 +372,24 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         "transductive": False,
     }
     preprocessor_input = tpm
-    if expression_representation == "deseq2_median_of_ratios_by_study":
+    if expression_representation == "raw_landmark_counts":
+        preprocessor_input = _dense(
+            adata.X[source_rows][:, landmark_indices]
+        ).astype(np.float32)
+        rounded = np.rint(preprocessor_input)
+        representation_audit = {
+            "method": "raw_landmark_counts",
+            "fit_scope": "none",
+            "transductive": False,
+            "genes": int(preprocessor_input.shape[1]),
+            "fractional_input_fraction": float(
+                np.mean(np.abs(preprocessor_input - rounded) > 1e-6)
+            ),
+            "maximum_rounding_distance": float(
+                np.max(np.abs(preprocessor_input - rounded))
+            ),
+        }
+    elif expression_representation == "deseq2_median_of_ratios_by_study":
         preprocessor_input, representation_audit = (
             _full_transcriptome_median_of_ratios(
                 adata,

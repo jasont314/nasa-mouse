@@ -67,6 +67,7 @@ def load_conditional_config(path: str | Path) -> dict[str, Any]:
         "full_transcriptome_tpm",
         "deseq2_median_of_ratios_by_study",
         "deseq2_median_of_ratios_pooled",
+        "raw_landmark_counts",
     }:
         raise ValueError(
             "Unsupported conditional DDIM data.expression_representation"
@@ -113,7 +114,10 @@ def load_conditional_config(path: str | Path) -> dict[str, Any]:
                 options["harmonization_covariates"]
             )
         PreprocessingConfig(**options)
-    elif expression_representation != "full_transcriptome_tpm":
+    elif expression_representation not in {
+        "full_transcriptome_tpm",
+        "raw_landmark_counts",
+    }:
         raise ValueError(
             "DESeq2 median-of-ratios representations require data.preprocessing"
         )
