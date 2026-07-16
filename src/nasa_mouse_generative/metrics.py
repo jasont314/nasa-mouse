@@ -18,6 +18,7 @@ from sklearn.preprocessing import StandardScaler
 from nasa_mouse_diffusion.evaluate import generated_quality
 
 from .adapters.base import ModelAdapter
+from .effect_validation import compare_real_synthetic_effects
 from .preprocessing import FittedPreprocessor
 from .training_data import DataPartition
 
@@ -484,6 +485,74 @@ def _plot_generation(
     return paths
 
 
+def _write_accession_effect_validation(
+    output: Path,
+    *,
+    real_normalized: np.ndarray,
+    synthetic_normalized: np.ndarray,
+    samples: pd.DataFrame,
+    feature_names: list[str],
+) -> tuple[dict[str, object], dict[str, str]]:
+    directory = output / "accession_validation"
+    directory.mkdir(parents=True, exist_ok=True)
+    real = np.log1p(np.maximum(real_normalized, 0.0))
+    synthetic = np.log1p(np.maximum(synthetic_normalized, 0.0))
+    tables, summary = compare_real_synthetic_effects(
+        real,
+        synthetic,
+        samples.reset_index(drop=True),
+        feature_names,
+    )
+    paths: dict[str, str] = {}
+    for name, table in tables.items():
+        path = directory / f"gene_{name}.tsv.gz"
+        table.to_csv(path, sep="\t", index=False, compression="gzip")
+        paths[name] = str(path)
+
+    comparison = tables["comparison"]
+    required = {"real_meta_effect", "synthetic_meta_effect"}
+    if required.issubset(comparison.columns):
+        real_effect = comparison["real_meta_effect"].to_numpy(dtype=float)
+        synthetic_effect = comparison["synthetic_meta_effect"].to_numpy(dtype=float)
+        finite = np.isfinite(real_effect) & np.isfinite(synthetic_effect)
+        if finite.sum() >= 2:
+            import matplotlib
+
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+
+            lower = float(min(real_effect[finite].min(), synthetic_effect[finite].min()))
+            upper = float(max(real_effect[finite].max(), synthetic_effect[finite].max()))
+            figure, axis = plt.subplots(figsize=(6.2, 5.4))
+            axis.scatter(
+                real_effect[finite],
+                synthetic_effect[finite],
+                s=13,
+                alpha=0.5,
+                edgecolors="none",
+            )
+            axis.plot(
+                [lower, upper],
+                [lower, upper],
+                color="#333333",
+                linestyle="--",
+            )
+            axis.set_xlabel("Real accession-aware FLT - GC effect")
+            axis.set_ylabel("Synthetic accession-aware FLT - GC effect")
+            axis.set_title("Gene effect recovery across accessions")
+            axis.grid(alpha=0.16)
+            figure.tight_layout()
+            plot_path = directory / "gene_meta_effect_recovery.png"
+            figure.savefig(plot_path, dpi=220, bbox_inches="tight")
+            plt.close(figure)
+            paths["meta_effect_recovery_plot"] = str(plot_path)
+
+    summary_path = directory / "summary.json"
+    summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    paths["summary"] = str(summary_path)
+    return summary, paths
+
+
 def _subsample_partition(
     partition: DataPartition, max_samples: int, seed: int
 ) -> DataPartition:
@@ -674,6 +743,13 @@ def evaluate_model(
             "minimum": float(fake_normalized.min()),
             "maximum": float(fake_normalized.max()),
         }
+        accession_validation, accession_paths = _write_accession_effect_validation(
+            output,
+            real_normalized=normalized_real,
+            synthetic_normalized=fake_normalized,
+            samples=metric_evaluation.obs,
+            feature_names=adapter.genes,
+        )
         selection = fidelity_selection(fidelity, memorization)
         condition_effect_gate = conditional_effect_selection(effect)
         utility_by_ratio: dict[str, object] = {}
@@ -716,10 +792,12 @@ def evaluate_model(
             "fidelity_normalized_units": normalized_quality,
             "flt_gc_effect_recovery": effect,
             "conditional_effect_gate": condition_effect_gate,
+            "accession_effect_validation": accession_validation,
             "memorization": memorization,
             "model_selection": selection,
             "configured_generation": generation_audit,
             "expression_flt_gc_utility_by_ratio": utility_by_ratio,
+            "accession_effect_paths": accession_paths,
         }
         if save_generated_matrix:
             np.savez_compressed(

@@ -17,6 +17,7 @@ from nasa_mouse_generative.config import (
 )
 from nasa_mouse_generative.effect_validation import compare_real_synthetic_effects
 from nasa_mouse_generative.experiment_plan import expand_matrix
+from nasa_mouse_generative.metrics import _write_accession_effect_validation
 from nasa_mouse_generative.preprocessing import FittedPreprocessor, apply_stats
 from nasa_mouse_generative.osdr_expression import _read_accession_block
 from nasa_mouse_generative.split_plan import build_pooled_plan
@@ -176,6 +177,44 @@ class PreprocessingTests(unittest.TestCase):
 
 
 class EffectValidationTests(unittest.TestCase):
+    def test_unified_evaluator_writes_accession_effect_artifacts(self):
+        rows = []
+        real = []
+        synthetic = []
+        for accession_index, accession in enumerate(("OSD-1", "OSD-2", "OSD-3")):
+            baseline = float(accession_index + 1)
+            for condition, delta in (("ground_control", 0.0), ("flight", 1.0)):
+                for replicate in range(2):
+                    rows.append(
+                        {
+                            "accession": accession,
+                            "tissue": "liver",
+                            "condition": condition,
+                        }
+                    )
+                    jitter = 0.05 * replicate
+                    real.append(
+                        [baseline + delta + jitter, baseline + 0.5 * delta - jitter]
+                    )
+                    synthetic.append(
+                        [
+                            baseline + 0.9 * delta + jitter,
+                            baseline + 0.45 * delta - 0.8 * jitter,
+                        ]
+                    )
+        with tempfile.TemporaryDirectory() as directory:
+            summary, paths = _write_accession_effect_validation(
+                Path(directory),
+                real_normalized=np.asarray(real),
+                synthetic_normalized=np.asarray(synthetic),
+                samples=pd.DataFrame(rows),
+                feature_names=["gene_a", "gene_b"],
+            )
+            self.assertEqual(summary["accessions"], 3)
+            self.assertGreater(summary["meta_effect_correlation"], 0.99)
+            self.assertTrue(Path(paths["comparison"]).exists())
+            self.assertTrue(Path(paths["summary"]).exists())
+
     def test_accession_aware_real_synthetic_effect_recovery(self):
         rows = []
         real = []
