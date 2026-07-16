@@ -245,6 +245,13 @@ Configurations live under `configs/generative/`. Data audit outputs and experime
 plans live under `outputs/generative_benchmark/`. Model-specific training output will
 be written under a run ID derived from the complete resolved configuration.
 
+On the A100 40 GB, one 225.6-million-parameter liver ModelDDIM records about 5.06 GB
+peak PyTorch allocation and about 6.2 GiB process residency. Six concurrent models
+fit in memory, but the GPU reaches 100% compute utilization and each model slows
+substantially. Parallelism is therefore bounded by measured aggregate throughput,
+not free memory alone. Distinct screening arms may run concurrently; repeat seeds
+are deferred until an arm passes every single-seed validation gate.
+
 ## Implementation Status
 
 Implemented in `src/nasa_mouse_generative/`:
@@ -256,8 +263,8 @@ Implemented in `src/nasa_mouse_generative/`:
 - full ARCHS4 metadata scan and balanced reference manifests;
 - accession-grouped locked and LOO split plans;
 - fold-aware shared preprocessing and harmonization constraints;
-- reloadable ComBat, R `sva::ComBat_seq`, and MOBER harmonization adapters with
-  fold behavior and fallback audits;
+- reloadable ComBat, R `sva::ComBat_seq`, three official MBatch, and MOBER
+  harmonization adapters with fold behavior and fallback audits;
 - executable Vinas WGAN-GP, Lacan diffusion, and GeneJEPA representation adapters;
 - full-H5 ARCHS4 extraction with content-addressed caching and hierarchical sampling;
 - direct OSDR, ARCHS4-only, and ARCHS4-pretrain/OSDR-fine-tune stage orchestration;
@@ -519,7 +526,9 @@ PCA/fidelity plots, embeddings, runtime/device/storage records, and a concise RE
 The latest training checkpoint is overwritten sparsely and removed after successful
 finalization unless retention is explicitly enabled.
 
-ComBat, ComBat-seq, and MOBER now have executable, reloadable adapters. ComBat-seq
-uses R 4.5 and Bioconductor `sva`; the other two run in the Python environment.
-One-epoch outputs under `outputs/generative_benchmark/runs/` validate mechanics and
-GPU/R integration only. They are not biological results or model-selection evidence.
+ComBat, ComBat-seq, all three official MBatch methods, and MOBER have executable,
+reloadable adapters. ComBat-seq uses R 4.5 and Bioconductor `sva`; MBatch invokes the
+pinned official R functions; ComBat and MOBER run in the Python environment. The
+one-epoch outputs validate mechanics only. The matched 15,000-epoch liver comparison
+and its independent-metric plots are under
+`outputs/generative_benchmark/summary/liver_harmonization/`.

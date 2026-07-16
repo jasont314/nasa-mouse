@@ -37,6 +37,39 @@ alone is not accepted:
 promotion now also requires accession-aware meta-effect correlation at least 0.30
 and direction agreement at least 0.55.
 
+## Matched Liver Harmonization Benchmark
+
+Nine preprocessing arms were trained for 15,000 epochs with the same 225.6-million-
+parameter conditional ModelDDIM, random seed, 974 genes, and API-derived liver
+partition. All prepared matrices have identical source-row and gene hashes: 119
+training profiles, 50 validation profiles from OSD-137/457/48, and 70 locked test
+profiles from OSD-379. The test partition was not evaluated.
+
+| preprocessing / harmonization | Corr | precision | recall | F1 | AA | FD / real reference | FLT/GC gate | accession gate |
+|---|---:|---:|---:|---:|---:|---:|---|---|
+| No harmonization, TPM | 0.283 | 0.200 | 0.960 | 0.331 | 0.850 | 2.052 | fail | fail |
+| Ilangovan per-study z-score | 0.278 | 0.160 | 1.000 | 0.276 | 0.770 | 0.716 | fail | fail |
+| Mentor two-stage z-score | 0.348 | 0.440 | 1.000 | 0.611 | 0.690 | 0.977 | fail | fail |
+| ComBat by study | 0.004 | 0.040 | 1.000 | 0.077 | 0.810 | 63.185 | fail | fail |
+| ComBat-seq by study | 0.067 | 0.020 | 1.000 | 0.039 | 0.850 | 156.647 | fail | fail |
+| MBatch Median Polish by study | 0.009 | 0.020 | 1.000 | 0.039 | 0.930 | 205.470 | fail | fail |
+| MBatch Empirical Bayes by study | 0.001 | 0.000 | 1.000 | 0.000 | 0.850 | 60.625 | fail | fail |
+| MBatch ANOVA by study | -0.003 | 0.020 | 1.000 | 0.039 | 0.870 | 44.716 | fail | fail |
+| MOBER by study | 0.808 | 0.260 | 1.000 | 0.413 | 0.770 | 33.311 | fail | fail |
+
+No arm passes all six independent fidelity criteria, and no arm passes either
+condition-effect requirement. The mentor two-stage transform is the closest balanced
+fidelity result, but it still fails Corr, precision, F1, and AA. MOBER's high Corr
+does not compensate for its low precision/F1, separability, or 33.3-fold FD ratio.
+The uniformly high recall with very low precision in the batch-correction arms is
+consistent with synthetic support that is much broader than the real validation
+distribution, not successful generation.
+
+ComBat, ComBat-seq, and the three MBatch held-out transforms use training anchors
+but remain transductive sensitivity analyses. MOBER is the only complex inductive
+harmonizer in this table. Machine-readable results and independent-metric plots are
+under `outputs/generative_benchmark/summary/liver_harmonization/`.
+
 ## Adaptive Comparisons
 
 - **ARCHS4 pretraining:** improved several exact-DDIM distribution and pooled
@@ -45,13 +78,12 @@ and direction agreement at least 0.55.
 - **Preprocessing:** CPM plus `log1p` and gene z-score improved direct WGAN over the
   strict paper transform (0.468 versus 0.424), but both failed fidelity. Paper-native
   full-transcriptome TPM plus train-fitted MaxAbs worked for broad ModelDDIM.
-- **Study conditioning and harmonization:** ComBat, ComBat-seq, and MOBER adapters
-  passed integration smoke tests only. Exact liver study conditioning reduced
-  held-out AA from 0.985 to 0.618 but failed Corr and FLT/GC recovery. A full
-  mentor-style `log1p` TPM, within-study z-score, then pooled z-score run reached
-  held-out AA 0.708 but failed Corr, precision, F1, and condition-effect recovery.
-  There is no decision-quality evidence that batch harmonization has produced an
-  acceptable generator.
+- **Study conditioning and harmonization:** all requested matched liver arms now
+  have full 15,000-epoch evaluations: no correction, Ilangovan normalization,
+  mentor two-stage scaling, ComBat, ComBat-seq, all three official MBatch methods,
+  and MOBER. None passes all independent fidelity and effect-recovery gates. Exact
+  liver study conditioning separately reduced held-out AA from 0.985 to 0.618 but
+  also failed Corr and FLT/GC recovery.
 - **Per-tissue behavior:** the WGAN transfer failed FLT/GC recovery in all nine
   evaluable validation tissues. Standalone per-tissue expansion was stopped because
   the pooled candidate failed the fixed gate.
@@ -74,7 +106,7 @@ The ranked table is at `outputs/generative_benchmark/scoreboard.tsv`. Each model
 stores a resolved configuration, source and data identities, split hashes, fitted
 preprocessing, device/runtime records, model checkpoint, validation summary, and
 plots under `outputs/generative_benchmark/runs/`. The experiment matrix is resumable
-and content-addressed. The final validation run passed all 82 repository tests.
+and content-addressed. The final validation run passed all 94 repository tests.
 
 See `generative_models_pipeline.md`, `generative_benchmark_decisions.md`, and
 `rna_diffusion_paper_parity.md` for implementation details and experiment history.

@@ -105,3 +105,18 @@ promote a model.
     result is a bounded-compute stopping decision rather than evidence against a
     fully trained GeneJEPA. GeneJEPA still has no expression decoder; no guided-
     diffusion branch or longer representation run is started.
+17. **Reject all nine matched liver harmonization arms.** The comparison fixes the
+    same 119/50/70 train/validation/locked-test profiles and 974 genes for no
+    correction, Ilangovan per-study normalization, mentor two-stage scaling, ComBat,
+    ComBat-seq, three official MBatch methods, and MOBER. No arm passes every
+    independent fidelity gate, and all fail both pooled FLT/GC and accession-aware
+    effect recovery. Mentor two-stage is the closest balanced result at Corr 0.348,
+    precision/recall/F1 0.440/1.000/0.611, AA 0.690, and FD ratio 0.977. MOBER's Corr
+    0.808 is not promotable because precision is 0.260, AA is 0.770, and FD ratio is
+    33.311. The OSD-379 test partition remains locked and no arm advances to five
+    seeds.
+18. **Bound GPU parallelism by throughput rather than allocated memory.** Six exact
+    OSDR ModelDDIM jobs fit concurrently on the A100 40 GB at about 6.2 GiB process
+    residency each, but saturate GPU compute and slow each job substantially. Run
+    distinct pending arms concurrently while they improve aggregate throughput; do
+    not spend free memory on repeat seeds before a single-seed arm passes all gates.
