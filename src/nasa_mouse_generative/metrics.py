@@ -19,6 +19,7 @@ from nasa_mouse_diffusion.evaluate import generated_quality
 
 from .adapters.base import ModelAdapter
 from .effect_validation import compare_real_synthetic_effects
+from .paper_metrics import paper_metric_selection
 from .preprocessing import FittedPreprocessor
 from .training_data import DataPartition
 
@@ -272,51 +273,12 @@ def memorization_metrics(
 def fidelity_selection(
     fidelity: dict[str, float], memorization: dict[str, float]
 ) -> dict[str, object]:
-    def bounded(value: object) -> float:
-        number = float(value)
-        if not np.isfinite(number):
-            return 0.0
-        return float(np.clip(number, 0.0, 1.0))
-
-    adversarial = float(fidelity.get("adversarial_accuracy", float("nan")))
-    adversarial_score = (
-        float(np.clip(1.0 - 2.0 * abs(adversarial - 0.5), 0.0, 1.0))
-        if np.isfinite(adversarial)
-        else 0.0
-    )
-    components = {
-        "gene_mean_correlation": bounded(
-            fidelity.get("gene_mean_correlation", float("nan"))
-        ),
-        "gene_std_correlation": bounded(
-            fidelity.get("gene_std_correlation", float("nan"))
-        ),
-        "precision_recall_f1": bounded(fidelity.get("f1", float("nan"))),
-        "adversarial_indistinguishability": adversarial_score,
-    }
+    paper_gate = paper_metric_selection(fidelity)
     real_std = float(fidelity.get("real_global_std", 0.0))
     fake_std = float(fidelity.get("fake_global_std", 0.0))
     diversity_ratio = fake_std / max(real_std, 1e-8)
-    composite = float(np.mean(list(components.values())))
-    fidelity_thresholds = {
-        "heldout_fidelity_composite": 0.70,
-        "gene_mean_correlation": 0.80,
-        "gene_std_correlation": 0.70,
-        "precision_recall_f1": 0.50,
-        "adversarial_indistinguishability": 0.50,
-    }
-    fidelity_observed = {
-        "heldout_fidelity_composite": composite,
-        **components,
-    }
-    fidelity_pass = bool(
-        all(
-            fidelity_observed[name] >= minimum
-            for name, minimum in fidelity_thresholds.items()
-        )
-    )
     diversity_pass = bool(
-        float(fidelity.get("recall", 0.0)) >= 0.1 and diversity_ratio >= 0.1
+        np.isfinite(diversity_ratio) and 0.5 <= diversity_ratio <= 2.0
     )
     memorization_fraction = float(
         memorization.get("fraction_below_training_p01", float("nan"))
@@ -325,26 +287,21 @@ def fidelity_selection(
         np.isfinite(memorization_fraction) and memorization_fraction <= 0.05
     )
     return {
-        "heldout_fidelity_composite": composite,
-        "components": components,
-        "fidelity_gate": {
-            "passed": fidelity_pass,
-            "observed": fidelity_observed,
-            "minimums": fidelity_thresholds,
-        },
+        "fidelity_gate": paper_gate,
         "diversity_gate": {
             "passed": diversity_pass,
-            "recall_minimum": 0.1,
             "global_std_ratio": diversity_ratio,
-            "global_std_ratio_minimum": 0.1,
+            "global_std_ratio_minimum": 0.5,
+            "global_std_ratio_maximum": 2.0,
         },
         "memorization_gate": {
             "passed": memorization_pass,
             "fraction_below_training_p01_maximum": 0.05,
         },
         "eligible_for_model_selection": (
-            fidelity_pass and diversity_pass and memorization_pass
+            paper_gate["passed"] and diversity_pass and memorization_pass
         ),
+        "selection_rule": "all_quality_gates_must_pass; no composite score",
     }
 
 
@@ -616,18 +573,27 @@ def _write_per_tissue_generation_metrics(
             {
                 "tissue": tissue,
                 "samples": int(mask.sum()),
+                "correlation_matrix_agreement": quality.get(
+                    "correlation_matrix_agreement", float("nan")
+                ),
                 "gene_mean_correlation": quality["gene_mean_correlation"],
                 "gene_std_correlation": quality["gene_std_correlation"],
                 "precision": quality.get("precision", float("nan")),
                 "recall": quality.get("recall", float("nan")),
-                "precision_recall_f1": quality.get("f1", float("nan")),
-                "nearest_neighbor_two_sample_accuracy": quality.get(
+                "f1": quality.get("f1", float("nan")),
+                "adversarial_accuracy": quality.get(
                     "adversarial_accuracy", float("nan")
                 ),
-                "adversarial_indistinguishability": selection["components"][
-                    "adversarial_indistinguishability"
+                "frechet_pca": quality.get("frechet_pca", float("nan")),
+                "frechet_ratio_to_real_split_p95": quality.get(
+                    "frechet_ratio_to_real_split_p95", float("nan")
+                ),
+                "all_fidelity_metrics_pass": selection["fidelity_gate"][
+                    "passed"
                 ],
-                "fidelity_composite": selection["heldout_fidelity_composite"],
+                "failed_fidelity_metrics": ";".join(
+                    selection["fidelity_gate"]["failed_metrics"]
+                ),
                 "flt_gc_delta_correlation": effect["delta_correlation"],
                 "flt_gc_direction_agreement": effect["direction_agreement"],
                 "flt_gc_delta_rmse": effect["delta_rmse"],
@@ -644,19 +610,20 @@ def _write_per_tissue_generation_metrics(
         import matplotlib.pyplot as plt
 
         columns = [
-            ("gene_mean_correlation", "Gene mean"),
-            ("gene_std_correlation", "Gene SD"),
-            ("precision_recall_f1", "PR F1"),
-            ("adversarial_indistinguishability", "NN indistinguishability"),
+            ("correlation_matrix_agreement", "Corr."),
+            ("precision", "Precision"),
+            ("recall", "Recall"),
+            ("f1", "F1"),
+            ("adversarial_accuracy", "AA"),
         ]
         positions = np.arange(len(table))
-        width = 0.19
+        width = 0.15
         figure, axis = plt.subplots(
             figsize=(max(8.0, len(table) * 0.9), 5.4)
         )
         for index, (column, label) in enumerate(columns):
             axis.bar(
-                positions + (index - 1.5) * width,
+                positions + (index - 2.0) * width,
                 table[column].to_numpy(dtype=float),
                 width=width,
                 label=label,

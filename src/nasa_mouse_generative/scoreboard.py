@@ -1,4 +1,4 @@
-"""Build a ranked scoreboard from completed unified and exact baseline runs."""
+"""Build a hard-gated scoreboard from completed generative-model runs."""
 
 from __future__ import annotations
 
@@ -29,37 +29,24 @@ def _per_tissue_diagnostics(value: object) -> dict[str, float | int]:
         rows = value
     else:
         rows = []
-    composites: list[float] = []
+    fidelity_evaluable = 0
+    fidelity_passes = 0
     condition_passes = 0
     condition_evaluable = 0
     for row in rows:
         if not isinstance(row, dict):
             continue
-        composite = float(row.get("fidelity_composite", np.nan))
-        if not np.isfinite(composite):
-            components = [
-                float(row.get("gene_mean_correlation", np.nan)),
-                float(row.get("gene_std_correlation", np.nan)),
-                float(row.get("precision_recall_f1", np.nan)),
-                float(row.get("adversarial_indistinguishability", np.nan)),
-            ]
-            if np.isfinite(components).all():
-                composite = float(np.mean(np.clip(components, 0.0, 1.0)))
-        if np.isfinite(composite):
-            composites.append(composite)
+        if "all_fidelity_metrics_pass" in row:
+            fidelity_evaluable += 1
+            fidelity_passes += int(bool(row["all_fidelity_metrics_pass"]))
         correlation = float(row.get("flt_gc_delta_correlation", np.nan))
         direction = float(row.get("flt_gc_direction_agreement", np.nan))
         if np.isfinite(correlation) and np.isfinite(direction):
             condition_evaluable += 1
             condition_passes += int(correlation >= 0.30 and direction >= 0.55)
     return {
-        "per_tissue_evaluated": int(len(composites)),
-        "per_tissue_fidelity_min": (
-            float(np.min(composites)) if composites else np.nan
-        ),
-        "per_tissue_fidelity_median": (
-            float(np.median(composites)) if composites else np.nan
-        ),
+        "per_tissue_fidelity_evaluable": int(fidelity_evaluable),
+        "per_tissue_fidelity_passes": int(fidelity_passes),
         "per_tissue_condition_evaluable": int(condition_evaluable),
         "per_tissue_condition_passes": int(condition_passes),
     }
@@ -77,7 +64,11 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
     generation = validation.get("generation", {})
     selection = generation.get("model_selection", {})
     fidelity = generation.get("fidelity_transformed", {})
-    if "fidelity_gate" not in selection and fidelity:
+    if (
+        fidelity
+        and selection.get("selection_rule")
+        != "all_quality_gates_must_pass; no composite score"
+    ):
         selection = fidelity_selection(
             fidelity, generation.get("memorization", {})
         )
@@ -119,9 +110,6 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
         "training_seconds": run.get("training_seconds", np.nan),
         "cuda_peak_memory_gb": run.get("cuda_peak_memory_gb", np.nan),
         "generation_status": generation.get("status", "missing"),
-        "heldout_fidelity_composite": selection.get(
-            "heldout_fidelity_composite", np.nan
-        ),
         "eligible_for_model_selection": selection.get(
             "eligible_for_model_selection", False
         ),
@@ -141,9 +129,28 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
         ),
         "gene_mean_correlation": fidelity.get("gene_mean_correlation", np.nan),
         "gene_std_correlation": fidelity.get("gene_std_correlation", np.nan),
+        "correlation_matrix_agreement": fidelity.get(
+            "correlation_matrix_agreement", np.nan
+        ),
         "precision": fidelity.get("precision", np.nan),
         "recall": fidelity.get("recall", np.nan),
+        "f1": fidelity.get("f1", np.nan),
         "adversarial_accuracy": fidelity.get("adversarial_accuracy", np.nan),
+        "frechet_pca": fidelity.get("frechet_pca", np.nan),
+        "frechet_ratio_to_real_split_p95": fidelity.get(
+            "frechet_ratio_to_real_split_p95", np.nan
+        ),
+        "failed_fidelity_metrics": ";".join(
+            map(
+                str,
+                _nested(
+                    selection,
+                    "fidelity_gate",
+                    "failed_metrics",
+                    default=[],
+                ),
+            )
+        ),
         "flt_gc_delta_correlation": effect.get("delta_correlation", np.nan),
         "real_validation_balanced_accuracy": real.get("balanced_accuracy", np.nan),
         "augmented_validation_balanced_accuracy": augmented.get(
@@ -183,29 +190,22 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
             "nearest_neighbor_adversarial_accuracy_in_scaled_l974", np.nan
         )
     )
-    adversarial_score = (
-        float(np.clip(1.0 - 2.0 * abs(adversarial - 0.5), 0.0, 1.0))
-        if np.isfinite(adversarial)
-        else np.nan
-    )
-    components = [
-        float(quality.get("gene_mean_correlation", np.nan)),
-        float(quality.get("gene_standard_deviation_correlation", np.nan)),
-        f1,
-        adversarial_score,
-    ]
-    legacy_composite = (
-        float(np.mean(components)) if np.isfinite(components).all() else np.nan
-    )
     selection = quality.get("model_selection", {})
-    if "fidelity_gate" not in selection and np.isfinite(components).all():
+    if selection.get("selection_rule") != (
+        "all_quality_gates_must_pass; no composite score"
+    ):
         selection = fidelity_selection(
             {
-                "gene_mean_correlation": components[0],
-                "gene_std_correlation": components[1],
-                "f1": components[2],
-                "adversarial_accuracy": adversarial,
+                "correlation_matrix_agreement": quality.get(
+                    "gene_correlation_matrix_agreement", np.nan
+                ),
+                "precision": precision,
                 "recall": recall,
+                "f1": f1,
+                "adversarial_accuracy": adversarial,
+                "frechet_ratio_to_real_split_p95": quality.get(
+                    "frechet_ratio_to_real_split_p95", np.nan
+                ),
                 "real_global_std": 1.0,
                 "fake_global_std": float(
                     _nested(
@@ -219,7 +219,6 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
             },
             quality.get("memorization", {}),
         )
-    composite = selection.get("heldout_fidelity_composite", legacy_composite)
     eligible = bool(selection.get("eligible_for_model_selection", False))
     tissue_diagnostics = _per_tissue_diagnostics(
         evaluation.get("per_tissue_fidelity", {})
@@ -238,7 +237,6 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
         "training_seconds": run.get("training_seconds_this_invocation", np.nan),
         "cuda_peak_memory_gb": run.get("cuda_peak_memory_gb", np.nan),
         "generation_status": "complete" if evaluation else "missing",
-        "heldout_fidelity_composite": composite,
         "eligible_for_model_selection": eligible,
         "fidelity_gate": bool(
             _nested(selection, "fidelity_gate", "passed", default=eligible)
@@ -256,9 +254,30 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
         "gene_std_correlation": quality.get(
             "gene_standard_deviation_correlation", np.nan
         ),
+        "correlation_matrix_agreement": quality.get(
+            "gene_correlation_matrix_agreement", np.nan
+        ),
         "precision": precision,
         "recall": recall,
+        "f1": f1,
         "adversarial_accuracy": adversarial,
+        "frechet_pca": quality.get(
+            "frechet_distance_in_train_pca50", np.nan
+        ),
+        "frechet_ratio_to_real_split_p95": quality.get(
+            "frechet_ratio_to_real_split_p95", np.nan
+        ),
+        "failed_fidelity_metrics": ";".join(
+            map(
+                str,
+                _nested(
+                    selection,
+                    "fidelity_gate",
+                    "failed_metrics",
+                    default=[],
+                ),
+            )
+        ),
         "flt_gc_delta_correlation": np.nan,
         "real_validation_balanced_accuracy": np.nan,
         "augmented_validation_balanced_accuracy": np.nan,
@@ -284,6 +303,14 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
     )
     fidelity = evaluation.get("fidelity_transformed", {})
     selection = evaluation.get("model_selection", {})
+    if (
+        fidelity
+        and selection.get("selection_rule")
+        != "all_quality_gates_must_pass; no composite score"
+    ):
+        selection = fidelity_selection(
+            fidelity, evaluation.get("memorization", {})
+        )
     utility = evaluation.get("flt_gc_classifier_utility", {})
     condition_effect_gate = evaluation.get("conditional_effect_gate", {})
     accession_effect_gate = evaluation.get("accession_effect_gate", {})
@@ -318,9 +345,6 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
         "training_seconds": run.get("training_seconds_this_invocation", np.nan),
         "cuda_peak_memory_gb": run.get("cuda_peak_memory_gb", np.nan),
         "generation_status": "complete" if evaluation else "missing",
-        "heldout_fidelity_composite": selection.get(
-            "heldout_fidelity_composite", np.nan
-        ),
         "eligible_for_model_selection": selection.get(
             "eligible_for_model_selection", False
         ),
@@ -342,9 +366,28 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
         ),
         "gene_mean_correlation": fidelity.get("gene_mean_correlation", np.nan),
         "gene_std_correlation": fidelity.get("gene_std_correlation", np.nan),
+        "correlation_matrix_agreement": fidelity.get(
+            "correlation_matrix_agreement", np.nan
+        ),
         "precision": fidelity.get("precision", np.nan),
         "recall": fidelity.get("recall", np.nan),
+        "f1": fidelity.get("f1", np.nan),
         "adversarial_accuracy": fidelity.get("adversarial_accuracy", np.nan),
+        "frechet_pca": fidelity.get("frechet_pca", np.nan),
+        "frechet_ratio_to_real_split_p95": fidelity.get(
+            "frechet_ratio_to_real_split_p95", np.nan
+        ),
+        "failed_fidelity_metrics": ";".join(
+            map(
+                str,
+                _nested(
+                    selection,
+                    "fidelity_gate",
+                    "failed_metrics",
+                    default=[],
+                ),
+            )
+        ),
         "flt_gc_delta_correlation": _nested(
             evaluation, "flt_gc_effect_recovery", "delta_correlation"
         ),
@@ -379,12 +422,9 @@ def build_scoreboard(output_root: str | Path) -> pd.DataFrame:
     table = pd.DataFrame(rows)
     if table.empty:
         return table
-    table["rank"] = table["heldout_fidelity_composite"].where(
-        table["eligible_for_model_selection"].astype(bool)
-    ).rank(method="min", ascending=False)
     return table.sort_values(
-        ["eligible_for_model_selection", "heldout_fidelity_composite"],
-        ascending=[False, False],
+        ["eligible_for_model_selection", "model", "run_id"],
+        ascending=[False, True, True],
         na_position="last",
     ).reset_index(drop=True)
 

@@ -310,7 +310,7 @@ class EvaluationMetricTests(unittest.TestCase):
         self.assertEqual(table["tissue"].tolist(), ["a", "b"])
         self.assertEqual(table["profiles"].tolist(), [6, 6])
         self.assertTrue(
-            table["adversarial_indistinguishability"].between(0.0, 1.0).all()
+            table["adversarial_accuracy"].between(0.0, 1.0).all()
         )
 
     def test_class_probe_excludes_training_classes_absent_from_evaluation(self):

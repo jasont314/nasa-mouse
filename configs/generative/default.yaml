@@ -74,7 +74,7 @@ generation:
 
 validation:
   split_unit: accession
-  selection_metric: heldout_fidelity_composite
+  selection_metric: all_paper_metrics
   downstream_flt_gc_secondary: true
   final_test_locked: true
   allow_transductive_preprocessing: false

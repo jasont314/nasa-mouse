@@ -152,7 +152,7 @@ class GenerationConfig:
 @dataclass(frozen=True)
 class ValidationConfig:
     split_unit: str = "accession"
-    selection_metric: str = "heldout_fidelity_composite"
+    selection_metric: str = "all_paper_metrics"
     downstream_flt_gc_secondary: bool = True
     final_test_locked: bool = True
     allow_transductive_preprocessing: bool = False

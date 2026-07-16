@@ -69,24 +69,23 @@ class RuntimeConfigTests(unittest.TestCase):
         self.assertTrue(passing["passed"])
         self.assertFalse(confounded["passed"])
 
-    def test_scoreboard_summarizes_worst_tissue_without_changing_global_gate(self):
+    def test_scoreboard_counts_independently_passing_tissues(self):
         result = _per_tissue_diagnostics(
             [
                 {
-                    "fidelity_composite": 0.8,
+                    "all_fidelity_metrics_pass": True,
                     "flt_gc_delta_correlation": 0.4,
                     "flt_gc_direction_agreement": 0.6,
                 },
                 {
-                    "fidelity_composite": 0.2,
+                    "all_fidelity_metrics_pass": False,
                     "flt_gc_delta_correlation": 0.1,
                     "flt_gc_direction_agreement": 0.7,
                 },
             ]
         )
-        self.assertEqual(result["per_tissue_evaluated"], 2)
-        self.assertAlmostEqual(result["per_tissue_fidelity_min"], 0.2)
-        self.assertAlmostEqual(result["per_tissue_fidelity_median"], 0.5)
+        self.assertEqual(result["per_tissue_fidelity_evaluable"], 2)
+        self.assertEqual(result["per_tissue_fidelity_passes"], 1)
         self.assertEqual(result["per_tissue_condition_passes"], 1)
 
     def test_dotted_overrides_resolve_model_parameters(self):
@@ -677,6 +676,41 @@ class AdapterTests(unittest.TestCase):
 
 
 class MetricTests(unittest.TestCase):
+    def test_fidelity_selection_requires_every_paper_metric_without_composite(self):
+        selection = fidelity_selection(
+            {
+                "correlation_matrix_agreement": 0.99,
+                "precision": 0.98,
+                "recall": 0.90,
+                "f1": 0.94,
+                "adversarial_accuracy": 0.50,
+                "frechet_ratio_to_real_split_p95": 0.8,
+                "real_global_std": 1.0,
+                "fake_global_std": 0.95,
+            },
+            {"fraction_below_training_p01": 0.0},
+        )
+        self.assertTrue(selection["eligible_for_model_selection"])
+        self.assertNotIn("heldout_fidelity_composite", selection)
+        self.assertEqual(selection["fidelity_gate"]["failed_metrics"], [])
+
+        selection["fidelity_gate"] = fidelity_selection(
+            {
+                "correlation_matrix_agreement": 0.99,
+                "precision": 0.98,
+                "recall": 0.90,
+                "f1": 0.94,
+                "adversarial_accuracy": 0.96,
+                "frechet_ratio_to_real_split_p95": 0.8,
+                "real_global_std": 1.0,
+                "fake_global_std": 0.95,
+            },
+            {"fraction_below_training_p01": 0.0},
+        )["fidelity_gate"]
+        self.assertIn(
+            "adversarial_accuracy", selection["fidelity_gate"]["failed_metrics"]
+        )
+
     def test_fidelity_gates_reject_collapse(self):
         selection = fidelity_selection(
             {

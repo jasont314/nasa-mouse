@@ -324,19 +324,31 @@ def _per_tissue_fidelity(
         quality = generated_quality(
             real[mask], synthetic[mask], max_pr_samples=int(mask.sum())
         )
-        adversarial_accuracy = float(quality["adversarial_accuracy"])
+        selection = fidelity_selection(
+            quality, {"fraction_below_training_p01": 0.0}
+        )
         rows.append(
             {
                 "tissue": tissue,
                 "profiles": int(mask.sum()),
+                "correlation_matrix_agreement": quality[
+                    "correlation_matrix_agreement"
+                ],
                 "gene_mean_correlation": quality["gene_mean_correlation"],
                 "gene_std_correlation": quality["gene_std_correlation"],
                 "precision": quality["precision"],
                 "recall": quality["recall"],
-                "precision_recall_f1": quality["f1"],
-                "nearest_neighbor_adversarial_accuracy": adversarial_accuracy,
-                "adversarial_indistinguishability": max(
-                    0.0, 1.0 - 2.0 * abs(adversarial_accuracy - 0.5)
+                "f1": quality["f1"],
+                "adversarial_accuracy": quality["adversarial_accuracy"],
+                "frechet_pca": quality["frechet_pca"],
+                "frechet_ratio_to_real_split_p95": quality[
+                    "frechet_ratio_to_real_split_p95"
+                ],
+                "all_fidelity_metrics_pass": selection["fidelity_gate"][
+                    "passed"
+                ],
+                "failed_fidelity_metrics": ";".join(
+                    selection["fidelity_gate"]["failed_metrics"]
                 ),
                 "synthetic_to_real_global_std_ratio": float(
                     quality["fake_global_std"]
@@ -351,17 +363,18 @@ def _plot_per_tissue_fidelity(table: pd.DataFrame, output: Path) -> Path | None:
     if table.empty:
         return None
     columns = [
-        ("gene_mean_correlation", "Gene mean"),
-        ("gene_std_correlation", "Gene SD"),
-        ("precision_recall_f1", "PR F1"),
-        ("adversarial_indistinguishability", "NN indistinguishability"),
+        ("correlation_matrix_agreement", "Corr."),
+        ("precision", "Precision"),
+        ("recall", "Recall"),
+        ("f1", "F1"),
+        ("adversarial_accuracy", "AA"),
     ]
     positions = np.arange(len(table))
-    width = 0.19
+    width = 0.15
     figure, axis = plt.subplots(figsize=(max(8.0, len(table) * 0.9), 5.4))
     for index, (column, label) in enumerate(columns):
         axis.bar(
-            positions + (index - 1.5) * width,
+            positions + (index - 2.0) * width,
             table[column].to_numpy(dtype=float),
             width=width,
             label=label,

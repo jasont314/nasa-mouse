@@ -24,6 +24,7 @@ from sklearn.preprocessing import StandardScaler
 import torch
 
 from nasa_mouse_generative.metrics import fidelity_selection, memorization_metrics
+from nasa_mouse_generative.paper_metrics import paper_distribution_metrics
 
 from .config import load_config
 from .data import load_prepared
@@ -528,22 +529,18 @@ def evaluate(config_path: str | Path) -> Path:
     precision_recall_pca = _precision_recall(
         real_embedding, synthetic_embedding, neighbors=10
     )
-    precision_recall_scaled_expression = _precision_recall(
-        real_metric, synthetic_metric, neighbors=10
+    paper_quality = paper_distribution_metrics(
+        real_metric,
+        synthetic_metric,
+        max_samples=metric_count,
+        neighbors=10,
+        seed=seed,
     )
-    direct_precision = precision_recall_scaled_expression["precision"]
-    direct_recall = precision_recall_scaled_expression["recall"]
-    direct_f1 = (
-        2.0 * direct_precision * direct_recall / (direct_precision + direct_recall)
-        if direct_precision + direct_recall > 0
-        else 0.0
-    )
-    real_correlation = np.corrcoef(real_metric, rowvar=False)
-    synthetic_correlation = np.corrcoef(synthetic_metric, rowvar=False)
-    upper = np.triu_indices_from(real_correlation, k=1)
-    nearest_adversarial = _nearest_neighbor_adversarial_accuracy(
-        real_metric, synthetic_metric
-    )
+    precision_recall_scaled_expression = {
+        "precision": paper_quality["precision"],
+        "recall": paper_quality["recall"],
+    }
+    nearest_adversarial = float(paper_quality["adversarial_accuracy"])
     memorization = memorization_metrics(
         train_expression,
         quality_final,
@@ -552,16 +549,13 @@ def evaluate(config_path: str | Path) -> Path:
     )
     model_selection = fidelity_selection(
         {
+            **paper_quality,
             "gene_mean_correlation": _correlation(
                 real_metric.mean(axis=0), synthetic_metric.mean(axis=0)
             ),
             "gene_std_correlation": _correlation(
                 real_metric.std(axis=0), synthetic_metric.std(axis=0)
             ),
-            "precision": direct_precision,
-            "recall": direct_recall,
-            "f1": direct_f1,
-            "adversarial_accuracy": nearest_adversarial,
             "real_global_std": float(real_metric.std()),
             "fake_global_std": float(synthetic_metric.std()),
         },
@@ -599,16 +593,20 @@ def evaluate(config_path: str | Path) -> Path:
         "gene_standard_deviation_correlation": _correlation(
             real_metric.std(axis=0), synthetic_metric.std(axis=0)
         ),
-        "gene_correlation_matrix_agreement": _correlation(
-            real_correlation[upper], synthetic_correlation[upper]
-        ),
+        "gene_correlation_matrix_agreement": paper_quality[
+            "correlation_matrix_agreement"
+        ],
         "precision_recall_in_scaled_l974": precision_recall_scaled_expression,
         "precision_recall_in_train_pca50": precision_recall_pca,
         "memorization": memorization,
         "model_selection": model_selection,
-        "frechet_distance_in_train_pca50": _frechet(
-            real_embedding, synthetic_embedding
-        ),
+        "frechet_distance_in_train_pca50": paper_quality["frechet_pca"],
+        "frechet_real_split_p95_in_train_pca50": paper_quality[
+            "frechet_real_split_p95"
+        ],
+        "frechet_ratio_to_real_split_p95": paper_quality[
+            "frechet_ratio_to_real_split_p95"
+        ],
         "nearest_neighbor_adversarial_accuracy_in_scaled_l974": (
             nearest_adversarial
         ),
