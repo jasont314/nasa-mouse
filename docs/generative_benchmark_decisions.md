@@ -46,3 +46,29 @@ not a substitute for the resolved configurations and per-run manifests.
    first AMP overflows exposed an accounting bug; the clean restart advances EMA,
    scheduler, and global step only after a successful optimizer step and records each
    skip. Validation, not training loss, decides whether transfer warrants replication.
+10. **Reject the reference-only DDIM transfer baseline.** It recovers the pooled
+    FLT/GC effect better than direct training (delta correlation 0.487, direction
+    agreement 0.637) and has mean/SD correlations 0.937/0.841, but nearest-neighbor
+    two-sample accuracy is 0.973. Its fidelity composite is 0.607 and synthetic
+    classifier balanced accuracy is 0.529 versus 0.537 from real training data. It
+    therefore fails the fixed fidelity gate despite passing condition, diversity, and
+    memorization gates.
+11. **Test and reject function-preserving DDIM transfer.** The new expansion copies
+    shared tissue embeddings and condition-input columns and adjusts condition-layer
+    biases so every expanded shared-tissue class is numerically identical to the
+    source denoiser before fine-tuning. Exact parity is covered by a numerical test.
+    Validation at 1,000, 3,000, and 5,000 fine-tune epochs peaked at epoch 3,000 with
+    composite 0.623, mean/SD correlations 0.937/0.850, precision/recall F1 0.625,
+    and two-sample accuracy 0.960. The condition effect passes, but local real-versus-
+    synthetic separation still fails fidelity, so no extra seeds or locked test are
+    permitted.
+12. **Stop stochastic DDIM sampling as a rescue branch.** At the completed
+    function-preserving checkpoint, eta 0.25 and 0.5 reduce the composite to 0.602
+    and 0.587 and leave two-sample accuracy at 0.967 and 0.969. Eta 1.0 is not run
+    because the monotonic degradation already falsifies the proposed remedy.
+13. **Prefer CPM/log/z-score for the bounded WGAN transfer test.** Direct OSDR WGAN
+    training with strict preprocessing has composite 0.424; the NASA CPM adaptation
+    improves it to 0.468 and raises SD correlation from 0.603 to 0.766. Both pass the
+    pooled condition-effect gate but fail fidelity, chiefly because two-sample
+    accuracy is 1.000/0.998 and precision/recall F1 is 0.250/0.238. Only the stronger
+    CPM branch proceeds to a 100-reference/100-fine-tune-epoch ARCHS4 transfer screen.

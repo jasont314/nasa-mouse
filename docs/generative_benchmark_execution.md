@@ -62,16 +62,25 @@ executes 15,000 optimizer steps at the same nominal 15,000-epoch duration. This 
 the paper-duration baseline; any step-matched extension must be named and reported
 as a NASA duration adaptation.
 
-The ARCHS4-transfer arm uses the exact completed tissue model and the ARCHS4-fitted
-MaxAbs scale. Every pretrained tissue embedding and corresponding condition-input
-column is mapped to a `tissue=<name>||condition=reference` class. New FLT and GC
-condition columns retain their seeded initialization and all parameters are then
-fine-tuned on accession-grouped OSDR training data. OSDR values under the reference
-scale have median absolute value 0.00856, 95th percentile 0.0726, and only 0.007% of
-entries above one, so the transfer input scale is not grossly out of distribution.
-AMP overflow handling advances the optimizer, EMA, scheduler, and global step only
-when `GradScaler` actually executes an optimizer step; skipped steps are audited in
-the history and run summary.
+The ARCHS4-transfer arms use the exact completed tissue model and the ARCHS4-fitted
+MaxAbs scale. The `reference_only` baseline maps tissue parameters into
+`tissue=<name>||condition=reference` classes and leaves FLT/GC condition columns at
+their seeded initialization. Because the upstream embeds a one-hot condition before
+the residual condition layers, this mapping is not function preserving. The
+`function_preserving_tissue` strategy instead copies the upstream-used embedding
+rows and every shared tissue condition column, adjusts each condition-layer bias,
+and zero-initializes unmatched tissue columns. Numerical tests verify identical
+source and expanded denoiser outputs before fine-tuning for every shared tissue and
+expanded condition slot.
+
+All parameters are then fine-tuned on accession-grouped OSDR training data. OSDR
+values under the reference scale have median absolute value 0.00856, 95th percentile
+0.0726, and only 0.007% of entries above one, so the transfer input scale is not
+grossly out of distribution. AMP overflow handling advances the optimizer, EMA,
+scheduler, and global step only when `GradScaler` actually executes an optimizer
+step; skipped steps are audited in the history and run summary. Optional DDIM eta is
+seeded deterministically and reported as a named evaluation variant; the released
+default remains eta zero.
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_rna_diffusion prepare-osdr
@@ -177,3 +186,9 @@ not trigger the full Cartesian matrix.
 The exact ARCHS4 DDIM is currently the only full generator that passes the broad
 tissue benchmark. The one-epoch study-conditioned WGAN orchestration check correctly
 fails diversity and is not a biological result.
+
+Neither direct nor ARCHS4-transferred conditional DDIM currently passes all OSDR
+gates. The best function-preserving validation checkpoint passes pooled FLT/GC effect,
+diversity, and memorization checks, but fails the fidelity composite and local
+real-versus-synthetic indistinguishability checks. Consequently no conditional model
+has been promoted to three seeds, augmentation claims, or the locked test.
