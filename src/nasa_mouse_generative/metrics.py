@@ -273,7 +273,10 @@ def memorization_metrics(
 def fidelity_selection(
     fidelity: dict[str, float], memorization: dict[str, float]
 ) -> dict[str, object]:
-    paper_gate = paper_metric_selection(fidelity)
+    absolute_paper_gate = paper_metric_selection(fidelity)
+    paper_gate = paper_metric_selection(
+        fidelity, finite_sample_calibrated=True
+    )
     real_std = float(fidelity.get("real_global_std", 0.0))
     fake_std = float(fidelity.get("fake_global_std", 0.0))
     diversity_ratio = fake_std / max(real_std, 1e-8)
@@ -288,6 +291,7 @@ def fidelity_selection(
     )
     return {
         "fidelity_gate": paper_gate,
+        "absolute_paper_fidelity_gate": absolute_paper_gate,
         "diversity_gate": {
             "passed": diversity_pass,
             "global_std_ratio": diversity_ratio,
@@ -301,7 +305,13 @@ def fidelity_selection(
         "eligible_for_model_selection": (
             paper_gate["passed"] and diversity_pass and memorization_pass
         ),
-        "selection_rule": "all_quality_gates_must_pass; no composite score",
+        "meets_absolute_paper_benchmark": bool(
+            absolute_paper_gate["passed"] and diversity_pass and memorization_pass
+        ),
+        "selection_rule": (
+            "all finite-sample-calibrated quality gates must pass independently; "
+            "absolute paper benchmark reported separately; no composite score"
+        ),
     }
 
 

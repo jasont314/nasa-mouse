@@ -692,6 +692,30 @@ class AdapterTests(unittest.TestCase):
 
 
 class MetricTests(unittest.TestCase):
+    def test_finite_sample_corr_gate_does_not_hide_absolute_paper_result(self):
+        selection = fidelity_selection(
+            {
+                "correlation_matrix_agreement": 0.90,
+                "correlation_real_bootstrap_p05": 0.88,
+                "precision": 0.98,
+                "recall": 0.90,
+                "f1": 0.94,
+                "adversarial_accuracy": 0.50,
+                "frechet_ratio_to_real_split_p95": 0.8,
+                "real_global_std": 1.0,
+                "fake_global_std": 0.95,
+            },
+            {"fraction_below_training_p01": 0.0},
+        )
+        self.assertTrue(selection["eligible_for_model_selection"])
+        self.assertFalse(selection["meets_absolute_paper_benchmark"])
+        self.assertEqual(
+            selection["fidelity_gate"]["requirements"][
+                "correlation_matrix_agreement"
+            ]["minimum"],
+            0.88,
+        )
+
     def test_fidelity_selection_requires_every_paper_metric_without_composite(self):
         selection = fidelity_selection(
             {

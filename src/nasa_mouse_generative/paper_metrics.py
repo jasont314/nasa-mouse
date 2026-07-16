@@ -42,12 +42,53 @@ def safe_correlation(first: np.ndarray, second: np.ndarray) -> float:
 def correlation_matrix_agreement(real: np.ndarray, synthetic: np.ndarray) -> float:
     """Return the paper's gamma agreement between gene-correlation matrices."""
 
-    real_correlation = np.corrcoef(real, rowvar=False)
-    synthetic_correlation = np.corrcoef(synthetic, rowvar=False)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        real_correlation = np.corrcoef(real, rowvar=False)
+        synthetic_correlation = np.corrcoef(synthetic, rowvar=False)
     upper = np.triu_indices(real.shape[1], k=1)
     return safe_correlation(
         real_correlation[upper], synthetic_correlation[upper]
     )
+
+
+def correlation_bootstrap_reference(
+    real: np.ndarray, *, repeats: int = 20, seed: int = 2026
+) -> dict[str, float | int]:
+    """Estimate finite-sample gamma variation from same-size real bootstraps."""
+
+    real = np.asarray(real, dtype=np.float32)
+    if len(real) < 3 or int(repeats) < 1:
+        return {
+            "correlation_real_bootstrap_repeats": 0,
+            "correlation_real_bootstrap_p05": float("nan"),
+            "correlation_real_bootstrap_median": float("nan"),
+            "correlation_real_bootstrap_p95": float("nan"),
+        }
+    rng = np.random.default_rng(seed)
+    values = np.asarray(
+        [
+            correlation_matrix_agreement(
+                real,
+                real[rng.choice(len(real), len(real), replace=True)],
+            )
+            for _ in range(int(repeats))
+        ],
+        dtype=float,
+    )
+    values = values[np.isfinite(values)]
+    if not len(values):
+        return {
+            "correlation_real_bootstrap_repeats": 0,
+            "correlation_real_bootstrap_p05": float("nan"),
+            "correlation_real_bootstrap_median": float("nan"),
+            "correlation_real_bootstrap_p95": float("nan"),
+        }
+    return {
+        "correlation_real_bootstrap_repeats": int(len(values)),
+        "correlation_real_bootstrap_p05": float(np.quantile(values, 0.05)),
+        "correlation_real_bootstrap_median": float(np.median(values)),
+        "correlation_real_bootstrap_p95": float(np.quantile(values, 0.95)),
+    }
 
 
 def precision_recall(
@@ -178,6 +219,7 @@ def paper_distribution_metrics(
     max_samples: int = 2000,
     neighbors: int | None = None,
     adversarial_max_samples: int = 2048,
+    correlation_reference_repeats: int = 20,
     seed: int = 2026,
 ) -> dict[str, float | int | str]:
     """Evaluate one real/synthetic pair with the paper's unsupervised metrics."""
@@ -238,6 +280,13 @@ def paper_distribution_metrics(
     }
     result.update(precision_recall(real, synthetic, neighbors=int(neighbors)))
     result.update(
+        correlation_bootstrap_reference(
+            real,
+            repeats=int(correlation_reference_repeats),
+            seed=int(seed) + 17,
+        )
+    )
+    result.update(
         pca_frechet_with_real_reference(real, synthetic, seed=int(seed))
     )
     return result
@@ -247,6 +296,7 @@ def paper_metric_selection(
     metrics: dict[str, object],
     *,
     thresholds: PaperMetricThresholds = DEFAULT_PAPER_THRESHOLDS,
+    finite_sample_calibrated: bool = False,
 ) -> dict[str, object]:
     """Require every paper-aligned quality metric to pass independently."""
 
@@ -266,9 +316,24 @@ def paper_metric_selection(
             )
         ),
     }
+    correlation_minimum = thresholds.correlation_matrix_agreement_minimum
+    correlation_reference = float(
+        metrics.get("correlation_real_bootstrap_p05", float("nan"))
+    )
+    if finite_sample_calibrated and np.isfinite(correlation_reference):
+        correlation_minimum = min(correlation_minimum, correlation_reference)
     requirements = {
         "correlation_matrix_agreement": {
-            "minimum": thresholds.correlation_matrix_agreement_minimum
+            "minimum": correlation_minimum,
+            "absolute_paper_minimum": (
+                thresholds.correlation_matrix_agreement_minimum
+            ),
+            "real_bootstrap_p05": correlation_reference,
+            "policy": (
+                "minimum_of_absolute_paper_and_real_bootstrap_p05"
+                if finite_sample_calibrated
+                else "absolute_paper"
+            ),
         },
         "precision": {"minimum": thresholds.precision_minimum},
         "recall": {"minimum": thresholds.recall_minimum},
@@ -295,5 +360,9 @@ def paper_metric_selection(
         "observed": observed,
         "requirements": requirements,
         "failed_metrics": [name for name, passed in checks.items() if not passed],
-        "selection_rule": "all_metrics_must_pass_independently",
+        "selection_rule": (
+            "all_metrics_must_pass_independently_with_finite_sample_corr"
+            if finite_sample_calibrated
+            else "all_absolute_paper_metrics_must_pass_independently"
+        ),
     }

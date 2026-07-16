@@ -190,6 +190,14 @@ both the paper-style training-distribution comparison and the held-out-accession
 comparison. The mouse PCA Frechet reference replaces the paper's pretrained human
 GTEx classifier because that classifier is not transferable to mouse genes.
 
+The absolute paper gate is always reported. Corr is also evaluated against a
+finite-sample gate whose minimum is the lower of 0.98 and the fifth percentile of
+same-size real-data bootstrap Corr values. This is necessary for small OSDR tissue
+partitions where even two real draws cannot reach 0.98. It does not average or
+compensate metrics: precision, recall, F1, AA, FD, diversity, and memorization retain
+their original independent requirements, and passing the calibrated gate is never
+described as matching the paper's absolute Corr benchmark.
+
 Eligibility additionally requires a synthetic-to-real global standard-deviation
 ratio between 0.5 and 2.0 and no more than 5% of synthetic samples closer to a
 training profile than the training leave-one-out first percentile. FLT/GC pooled and
