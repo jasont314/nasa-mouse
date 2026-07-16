@@ -216,6 +216,38 @@ profiles:
       cov_coeff: 1.0
       weighted_sampling: false
       note: Exact released architecture with a two-profile A100 feasibility duration; not paper-native training.
+    paper_architecture_mouse_1epoch:
+      task: representation
+      decoder: null
+      batch_size: 92
+      learning_rate: 0.0001
+      weight_decay: 0.0002
+      accumulate_grad_batches: 2
+      warmup_ratio: 0.05
+      scheduler: cosine
+      use_amp: true
+      amp_dtype: bfloat16
+      epochs: 1
+      samples_per_epoch: 43744
+      num_workers: 8
+      weighted_sampling: false
+      reference_epochs: 1
+      finetune_epochs: 1
+      d: 768
+      latents_L: 512
+      blocks_D: 24
+      heads_h: 12
+      mask_ratio: 0.45
+      min_context_genes: 512
+      min_target_genes_per_block: 16
+      max_tokens: 4096
+      ema_start_decay: 0.992
+      ema_end_decay: 0.9995
+      ema_warmup_steps: 2000
+      sim_coeff: 1.0
+      var_coeff: 25.0
+      cov_coeff: 1.0
+      note: Exact released architecture with one full selected-mouse-reference pass; this is a declared duration adaptation, not paper-native training.
     practical_screen:
       task: representation
       decoder: null

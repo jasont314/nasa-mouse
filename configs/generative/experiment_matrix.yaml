@@ -33,6 +33,22 @@ phases:
       study_policy: [not_conditioned]
       seed: [2020]
 
+  - name: phase_0_wgan_archs4_osdr_transfer_screen
+    purpose: Test whether exact-architecture WGAN transfer improves the strongest direct OSDR preprocessing branch before spending the paper-native duration.
+    axes:
+      model: [vinas_wgan_gp]
+      model_profile: [paper_architecture_screen]
+      task: [conditional_generation]
+      preprocessing_profile: [wgan_nasa_cpm_zscore]
+      feature_space: [hvg_2000]
+      harmonization: [none]
+      training_regime: [archs4_pretrain_osdr_finetune]
+      accession_scope: [all_eligible]
+      tissue_mode: [pooled_conditioned]
+      condition_on_flight: [true]
+      study_policy: [not_conditioned]
+      seed: [2020]
+
   - name: phase_0_genejepa_paper_native_archs4
     purpose: Establish the official GeneJEPA representation architecture on broad mouse bulk profiles.
     axes:
@@ -54,6 +70,22 @@ phases:
     axes:
       model: [genejepa]
       model_profile: [paper_architecture_a100_pilot]
+      task: [representation]
+      preprocessing_profile: [model_native]
+      feature_space: [hvg_4096]
+      harmonization: [none]
+      training_regime: [archs4_only]
+      accession_scope: [all_eligible]
+      tissue_mode: [pooled_conditioned]
+      condition_on_flight: [false]
+      study_policy: [not_conditioned]
+      seed: [2020]
+
+  - name: phase_0_genejepa_exact_mouse_one_epoch
+    purpose: Evaluate one complete ARCHS4 pass with the exact released GeneJEPA architecture before considering a longer representation run or guidance.
+    axes:
+      model: [genejepa]
+      model_profile: [paper_architecture_mouse_1epoch]
       task: [representation]
       preprocessing_profile: [model_native]
       feature_space: [hvg_4096]
