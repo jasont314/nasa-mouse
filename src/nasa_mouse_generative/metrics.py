@@ -553,6 +553,90 @@ def _write_accession_effect_validation(
     return summary, paths
 
 
+def _write_per_tissue_generation_metrics(
+    output: Path,
+    *,
+    real: np.ndarray,
+    synthetic: np.ndarray,
+    samples: pd.DataFrame,
+    max_samples: int,
+) -> tuple[pd.DataFrame, dict[str, str]]:
+    rows: list[dict[str, object]] = []
+    tissues = samples["tissue"].astype(str)
+    conditions = samples["condition"].astype(str).to_numpy()
+    for tissue in sorted(tissues.unique()):
+        mask = tissues.eq(tissue).to_numpy()
+        quality = generated_quality(
+            real[mask], synthetic[mask], max_pr_samples=max_samples
+        )
+        selection = fidelity_selection(
+            quality, {"fraction_below_training_p01": 0.0}
+        )
+        effect = _condition_effect(real[mask], synthetic[mask], conditions[mask])
+        rows.append(
+            {
+                "tissue": tissue,
+                "samples": int(mask.sum()),
+                "gene_mean_correlation": quality["gene_mean_correlation"],
+                "gene_std_correlation": quality["gene_std_correlation"],
+                "precision": quality.get("precision", float("nan")),
+                "recall": quality.get("recall", float("nan")),
+                "precision_recall_f1": quality.get("f1", float("nan")),
+                "nearest_neighbor_two_sample_accuracy": quality.get(
+                    "adversarial_accuracy", float("nan")
+                ),
+                "adversarial_indistinguishability": selection["components"][
+                    "adversarial_indistinguishability"
+                ],
+                "fidelity_composite": selection["heldout_fidelity_composite"],
+                "flt_gc_delta_correlation": effect["delta_correlation"],
+                "flt_gc_direction_agreement": effect["direction_agreement"],
+                "flt_gc_delta_rmse": effect["delta_rmse"],
+            }
+        )
+    table = pd.DataFrame(rows)
+    table_path = output / "per_tissue_generation_metrics.tsv"
+    table.to_csv(table_path, sep="\t", index=False)
+    paths = {"table": str(table_path)}
+    if not table.empty:
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        columns = [
+            ("gene_mean_correlation", "Gene mean"),
+            ("gene_std_correlation", "Gene SD"),
+            ("precision_recall_f1", "PR F1"),
+            ("adversarial_indistinguishability", "NN indistinguishability"),
+        ]
+        positions = np.arange(len(table))
+        width = 0.19
+        figure, axis = plt.subplots(
+            figsize=(max(8.0, len(table) * 0.9), 5.4)
+        )
+        for index, (column, label) in enumerate(columns):
+            axis.bar(
+                positions + (index - 1.5) * width,
+                table[column].to_numpy(dtype=float),
+                width=width,
+                label=label,
+            )
+        axis.set_xticks(positions)
+        axis.set_xticklabels(table["tissue"], rotation=45, ha="right")
+        axis.set_ylim(0.0, 1.0)
+        axis.set_ylabel("Held-out score")
+        axis.set_title("Conditional synthetic fidelity by tissue")
+        axis.legend(frameon=False, ncol=2)
+        axis.grid(axis="y", alpha=0.16)
+        figure.tight_layout()
+        plot_path = output / "per_tissue_generation_metrics.png"
+        figure.savefig(plot_path, dpi=220, bbox_inches="tight")
+        plt.close(figure)
+        paths["plot"] = str(plot_path)
+    return table, paths
+
+
 def _subsample_partition(
     partition: DataPartition, max_samples: int, seed: int
 ) -> DataPartition:
@@ -750,6 +834,13 @@ def evaluate_model(
             samples=metric_evaluation.obs,
             feature_names=adapter.genes,
         )
+        per_tissue, per_tissue_paths = _write_per_tissue_generation_metrics(
+            output,
+            real=metric_evaluation.matrix,
+            synthetic=fake_evaluation,
+            samples=metric_evaluation.obs,
+            max_samples=max_samples,
+        )
         selection = fidelity_selection(fidelity, memorization)
         condition_effect_gate = conditional_effect_selection(effect)
         utility_by_ratio: dict[str, object] = {}
@@ -793,11 +884,13 @@ def evaluate_model(
             "flt_gc_effect_recovery": effect,
             "conditional_effect_gate": condition_effect_gate,
             "accession_effect_validation": accession_validation,
+            "per_tissue_generation": per_tissue.to_dict(orient="records"),
             "memorization": memorization,
             "model_selection": selection,
             "configured_generation": generation_audit,
             "expression_flt_gc_utility_by_ratio": utility_by_ratio,
             "accession_effect_paths": accession_paths,
+            "per_tissue_generation_paths": per_tissue_paths,
         }
         if save_generated_matrix:
             np.savez_compressed(

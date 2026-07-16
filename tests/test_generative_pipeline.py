@@ -17,7 +17,10 @@ from nasa_mouse_generative.config import (
 )
 from nasa_mouse_generative.effect_validation import compare_real_synthetic_effects
 from nasa_mouse_generative.experiment_plan import expand_matrix
-from nasa_mouse_generative.metrics import _write_accession_effect_validation
+from nasa_mouse_generative.metrics import (
+    _write_accession_effect_validation,
+    _write_per_tissue_generation_metrics,
+)
 from nasa_mouse_generative.preprocessing import FittedPreprocessor, apply_stats
 from nasa_mouse_generative.osdr_expression import _read_accession_block
 from nasa_mouse_generative.split_plan import build_pooled_plan
@@ -177,6 +180,28 @@ class PreprocessingTests(unittest.TestCase):
 
 
 class EffectValidationTests(unittest.TestCase):
+    def test_unified_evaluator_writes_per_tissue_generation_metrics(self):
+        rng = np.random.default_rng(8)
+        real = rng.normal(size=(12, 8)).astype(np.float32)
+        synthetic = (real + rng.normal(scale=0.1, size=real.shape)).astype(np.float32)
+        samples = pd.DataFrame(
+            {
+                "tissue": ["liver"] * 6 + ["skin"] * 6,
+                "condition": (["flight"] * 3 + ["ground_control"] * 3) * 2,
+            }
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            table, paths = _write_per_tissue_generation_metrics(
+                Path(directory),
+                real=real,
+                synthetic=synthetic,
+                samples=samples,
+                max_samples=100,
+            )
+            self.assertEqual(table["tissue"].tolist(), ["liver", "skin"])
+            self.assertTrue(Path(paths["table"]).exists())
+            self.assertTrue(Path(paths["plot"]).exists())
+
     def test_unified_evaluator_writes_accession_effect_artifacts(self):
         rows = []
         real = []
