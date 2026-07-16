@@ -229,7 +229,10 @@ class FittedPreprocessor:
         elif self.spec.transform == "log2p1":
             result = np.exp2(np.clip(result, -30.0, 30.0)) - 1.0
         result = np.nan_to_num(result, nan=0.0, posinf=np.finfo(np.float32).max)
-        if self.spec.input_units == "raw_counts" or self.spec.library_normalization != "none":
+        if (
+            self.spec.input_units in {"raw_counts", "normalized_counts"}
+            or self.spec.library_normalization != "none"
+        ):
             result = np.maximum(result, 0.0)
         if self.spec.library_normalization in {"cpm", "tpm"}:
             totals = result.sum(axis=1, keepdims=True, dtype=np.float64)

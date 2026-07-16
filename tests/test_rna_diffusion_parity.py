@@ -11,6 +11,7 @@ import torch
 
 from nasa_mouse_rna_diffusion.conditional_config import load_conditional_config
 from nasa_mouse_rna_diffusion.conditional_data import (
+    _deseq2_median_of_ratios,
     _explicit_accession_roles,
     _full_transcriptome_tpm,
     _joint_class_labels,
@@ -282,6 +283,24 @@ class ConditionalDataTests(unittest.TestCase):
         np.testing.assert_allclose(
             observed[:, 0], [100.0 / 150.0 * 1e6, 100.0 / 1000.0 * 1e6]
         )
+
+    def test_deseq2_median_of_ratios_removes_library_scale(self):
+        base = np.asarray([5.0, 11.0, 17.0, 23.0])
+        matrix = np.stack([base, base * 2.0, base * 4.0])
+        normalized, size_factors, audit = _deseq2_median_of_ratios(matrix)
+        np.testing.assert_allclose(normalized[0], normalized[1], rtol=1e-6)
+        np.testing.assert_allclose(normalized[0], normalized[2], rtol=1e-6)
+        np.testing.assert_allclose(
+            size_factors / size_factors[0], [1.0, 2.0, 4.0], rtol=1e-6
+        )
+        self.assertEqual(audit["eligible_positive_genes"], 4)
+
+    def test_deseq2_median_of_ratios_rounds_like_official_pipeline(self):
+        matrix = np.asarray([[1.2, 4.8], [2.2, 9.7]], dtype=np.float64)
+        normalized, _, audit = _deseq2_median_of_ratios(matrix)
+        self.assertTrue(np.isfinite(normalized).all())
+        self.assertEqual(audit["fractional_input_fraction"], 1.0)
+        self.assertAlmostEqual(audit["maximum_rounding_distance"], 0.3)
 
     def test_joint_classes_preserve_named_covariates(self):
         rows = pd.DataFrame(

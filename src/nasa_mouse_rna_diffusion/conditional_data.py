@@ -167,6 +167,72 @@ def _full_transcriptome_tpm(
     return output
 
 
+def _deseq2_median_of_ratios(
+    matrix: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, dict[str, object]]:
+    """Match DESeq2's default ratio size-factor estimator on samples x genes."""
+
+    values = np.asarray(matrix, dtype=np.float64)
+    if values.ndim != 2 or not len(values):
+        raise ValueError("Median-of-ratios normalization requires a nonempty matrix")
+    if not np.isfinite(values).all() or (values < 0).any():
+        raise ValueError("Median-of-ratios normalization requires nonnegative counts")
+    rounded = np.rint(values)
+    fractional = np.abs(values - rounded) > 1e-6
+    eligible = np.all(rounded > 0, axis=0)
+    if not eligible.any():
+        raise ValueError(
+            "DESeq2 ratio normalization has no gene with positive counts in every sample"
+        )
+    log_geometric_means = np.mean(np.log(rounded[:, eligible]), axis=0)
+    ratios = np.exp(np.log(rounded[:, eligible]) - log_geometric_means)
+    size_factors = np.median(ratios, axis=1)
+    if not np.isfinite(size_factors).all() or (size_factors <= 0).any():
+        raise FloatingPointError("DESeq2 median-of-ratios produced invalid size factors")
+    normalized = rounded / size_factors.reshape(-1, 1)
+    audit = {
+        "profiles": int(len(values)),
+        "genes": int(values.shape[1]),
+        "eligible_positive_genes": int(eligible.sum()),
+        "fractional_input_fraction": float(fractional.mean()),
+        "maximum_rounding_distance": float(np.max(np.abs(values - rounded))),
+        "size_factor_minimum": float(size_factors.min()),
+        "size_factor_median": float(np.median(size_factors)),
+        "size_factor_maximum": float(size_factors.max()),
+    }
+    return normalized.astype(np.float32), size_factors.astype(np.float32), audit
+
+
+def _full_transcriptome_median_of_ratios(
+    adata: ad.AnnData,
+    row_indices: np.ndarray,
+    landmark_indices: np.ndarray,
+    groups: Iterable[object],
+) -> tuple[np.ndarray, dict[str, object]]:
+    """Normalize rounded full-transcriptome counts independently by group."""
+
+    full_counts = _dense(adata.X[np.asarray(row_indices, dtype=np.int64)])
+    group_values = np.asarray(list(groups), dtype=str)
+    if len(group_values) != len(full_counts):
+        raise ValueError("Median-of-ratios groups must align to expression rows")
+    normalized = np.empty_like(full_counts, dtype=np.float32)
+    group_audits: dict[str, object] = {}
+    for group in sorted(set(group_values)):
+        mask = group_values == group
+        normalized[mask], _, group_audit = _deseq2_median_of_ratios(
+            full_counts[mask]
+        )
+        group_audits[group] = group_audit
+    landmarks = normalized[:, np.asarray(landmark_indices, dtype=np.int64)]
+    return landmarks.astype(np.float32), {
+        "method": "DESeq2_default_median_of_ratios_compatible",
+        "rounding": "numpy_rint_before_size_factor_estimation",
+        "fit_scope": "all_profiles_within_each_unlabeled_group",
+        "transductive": True,
+        "groups": group_audits,
+    }
+
+
 def _source_identity(path: str | Path) -> dict[str, object]:
     source = Path(path)
     stat = source.stat()
@@ -298,6 +364,42 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         landmark_indices,
         lengths,
     )
+    expression_representation = str(
+        options.get("expression_representation", "full_transcriptome_tpm")
+    )
+    representation_audit: dict[str, object] = {
+        "method": "full_transcriptome_tpm",
+        "transductive": False,
+    }
+    preprocessor_input = tpm
+    if expression_representation == "deseq2_median_of_ratios_by_study":
+        preprocessor_input, representation_audit = (
+            _full_transcriptome_median_of_ratios(
+                adata,
+                source_rows,
+                landmark_indices,
+                rows["study"].astype(str).to_numpy(),
+            )
+        )
+        representation_audit["grouping"] = "study"
+        representation_audit["upstream_reference"] = (
+            "nasa/trrac abcf12d57d68a36a4628f83dec191e2b2a6b778e"
+        )
+    elif expression_representation == "deseq2_median_of_ratios_pooled":
+        preprocessor_input, representation_audit = (
+            _full_transcriptome_median_of_ratios(
+                adata,
+                source_rows,
+                landmark_indices,
+                np.repeat("pooled", len(rows)),
+            )
+        )
+        representation_audit["grouping"] = "pooled"
+    elif expression_representation != "full_transcriptome_tpm":
+        raise ValueError(
+            "Unsupported conditional expression representation: "
+            f"{expression_representation}"
+        )
 
     covariates = tuple(map(str, options["conditioning_covariates"]))
     samples = rows.copy()
@@ -345,10 +447,12 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
             PreprocessingConfig(**spec_options), seed=int(config["run"]["seed"])
         )
         studies = samples["study"].astype(str).to_numpy()
-        scaled = np.empty_like(tpm, dtype=np.float32)
+        scaled = np.empty_like(preprocessor_input, dtype=np.float32)
         train_indices = role_indices["train"]
         scaled[train_indices] = processor.fit_transform(
-            tpm[train_indices], studies[train_indices], metadata=samples.iloc[train_indices]
+            preprocessor_input[train_indices],
+            studies[train_indices],
+            metadata=samples.iloc[train_indices],
         )
         allow_transductive = bool(
             spec_options.get("unseen_study_policy") == "transductive_unlabeled"
@@ -360,12 +464,12 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
             )
             unseen_indices = np.flatnonzero(unseen_mask)
             processor.fit_additional_study_stats(
-                tpm[unseen_indices], studies[unseen_indices]
+                preprocessor_input[unseen_indices], studies[unseen_indices]
             )
         for role in ("validation", "test"):
             indices = role_indices[role]
             scaled[indices] = processor.transform(
-                tpm[indices],
+                preprocessor_input[indices],
                 studies[indices],
                 allow_transductive=allow_transductive,
                 metadata=samples.iloc[indices],
@@ -374,6 +478,7 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         processor.save(preprocessing_dir)
         preprocessing_audit = processor.audit()
         preprocessing_audit["allow_transductive"] = allow_transductive
+        analysis_expression = processor.inverse_transform(scaled, studies)
         scale = np.ones(len(landmark_genes), dtype=np.float32)
         scale_source = "fitted_preprocessor"
     else:
@@ -389,6 +494,7 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
                 scale = np.asarray(handle["maxabs_scale"][:], dtype=np.float32)
         scale[scale == 0] = 1.0
         scaled = (tpm / scale.reshape(1, -1)).astype(np.float32)
+        analysis_expression = tpm.astype(np.float32, copy=False)
     if not np.isfinite(scaled).all():
         raise FloatingPointError("Conditional DDIM prepared matrix is not finite")
 
@@ -400,6 +506,10 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         handle.attrs["preprocessing_dir"] = (
             str(preprocessing_dir) if preprocessing_dir is not None else ""
         )
+        handle.attrs["analysis_units"] = (
+            processor.output_units if custom_preprocessing else "tpm"
+        )
+        handle.attrs["expression_representation"] = expression_representation
         handle.create_dataset(
             "genes",
             data=np.asarray(landmark_genes, dtype=h5py.string_dtype("utf-8")),
@@ -423,6 +533,12 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
             group.create_dataset(
                 "tpm",
                 data=tpm[indices],
+                chunks=(min(256, len(indices)), len(landmark_genes)),
+                compression="lzf",
+            )
+            group.create_dataset(
+                "analysis_expression",
+                data=analysis_expression[indices],
                 chunks=(min(256, len(indices)), len(landmark_genes)),
                 compression="lzf",
             )
@@ -476,22 +592,10 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         "additional_pretraining_classes": additional_classes,
         "conditioning_covariates": list(covariates),
         "maxabs_scale_source": scale_source,
-        "normalization": (
-            "TPM denominator uses every OSDR API gene with a positive GENCODE M39 "
-            "length; the 974 landmarks are selected afterward; the serialized "
-            "fold-aware preprocessor supplies transformation and harmonization."
-            if custom_preprocessing
-            else (
-                "TPM denominator uses every OSDR API gene with a positive GENCODE "
-                "M39 length; the 974 landmarks are selected afterward; MaxAbs "
-                "comes from "
-                + (
-                    "OSDR training accessions only."
-                    if scale_source == "osdr_train"
-                    else "the declared ARCHS4 pretraining partition."
-                )
-            )
-        ),
+        "normalization": str(options["normalization"]),
+        "expression_representation": expression_representation,
+        "expression_representation_audit": representation_audit,
+        "analysis_units": processor.output_units if custom_preprocessing else "tpm",
         "preprocessing": preprocessing_audit,
     }
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -512,6 +616,10 @@ def load_conditional_prepared(path: str | Path) -> dict[str, Any]:
         result["maxabs_scale"] = np.asarray(
             handle["maxabs_scale"][:], dtype=np.float32
         )
+        result["analysis_units"] = str(handle.attrs.get("analysis_units", "tpm"))
+        result["expression_representation"] = str(
+            handle.attrs.get("expression_representation", "full_transcriptome_tpm")
+        )
         preprocessing_dir = str(handle.attrs.get("preprocessing_dir", ""))
         result["preprocessing"] = (
             FittedPreprocessor.load(preprocessing_dir)
@@ -524,6 +632,14 @@ def load_conditional_prepared(path: str | Path) -> dict[str, Any]:
                     handle[f"{role}/expression"][:], dtype=np.float32
                 ),
                 "tpm": np.asarray(handle[f"{role}/tpm"][:], dtype=np.float32),
+                "analysis_expression": np.asarray(
+                    handle[
+                        f"{role}/analysis_expression"
+                        if f"{role}/analysis_expression" in handle
+                        else f"{role}/tpm"
+                    ][:],
+                    dtype=np.float32,
+                ),
                 "class_index": np.asarray(
                     handle[f"{role}/class_index"][:], dtype=np.int64
                 ),

@@ -689,7 +689,9 @@ def evaluate_conditional(
         synthetic_tpm_all = np.maximum(synthetic_tpm_all, 0.0)
     else:
         synthetic_tpm_all = synthetic_all * prepared["maxabs_scale"].reshape(1, -1)
-    real_tpm_all = prepared[split]["tpm"]
+    real_tpm_all = prepared[split].get(
+        "analysis_expression", prepared[split]["tpm"]
+    )
     synthetic_tpm = synthetic_tpm_all[metric_indices]
     real_tpm = real_tpm_all[metric_indices]
     fidelity = generated_quality(real, synthetic, max_pr_samples=len(real))
@@ -925,6 +927,10 @@ def evaluate_conditional(
         "sampling_seconds": float(sampling_seconds),
         "sampling_eta": eta,
         "evaluation_variant": variant,
+        "expression_representation": prepared.get(
+            "expression_representation", "full_transcriptome_tpm"
+        ),
+        "analysis_expression_units": prepared.get("analysis_units", "tpm"),
         "fidelity_transformed": fidelity,
         "heldout_fidelity_transformed": fidelity,
         "paper_train_fidelity_transformed": paper_train_fidelity,
@@ -957,9 +963,13 @@ def evaluate_conditional(
             (synthetic_tpm_all < 0).mean()
         ),
         "inverse_transform_policy": {
-            "audit_matrix": "tpm_unclipped",
-            "downstream_export_matrix": "tpm_nonnegative",
+            "audit_matrix": "analysis_expression_unclipped",
+            "downstream_export_matrix": "analysis_expression_nonnegative",
             "negative_values": "clip_to_zero_after_quality_metrics",
+            "legacy_tpm_key_note": (
+                "NPZ field names retain tpm_* for compatibility; values use "
+                "analysis_expression_units when harmonization is configured."
+            ),
         },
         "plots": {
             "real_vs_synthetic_pca": str(pca_path),

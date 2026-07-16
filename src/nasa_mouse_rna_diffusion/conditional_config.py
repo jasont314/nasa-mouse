@@ -60,6 +60,18 @@ def load_conditional_config(path: str | Path) -> dict[str, Any]:
         )
     if int(data.get("landmark_dimensions", 0)) != 974:
         raise ValueError("The Lacan paper architecture requires 974 landmark genes")
+    expression_representation = str(
+        data.get("expression_representation", "full_transcriptome_tpm")
+    )
+    if expression_representation not in {
+        "full_transcriptome_tpm",
+        "deseq2_median_of_ratios_by_study",
+        "deseq2_median_of_ratios_pooled",
+    }:
+        raise ValueError(
+            "Unsupported conditional DDIM data.expression_representation"
+        )
+    data["expression_representation"] = expression_representation
     regime = payload.get("training", {}).get("regime")
     if regime not in {
         "osdr_only",
@@ -101,5 +113,9 @@ def load_conditional_config(path: str | Path) -> dict[str, Any]:
                 options["harmonization_covariates"]
             )
         PreprocessingConfig(**options)
+    elif expression_representation != "full_transcriptome_tpm":
+        raise ValueError(
+            "DESeq2 median-of-ratios representations require data.preprocessing"
+        )
     payload["_config_path"] = str(config_path.resolve())
     return payload

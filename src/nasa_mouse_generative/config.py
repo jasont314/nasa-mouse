@@ -17,7 +17,7 @@ ALLOWED_TRAINING_REGIMES = {
     "archs4_pretrain_osdr_finetune",
 }
 ALLOWED_TISSUE_MODES = {"pooled_conditioned", "per_tissue"}
-ALLOWED_INPUT_UNITS = {"raw_counts", "cpm", "tpm"}
+ALLOWED_INPUT_UNITS = {"raw_counts", "normalized_counts", "cpm", "tpm"}
 ALLOWED_LIBRARY_NORMALIZATIONS = {"none", "cpm", "tpm"}
 ALLOWED_TRANSFORMS = {"none", "log1p", "log2p1"}
 ALLOWED_SCALERS = {
