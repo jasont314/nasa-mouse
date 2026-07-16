@@ -177,6 +177,7 @@ def paper_distribution_metrics(
     *,
     max_samples: int = 2000,
     neighbors: int | None = None,
+    adversarial_max_samples: int = 2048,
     seed: int = 2026,
 ) -> dict[str, float | int | str]:
     """Evaluate one real/synthetic pair with the paper's unsupervised metrics."""
@@ -201,18 +202,39 @@ def paper_distribution_metrics(
             "frechet_ratio_to_real_split_p95": float("nan"),
         }
     rng = np.random.default_rng(seed)
-    real = real[rng.choice(len(real), count, replace=False)]
-    synthetic = synthetic[rng.choice(len(synthetic), count, replace=False)]
+    if count != len(real) or count != len(synthetic):
+        if len(real) == len(synthetic):
+            indices = rng.choice(len(real), count, replace=False)
+            real = real[indices]
+            synthetic = synthetic[indices]
+        else:
+            real = real[rng.choice(len(real), count, replace=False)]
+            synthetic = synthetic[
+                rng.choice(len(synthetic), count, replace=False)
+            ]
     if neighbors is None:
         neighbors = 10 if real.shape[1] <= 1000 else 50
+    adversarial_count = min(count, int(adversarial_max_samples))
+    if adversarial_count < count:
+        adversarial_indices = rng.choice(
+            count, adversarial_count, replace=False
+        )
+        adversarial_real = real[adversarial_indices]
+        adversarial_synthetic = synthetic[adversarial_indices]
+    else:
+        adversarial_real = real
+        adversarial_synthetic = synthetic
     result: dict[str, float | int | str] = {
         "metric_samples": int(count),
+        "adversarial_metric_samples": int(adversarial_count),
         "genes": int(real.shape[1]),
         "neighbors": int(neighbors),
         "correlation_matrix_agreement": correlation_matrix_agreement(
             real, synthetic
         ),
-        "adversarial_accuracy": adversarial_accuracy(real, synthetic),
+        "adversarial_accuracy": adversarial_accuracy(
+            adversarial_real, adversarial_synthetic
+        ),
     }
     result.update(precision_recall(real, synthetic, neighbors=int(neighbors)))
     result.update(

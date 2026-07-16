@@ -66,4 +66,4 @@ evaluation:
   pca_background_samples: 5000
   quality_samples: 7000
   quality_batch_size: 1024
-  metric_samples: 2000
+  metric_samples: 7000

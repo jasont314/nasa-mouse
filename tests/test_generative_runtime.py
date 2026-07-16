@@ -36,6 +36,7 @@ from nasa_mouse_generative.metrics import (
     conditional_effect_selection,
     fidelity_selection,
 )
+from nasa_mouse_generative.paper_metrics import paper_distribution_metrics
 from nasa_mouse_generative.preprocessing import FittedPreprocessor, ScaleStats
 from nasa_mouse_generative.profiles import resolve_preprocessing_profile
 from nasa_mouse_generative.runner import _claim_run_identity
@@ -51,6 +52,21 @@ from nasa_mouse_generative.training_data import (
 
 
 class RuntimeConfigTests(unittest.TestCase):
+    def test_paper_metrics_only_subsample_adversarial_accuracy(self):
+        rng = np.random.default_rng(31)
+        real = rng.normal(size=(30, 8))
+        synthetic = real + rng.normal(scale=0.05, size=real.shape)
+        metrics = paper_distribution_metrics(
+            real,
+            synthetic,
+            max_samples=30,
+            neighbors=3,
+            adversarial_max_samples=10,
+            seed=4,
+        )
+        self.assertEqual(metrics["metric_samples"], 30)
+        self.assertEqual(metrics["adversarial_metric_samples"], 10)
+
     def test_accession_effect_gate_requires_replicated_effect_recovery(self):
         passing = accession_effect_selection(
             {

@@ -86,10 +86,12 @@ training data, precision/recall are reported in both scaled L974 and PCA-50 spac
 and reverse tissue utility uses a fixed logistic probe. These metrics are labeled as
 mouse equivalents rather than exact human classifier-embedding reproductions.
 
-The paper's unsupervised precision, recall, gene-correlation agreement, and
-nearest-neighbor adversarial accuracy are additionally computed directly in scaled
-L974 space on a fixed 2,000-profile subset. The subset limit keeps the pairwise
-distance calculation tractable and is disclosed in `evaluation/summary.json`.
+The paper's unsupervised precision, recall, and gene-correlation agreement are
+computed directly in scaled L974 space over the configured full quality cohort.
+Nearest-neighbor adversarial accuracy is separately limited to 2,048 profiles,
+matching the released evaluation code. Any older run evaluated with the former
+2,000-profile common cap is identified by `metric_samples` in its summary and must
+be regenerated before a strict paper-protocol comparison.
 
 ## Completed Run
 
