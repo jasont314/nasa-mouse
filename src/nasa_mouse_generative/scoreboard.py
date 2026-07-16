@@ -393,7 +393,7 @@ def run(args: argparse.Namespace) -> Path:
     table = build_scoreboard(args.output_root)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    table.to_csv(output, sep="\t", index=False)
+    table.to_csv(output, sep="\t", index=False, na_rep="NA")
     summary = {
         "runs": int(len(table)),
         "generation_complete": int(

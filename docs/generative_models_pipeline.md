@@ -1,5 +1,8 @@
 # NASA Mouse Generative Model Benchmark
 
+Completed benchmark decisions and final metrics are summarized in
+[`generative_benchmark_results.md`](generative_benchmark_results.md).
+
 ## Objective
 
 The primary objective is realistic synthetic mouse bulk RNA-seq expression. A
@@ -274,6 +277,18 @@ F1. Embedding and UMAP silhouettes were -0.223 and -0.233. The model retained so
 tissue information, but the UMAP did not reproduce the paper's clean cell-type
 clusters. Results and coordinates are under
 `outputs/generative_benchmark/runs/genejepa/archs4_genejepa_tissues_paper_preprocessing_v4/figures/archs4_tissues_validation/`.
+
+The bounded exact-architecture follow-up retained the released 768-wide,
+512-latent, 24-block, 12-head model and processed 43,744 replacement-sampled
+profiles. It completed in 1,074 training seconds with 31.68 GB peak allocated A100
+memory. On the same balanced 5,815-training/971-held-out figure cohort, tissue
+balanced accuracy and macro F1 improved to 0.703 and 0.701, but remained below the
+expression baseline of 0.839 and 0.840. Embedding and UMAP silhouettes remained
+negative at -0.176 and -0.215. The run made 238 optimizer updates, below the
+released 2,000-step EMA warmup and far below the paper's 50-million-profile-exposure
+duration. It is therefore a successful architecture/runtime test but does not pass
+the representation gate for GeneJEPA-guided diffusion. Its outputs are under
+`outputs/generative_benchmark/runs/genejepa/matrix_phase_0_genejepa_exact_mouse_one_epoch_f2e01cf1f130d5cb/`.
 
 The earlier reduced Lacan proxy and its failed 100/500-epoch output directories were
 removed. They changed architecture, optimizer behavior, sampling weights, training

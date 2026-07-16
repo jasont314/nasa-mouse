@@ -88,3 +88,15 @@ not a substitute for the resolved configurations and per-run manifests.
     Future augmentation requires both pooled and accession-aware effect gates. This
     post-screen correction does not change the WGAN decision because fidelity had
     already failed; no additional WGAN seeds or locked-test evaluation are run.
+16. **Stop GeneJEPA guidance after the exact-architecture duration screen.** The
+    768-wide, 512-latent, 24-block model completed 43,744 ARCHS4 exposures in 1,074
+    training seconds on the A100, with 31.68 GB peak allocated memory and finite
+    loss. On the balanced held-out-series figure cohort, its tissue probe reached
+    0.703 balanced accuracy and 0.701 macro F1, improving on the practical model's
+    0.453/0.423 but remaining below expression's 0.839/0.840. Embedding and UMAP
+    silhouettes were -0.176 and -0.215. It therefore fails the predeclared guidance
+    gate. This one-epoch screen made only 238 optimizer updates, below the paper's
+    2,000-step EMA warmup and far below 50 million paper-duration exposures, so the
+    result is a bounded-compute stopping decision rather than evidence against a
+    fully trained GeneJEPA. GeneJEPA still has no expression decoder; no guided-
+    diffusion branch or longer representation run is started.

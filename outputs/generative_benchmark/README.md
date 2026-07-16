@@ -23,3 +23,8 @@ tuning.
 prepared OSDR partitions, resumable checkpoints, final models, embeddings, and
 held-out validation metrics. One-epoch directories with `smoke` in the name validate
 mechanics only and are not biological results.
+
+`scoreboard.tsv` is the reproducible ranked summary of completed runs. The accepted
+broad-tissue model is the exact ARCHS4 ModelDDIM baseline; no OSDR FLT/GC generator
+passed the fixed validation gates. See `docs/generative_benchmark_results.md` for
+the final interpretation and stopping decisions.

@@ -21,6 +21,7 @@ from nasa_mouse_diffusion.evaluate import generated_quality
 from nasa_mouse_generative.effect_validation import compare_real_synthetic_effects
 from nasa_mouse_generative.metrics import (
     _condition_effect,
+    accession_effect_selection,
     classifier_utility,
     conditional_effect_selection,
     fidelity_selection,
@@ -686,6 +687,18 @@ def evaluate_conditional(
         sample_frame["condition"].astype(str).to_numpy(),
     )
     condition_effect_gate = conditional_effect_selection(effect)
+    accession_validation, accession_paths = _write_accession_validation(
+        output,
+        real_tpm=real_tpm_all,
+        synthetic_tpm=synthetic_tpm_all,
+        samples=evaluation_samples.reset_index(drop=True),
+        genes=prepared["genes"],
+        pathway_file="data/pathways/reactome_current_mouse_ensembl.gmt",
+    )
+    accession_effect_gate = accession_effect_selection(
+        accession_validation["gene"]
+    )
+    accession_effect_gate["feature_level"] = "gene"
     per_tissue_fidelity_table = _per_tissue_fidelity(
         real, synthetic, sample_frame
     )
@@ -726,6 +739,7 @@ def evaluate_conditional(
         allow_augmentation=bool(
             selection["eligible_for_model_selection"]
             and condition_effect_gate["passed"]
+            and accession_effect_gate["passed"]
         ),
     )
     synthetic_train_samples = train_samples.iloc[train_indices].reset_index(drop=True)
@@ -739,6 +753,7 @@ def evaluate_conditional(
         allow_augmentation=bool(
             selection["eligible_for_model_selection"]
             and condition_effect_gate["passed"]
+            and accession_effect_gate["passed"]
         ),
     )
     per_tissue_utility_path = output / "per_tissue_flt_gc_classifier_utility.tsv"
@@ -773,14 +788,6 @@ def evaluate_conditional(
         evaluation_samples.reset_index(drop=True),
         prepared["genes"],
         "data/pathways/reactome_current_mouse_ensembl.gmt",
-    )
-    accession_validation, accession_paths = _write_accession_validation(
-        output,
-        real_tpm=real_tpm_all,
-        synthetic_tpm=synthetic_tpm_all,
-        samples=evaluation_samples.reset_index(drop=True),
-        genes=prepared["genes"],
-        pathway_file="data/pathways/reactome_current_mouse_ensembl.gmt",
     )
     gene_effect_path = output / "flt_gc_gene_effect_recovery.tsv.gz"
     pathway_effect_path = output / "flt_gc_pathway_effect_recovery.tsv.gz"
@@ -851,6 +858,7 @@ def evaluate_conditional(
         },
         "flt_gc_effect_recovery": effect,
         "conditional_effect_gate": condition_effect_gate,
+        "accession_effect_gate": accession_effect_gate,
         "flt_gc_classifier_utility": utility,
         "per_tissue_flt_gc_classifier_utility": per_tissue_utility,
         "condition_consistency": condition_consistency,
