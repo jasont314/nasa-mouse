@@ -358,9 +358,19 @@ def train_one(
         )
         stage_runtime[stage] = float(time.time() - stage_started)
         _enforce_storage(config, run_dir, stage=f"after_{stage}")
-    model_path = adapter.save_final()
+    feasibility_only = bool(parameters.get("feasibility_only", False))
+    if feasibility_only:
+        adapter.write_history()
+        adapter.write_adapter_summary()
+        model_path: Path | None = None
+    else:
+        model_path = adapter.save_final()
     validation_path = ""
-    if config.execution.evaluate_after_training and len(data.partitions["validation"]):
+    if (
+        not feasibility_only
+        and config.execution.evaluate_after_training
+        and len(data.partitions["validation"])
+    ):
         validation_path = str(
             evaluate_model(
                 adapter,
@@ -402,6 +412,7 @@ def train_one(
         "regime": config.training.regime,
         "tissue_mode": config.training.tissue_mode,
         "parameters": parameters,
+        "feasibility_only": feasibility_only,
         "genes": len(data.genes),
         "covariates": list(data.covariates),
         "device": adapter.device_summary(),
@@ -418,7 +429,7 @@ def train_one(
         },
         "outputs": {
             "run_dir": str(run_dir),
-            "model": str(model_path),
+            "model": str(model_path) if model_path is not None else "",
             "validation": validation_path,
             "resolved_config": str(run_dir / "resolved_config.yaml"),
         },

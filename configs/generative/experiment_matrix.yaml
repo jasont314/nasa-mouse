@@ -33,6 +33,22 @@ phases:
       study_policy: [not_conditioned]
       seed: [2020]
 
+  - name: phase_0_genejepa_a100_feasibility
+    purpose: Measure whether the exact released GeneJEPA architecture can train on one A100 before scheduling any duration extension.
+    axes:
+      model: [genejepa]
+      model_profile: [paper_architecture_a100_pilot]
+      task: [representation]
+      preprocessing_profile: [model_native]
+      feature_space: [hvg_4096]
+      harmonization: [none]
+      training_regime: [archs4_only]
+      accession_scope: [all_eligible]
+      tissue_mode: [pooled_conditioned]
+      condition_on_flight: [false]
+      study_policy: [not_conditioned]
+      seed: [2020]
+
   - name: phase_0_smoke
     purpose: Verify data flow, conditioning, inverse transforms, and finite generation.
     axes:

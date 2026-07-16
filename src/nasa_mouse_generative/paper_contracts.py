@@ -53,7 +53,11 @@ PAPER_NATIVE_LOCKS: dict[str, dict[str, Any]] = {
         "rmsprop_epsilon": 1e-7,
         "learning_rate": 5e-4,
         "epochs": 2000,
+        "reference_epochs": 2000,
         "weighted_sampling": False,
+        "early_stopping": True,
+        "early_stopping_first_epoch": 1,
+        "early_stopping_evaluate_every_epochs": 5,
     },
     "lacan_diffusion": {
         "batch_size": 2048,
@@ -91,8 +95,12 @@ PAPER_NATIVE_LOCKS: dict[str, dict[str, Any]] = {
         "warmup_ratio": 0.05,
         "scheduler": "cosine",
         "epochs": 50,
+        "reference_epochs": 50,
         "samples_per_epoch": 1000000,
         "num_workers": 8,
+        "weighted_sampling": False,
+        "use_amp": True,
+        "amp_dtype": "bfloat16",
         "d": 768,
         "latents_L": 512,
         "blocks_D": 24,
@@ -148,10 +156,27 @@ def verify_pinned_source(model: str, source_root: str | Path) -> dict[str, Any]:
     }
 
 
-def validate_paper_native_parameters(model: str, parameters: dict[str, Any]) -> None:
+def validate_paper_native_parameters(
+    model: str, parameters: dict[str, Any], profile: str = "paper_native"
+) -> None:
     """Reject a profile labeled paper-native when a locked value was changed."""
 
-    expected = PAPER_NATIVE_LOCKS[model]
+    expected = dict(PAPER_NATIVE_LOCKS[model])
+    if model == "vinas_wgan_gp":
+        if profile == "paper_native":
+            expected.update(
+                {
+                    "early_stopping_variant": "released_code",
+                    "early_stopping_patience_checks": 10,
+                }
+            )
+        elif profile == "paper_native_paper_text":
+            expected.update(
+                {
+                    "early_stopping_variant": "paper_text",
+                    "early_stopping_patience_epochs": 30,
+                }
+            )
     mismatches = {
         key: {"expected": value, "observed": parameters.get(key)}
         for key, value in expected.items()

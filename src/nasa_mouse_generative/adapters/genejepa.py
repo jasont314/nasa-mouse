@@ -276,6 +276,7 @@ class GeneJEPAAdapter(ModelAdapter):
                 seed=self.seed + epoch + 10000 * len(self.state.completed_epochs),
                 num_workers=self.num_workers,
                 num_samples=samples_per_epoch,
+                weighted=bool(self.parameters.get("weighted_sampling", False)),
             )
             losses: list[float] = []
             similarities: list[float] = []
@@ -359,8 +360,12 @@ class GeneJEPAAdapter(ModelAdapter):
                 f"loss={row['loss']:.6f} cosine={row['cosine_loss']:.6f}",
                 flush=True,
             )
-            if epoch % self.checkpoint_every == 0 or epoch == int(epochs):
+            if not bool(self.parameters.get("feasibility_only", False)) and (
+                epoch % self.checkpoint_every == 0 or epoch == int(epochs)
+            ):
                 self._save_checkpoint(stage, optimizer, scheduler, scaler)
+                self.write_history()
+            elif bool(self.parameters.get("feasibility_only", False)):
                 self.write_history()
         self._resume_payload = None
         return [row for row in self.state.history if row.get("stage") == stage]

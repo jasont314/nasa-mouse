@@ -46,6 +46,24 @@ mouse ARCHS4 run uses the manuscript 9,796/2,448/5,000 split. The released code'
 The local A100 run completed in 5,987 seconds; the paper reports approximately 3 h
 7 min for its GTEx training environment.
 
+The OSDR extension uses that same pinned `ModelDDIM`, summed noise objective,
+OneCycle schedule, 15,000-epoch duration, AMP, and EMA. It substitutes the data and
+joint conditioning class only. API-derived raw counts are converted to TPM using all
+48,303 OSDR genes with positive GENCODE M39 lengths before selecting the 974 mouse
+landmarks; MaxAbs is fitted on training accessions only. The default joint classes are
+`tissue` plus `condition`, yielding 48 observed classes without held-out unknowns.
+Study conditioning is not silently enabled because a held-out accession is an unseen
+study class for this upstream joint-class architecture.
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_rna_diffusion prepare-osdr
+PYTHONPATH=src python -m nasa_mouse_rna_diffusion train-osdr
+PYTHONPATH=src python -m nasa_mouse_rna_diffusion evaluate-osdr
+```
+
+Validation uses 12 unseen accessions. The 12-accession test partition remains locked;
+both the configuration and `--unlock-test` must opt in after model selection.
+
 ### GeneJEPA
 
 - Source commit: `a2f4d7218b17f2f52cc5f1cc94420c8ef1ae3265`.

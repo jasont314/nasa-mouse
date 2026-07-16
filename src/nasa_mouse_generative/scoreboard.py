@@ -111,7 +111,12 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
         f1,
         adversarial_score,
     ]
-    composite = float(np.mean(components)) if np.isfinite(components).all() else np.nan
+    legacy_composite = (
+        float(np.mean(components)) if np.isfinite(components).all() else np.nan
+    )
+    selection = quality.get("model_selection", {})
+    composite = selection.get("heldout_fidelity_composite", legacy_composite)
+    eligible = bool(selection.get("eligible_for_model_selection", False))
     return {
         "run_id": summary_path.parent.name,
         "model": "lacan_diffusion",
@@ -127,9 +132,13 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
         "cuda_peak_memory_gb": run.get("cuda_peak_memory_gb", np.nan),
         "generation_status": "complete" if evaluation else "missing",
         "heldout_fidelity_composite": composite,
-        "eligible_for_model_selection": bool(evaluation),
-        "diversity_gate": bool(evaluation),
-        "memorization_gate": bool(evaluation),
+        "eligible_for_model_selection": eligible,
+        "diversity_gate": bool(
+            _nested(selection, "diversity_gate", "passed", default=False)
+        ),
+        "memorization_gate": bool(
+            _nested(selection, "memorization_gate", "passed", default=False)
+        ),
         "gene_mean_correlation": quality.get("gene_mean_correlation", np.nan),
         "gene_std_correlation": quality.get(
             "gene_standard_deviation_correlation", np.nan

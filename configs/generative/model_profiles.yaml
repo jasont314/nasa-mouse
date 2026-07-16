@@ -46,6 +46,28 @@ profiles:
       early_stopping_evaluate_every_epochs: 5
       early_stopping_patience_epochs: 30
       early_stopping_max_genes: 2000
+    paper_architecture_screen:
+      noise_dim: 64
+      numeric_dim: 1
+      hidden_dims: [256, 256]
+      batch_size: 32
+      critic_steps: 5
+      gradient_penalty: 10.0
+      optimizer: rmsprop
+      rmsprop_alpha: 0.9
+      rmsprop_epsilon: 0.0000001
+      learning_rate: 0.0005
+      epochs: 100
+      weighted_sampling: false
+      reference_epochs: 100
+      finetune_epochs: 100
+      finetune_learning_rate: 0.0005
+      early_stopping: true
+      early_stopping_variant: released_code
+      early_stopping_first_epoch: 1
+      early_stopping_evaluate_every_epochs: 5
+      early_stopping_patience_checks: 10
+      early_stopping_max_genes: 2000
     practical_screen:
       noise_dim: 64
       hidden_dims: [256, 256]
@@ -143,6 +165,7 @@ profiles:
       epochs: 50
       samples_per_epoch: 1000000
       num_workers: 8
+      weighted_sampling: false
       reference_epochs: 50
       finetune_epochs: 20
       d: 768
@@ -160,6 +183,39 @@ profiles:
       var_coeff: 25.0
       cov_coeff: 1.0
       note: The paper model cannot generate expression.
+    paper_architecture_a100_pilot:
+      task: representation
+      decoder: null
+      feasibility_only: true
+      batch_size: 1
+      learning_rate: 0.0001
+      weight_decay: 0.0002
+      accumulate_grad_batches: 1
+      warmup_ratio: 0.05
+      scheduler: cosine
+      use_amp: true
+      amp_dtype: bfloat16
+      epochs: 1
+      samples_per_epoch: 2
+      num_workers: 0
+      reference_epochs: 1
+      finetune_epochs: 1
+      d: 768
+      latents_L: 512
+      blocks_D: 24
+      heads_h: 12
+      mask_ratio: 0.45
+      min_context_genes: 512
+      min_target_genes_per_block: 16
+      max_tokens: 4096
+      ema_start_decay: 0.992
+      ema_end_decay: 0.9995
+      ema_warmup_steps: 2000
+      sim_coeff: 1.0
+      var_coeff: 25.0
+      cov_coeff: 1.0
+      weighted_sampling: false
+      note: Exact released architecture with a two-profile A100 feasibility duration; not paper-native training.
     practical_screen:
       task: representation
       decoder: null

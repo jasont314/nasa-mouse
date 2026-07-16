@@ -4,9 +4,16 @@ import tempfile
 from pathlib import Path
 import unittest
 
+import anndata as ad
 import numpy as np
+import pandas as pd
 import torch
 
+from nasa_mouse_rna_diffusion.conditional_config import load_conditional_config
+from nasa_mouse_rna_diffusion.conditional_data import (
+    _full_transcriptome_tpm,
+    _joint_class_labels,
+)
 from nasa_mouse_rna_diffusion.config import load_config
 from nasa_mouse_rna_diffusion.evaluate import (
     _nearest_neighbor_adversarial_accuracy,
@@ -108,6 +115,50 @@ class PaperConfigurationTests(unittest.TestCase):
             path.write_text(text, encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "model.hidden_dims"):
                 load_config(path)
+
+    def test_osdr_extension_retains_exact_model_and_training_contract(self):
+        config = load_conditional_config(
+            "configs/rna_diffusion/osdr_pooled_flt_gc_paper_architecture.yaml"
+        )
+        self.assertEqual(config["model"]["hidden_dims"], [8192, 8192])
+        self.assertEqual(config["training"]["epochs"], 15000)
+        self.assertEqual(
+            config["data"]["conditioning_covariates"], ["tissue", "condition"]
+        )
+
+
+class ConditionalDataTests(unittest.TestCase):
+    def test_tpm_denominator_uses_genes_outside_landmark_panel(self):
+        matrix = np.asarray(
+            [[100.0, 100.0, 0.0], [100.0, 0.0, 900.0]], dtype=np.float32
+        )
+        adata = ad.AnnData(matrix)
+        observed = _full_transcriptome_tpm(
+            adata,
+            np.asarray([0, 1]),
+            np.asarray([0]),
+            np.asarray([1000.0, 2000.0, 1000.0]),
+            chunk_size=1,
+        )
+        np.testing.assert_allclose(
+            observed[:, 0], [100.0 / 150.0 * 1e6, 100.0 / 1000.0 * 1e6]
+        )
+
+    def test_joint_classes_preserve_named_covariates(self):
+        rows = pd.DataFrame(
+            {
+                "tissue": ["liver", "liver"],
+                "condition": ["flight", "ground_control"],
+            }
+        )
+        labels = _joint_class_labels(rows, ("tissue", "condition"))
+        self.assertEqual(
+            labels.tolist(),
+            [
+                "tissue=liver||condition=flight",
+                "tissue=liver||condition=ground_control",
+            ],
+        )
 
 
 class EvaluationMetricTests(unittest.TestCase):

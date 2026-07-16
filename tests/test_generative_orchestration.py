@@ -133,6 +133,19 @@ class PaperContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "paper-native contract"):
             load_model_parameters(changed)
 
+    def test_paper_native_wgan_stopping_cannot_be_disabled(self):
+        base = load_config("configs/generative/default.yaml")
+        changed = replace(
+            base,
+            training=replace(
+                base.training,
+                model_profile="paper_native",
+                model_parameters={"early_stopping": False},
+            ),
+        )
+        with self.assertRaisesRegex(ValueError, "paper-native contract"):
+            load_model_parameters(changed)
+
     def test_all_pinned_source_hashes_verify(self):
         roots = {
             "vinas_wgan_gp": "assets/model_sources/adversarial-gene-expression",

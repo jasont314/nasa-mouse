@@ -23,6 +23,8 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 import torch
 
+from nasa_mouse_generative.metrics import fidelity_selection, memorization_metrics
+
 from .config import load_config
 from .data import load_prepared
 from .upstream import (
@@ -529,9 +531,42 @@ def evaluate(config_path: str | Path) -> Path:
     precision_recall_scaled_expression = _precision_recall(
         real_metric, synthetic_metric, neighbors=10
     )
+    direct_precision = precision_recall_scaled_expression["precision"]
+    direct_recall = precision_recall_scaled_expression["recall"]
+    direct_f1 = (
+        2.0 * direct_precision * direct_recall / (direct_precision + direct_recall)
+        if direct_precision + direct_recall > 0
+        else 0.0
+    )
     real_correlation = np.corrcoef(real_metric, rowvar=False)
     synthetic_correlation = np.corrcoef(synthetic_metric, rowvar=False)
     upper = np.triu_indices_from(real_correlation, k=1)
+    nearest_adversarial = _nearest_neighbor_adversarial_accuracy(
+        real_metric, synthetic_metric
+    )
+    memorization = memorization_metrics(
+        train_expression,
+        quality_final,
+        max_samples=metric_count,
+        seed=seed,
+    )
+    model_selection = fidelity_selection(
+        {
+            "gene_mean_correlation": _correlation(
+                real_metric.mean(axis=0), synthetic_metric.mean(axis=0)
+            ),
+            "gene_std_correlation": _correlation(
+                real_metric.std(axis=0), synthetic_metric.std(axis=0)
+            ),
+            "precision": direct_precision,
+            "recall": direct_recall,
+            "f1": direct_f1,
+            "adversarial_accuracy": nearest_adversarial,
+            "real_global_std": float(real_metric.std()),
+            "fake_global_std": float(synthetic_metric.std()),
+        },
+        memorization,
+    )
     summary = {
         "status": "complete",
         "model": str(model_path),
@@ -569,11 +604,13 @@ def evaluate(config_path: str | Path) -> Path:
         ),
         "precision_recall_in_scaled_l974": precision_recall_scaled_expression,
         "precision_recall_in_train_pca50": precision_recall_pca,
+        "memorization": memorization,
+        "model_selection": model_selection,
         "frechet_distance_in_train_pca50": _frechet(
             real_embedding, synthetic_embedding
         ),
         "nearest_neighbor_adversarial_accuracy_in_scaled_l974": (
-            _nearest_neighbor_adversarial_accuracy(real_metric, synthetic_metric)
+            nearest_adversarial
         ),
         "logistic_adversarial_accuracy_in_scaled_l974": _logistic_adversarial_accuracy(
             real_metric, synthetic_metric, seed

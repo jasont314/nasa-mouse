@@ -64,6 +64,16 @@ def gradient_penalty(model, real, fake, categories, device):
     return ((gradients.norm(2, dim=1) - 1.0) ** 2).mean()
 
 
+def _gradient_norm(parameters):
+    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    squared = torch.zeros((), dtype=torch.float32)
+    for parameter in parameters:
+        if parameter.grad is not None:
+            squared = squared.to(parameter.grad.device)
+            squared = squared + parameter.grad.detach().float().square().sum()
+    return squared.sqrt()
+
+
 def train_epoch(model, loader, *, config: TrainConfig, optim_g, optim_d, device):
     torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
     model.train()
@@ -72,6 +82,8 @@ def train_epoch(model, loader, *, config: TrainConfig, optim_g, optim_d, device)
         "generator_loss": 0.0,
         "wasserstein_estimate": 0.0,
         "gradient_penalty": 0.0,
+        "critic_gradient_norm": 0.0,
+        "generator_gradient_norm": 0.0,
         "batches": 0,
     }
     for real, categories in loader:
@@ -94,6 +106,7 @@ def train_epoch(model, loader, *, config: TrainConfig, optim_g, optim_d, device)
                 + float(config.gradient_penalty) * gp_value
             )
             critic_loss.backward()
+            critic_gradient_norm = _gradient_norm(model.critic.parameters())
             optim_d.step()
             wasserstein = real_score.mean() - fake_score.mean()
 
@@ -102,12 +115,19 @@ def train_epoch(model, loader, *, config: TrainConfig, optim_g, optim_d, device)
         fake = model.generator(noise, categories)
         generator_loss = -model.critic(fake, categories).mean()
         generator_loss.backward()
+        generator_gradient_norm = _gradient_norm(model.generator.parameters())
         optim_g.step()
 
         totals["critic_loss"] += float(critic_loss.detach().cpu())
         totals["generator_loss"] += float(generator_loss.detach().cpu())
         totals["wasserstein_estimate"] += float(wasserstein.detach().cpu())
         totals["gradient_penalty"] += float(gp_value.detach().cpu())
+        totals["critic_gradient_norm"] += float(
+            critic_gradient_norm.detach().cpu()
+        )
+        totals["generator_gradient_norm"] += float(
+            generator_gradient_norm.detach().cpu()
+        )
         totals["batches"] += 1
 
     batches = max(1, totals.pop("batches"))

@@ -48,6 +48,7 @@ def weighted_loader(
     seed: int,
     num_workers: int = 0,
     num_samples: int = 0,
+    weighted: bool = True,
 ):
     expression = torch.as_tensor(partition.matrix, dtype=torch.float32)
     categories = torch.as_tensor(partition.categories, dtype=torch.long)
@@ -55,6 +56,8 @@ def weighted_loader(
     generator = torch.Generator()
     generator.manual_seed(int(seed))
     weights = torch.as_tensor(partition.weights, dtype=torch.double)
+    if not weighted:
+        weights = torch.ones(len(dataset), dtype=torch.double)
     if len(weights) != len(dataset) or not torch.isfinite(weights).all() or weights.sum() <= 0:
         weights = torch.ones(len(dataset), dtype=torch.double)
     sampler = torch.utils.data.WeightedRandomSampler(

@@ -1,10 +1,9 @@
-"""Train the pinned Lacan et al. DDIM on paper-matched ARCHS4 mouse data."""
+"""Train the unmodified upstream ModelDDIM on API-derived OSDR conditions."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
-import random
 import time
 from typing import Any
 
@@ -14,8 +13,14 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 import yaml
 
-from .config import load_config
-from .data import load_prepared, prepare
+from .conditional_config import load_conditional_config
+from .conditional_data import load_conditional_prepared, prepare_conditional
+from .train import (
+    _atomic_torch_save,
+    _checkpoint_payload,
+    _restore_rng,
+    _seed_everything,
+)
 from .upstream import (
     EMA,
     antithetic_timesteps,
@@ -27,67 +32,45 @@ from .upstream import (
 )
 
 
-def _seed_everything(seed: int) -> None:
-    random.seed(int(seed))
-    np.random.seed(int(seed))
-    torch.manual_seed(int(seed))
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(int(seed))
+CHECKPOINT_FORMAT = "nasa_mouse_lacan_conditional_osdr_checkpoint_v1"
+MODEL_FORMAT = "nasa_mouse_lacan_conditional_osdr_model_v1"
 
 
-def _atomic_torch_save(payload: dict[str, Any], path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    torch.save(payload, temporary)
-    temporary.replace(path)
-
-
-def _checkpoint_payload(
+def _checkpoint(
     *,
-    model: torch.nn.Module,
-    optimizer: torch.optim.Optimizer,
-    scheduler: torch.optim.lr_scheduler.LRScheduler,
-    scaler: torch.amp.GradScaler,
-    ema: EMA,
+    model,
+    optimizer,
+    scheduler,
+    scaler,
+    ema,
     epoch: int,
     step: int,
     history: list[dict[str, Any]],
     metadata: dict[str, Any],
-    format_name: str = "nasa_mouse_lacan_paper_parity_checkpoint_v1",
 ) -> dict[str, Any]:
-    return {
-        "format": str(format_name),
-        "model_state_dict": model.state_dict(),
-        "optimizer_state_dict": optimizer.state_dict(),
-        "scheduler_state_dict": scheduler.state_dict(),
-        "scaler_state_dict": scaler.state_dict(),
-        "ema_state_dict": ema.state_dict(),
-        "epoch": int(epoch),
-        "global_step": int(step),
-        "history": history,
-        "torch_rng_state": torch.get_rng_state(),
-        "cuda_rng_state": torch.cuda.get_rng_state_all(),
-        "numpy_rng_state": np.random.get_state(),
-        "python_rng_state": random.getstate(),
-        "metadata": metadata,
-    }
+    return _checkpoint_payload(
+        model=model,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        scaler=scaler,
+        ema=ema,
+        epoch=epoch,
+        step=step,
+        history=history,
+        metadata=metadata,
+        format_name=CHECKPOINT_FORMAT,
+    )
 
 
-def _restore_rng(payload: dict[str, Any]) -> None:
-    torch.set_rng_state(payload["torch_rng_state"].cpu())
-    if torch.cuda.is_available() and payload.get("cuda_rng_state"):
-        torch.cuda.set_rng_state_all(
-            [value.cpu() for value in payload["cuda_rng_state"]]
-        )
-    np.random.set_state(payload["numpy_rng_state"])
-    random.setstate(payload["python_rng_state"])
-
-
-def train(config_path: str | Path, *, restart: bool = False) -> Path:
-    config = load_config(config_path)
+def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path:
+    config = load_conditional_config(config_path)
     run = config["run"]
     training = config["training"]
     model_options = config["model"]
+    if training["regime"] != "osdr_only":
+        raise NotImplementedError(
+            "Use the separate pretrain/fine-tune command for the ARCHS4 regime"
+        )
     output = Path(run["output_dir"])
     output.mkdir(parents=True, exist_ok=True)
     checkpoint_path = output / "checkpoints/latest.pt"
@@ -95,8 +78,8 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
         checkpoint_path.unlink()
 
     source_manifest = verify_source(run["source_root"])
-    prepared_path = prepare(config_path)
-    prepared = load_prepared(prepared_path)
+    prepared_path = prepare_conditional(config_path)
+    prepared = load_conditional_prepared(prepared_path)
     train_expression = torch.from_numpy(prepared["train"]["expression"])
     train_class = torch.from_numpy(prepared["train"]["class_index"])
     train_labels = torch.nn.functional.one_hot(
@@ -105,21 +88,22 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
     dataset = TensorDataset(train_expression, train_labels)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if device.type != "cuda":
-        raise RuntimeError("The paper-parity 228M-parameter DDIM requires a CUDA GPU")
+        raise RuntimeError("The 228M-parameter upstream ModelDDIM requires CUDA")
 
     seed = int(run["seed"])
     _seed_everything(seed)
     torch.backends.cudnn.benchmark = True
-    loader = DataLoader(
-        dataset,
-        batch_size=int(training["batch_size"]),
-        shuffle=True,
-        num_workers=int(training["num_workers"]),
-        pin_memory=True,
-        prefetch_factor=2,
-        persistent_workers=int(training["num_workers"]) > 0,
-        drop_last=False,
-    )
+    workers = int(training["num_workers"])
+    loader_options: dict[str, Any] = {
+        "batch_size": int(training["batch_size"]),
+        "shuffle": True,
+        "num_workers": workers,
+        "pin_memory": True,
+        "drop_last": False,
+    }
+    if workers:
+        loader_options.update(prefetch_factor=2, persistent_workers=True)
+    loader = DataLoader(dataset, **loader_options)
     namespace = model_config(
         expression_dim=len(prepared["genes"]),
         num_classes=len(prepared["classes"]),
@@ -138,6 +122,8 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
     )
     total_steps = len(loader) * int(training["epochs"])
     peak_step = int(training["one_cycle_peak_step"])
+    if peak_step >= total_steps:
+        raise ValueError("OneCycle peak step must occur before the final optimizer step")
     scheduler = torch.optim.lr_scheduler.OneCycleLR(
         optimizer,
         max_lr=float(training["learning_rate"]),
@@ -157,14 +143,20 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
         "config": str(Path(config_path).resolve()),
         "source": source_manifest,
         "prepared_data": str(Path(prepared_path).resolve()),
+        "prepared_data_sha256": json.loads(
+            Path(prepared_path).with_suffix(".manifest.json").read_text(encoding="utf-8")
+        )["prepared_h5_sha256"],
         "genes": prepared["genes"],
         "classes": prepared["classes"],
+        "conditioning_covariates": prepared["conditioning_covariates"],
         "parameter_count": int(parameter_count),
         "device": torch.cuda.get_device_name(device),
         "torch_version": str(torch.__version__),
         "batches_per_epoch": len(loader),
         "total_optimizer_steps": total_steps,
         "one_cycle_peak_step": peak_step,
+        "regime": "osdr_only",
+        "extension_label": "unmodified_ModelDDIM_NASA_OSDR_condition_extension",
         "implementation_contract": {
             "upstream_model_class": True,
             "upstream_noise_objective": True,
@@ -172,6 +164,8 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
             "parameter_only_ema": True,
             "weighted_sampling": False,
             "gradient_clipping": False,
+            "full_transcriptome_tpm_before_landmarks": True,
+            "accession_grouped_split": True,
         },
     }
     resolved = dict(config)
@@ -188,10 +182,10 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
         payload = torch.load(
             checkpoint_path, map_location=device, weights_only=False
         )
-        if payload.get("format") != "nasa_mouse_lacan_paper_parity_checkpoint_v1":
+        if payload.get("format") != CHECKPOINT_FORMAT:
             raise ValueError(f"Incompatible checkpoint: {checkpoint_path}")
         observed = payload.get("metadata", {})
-        for key in ("genes", "classes", "parameter_count"):
+        for key in ("genes", "classes", "parameter_count", "prepared_data_sha256"):
             if observed.get(key) != metadata.get(key):
                 raise ValueError(f"Checkpoint {key} differs from this run")
         model.load_state_dict(payload["model_state_dict"])
@@ -204,17 +198,18 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
         history = list(payload.get("history", []))
         _restore_rng(payload)
         print(
-            f"[rna-diffusion:train] resumed epoch={start_epoch} step={global_step}",
+            f"[conditional-ddim:train] resumed epoch={start_epoch} step={global_step}",
             flush=True,
         )
 
     print(
-        f"[rna-diffusion:train] device={metadata['device']} params={parameter_count:,} "
-        f"profiles={len(dataset):,} batches={len(loader)} epochs={training['epochs']}",
+        f"[conditional-ddim:train] device={metadata['device']} params={parameter_count:,} "
+        f"profiles={len(dataset):,} classes={len(prepared['classes'])} "
+        f"batches={len(loader)} epochs={training['epochs']}",
         flush=True,
     )
+    torch.cuda.reset_peak_memory_stats(device)
     started = time.time()
-    epoch_started = started
     completed_epoch = start_epoch
     try:
         for epoch_index in range(start_epoch, int(training["epochs"])):
@@ -268,18 +263,19 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
             if completed_epoch == 1 or completed_epoch % log_every == 0:
                 elapsed = time.time() - started
                 rate = (completed_epoch - start_epoch) / max(elapsed, 1e-8)
-                remaining = (int(training["epochs"]) - completed_epoch) / max(rate, 1e-8)
+                remaining = (int(training["epochs"]) - completed_epoch) / max(
+                    rate, 1e-8
+                )
                 print(
-                    f"[rna-diffusion:train] epoch={completed_epoch}/{training['epochs']} "
-                    f"step={global_step}/{total_steps} loss={row['loss']:.6f} "
+                    f"[conditional-ddim:train] epoch={completed_epoch}/"
+                    f"{training['epochs']} loss={row['loss']:.6f} "
                     f"mae={row['noise_absolute_error']:.6f} "
                     f"lr={row['learning_rate']:.8g} eta_hours={remaining / 3600:.2f}",
                     flush=True,
                 )
-            checkpoint_every = int(training["checkpoint_every_epochs"])
-            if completed_epoch % checkpoint_every == 0:
+            if completed_epoch % int(training["checkpoint_every_epochs"]) == 0:
                 _atomic_torch_save(
-                    _checkpoint_payload(
+                    _checkpoint(
                         model=model,
                         optimizer=optimizer,
                         scheduler=scheduler,
@@ -295,14 +291,10 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
                 pd.DataFrame(history).to_csv(
                     output / "training_history.tsv", sep="\t", index=False
                 )
-                print(
-                    f"[rna-diffusion:train] checkpoint epoch={completed_epoch}",
-                    flush=True,
-                )
     except BaseException:
         if completed_epoch > start_epoch:
             _atomic_torch_save(
-                _checkpoint_payload(
+                _checkpoint(
                     model=model,
                     optimizer=optimizer,
                     scheduler=scheduler,
@@ -320,24 +312,10 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
             )
         raise
 
-    _atomic_torch_save(
-        _checkpoint_payload(
-            model=model,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            scaler=scaler,
-            ema=ema,
-            epoch=completed_epoch,
-            step=global_step,
-            history=history,
-            metadata=metadata,
-        ),
-        checkpoint_path,
-    )
     final_path = output / "model.pt"
     _atomic_torch_save(
         {
-            "format": "nasa_mouse_lacan_paper_parity_model_v1",
+            "format": MODEL_FORMAT,
             "model_state_dict": model.state_dict(),
             "ema_state_dict": ema.state_dict(),
             "metadata": metadata,
@@ -349,35 +327,45 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
     pd.DataFrame(history).to_csv(
         output / "training_history.tsv", sep="\t", index=False
     )
+    if not bool(training.get("retain_training_checkpoint", False)):
+        checkpoint_path.unlink(missing_ok=True)
+        checkpoint_path.parent.rmdir()
     summary = {
         "status": "complete",
-        "model": "Lacan et al. upstream ModelDDIM",
+        "model": "Lacan et al. upstream ModelDDIM OSDR condition extension",
         "source": source_manifest,
         "run_dir": str(output),
         "model_path": str(final_path),
-        "checkpoint_path": str(checkpoint_path),
         "prepared_data": str(prepared_path),
         "device": metadata["device"],
         "parameter_count": parameter_count,
         "classes": prepared["classes"],
-        "profiles": {role: len(prepared[role]["expression"]) for role in ("train", "validation", "test")},
+        "conditioning_covariates": prepared["conditioning_covariates"],
+        "profiles": {
+            role: len(prepared[role]["expression"])
+            for role in ("train", "validation", "test")
+        },
         "epochs": completed_epoch,
         "global_steps": global_step,
         "training_seconds_this_invocation": float(time.time() - started),
         "final_loss": history[-1]["loss"],
         "final_noise_absolute_error": history[-1]["noise_absolute_error"],
-        "cuda_peak_memory_gb": history[-1]["cuda_peak_memory_gb"],
+        "cuda_peak_memory_gb": float(
+            torch.cuda.max_memory_allocated(device) / 1024**3
+        ),
+        "training_checkpoint_retained": bool(
+            training.get("retain_training_checkpoint", False)
+        ),
     }
     (output / "run_summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"
     )
     (output / "README.md").write_text(
-        "# ARCHS4 Mouse Paper-Parity DDIM\n\n"
-        "This run uses the pinned, unmodified Lacan et al. `ModelDDIM` architecture "
-        "with the retained GTEx hyperparameters. The substituted data are 17,244 "
-        "healthy-preferred mouse ARCHS4 bulk profiles represented by a deterministic "
-        "974-gene mouse landmark panel.\n\n"
-        "See `run_summary.json`, `resolved_config.yaml`, and `training_history.tsv`.\n",
+        "# OSDR Conditional Upstream ModelDDIM\n\n"
+        "This NASA extension retains the pinned Lacan et al. ModelDDIM architecture, "
+        "loss, optimizer, schedule, and 15,000-epoch duration. The substituted data "
+        "are API-derived mouse OSDR profiles conditioned jointly on tissue and "
+        "flight/ground-control state. It is not a reproduction of the GTEx cohort.\n",
         encoding="utf-8",
     )
     print(json.dumps(summary, indent=2), flush=True)
