@@ -289,6 +289,27 @@ class EffectValidationTests(unittest.TestCase):
             summary["status"], "insufficient_accessions_with_both_conditions"
         )
 
+    def test_effect_validation_handles_one_evaluable_accession(self):
+        samples = pd.DataFrame(
+            {
+                "accession": ["OSD-1"] * 4,
+                "tissue": ["liver"] * 4,
+                "condition": [
+                    "flight",
+                    "flight",
+                    "ground_control",
+                    "ground_control",
+                ],
+            }
+        )
+        expression = np.asarray([[2.0], [2.2], [1.0], [1.1]])
+        tables, summary = compare_real_synthetic_effects(
+            expression, expression * 0.9, samples, ["gene"]
+        )
+        self.assertEqual(summary["accessions"], 1)
+        self.assertTrue(tables["real_leave_one_out"].empty)
+        self.assertEqual(summary["real_loo_stable_fdr_lt_005"], 0)
+
 
 class OsdrExpressionTests(unittest.TestCase):
     def test_technical_replicate_counts_are_summed(self):

@@ -240,11 +240,23 @@ def compare_real_synthetic_effects(
     comparison["direction_agrees"] = np.sign(
         comparison["real_meta_effect"]
     ).eq(np.sign(comparison["synthetic_meta_effect"]))
-    real_stability = real_loo_summary.add_prefix("real_").rename(
-        columns={"real_feature": "feature"}
-    )
-    synthetic_stability = synthetic_loo_summary.add_prefix("synthetic_").rename(
-        columns={"synthetic_feature": "feature"}
+    stability_columns = [
+        "feature",
+        "n_leave_one_out",
+        "n_same_direction",
+        "minimum_leave_one_out_fdr",
+        "maximum_leave_one_out_fdr",
+    ]
+
+    def prefixed_stability(frame: pd.DataFrame, prefix: str) -> pd.DataFrame:
+        normalized = frame.reindex(columns=stability_columns)
+        return normalized.add_prefix(f"{prefix}_").rename(
+            columns={f"{prefix}_feature": "feature"}
+        )
+
+    real_stability = prefixed_stability(real_loo_summary, "real")
+    synthetic_stability = prefixed_stability(
+        synthetic_loo_summary, "synthetic"
     )
     stability = real_stability.merge(
         synthetic_stability, on="feature", how="outer"
