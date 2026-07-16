@@ -10,6 +10,7 @@ from .train import train
 from .conditional_data import prepare_conditional
 from .conditional_evaluate import evaluate_conditional
 from .conditional_train import train_conditional
+from .real_effect_ceiling import run_ceiling
 
 
 def parse_args() -> argparse.Namespace:
@@ -63,6 +64,16 @@ def parse_args() -> argparse.Namespace:
         default="",
         help="Write evaluation to a named validation/test variant directory",
     )
+    ceiling = subparsers.add_parser(
+        "real-ceiling", help="Measure real cross-accession FLT/GC reproducibility"
+    )
+    ceiling.add_argument("--prepared-h5", required=True)
+    ceiling.add_argument("--samples-tsv", required=True)
+    ceiling.add_argument("--output-dir", required=True)
+    ceiling.add_argument("--roles", nargs="+", default=["train"])
+    ceiling.add_argument("--transform", choices=("log1p", "none"), default="log1p")
+    ceiling.add_argument("--permutation-repeats", type=int, default=100)
+    ceiling.add_argument("--seed", type=int, default=1234)
     return parser.parse_args()
 
 
@@ -84,6 +95,16 @@ def main() -> None:
             unlock_test=args.unlock_test,
             eta_override=args.eta,
             evaluation_variant=args.evaluation_variant,
+        )
+    elif args.command == "real-ceiling":
+        run_ceiling(
+            args.prepared_h5,
+            args.samples_tsv,
+            args.output_dir,
+            roles=args.roles,
+            transform=args.transform,
+            permutation_repeats=args.permutation_repeats,
+            seed=args.seed,
         )
 
 

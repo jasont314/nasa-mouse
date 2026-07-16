@@ -43,6 +43,10 @@ from nasa_mouse_rna_diffusion.upstream import (
     upstream_model_class,
     verify_source,
 )
+from nasa_mouse_rna_diffusion.real_effect_ceiling import (
+    analyze_tissue,
+    load_development_expression,
+)
 
 
 SMALL_MODEL = {
@@ -201,7 +205,6 @@ class ConditionalDataTests(unittest.TestCase):
         self.assertEqual(
             audit["accessions_by_role"]["validation"], ["val-a", "val-b"]
         )
-
     def test_targeted_archs4_selection_obeys_tissue_quotas(self):
         metadata = pd.DataFrame(
             {
@@ -416,6 +419,45 @@ class ConditionalDataTests(unittest.TestCase):
             FakeScaler(32768.0, 32768.0), object()
         )
         self.assertTrue(succeeded)
+
+
+class RealEffectCeilingTests(unittest.TestCase):
+    def test_coherent_cross_accession_effect_has_high_ceiling(self):
+        rng = np.random.default_rng(7)
+        rows = []
+        expression = []
+        effect = np.linspace(-1.5, 1.5, 24)
+        for accession_index in range(4):
+            offset = rng.normal(0.0, 0.4, len(effect))
+            for condition in ("ground_control", "flight"):
+                for _ in range(6):
+                    rows.append(
+                        {
+                            "tissue": "skeletal_muscle",
+                            "accession": f"OSD-{accession_index}",
+                            "condition": condition,
+                        }
+                    )
+                    expression.append(
+                        offset
+                        + (effect if condition == "flight" else 0.0)
+                        + rng.normal(0.0, 0.08, len(effect))
+                    )
+        summary, detail = analyze_tissue(
+            np.asarray(expression),
+            pd.DataFrame(rows),
+            tissue="skeletal_muscle",
+            permutation_repeats=20,
+            seed=3,
+        )
+        self.assertEqual(summary["eligible_accessions"], 4)
+        self.assertGreater(summary["loo_effect_correlation_median"], 0.9)
+        self.assertGreater(summary["loo_balanced_accuracy_median"], 0.9)
+        self.assertEqual(len(detail), 4)
+
+    def test_loader_rejects_locked_test(self):
+        with self.assertRaisesRegex(ValueError, "locked test"):
+            load_development_expression("unused.h5", "unused.tsv", roles=["test"])
 
 
 class EvaluationMetricTests(unittest.TestCase):
