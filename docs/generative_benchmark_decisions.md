@@ -78,3 +78,13 @@ not a substitute for the resolved configurations and per-run manifests.
     43,744-exposure replacement-sampled epoch as a duration screen. Guidance is
     considered only if its representation exceeds both baselines; otherwise the
     estimated 20-GPU-day paper-duration run and guided-diffusion branch are stopped.
+15. **Reject ARCHS4-pretrained WGAN transfer and strengthen the condition gate.**
+    After 100 ARCHS4 epochs and 66 OSDR fine-tuning epochs, the model has composite
+    0.437, mean/SD correlations 0.894/0.784, precision/recall F1 0.071, and nearest-
+    neighbor two-sample accuracy 1.000. Its pooled FLT/GC delta correlation of 0.805
+    is misleading: the accession-aware meta-effect correlation is -0.022 and zero
+    of nine held-out tissues passes the same correlation/direction thresholds.
+    Pooled conditional recovery can therefore reflect tissue/accession composition.
+    Future augmentation requires both pooled and accession-aware effect gates. This
+    post-screen correction does not change the WGAN decision because fidelity had
+    already failed; no additional WGAN seeds or locked-test evaluation are run.

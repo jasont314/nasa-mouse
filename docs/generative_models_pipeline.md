@@ -441,6 +441,13 @@ Training automatically evaluates held-out validation accessions. Representation
 metrics neutralize the supplied condition token before FLT/GC classification so the
 model cannot score by reading its conditioning label. The final test remains locked:
 
+Generator promotion requires fidelity, diversity, and memorization gates plus two
+condition checks: pooled FLT/GC delta recovery and accession-aware random-effects
+recovery. The accession gate requires at least two eligible accessions, meta-effect
+correlation of at least 0.30, and direction agreement of at least 0.55. Augmentation
+is not evaluated before all gates pass. Per-tissue fidelity and FLT/GC recovery are
+saved beside the global summary to expose composition-confounded pooled scores.
+
 ```bash
 PYTHONPATH=src python -m nasa_mouse_generative evaluate \
   --run-dir outputs/generative_benchmark/runs/vinas_wgan_gp/RUN_ID \

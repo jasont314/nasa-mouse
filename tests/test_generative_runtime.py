@@ -32,6 +32,7 @@ from nasa_mouse_generative.evaluate import (
 )
 from nasa_mouse_generative.harmonizers import CombatHarmonizer, CombatSeqHarmonizer
 from nasa_mouse_generative.metrics import (
+    accession_effect_selection,
     conditional_effect_selection,
     fidelity_selection,
 )
@@ -50,6 +51,24 @@ from nasa_mouse_generative.training_data import (
 
 
 class RuntimeConfigTests(unittest.TestCase):
+    def test_accession_effect_gate_requires_replicated_effect_recovery(self):
+        passing = accession_effect_selection(
+            {
+                "accessions": 4,
+                "meta_effect_correlation": 0.7,
+                "meta_direction_agreement": 0.8,
+            }
+        )
+        confounded = accession_effect_selection(
+            {
+                "accessions": 12,
+                "meta_effect_correlation": -0.02,
+                "meta_direction_agreement": 0.55,
+            }
+        )
+        self.assertTrue(passing["passed"])
+        self.assertFalse(confounded["passed"])
+
     def test_scoreboard_summarizes_worst_tissue_without_changing_global_gate(self):
         result = _per_tissue_diagnostics(
             [

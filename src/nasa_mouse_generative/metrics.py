@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import balanced_accuracy_score, roc_auc_score
+from sklearn.metrics import recall_score, roc_auc_score
 from sklearn.neighbors import NearestNeighbors
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -68,6 +68,35 @@ def conditional_effect_selection(effect: dict[str, float]) -> dict[str, object]:
     return {"passed": passed, "observed": observed, "minimums": minimums}
 
 
+def accession_effect_selection(effect: dict[str, object]) -> dict[str, object]:
+    """Require FLT/GC recovery to replicate across held-out accessions."""
+
+    minimums = {
+        "accessions": 2,
+        "meta_effect_correlation": 0.30,
+        "meta_direction_agreement": 0.55,
+    }
+    observed = {
+        "accessions": int(effect.get("accessions", 0)),
+        "meta_effect_correlation": float(
+            effect.get("meta_effect_correlation", float("nan"))
+        ),
+        "meta_direction_agreement": float(
+            effect.get("meta_direction_agreement", float("nan"))
+        ),
+    }
+    passed = bool(
+        observed["accessions"] >= minimums["accessions"]
+        and np.isfinite(observed["meta_effect_correlation"])
+        and observed["meta_effect_correlation"]
+        >= minimums["meta_effect_correlation"]
+        and np.isfinite(observed["meta_direction_agreement"])
+        and observed["meta_direction_agreement"]
+        >= minimums["meta_direction_agreement"]
+    )
+    return {"passed": passed, "observed": observed, "minimums": minimums}
+
+
 def _classifier() -> Any:
     return make_pipeline(
         StandardScaler(),
@@ -77,8 +106,18 @@ def _classifier() -> Any:
 
 def _score_classifier(model, matrix: np.ndarray, labels: np.ndarray) -> dict[str, float]:
     prediction = model.predict(matrix)
+    # Balanced accuracy is macro recall. Grouped folds can omit rare tissues,
+    # so average over classes represented in this held-out partition.
     result = {
-        "balanced_accuracy": float(balanced_accuracy_score(labels, prediction))
+        "balanced_accuracy": float(
+            recall_score(
+                labels,
+                prediction,
+                labels=np.unique(labels),
+                average="macro",
+                zero_division=0,
+            )
+        )
     }
     if len(np.unique(labels)) == 2 and hasattr(model, "predict_proba"):
         probability = model.predict_proba(matrix)
@@ -843,6 +882,7 @@ def evaluate_model(
         )
         selection = fidelity_selection(fidelity, memorization)
         condition_effect_gate = conditional_effect_selection(effect)
+        accession_effect_gate = accession_effect_selection(accession_validation)
         utility_by_ratio: dict[str, object] = {}
         generation_audit: dict[str, object] = {}
         for ratio_index, ratio in enumerate(synthetic_to_real_ratios):
@@ -868,6 +908,7 @@ def evaluate_model(
                 allow_augmentation=bool(
                     selection["eligible_for_model_selection"]
                     and condition_effect_gate["passed"]
+                    and accession_effect_gate["passed"]
                 ),
             )
         generation_plots = _plot_generation(
@@ -884,6 +925,7 @@ def evaluate_model(
             "flt_gc_effect_recovery": effect,
             "conditional_effect_gate": condition_effect_gate,
             "accession_effect_validation": accession_validation,
+            "accession_effect_gate": accession_effect_gate,
             "per_tissue_generation": per_tissue.to_dict(orient="records"),
             "memorization": memorization,
             "model_selection": selection,

@@ -83,6 +83,7 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
         )
     effect = generation.get("flt_gc_effect_recovery", {})
     condition_effect_gate = generation.get("conditional_effect_gate", {})
+    accession_effect_gate = generation.get("accession_effect_gate", {})
     utilities = generation.get("expression_flt_gc_utility_by_ratio", {})
     ratio_one = utilities.get("ratio_1", {})
     augmented = ratio_one.get("real_plus_synthetic_train_real_evaluation", {})
@@ -128,9 +129,11 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
             selection, "fidelity_gate", "passed", default=False
         ),
         "conditional_effect_gate": condition_effect_gate.get("passed", False),
+        "accession_effect_gate": accession_effect_gate.get("passed", False),
         "eligible_for_conditional_generation": bool(
             selection.get("eligible_for_model_selection", False)
             and condition_effect_gate.get("passed", False)
+            and accession_effect_gate.get("passed", False)
         ),
         "diversity_gate": _nested(selection, "diversity_gate", "passed", default=False),
         "memorization_gate": _nested(
@@ -241,6 +244,7 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
             _nested(selection, "fidelity_gate", "passed", default=eligible)
         ),
         "conditional_effect_gate": False,
+        "accession_effect_gate": False,
         "eligible_for_conditional_generation": False,
         "diversity_gate": bool(
             _nested(selection, "diversity_gate", "passed", default=False)
@@ -282,6 +286,7 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
     selection = evaluation.get("model_selection", {})
     utility = evaluation.get("flt_gc_classifier_utility", {})
     condition_effect_gate = evaluation.get("conditional_effect_gate", {})
+    accession_effect_gate = evaluation.get("accession_effect_gate", {})
     real_utility = utility.get("real_train_real_evaluation", {})
     augmented_utility = utility.get(
         "real_plus_synthetic_train_real_evaluation", {}
@@ -323,9 +328,11 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
             selection, "fidelity_gate", "passed", default=False
         ),
         "conditional_effect_gate": condition_effect_gate.get("passed", False),
+        "accession_effect_gate": accession_effect_gate.get("passed", False),
         "eligible_for_conditional_generation": bool(
             selection.get("eligible_for_model_selection", False)
             and condition_effect_gate.get("passed", False)
+            and accession_effect_gate.get("passed", False)
         ),
         "diversity_gate": _nested(
             selection, "diversity_gate", "passed", default=False

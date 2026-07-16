@@ -18,6 +18,7 @@ from nasa_mouse_generative.matrix_runner import (
     config_for_row,
 )
 from nasa_mouse_generative.metrics import (
+    _score_classifier,
     _synthetic_training_profiles,
     classifier_utility,
 )
@@ -293,6 +294,18 @@ class MatrixResolutionTests(unittest.TestCase):
 
 
 class GenerationParameterTests(unittest.TestCase):
+    def test_balanced_accuracy_averages_only_heldout_classes(self):
+        class FixedModel:
+            def predict(self, matrix):
+                return np.asarray(["liver", "training_only", "skin", "skin"])
+
+        result = _score_classifier(
+            FixedModel(),
+            np.zeros((4, 2)),
+            np.asarray(["liver", "liver", "skin", "skin"]),
+        )
+        self.assertAlmostEqual(result["balanced_accuracy"], 0.75)
+
     def test_ratio_and_per_profile_cap_control_generated_count(self):
         categories = np.asarray([[0], [0], [1], [1], [2], [2], [3], [3], [0], [1]])
         labels = np.asarray(["flight"] * 4 + ["ground_control"] * 4 + ["flight"] * 2)
