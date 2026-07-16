@@ -82,7 +82,7 @@ phases:
       seed: [2020]
 
   - name: phase_0_genejepa_exact_mouse_one_epoch
-    purpose: Evaluate one complete ARCHS4 pass with the exact released GeneJEPA architecture before considering a longer representation run or guidance.
+    purpose: Evaluate one ARCHS4-training-partition-sized replacement-sampled epoch with the exact released GeneJEPA architecture before considering a longer representation run or guidance.
     axes:
       model: [genejepa]
       model_profile: [paper_architecture_mouse_1epoch]

@@ -247,7 +247,7 @@ profiles:
       sim_coeff: 1.0
       var_coeff: 25.0
       cov_coeff: 1.0
-      note: Exact released architecture with one full selected-mouse-reference pass; this is a declared duration adaptation, not paper-native training.
+      note: Exact released architecture with 43,744 replacement-sampled mouse-reference exposures; this is a declared duration adaptation, not paper-native training.
     practical_screen:
       task: representation
       decoder: null

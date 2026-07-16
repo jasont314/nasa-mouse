@@ -72,3 +72,9 @@ not a substitute for the resolved configurations and per-run manifests.
     pooled condition-effect gate but fail fidelity, chiefly because two-sample
     accuracy is 1.000/0.998 and precision/recall F1 is 0.250/0.238. Only the stronger
     CPM branch proceeds to a 100-reference/100-fine-tune-epoch ARCHS4 transfer screen.
+14. **Gate GeneJEPA guidance with grouped tissue prediction.** The practical mouse
+    adaptation reached held-out-series tissue balanced accuracy 0.453, versus 0.839
+    from the same preprocessed expression. The exact architecture receives one
+    43,744-exposure replacement-sampled epoch as a duration screen. Guidance is
+    considered only if its representation exceeds both baselines; otherwise the
+    estimated 20-GPU-day paper-duration run and guided-diffusion branch are stopped.

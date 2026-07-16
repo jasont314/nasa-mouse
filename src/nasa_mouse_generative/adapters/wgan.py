@@ -262,6 +262,9 @@ class WGANAdapter(ModelAdapter):
             stage, {"best_score": float("-inf"), "checks_without_improvement": 0}
         )
         patience_checks = self._early_stopping_checks() if early_stopping else 0
+        progress_every = max(
+            1, int(self.parameters.get("progress_every_epochs", 10))
+        )
         best_path = self.checkpoint_dir / f"best_{stage}.pt"
         for epoch in range(completed + 1, int(epochs) + 1):
             if bool(self.parameters.get("weighted_sampling", True)):
@@ -294,6 +297,19 @@ class WGANAdapter(ModelAdapter):
             }
             self.state.history.append(row)
             self.state.completed_epochs[stage] = epoch
+            if (
+                epoch == completed + 1
+                or epoch % progress_every == 0
+                or epoch == int(epochs)
+            ):
+                print(
+                    f"[wgan] stage={stage} epoch={epoch}/{epochs} "
+                    f"critic={float(metrics['critic_loss']):.6f} "
+                    f"generator={float(metrics['generator_loss']):.6f} "
+                    f"wasserstein={float(metrics['wasserstein_estimate']):.6f} "
+                    f"gradient_penalty={float(metrics['gradient_penalty']):.6f}",
+                    flush=True,
+                )
             should_stop = False
             if early_stopping and monitor_compatible and self._is_monitor_epoch(epoch):
                 score = self._monitor_score()
