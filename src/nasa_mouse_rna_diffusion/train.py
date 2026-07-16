@@ -372,11 +372,13 @@ def train(config_path: str | Path, *, restart: bool = False) -> Path:
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"
     )
     (output / "README.md").write_text(
-        "# ARCHS4 Mouse Paper-Parity DDIM\n\n"
+        "# ARCHS4 Mouse DDIM Reference\n\n"
         "This run uses the pinned, unmodified Lacan et al. `ModelDDIM` architecture "
-        "with the retained GTEx hyperparameters. The substituted data are 17,244 "
+        "with the retained GTEx hyperparameters. The substituted data are "
+        f"{sum(len(prepared[role]['expression']) for role in ('train', 'validation', 'test')):,} "
         "healthy-preferred mouse ARCHS4 bulk profiles represented by a deterministic "
-        "974-gene mouse landmark panel.\n\n"
+        "974-gene mouse landmark panel. The exact cohort and split are recorded in "
+        "the prepared-data manifest.\n\n"
         "See `run_summary.json`, `resolved_config.yaml`, and `training_history.tsv`.\n",
         encoding="utf-8",
     )

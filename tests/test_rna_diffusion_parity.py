@@ -24,6 +24,10 @@ from nasa_mouse_rna_diffusion.conditional_train import (
     _scaled_optimizer_step,
 )
 from nasa_mouse_rna_diffusion.config import load_config
+from nasa_mouse_rna_diffusion.data import (
+    _group_split_indices,
+    _targeted_candidates,
+)
 from nasa_mouse_rna_diffusion.evaluate import (
     _nearest_neighbor_adversarial_accuracy,
 )
@@ -167,8 +171,58 @@ class PaperConfigurationTests(unittest.TestCase):
             "archs4_pretrain_osdr_finetune",
         )
 
+    def test_targeted_reference_retains_exact_training_contract(self):
+        config = load_config(
+            "configs/rna_diffusion/archs4_liver_enriched_paper_native.yaml"
+        )
+        self.assertEqual(config["model"]["hidden_dims"], [8192, 8192])
+        self.assertEqual(config["training"]["epochs"], 15000)
+        self.assertEqual(config["data"]["profiles_per_tissue"]["liver"], 9468)
+
 
 class ConditionalDataTests(unittest.TestCase):
+    def test_targeted_archs4_selection_obeys_tissue_quotas(self):
+        metadata = pd.DataFrame(
+            {
+                "canonical_tissue": ["liver"] * 5 + ["kidney"] * 3,
+                "selection_rank_within_tissue": [5, 1, 4, 2, 3, 3, 1, 2],
+                "archs4_sample_index": np.arange(8),
+            }
+        )
+        selected, available = _targeted_candidates(
+            metadata, quotas={"liver": 4, "kidney": 2}, seed=7
+        )
+        self.assertEqual(selected["canonical_tissue"].value_counts()["liver"], 4)
+        self.assertEqual(selected["canonical_tissue"].value_counts()["kidney"], 2)
+        self.assertEqual(available, {"kidney": 3, "liver": 5})
+
+    def test_series_split_has_no_group_leakage_and_keeps_classes(self):
+        rows = []
+        for tissue in ("liver", "kidney"):
+            for series in range(20):
+                rows.extend(
+                    {
+                        "canonical_tissue": tissue,
+                        "series_id": f"{tissue}-{series}",
+                    }
+                    for _ in range(3)
+                )
+        metadata = pd.DataFrame(rows)
+        partitions, groups = _group_split_indices(
+            metadata,
+            fractions={"train": 0.7, "validation": 0.15, "test": 0.15},
+            seed=11,
+            group_column="series_id",
+        )
+        role_groups = {role: set(groups[index]) for role, index in partitions.items()}
+        self.assertTrue(role_groups["train"].isdisjoint(role_groups["validation"]))
+        self.assertTrue(role_groups["train"].isdisjoint(role_groups["test"]))
+        self.assertTrue(role_groups["validation"].isdisjoint(role_groups["test"]))
+        for indices in partitions.values():
+            self.assertEqual(
+                set(metadata.loc[indices, "canonical_tissue"]), {"liver", "kidney"}
+            )
+
     def test_within_study_split_retains_each_stratum_in_training(self):
         rows = pd.DataFrame(
             {

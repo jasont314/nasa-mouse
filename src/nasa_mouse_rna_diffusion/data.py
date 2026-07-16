@@ -11,7 +11,7 @@ from typing import Any
 import h5py
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GroupShuffleSplit, train_test_split
 
 from .config import load_config
 from .landmarks import build_mouse_landmark_panel
@@ -60,6 +60,36 @@ def _balanced_candidates(
         round_index += 1
     result = pd.DataFrame(rows).reset_index(drop=True)
     return result, {tissue: int(len(groups[tissue])) for tissue in eligible}
+
+
+def _targeted_candidates(
+    metadata: pd.DataFrame, *, quotas: dict[str, int], seed: int
+) -> tuple[pd.DataFrame, dict[str, int]]:
+    available = {
+        tissue: int(count)
+        for tissue, count in metadata.groupby("canonical_tissue").size().items()
+    }
+    selected: list[pd.DataFrame] = []
+    rng = np.random.default_rng(int(seed))
+    for tissue, quota in sorted(quotas.items()):
+        group = metadata.loc[
+            metadata["canonical_tissue"].astype(str).eq(str(tissue))
+        ].copy()
+        if len(group) < int(quota):
+            raise ValueError(
+                f"ARCHS4 has {len(group)} selected {tissue} profiles; need {quota}"
+            )
+        if "selection_rank_within_tissue" in group:
+            group = group.sort_values(
+                ["selection_rank_within_tissue", "archs4_sample_index"],
+                kind="stable",
+            )
+        else:
+            group = group.iloc[rng.permutation(len(group))]
+        selected.append(group.iloc[: int(quota)])
+    result = pd.concat(selected, ignore_index=True)
+    result = result.iloc[rng.permutation(len(result))].reset_index(drop=True)
+    return result, available
 
 
 def _length_vector(archs4_genes: list[str], path: str | Path) -> np.ndarray:
@@ -158,6 +188,67 @@ def _split_indices(total: int, split: dict[str, int], seed: int) -> dict[str, np
     return result
 
 
+def _series_group(value: object, fallback: str) -> str:
+    if pd.isna(value) or not str(value).strip():
+        return fallback
+    return str(value).split(",", maxsplit=1)[0].strip()
+
+
+def _group_split_indices(
+    metadata: pd.DataFrame,
+    *,
+    fractions: dict[str, float],
+    seed: int,
+    group_column: str,
+) -> tuple[dict[str, np.ndarray], np.ndarray]:
+    if group_column not in metadata:
+        raise ValueError(f"ARCHS4 metadata lacks split group column {group_column!r}")
+    groups = np.asarray(
+        [
+            _series_group(value, f"profile:{index}")
+            for index, value in enumerate(metadata[group_column])
+        ],
+        dtype=str,
+    )
+    classes = metadata["canonical_tissue"].astype(str).to_numpy()
+    indices = np.arange(len(metadata), dtype=np.int64)
+    expected_classes = set(classes)
+    validation_relative = float(fractions["validation"]) / (
+        float(fractions["train"]) + float(fractions["validation"])
+    )
+    for attempt in range(100):
+        first = GroupShuffleSplit(
+            n_splits=1,
+            test_size=float(fractions["test"]),
+            random_state=int(seed) + attempt,
+        )
+        train_validation, test = next(first.split(indices, groups=groups))
+        second = GroupShuffleSplit(
+            n_splits=1,
+            test_size=validation_relative,
+            random_state=int(seed) + 10_000 + attempt,
+        )
+        train_relative, validation_relative_indices = next(
+            second.split(train_validation, groups=groups[train_validation])
+        )
+        result = {
+            "train": np.sort(train_validation[train_relative]),
+            "validation": np.sort(train_validation[validation_relative_indices]),
+            "test": np.sort(test),
+        }
+        if all(set(classes[part]) == expected_classes for part in result.values()):
+            role_groups = {role: set(groups[part]) for role, part in result.items()}
+            if (
+                role_groups["train"].isdisjoint(role_groups["validation"])
+                and role_groups["train"].isdisjoint(role_groups["test"])
+                and role_groups["validation"].isdisjoint(role_groups["test"])
+            ):
+                return result, groups
+    raise RuntimeError(
+        "Could not construct a series-held-out split containing every tissue class"
+    )
+
+
 def prepare(config_path: str | Path, *, force: bool = False) -> Path:
     config = load_config(config_path)
     data = config["data"]
@@ -165,11 +256,17 @@ def prepare(config_path: str | Path, *, force: bool = False) -> Path:
     manifest_path = output.with_suffix(".manifest.json")
     if output.exists() and manifest_path.exists() and not force:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        expected_split = {key: int(value) for key, value in data["split"].items()}
+        expected_split = (
+            {key: int(value) for key, value in data["split"].items()}
+            if "split" in data
+            else None
+        )
         if (
             int(manifest.get("profiles", -1)) != int(data["profiles"])
             or int(manifest.get("genes", -1)) != 974
-            or manifest.get("split") != expected_split
+            or (expected_split is not None and manifest.get("split") != expected_split)
+            or manifest.get("split_strategy", "random_profile")
+            != data.get("split_strategy", "random_profile")
         ):
             raise ValueError(
                 f"Existing prepared data do not match {config_path}; rerun with --force"
@@ -187,11 +284,21 @@ def prepare(config_path: str | Path, *, force: bool = False) -> Path:
     panel = pd.read_csv(panel_path, sep="\t")
     landmark_genes = panel["mouse_ensembl_gene"].astype(str).tolist()
     metadata = pd.read_csv(data["cohort_metadata"], sep="\t", low_memory=False)
-    candidates, available_by_tissue = _balanced_candidates(
-        metadata,
-        minimum=int(data["minimum_tissue_profiles"]),
-        seed=int(data["selection_seed"]),
-    )
+    if data.get("profiles_per_tissue"):
+        candidates, available_by_tissue = _targeted_candidates(
+            metadata,
+            quotas={
+                str(tissue): int(count)
+                for tissue, count in data["profiles_per_tissue"].items()
+            },
+            seed=int(data["selection_seed"]),
+        )
+    else:
+        candidates, available_by_tissue = _balanced_candidates(
+            metadata,
+            minimum=int(data["minimum_tissue_profiles"]),
+            seed=int(data["selection_seed"]),
+        )
     tpm, retained, extraction = _extract_full_transcriptome_tpm(
         archs4_h5=data["archs4_h5"],
         candidates=candidates,
@@ -204,9 +311,22 @@ def prepare(config_path: str | Path, *, force: bool = False) -> Path:
     retained["class_index"] = (
         retained["canonical_tissue"].astype(str).map(class_map).astype(int)
     )
-    partitions = _split_indices(
-        len(retained), data["split"], seed=int(data["split_seed"])
-    )
+    if data.get("split_strategy") == "series_holdout":
+        partitions, split_groups = _group_split_indices(
+            retained,
+            fractions={
+                role: float(value)
+                for role, value in data["split_fractions"].items()
+            },
+            seed=int(data["split_seed"]),
+            group_column=str(data.get("split_group_column", "series_id")),
+        )
+        retained["split_group"] = split_groups
+    else:
+        partitions = _split_indices(
+            len(retained), data["split"], seed=int(data["split_seed"])
+        )
+        retained["split_group"] = retained["geo_accession"].astype(str)
     retained["role"] = ""
     for role, indices in partitions.items():
         retained.loc[indices, "role"] = role
@@ -261,18 +381,44 @@ def prepare(config_path: str | Path, *, force: bool = False) -> Path:
         "classes": classes,
         "class_count": len(classes),
         "split": {role: int(len(indices)) for role, indices in partitions.items()},
+        "split_strategy": str(data.get("split_strategy", "random_profile")),
+        "split_group_column": str(data.get("split_group_column", "geo_accession")),
+        "split_group_overlap": {
+            "train_validation": int(
+                len(
+                    set(retained.loc[partitions["train"], "split_group"])
+                    & set(retained.loc[partitions["validation"], "split_group"])
+                )
+            ),
+            "train_test": int(
+                len(
+                    set(retained.loc[partitions["train"], "split_group"])
+                    & set(retained.loc[partitions["test"], "split_group"])
+                )
+            ),
+            "validation_test": int(
+                len(
+                    set(retained.loc[partitions["validation"], "split_group"])
+                    & set(retained.loc[partitions["test"], "split_group"])
+                )
+            ),
+        },
         "profiles_by_role_and_tissue": {
             str(role): {str(tissue): int(value) for tissue, value in row.items()}
             for role, row in counts.iterrows()
         },
         "eligible_profiles_by_tissue": available_by_tissue,
         "selection": (
-            "Seeded within-tissue shuffle followed by round-robin unique-profile "
+            "Configured tissue quotas from the full-catalog healthy-preferred "
+            "selection, followed by a series-held-out split."
+            if data.get("profiles_per_tissue")
+            else "Seeded within-tissue shuffle followed by round-robin unique-profile "
             "selection across tissues with at least 100 eligible profiles."
         ),
         "normalization": (
             "TPM denominator over all 52,848 ARCHS4 genes with GENCODE M39 union-exon "
-            "lengths, landmark subset second, MaxAbs fitted on the 9,796 training profiles."
+            f"lengths, landmark subset second, MaxAbs fitted on the "
+            f"{len(partitions['train']):,} training profiles."
         ),
         "landmark_panel": panel_manifest,
         "extraction": extraction,
