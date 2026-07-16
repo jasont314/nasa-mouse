@@ -26,6 +26,11 @@ SELECTION_PLACEHOLDERS = {
     "best_from_phase_2",
 }
 
+CONDITIONING_PROFILES = {
+    "condition_tissue": ("condition", "tissue"),
+    "condition_tissue_sex": ("condition", "tissue", "sex"),
+}
+
 
 def _row_id(row: dict[str, Any]) -> str:
     payload = {
@@ -105,7 +110,18 @@ def config_for_row(base: BenchmarkConfig, row: dict[str, Any]) -> BenchmarkConfi
         feature_name = "all_shared"
 
     study_policy = str(row.get("study_policy", base.training.study_policy))
-    covariates = list(base.training.conditioning_covariates)
+    conditioning_profile = str(
+        row.get("conditioning_profile", "all_configured")
+    )
+    if conditioning_profile == "all_configured":
+        covariates = list(base.training.conditioning_covariates)
+    elif conditioning_profile in CONDITIONING_PROFILES:
+        covariates = list(CONDITIONING_PROFILES[conditioning_profile])
+    else:
+        raise ValueError(
+            f"Unknown conditioning_profile {conditioning_profile!r}; choose from "
+            f"{['all_configured', *sorted(CONDITIONING_PROFILES)]}"
+        )
     if study_policy == "conditioned" and "study" not in covariates:
         covariates.append("study")
     if study_policy == "not_conditioned":

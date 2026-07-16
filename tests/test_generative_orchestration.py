@@ -227,6 +227,23 @@ class MatrixResolutionTests(unittest.TestCase):
         self.assertIn("study", config.training.conditioning_covariates)
         self.assertEqual(config.training.study_policy, "conditioned")
 
+    def test_matrix_conditioning_profile_can_reduce_sparse_covariates(self):
+        config = config_for_row(
+            load_config("configs/generative/default.yaml"),
+            _matrix_row(conditioning_profile="condition_tissue"),
+        )
+        self.assertEqual(
+            config.training.conditioning_covariates,
+            ("condition", "tissue"),
+        )
+
+    def test_matrix_rejects_unknown_conditioning_profile(self):
+        with self.assertRaisesRegex(ValueError, "Unknown conditioning_profile"):
+            config_for_row(
+                load_config("configs/generative/default.yaml"),
+                _matrix_row(conditioning_profile="not_a_profile"),
+            )
+
     def test_unconditional_control_removes_condition_at_runtime(self):
         config = config_for_row(
             load_config("configs/generative/default.yaml"),
