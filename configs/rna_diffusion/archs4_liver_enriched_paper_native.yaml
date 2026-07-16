@@ -14,10 +14,11 @@ data:
   human_landmarks: assets/model_sources/rna-diffusion/data/gtex_description.csv
   mouse_landmark_panel: data/diffusion/l974_mouse_paper_parity.tsv
   prepared_h5: outputs/generative_benchmark/data/lacan_diffusion/archs4_liver_enriched_paper_native_l974.h5
-  profiles: 10000
+  profiles: 9998
   profiles_per_tissue:
-    liver: 9468
+    liver: 9466
     kidney: 532
+  exclude_archs4_sample_indices: [930749, 930753]
   selection_seed: 42
   split_seed: 42
   split_strategy: series_holdout

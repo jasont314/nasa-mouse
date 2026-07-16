@@ -284,6 +284,13 @@ def prepare(config_path: str | Path, *, force: bool = False) -> Path:
     panel = pd.read_csv(panel_path, sep="\t")
     landmark_genes = panel["mouse_ensembl_gene"].astype(str).tolist()
     metadata = pd.read_csv(data["cohort_metadata"], sep="\t", low_memory=False)
+    excluded_sample_indices = {
+        int(value) for value in data.get("exclude_archs4_sample_indices", [])
+    }
+    if excluded_sample_indices:
+        metadata = metadata.loc[
+            ~metadata["archs4_sample_index"].astype(int).isin(excluded_sample_indices)
+        ].copy()
     if data.get("profiles_per_tissue"):
         candidates, available_by_tissue = _targeted_candidates(
             metadata,
@@ -426,6 +433,9 @@ def prepare(config_path: str | Path, *, force: bool = False) -> Path:
             "archs4_h5": str(data["archs4_h5"]),
             "cohort_metadata": str(data["cohort_metadata"]),
             "gene_lengths": str(data["gene_lengths"]),
+            "excluded_unreadable_archs4_sample_indices": sorted(
+                excluded_sample_indices
+            ),
         },
     }
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

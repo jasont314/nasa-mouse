@@ -177,7 +177,7 @@ class PaperConfigurationTests(unittest.TestCase):
         )
         self.assertEqual(config["model"]["hidden_dims"], [8192, 8192])
         self.assertEqual(config["training"]["epochs"], 15000)
-        self.assertEqual(config["data"]["profiles_per_tissue"]["liver"], 9468)
+        self.assertEqual(config["data"]["profiles_per_tissue"]["liver"], 9466)
 
 
 class ConditionalDataTests(unittest.TestCase):
