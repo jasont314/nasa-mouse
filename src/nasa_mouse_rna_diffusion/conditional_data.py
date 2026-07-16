@@ -15,6 +15,8 @@ import pandas as pd
 from scipy import sparse
 
 from nasa_mouse_generative.config import load_config as load_generative_config
+from nasa_mouse_generative.config import PreprocessingConfig
+from nasa_mouse_generative.preprocessing import FittedPreprocessor
 from nasa_mouse_generative.training_data import _osdr_rows
 
 from .conditional_config import load_conditional_config
@@ -53,6 +55,43 @@ def _joint_class_labels(
         ),
         axis=1,
     )
+
+
+def _within_study_roles(
+    rows: pd.DataFrame,
+    *,
+    seed: int,
+    validation_fraction: float,
+    test_fraction: float,
+) -> pd.Series:
+    """Split samples within each study/tissue/condition stratum."""
+
+    roles = pd.Series("train", index=rows.index, dtype="object")
+    strata = ["accession", "tissue", "condition"]
+    for keys, group in rows.groupby(strata, dropna=False, sort=True):
+        ordered = sorted(
+            group.index,
+            key=lambda index: int.from_bytes(
+                hashlib.sha256(
+                    f"{seed}|{keys}|{rows.loc[index, 'profile_id']}".encode(
+                        "utf-8", "replace"
+                    )
+                ).digest()[:8],
+                "big",
+            ),
+        )
+        count = len(ordered)
+        if count < 3:
+            continue
+        test_count = min(max(1, round(count * test_fraction)), count - 2)
+        validation_count = min(
+            max(1, round(count * validation_fraction)), count - test_count - 1
+        )
+        roles.loc[ordered[:test_count]] = "test"
+        roles.loc[
+            ordered[test_count : test_count + validation_count]
+        ] = "validation"
+    return roles
 
 
 def _dense(values) -> np.ndarray:
@@ -125,10 +164,11 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         ).encode()
     ).hexdigest()
     source_identity = _source_identity(options["osdr_h5ad"])
+    custom_preprocessing = options.get("preprocessing")
     scale_source_option = str(options.get("maxabs_scale_source", "osdr_train"))
     pretrained_classes_option = str(options.get("pretrained_classes_h5", ""))
     optional_source_identities: dict[str, dict[str, object]] = {}
-    if scale_source_option != "osdr_train":
+    if scale_source_option != "osdr_train" and not custom_preprocessing:
         optional_source_identities["maxabs_scale_source"] = _source_identity(
             scale_source_option
         )
@@ -176,6 +216,24 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
             raise ValueError("Per-tissue conditional DDIM requires exactly one tissue")
         tissue_override = requested_tissues[0]
     adata, rows, split_metadata = _osdr_rows(base, tissue_override)
+    split_strategy = str(options.get("split_strategy", "accession_holdout"))
+    if split_strategy == "within_study_stratified":
+        rows = rows.copy()
+        rows["role"] = _within_study_roles(
+            rows,
+            seed=int(config["run"]["seed"]),
+            validation_fraction=float(base.validation.pooled_validation_fraction),
+            test_fraction=float(base.validation.pooled_test_fraction),
+        )
+        split_metadata = {
+            "kind": "within_study_stratified",
+            "split_unit": "sample within accession/tissue/condition",
+            "accessions": int(rows["accession"].nunique()),
+            "limitation": (
+                "Evaluates generation for studies represented during training; "
+                "it does not measure unseen-study generalization."
+            ),
+        }
     genes = [str(value).split(".", 1)[0] for value in adata.var_names]
     if len(set(genes)) != len(genes):
         raise ValueError("OSDR API matrix has duplicate versionless Ensembl genes")
@@ -239,19 +297,63 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
     }
     if any(len(indices) == 0 for indices in role_indices.values()):
         raise ValueError("Conditional DDIM requires nonempty train/validation/test roles")
+    preprocessing_audit: dict[str, object] | None = None
+    preprocessing_dir: Path | None = None
     scale_source = scale_source_option
-    if scale_source == "osdr_train":
-        scale = np.max(np.abs(tpm[role_indices["train"]]), axis=0).astype(
-            np.float32
+    if custom_preprocessing:
+        spec_options = dict(custom_preprocessing)
+        if "harmonization_covariates" in spec_options:
+            spec_options["harmonization_covariates"] = tuple(
+                spec_options["harmonization_covariates"]
+            )
+        processor = FittedPreprocessor(
+            PreprocessingConfig(**spec_options), seed=int(config["run"]["seed"])
         )
+        studies = samples["study"].astype(str).to_numpy()
+        scaled = np.empty_like(tpm, dtype=np.float32)
+        train_indices = role_indices["train"]
+        scaled[train_indices] = processor.fit_transform(
+            tpm[train_indices], studies[train_indices], metadata=samples.iloc[train_indices]
+        )
+        allow_transductive = bool(
+            spec_options.get("unseen_study_policy") == "transductive_unlabeled"
+        )
+        if allow_transductive:
+            unseen_mask = np.asarray(
+                [study not in processor.study_stats for study in studies],
+                dtype=bool,
+            )
+            unseen_indices = np.flatnonzero(unseen_mask)
+            processor.fit_additional_study_stats(
+                tpm[unseen_indices], studies[unseen_indices]
+            )
+        for role in ("validation", "test"):
+            indices = role_indices[role]
+            scaled[indices] = processor.transform(
+                tpm[indices],
+                studies[indices],
+                allow_transductive=allow_transductive,
+                metadata=samples.iloc[indices],
+            )
+        preprocessing_dir = output.with_suffix(".preprocessing")
+        processor.save(preprocessing_dir)
+        preprocessing_audit = processor.audit()
+        preprocessing_audit["allow_transductive"] = allow_transductive
+        scale = np.ones(len(landmark_genes), dtype=np.float32)
+        scale_source = "fitted_preprocessor"
     else:
-        with h5py.File(scale_source, "r") as handle:
-            source_genes = _decode(handle["genes"][:])
-            if source_genes != landmark_genes:
-                raise ValueError("Pretraining MaxAbs gene order differs from OSDR")
-            scale = np.asarray(handle["maxabs_scale"][:], dtype=np.float32)
-    scale[scale == 0] = 1.0
-    scaled = (tpm / scale.reshape(1, -1)).astype(np.float32)
+        if scale_source == "osdr_train":
+            scale = np.max(np.abs(tpm[role_indices["train"]]), axis=0).astype(
+                np.float32
+            )
+        else:
+            with h5py.File(scale_source, "r") as handle:
+                source_genes = _decode(handle["genes"][:])
+                if source_genes != landmark_genes:
+                    raise ValueError("Pretraining MaxAbs gene order differs from OSDR")
+                scale = np.asarray(handle["maxabs_scale"][:], dtype=np.float32)
+        scale[scale == 0] = 1.0
+        scaled = (tpm / scale.reshape(1, -1)).astype(np.float32)
     if not np.isfinite(scaled).all():
         raise FloatingPointError("Conditional DDIM prepared matrix is not finite")
 
@@ -260,6 +362,9 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
     with h5py.File(temporary, "w") as handle:
         handle.attrs["format"] = FORMAT
         handle.attrs["normalization"] = str(options["normalization"])
+        handle.attrs["preprocessing_dir"] = (
+            str(preprocessing_dir) if preprocessing_dir is not None else ""
+        )
         handle.create_dataset(
             "genes",
             data=np.asarray(landmark_genes, dtype=h5py.string_dtype("utf-8")),
@@ -308,7 +413,7 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         "mouse_landmark_panel": _source_identity(options["mouse_landmark_panel"]),
         "gene_lengths": _source_identity(options["gene_lengths"]),
     }
-    if scale_source != "osdr_train":
+    if not custom_preprocessing and scale_source != "osdr_train":
         sources["maxabs_scale_source"] = optional_source_identities[
             "maxabs_scale_source"
         ]
@@ -338,13 +443,21 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         "maxabs_scale_source": scale_source,
         "normalization": (
             "TPM denominator uses every OSDR API gene with a positive GENCODE M39 "
-            "length; the 974 landmarks are selected afterward; MaxAbs comes from "
-            + (
-                "OSDR training accessions only."
-                if scale_source == "osdr_train"
-                else "the declared ARCHS4 pretraining partition."
+            "length; the 974 landmarks are selected afterward; the serialized "
+            "fold-aware preprocessor supplies transformation and harmonization."
+            if custom_preprocessing
+            else (
+                "TPM denominator uses every OSDR API gene with a positive GENCODE "
+                "M39 length; the 974 landmarks are selected afterward; MaxAbs "
+                "comes from "
+                + (
+                    "OSDR training accessions only."
+                    if scale_source == "osdr_train"
+                    else "the declared ARCHS4 pretraining partition."
+                )
             )
         ),
+        "preprocessing": preprocessing_audit,
     }
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(manifest, indent=2), flush=True)
@@ -363,6 +476,12 @@ def load_conditional_prepared(path: str | Path) -> dict[str, Any]:
         )
         result["maxabs_scale"] = np.asarray(
             handle["maxabs_scale"][:], dtype=np.float32
+        )
+        preprocessing_dir = str(handle.attrs.get("preprocessing_dir", ""))
+        result["preprocessing"] = (
+            FittedPreprocessor.load(preprocessing_dir)
+            if preprocessing_dir
+            else None
         )
         for role in ROLES:
             result[role] = {

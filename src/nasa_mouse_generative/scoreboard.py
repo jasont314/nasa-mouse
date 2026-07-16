@@ -22,6 +22,10 @@ def _nested(payload: dict[str, Any], *keys: str, default: Any = np.nan) -> Any:
     return value
 
 
+def _uses_hard_metric_selection(selection: dict[str, Any]) -> bool:
+    return "no composite score" in str(selection.get("selection_rule", ""))
+
+
 def _per_tissue_diagnostics(value: object) -> dict[str, float | int]:
     if isinstance(value, dict):
         rows = list(value.values())
@@ -66,8 +70,7 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
     fidelity = generation.get("fidelity_transformed", {})
     if (
         fidelity
-        and selection.get("selection_rule")
-        != "all_quality_gates_must_pass; no composite score"
+        and not _uses_hard_metric_selection(selection)
     ):
         selection = fidelity_selection(
             fidelity, generation.get("memorization", {})
@@ -191,9 +194,7 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
         )
     )
     selection = quality.get("model_selection", {})
-    if selection.get("selection_rule") != (
-        "all_quality_gates_must_pass; no composite score"
-    ):
+    if not _uses_hard_metric_selection(selection):
         selection = fidelity_selection(
             {
                 "correlation_matrix_agreement": quality.get(
@@ -305,13 +306,15 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
     selection = evaluation.get("model_selection", {})
     if (
         fidelity
-        and selection.get("selection_rule")
-        != "all_quality_gates_must_pass; no composite score"
+        and not _uses_hard_metric_selection(selection)
     ):
         selection = fidelity_selection(
             fidelity, evaluation.get("memorization", {})
         )
     utility = evaluation.get("flt_gc_classifier_utility", {})
+    paper_train_fidelity = evaluation.get(
+        "paper_train_fidelity_transformed", {}
+    )
     condition_effect_gate = evaluation.get("conditional_effect_gate", {})
     accession_effect_gate = evaluation.get("accession_effect_gate", {})
     real_utility = utility.get("real_train_real_evaluation", {})
@@ -387,6 +390,18 @@ def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
                     default=[],
                 ),
             )
+        ),
+        "paper_train_correlation_matrix_agreement": paper_train_fidelity.get(
+            "correlation_matrix_agreement", np.nan
+        ),
+        "paper_train_precision": paper_train_fidelity.get("precision", np.nan),
+        "paper_train_recall": paper_train_fidelity.get("recall", np.nan),
+        "paper_train_f1": paper_train_fidelity.get("f1", np.nan),
+        "paper_train_adversarial_accuracy": paper_train_fidelity.get(
+            "adversarial_accuracy", np.nan
+        ),
+        "paper_train_frechet_ratio_to_real_split_p95": paper_train_fidelity.get(
+            "frechet_ratio_to_real_split_p95", np.nan
         ),
         "flt_gc_delta_correlation": _nested(
             evaluation, "flt_gc_effect_recovery", "delta_correlation"

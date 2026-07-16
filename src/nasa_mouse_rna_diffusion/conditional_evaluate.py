@@ -682,18 +682,24 @@ def evaluate_conditional(
     real = prepared[split]["expression"][metric_indices]
     synthetic = synthetic_all[metric_indices]
     sample_frame = evaluation_samples.iloc[metric_indices].reset_index(drop=True)
-    synthetic_tpm_all = synthetic_all * prepared["maxabs_scale"].reshape(1, -1)
+    if prepared.get("preprocessing") is not None:
+        synthetic_tpm_all = prepared["preprocessing"].inverse_transform(
+            synthetic_all, evaluation_samples["study"].astype(str)
+        )
+        synthetic_tpm_all = np.maximum(synthetic_tpm_all, 0.0)
+    else:
+        synthetic_tpm_all = synthetic_all * prepared["maxabs_scale"].reshape(1, -1)
     real_tpm_all = prepared[split]["tpm"]
     synthetic_tpm = synthetic_tpm_all[metric_indices]
     real_tpm = real_tpm_all[metric_indices]
     fidelity = generated_quality(real, synthetic, max_pr_samples=len(real))
-    memorization = memorization_metrics(
+    heldout_memorization = memorization_metrics(
         prepared["train"]["expression"],
         synthetic,
         max_samples=max(len(real), 50),
         seed=int(config["run"]["seed"]),
     )
-    selection = fidelity_selection(fidelity, memorization)
+    heldout_selection = fidelity_selection(fidelity, heldout_memorization)
     effect = _condition_effect(
         real,
         synthetic,
@@ -740,6 +746,60 @@ def evaluate_conditional(
         eta=eta,
         device=device,
     )
+    real_train_metric = prepared["train"]["expression"][train_indices]
+    paper_train_fidelity = generated_quality(
+        real_train_metric,
+        synthetic_train,
+        max_pr_samples=len(real_train_metric),
+    )
+    paper_train_memorization = memorization_metrics(
+        prepared["train"]["expression"],
+        synthetic_train,
+        max_samples=max(len(real_train_metric), 50),
+        seed=int(config["run"]["seed"]) + 1,
+    )
+    paper_train_selection = fidelity_selection(
+        paper_train_fidelity, paper_train_memorization
+    )
+    failed_metrics = [
+        f"paper_train:{name}"
+        for name in paper_train_selection["fidelity_gate"]["failed_metrics"]
+    ] + [
+        f"heldout:{name}"
+        for name in heldout_selection["fidelity_gate"]["failed_metrics"]
+    ]
+    selection = {
+        "paper_train": paper_train_selection,
+        "heldout": heldout_selection,
+        "fidelity_gate": {
+            "passed": bool(
+                paper_train_selection["fidelity_gate"]["passed"]
+                and heldout_selection["fidelity_gate"]["passed"]
+            ),
+            "failed_metrics": failed_metrics,
+            "selection_rule": "paper_train_and_heldout_must_each_pass",
+        },
+        "diversity_gate": {
+            "passed": bool(
+                paper_train_selection["diversity_gate"]["passed"]
+                and heldout_selection["diversity_gate"]["passed"]
+            )
+        },
+        "memorization_gate": {
+            "passed": bool(
+                paper_train_selection["memorization_gate"]["passed"]
+                and heldout_selection["memorization_gate"]["passed"]
+            )
+        },
+        "eligible_for_model_selection": bool(
+            paper_train_selection["eligible_for_model_selection"]
+            and heldout_selection["eligible_for_model_selection"]
+        ),
+        "selection_rule": (
+            "paper-train and held-out metrics must all pass independently; "
+            "no composite score"
+        ),
+    }
     train_condition = train_samples.iloc[train_indices]["condition"].astype(str).to_numpy()
     evaluation_condition = sample_frame["condition"].astype(str).to_numpy()
     utility = classifier_utility(
@@ -845,6 +905,13 @@ def evaluate_conditional(
         source_row=prepared[split]["source_row"],
         genes=np.asarray(prepared["genes"]),
     )
+    np.savez_compressed(
+        output / "conditional_synthetic_train_expression.npz",
+        scaled_expression=synthetic_train.astype(np.float32),
+        class_index=prepared["train"]["class_index"][train_indices],
+        source_row=prepared["train"]["source_row"][train_indices],
+        genes=np.asarray(prepared["genes"]),
+    )
     summary = {
         "status": "complete",
         "split": split,
@@ -859,7 +926,14 @@ def evaluate_conditional(
         "sampling_eta": eta,
         "evaluation_variant": variant,
         "fidelity_transformed": fidelity,
-        "memorization": memorization,
+        "heldout_fidelity_transformed": fidelity,
+        "paper_train_fidelity_transformed": paper_train_fidelity,
+        "memorization": {
+            "heldout": heldout_memorization,
+            "paper_train": paper_train_memorization,
+        },
+        "heldout_model_selection": heldout_selection,
+        "paper_train_model_selection": paper_train_selection,
         "model_selection": selection,
         "per_tissue_fidelity": {
             str(row["tissue"]): {

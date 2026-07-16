@@ -13,6 +13,7 @@ from nasa_mouse_rna_diffusion.conditional_config import load_conditional_config
 from nasa_mouse_rna_diffusion.conditional_data import (
     _full_transcriptome_tpm,
     _joint_class_labels,
+    _within_study_roles,
 )
 from nasa_mouse_rna_diffusion.conditional_evaluate import (
     _class_probe,
@@ -168,6 +169,30 @@ class PaperConfigurationTests(unittest.TestCase):
 
 
 class ConditionalDataTests(unittest.TestCase):
+    def test_within_study_split_retains_each_stratum_in_training(self):
+        rows = pd.DataFrame(
+            {
+                "profile_id": [f"p{index}" for index in range(12)],
+                "accession": ["a"] * 6 + ["b"] * 6,
+                "tissue": ["liver"] * 12,
+                "condition": ["flight"] * 3
+                + ["ground_control"] * 3
+                + ["flight"] * 3
+                + ["ground_control"] * 3,
+            }
+        )
+        roles = _within_study_roles(
+            rows, seed=3, validation_fraction=0.2, test_fraction=0.2
+        )
+        observed = rows.assign(role=roles).groupby(
+            ["accession", "condition", "role"]
+        ).size()
+        for accession in ("a", "b"):
+            for condition in ("flight", "ground_control"):
+                self.assertEqual(observed[accession, condition, "train"], 1)
+                self.assertEqual(observed[accession, condition, "validation"], 1)
+                self.assertEqual(observed[accession, condition, "test"], 1)
+
     def test_tpm_denominator_uses_genes_outside_landmark_panel(self):
         matrix = np.asarray(
             [[100.0, 100.0, 0.0], [100.0, 0.0, 900.0]], dtype=np.float32

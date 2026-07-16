@@ -8,6 +8,7 @@ from typing import Any
 import yaml
 
 from .config import validate_paper_model_training
+from nasa_mouse_generative.config import PreprocessingConfig
 
 
 def load_conditional_config(path: str | Path) -> dict[str, Any]:
@@ -24,7 +25,15 @@ def load_conditional_config(path: str | Path) -> dict[str, Any]:
     covariates = tuple(map(str, data.get("conditioning_covariates", [])))
     if not covariates or "condition" not in covariates:
         raise ValueError("Conditional DDIM requires condition in conditioning_covariates")
-    if "study" in covariates and data.get("unseen_study_policy") != "unknown_class":
+    split_strategy = str(data.get("split_strategy", "accession_holdout"))
+    if split_strategy not in {"accession_holdout", "within_study_stratified"}:
+        raise ValueError("Unsupported conditional DDIM data.split_strategy")
+    data["split_strategy"] = split_strategy
+    if (
+        "study" in covariates
+        and split_strategy == "accession_holdout"
+        and data.get("unseen_study_policy") != "unknown_class"
+    ):
         raise ValueError(
             "Study conditioning with accession holdout requires unseen_study_policy=unknown_class"
         )
@@ -57,5 +66,19 @@ def load_conditional_config(path: str | Path) -> dict[str, Any]:
                 "Unsupported training.pretrained_condition_initialization"
             )
         training["pretrained_condition_initialization"] = initialization
+        if data.get("preprocessing"):
+            raise ValueError(
+                "Custom OSDR preprocessing is not compatible with the existing "
+                "MaxAbs ARCHS4 checkpoint; pretrain a matching reference first or "
+                "use osdr_only."
+            )
+    preprocessing = data.get("preprocessing")
+    if preprocessing:
+        options = dict(preprocessing)
+        if "harmonization_covariates" in options:
+            options["harmonization_covariates"] = tuple(
+                options["harmonization_covariates"]
+            )
+        PreprocessingConfig(**options)
     payload["_config_path"] = str(config_path.resolve())
     return payload
