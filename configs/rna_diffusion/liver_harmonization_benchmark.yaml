@@ -1,0 +1,24 @@
+version: 1
+tissue: liver
+evaluation_split: validation
+locked_test_accessions: [OSD-379]
+output_dir: outputs/generative_benchmark/summary/liver_harmonization
+runs:
+  - label: No harmonization (TPM)
+    config: configs/rna_diffusion/osdr_liver_tpm_maxabs_matched.yaml
+  - label: Ilangovan study z-score
+    config: configs/rna_diffusion/osdr_liver_ilangovan_mor_log2_study_zscore.yaml
+  - label: Mentor two-stage z-score
+    config: configs/rna_diffusion/osdr_liver_mentor_two_stage_matched.yaml
+  - label: ComBat (study)
+    config: configs/rna_diffusion/osdr_liver_sanders_mor_combat_study.yaml
+  - label: ComBat-seq (study)
+    config: configs/rna_diffusion/osdr_liver_sanders_combat_seq_study.yaml
+  - label: MBatch Median Polish
+    config: configs/rna_diffusion/osdr_liver_sanders_mbatch_median_polish_study.yaml
+  - label: MBatch Empirical Bayes
+    config: configs/rna_diffusion/osdr_liver_sanders_mbatch_empirical_bayes_study.yaml
+  - label: MBatch ANOVA
+    config: configs/rna_diffusion/osdr_liver_sanders_mbatch_anova_study.yaml
+  - label: MOBER (study)
+    config: configs/rna_diffusion/osdr_liver_mober_mor_study.yaml
