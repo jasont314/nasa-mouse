@@ -171,7 +171,8 @@ L1000 genes; its source URL and GTF SHA-256 are recorded in the adjacent manifes
 No sample-random split is allowed when multiple accessions are pooled. Entire OSDR
 accessions and ARCHS4 GEO series are grouped during splitting.
 
-Checkpoint and hyperparameter selection use a held-out-validation fidelity composite:
+Checkpoint and hyperparameter selection report the following held-out-validation
+metrics separately:
 
 - gene mean, variance, zero fraction, and quantile agreement;
 - gene-gene correlation and pathway-correlation agreement;
@@ -180,16 +181,20 @@ Checkpoint and hyperparameter selection use a held-out-validation fidelity compo
 - nearest-neighbor memorization and duplicate checks;
 - tissue and condition consistency.
 
-The composite is subject to hard diversity and memorization gates. A model cannot win
-by collapsing toward an average profile. FLT/GC effect recovery and classifier utility
-are secondary validation metrics, not the sole optimization target.
+There is no composite score or compensating rank. For the Lacan-paper metric
+protocol, correlation-matrix agreement must be at least 0.98, precision at least
+0.95, recall at least 0.85, F1 at least 0.90, symmetric nearest-neighbor adversarial
+accuracy between 0.40 and 0.60, and mouse PCA Frechet distance no greater than the
+95th-percentile real-versus-real split reference. Every requirement must pass on
+both the paper-style training-distribution comparison and the held-out-accession
+comparison. The mouse PCA Frechet reference replaces the paper's pretrained human
+GTEx classifier because that classifier is not transferable to mouse genes.
 
-The current executable composite averages gene-mean correlation, gene-standard-
-deviation correlation, precision/recall F1, and adversarial indistinguishability.
-Eligibility additionally requires manifold recall of at least 0.1, synthetic global
-standard deviation of at least 10% of held-out real data, and no more than 5% of
-synthetic samples closer to training profiles than the training leave-one-out first
-percentile. These thresholds are benchmark gates, not biological significance tests.
+Eligibility additionally requires a synthetic-to-real global standard-deviation
+ratio between 0.5 and 2.0 and no more than 5% of synthetic samples closer to a
+training profile than the training leave-one-out first percentile. FLT/GC pooled and
+accession-aware effect recovery are separate mandatory gates for a conditional
+generator. These thresholds are benchmark gates, not biological significance tests.
 
 The final test accession remains locked until model and preprocessing choices are
 fixed. Final reporting includes real-train/real-test, synthetic-train/real-test,

@@ -7,43 +7,51 @@ ARCHS4 partitions by GEO series, and preprocessing was fitted on training data o
 
 ## Decision Summary
 
-| model and arm | regime | held-out composite | main result | decision |
-|---|---|---:|---|---|
-| Exact Lacan ModelDDIM | ARCHS4 only | 0.957 | Tissue BA 0.869 from synthetic training versus 0.895 from real training | Broad-tissue generator accepted |
-| Paper-native Vinas WGAN-GP | ARCHS4 only | 0.380 | Mean/SD correlations 0.323/0.563; two-sample accuracy 0.950 | Rejected |
-| Exact ModelDDIM condition extension | OSDR only | 0.367 | FLT/GC delta correlation 0.125; SD correlation 0.153 | Rejected |
-| Exact ModelDDIM transfer | ARCHS4 then OSDR | 0.606 | Mean/SD correlations 0.937/0.841 but two-sample accuracy 0.973 | Rejected |
-| Function-preserving ModelDDIM transfer | ARCHS4 then OSDR | 0.610 | Pooled FLT/GC delta correlation 0.542 but two-sample accuracy 0.967 | Rejected |
-| Vinas WGAN-GP, CPM adaptation | OSDR only | 0.468 | Better than strict preprocessing, but PR F1 0.238 and two-sample accuracy 0.998 | Rejected |
-| Vinas WGAN-GP transfer | ARCHS4 then OSDR | 0.437 | Pooled delta correlation 0.805, accession-aware correlation -0.022, zero of nine tissues pass | Rejected |
+Earlier development used a scalar fidelity composite. That score is retired and is
+not used for selection. Current decisions require every paper-aligned fidelity
+metric, diversity, memorization, and conditional-effect gate to pass independently.
 
-Only the exact paper-architecture ARCHS4 ModelDDIM passes the fixed fidelity,
-diversity, and memorization gates. Its direct scaled-L974 precision/recall are
+| model and arm | regime | independent result | decision |
+|---|---|---|---|
+| Exact Lacan ModelDDIM | ARCHS4 only | Precision/recall/F1 0.966/0.865/0.912 and AA 0.512 pass; correlation-matrix agreement 0.879 fails 0.98 | Useful tissue baseline; not an all-metric finalist |
+| Paper-native Vinas WGAN-GP | ARCHS4 only | Mean/SD correlations 0.323/0.563; AA 0.950 | Rejected |
+| Exact ModelDDIM condition extension | OSDR only | FLT/GC delta correlation 0.125; SD correlation 0.153 | Rejected |
+| Function-preserving ModelDDIM transfer | ARCHS4 then OSDR | Training Corr/P/R/F1/AA 0.949/0.986/0.966/0.976/0.646; held-out 0.767/0.454/0.788/0.576/0.985 | Rejected |
+| Liver ModelDDIM with study conditioning | ARCHS4 then OSDR | Held-out Corr/P/R/F1/AA 0.635/0.974/0.974/0.974/0.618; FLT/GC delta correlation 0.270 | Rejected |
+| Liver ModelDDIM with within-study plus global z-score | OSDR only | Held-out Corr/P/R/F1/AA 0.188/0.708/1.000/0.829/0.708; FLT/GC delta correlation -0.097 | Rejected |
+| Vinas WGAN-GP, CPM adaptation | OSDR only | PR F1 0.238 and AA 0.998 | Rejected |
+| Vinas WGAN-GP transfer | ARCHS4 then OSDR | Pooled delta correlation 0.805, accession-aware correlation -0.022, zero of nine tissues pass | Rejected |
+
+The exact paper-architecture ARCHS4 ModelDDIM remains the strongest broad-tissue
+baseline, but it does not pass the stricter all-metric rule because its direct
+correlation-matrix agreement is 0.879. Its direct scaled-L974 precision/recall are
 0.966/0.865, mean/SD correlations are 0.997/0.944, and nearest-neighbor two-sample
 accuracy is 0.512. It is a defensible 20-tissue ARCHS4 generator, not an OSDR
 spaceflight generator. Generated scaled values include 9.04% negatives, so export
 must use the documented nonnegative clipping policy before treating inverse-scaled
 values as TPM.
 
-No OSDR FLT/GC generator passes the minimum 0.70 fidelity composite. The OSDR
-locked test therefore remains unopened, augmentation is blocked, and no candidate
-is promoted to additional seeds. Pooled FLT/GC recovery alone is not accepted:
+No OSDR FLT/GC generator passes all independent fidelity gates. The OSDR locked
+test therefore remains unopened and augmentation is blocked. Pooled FLT/GC recovery
+alone is not accepted:
 promotion now also requires accession-aware meta-effect correlation at least 0.30
 and direction agreement at least 0.55.
 
 ## Adaptive Comparisons
 
-- **ARCHS4 pretraining:** improved exact DDIM OSDR composite from 0.367 to about
-  0.61 and improved pooled condition recovery, but did not solve real-versus-
-  synthetic separation. It reduced WGAN composite from 0.468 to 0.437. There is no
-  accepted conditional benefit.
+- **ARCHS4 pretraining:** improved several exact-DDIM distribution and pooled
+  condition metrics, but did not solve real-versus-synthetic separation on unseen
+  accessions. There is no accepted conditional benefit yet.
 - **Preprocessing:** CPM plus `log1p` and gene z-score improved direct WGAN over the
   strict paper transform (0.468 versus 0.424), but both failed fidelity. Paper-native
   full-transcriptome TPM plus train-fitted MaxAbs worked for broad ModelDDIM.
-- **Study conditioning and harmonization:** ComBat, ComBat-seq, MOBER, and explicit
-  study-conditioning paths passed integration smoke tests. They were not promoted
-  to full-duration comparisons because the prerequisite pooled generators failed;
-  no decision-quality evidence says that any helped generation.
+- **Study conditioning and harmonization:** ComBat, ComBat-seq, and MOBER adapters
+  passed integration smoke tests only. Exact liver study conditioning reduced
+  held-out AA from 0.985 to 0.618 but failed Corr and FLT/GC recovery. A full
+  mentor-style `log1p` TPM, within-study z-score, then pooled z-score run reached
+  held-out AA 0.708 but failed Corr, precision, F1, and condition-effect recovery.
+  There is no decision-quality evidence that batch harmonization has produced an
+  acceptable generator.
 - **Per-tissue behavior:** the WGAN transfer failed FLT/GC recovery in all nine
   evaluable validation tissues. Standalone per-tissue expansion was stopped because
   the pooled candidate failed the fixed gate.

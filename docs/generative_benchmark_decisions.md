@@ -3,6 +3,11 @@
 This log records why bounded experiments were continued, stopped, or added. It is
 not a substitute for the resolved configurations and per-run manifests.
 
+Entries below preserve the metric language used when each decision was made. The
+former scalar composite was retired on 2026-07-16; current selection requires every
+paper-aligned metric to pass independently, so no historical composite value can
+promote a model.
+
 ## 2026-07-16
 
 1. **Promote the completed exact ARCHS4 ModelDDIM baseline.** It has common-score
