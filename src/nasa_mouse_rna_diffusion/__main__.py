@@ -11,6 +11,8 @@ from .conditional_data import prepare_conditional
 from .conditional_evaluate import evaluate_conditional
 from .conditional_train import train_conditional
 from .real_effect_ceiling import run_ceiling
+from .factorized_train import train_factorized
+from .factorized_evaluate import evaluate_factorized
 
 
 def parse_args() -> argparse.Namespace:
@@ -74,6 +76,16 @@ def parse_args() -> argparse.Namespace:
     ceiling.add_argument("--transform", choices=("log1p", "none"), default="log1p")
     ceiling.add_argument("--permutation-repeats", type=int, default=100)
     ceiling.add_argument("--seed", type=int, default=1234)
+    adapter_train = subparsers.add_parser(
+        "train-adapter", help="Train staged factorized residual DDIM adapters"
+    )
+    adapter_train.add_argument("--config", required=True)
+    adapter_train.add_argument("--restart", action="store_true")
+    adapter_evaluate = subparsers.add_parser(
+        "evaluate-adapter", help="Evaluate factorized adapters on validation only"
+    )
+    adapter_evaluate.add_argument("--config", required=True)
+    adapter_evaluate.add_argument("--guidance-scales", nargs="+", type=float)
     return parser.parse_args()
 
 
@@ -105,6 +117,12 @@ def main() -> None:
             transform=args.transform,
             permutation_repeats=args.permutation_repeats,
             seed=args.seed,
+        )
+    elif args.command == "train-adapter":
+        train_factorized(args.config, restart=args.restart)
+    elif args.command == "evaluate-adapter":
+        evaluate_factorized(
+            args.config, guidance_scales=args.guidance_scales
         )
 
 

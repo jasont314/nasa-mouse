@@ -47,6 +47,12 @@ from nasa_mouse_rna_diffusion.real_effect_ceiling import (
     analyze_tissue,
     load_development_expression,
 )
+from nasa_mouse_rna_diffusion.factorized_adapter import (
+    FactorizedAdapterDDIM,
+    build_factorized_schema,
+    encode_factorized_labels,
+    neutralize_group,
+)
 
 
 SMALL_MODEL = {
@@ -458,6 +464,59 @@ class RealEffectCeilingTests(unittest.TestCase):
     def test_loader_rejects_locked_test(self):
         with self.assertRaisesRegex(ValueError, "locked test"):
             load_development_expression("unused.h5", "unused.tsv", roles=["test"])
+
+
+class FactorizedAdapterTests(unittest.TestCase):
+    def _schema(self):
+        samples = pd.DataFrame(
+            {
+                "tissue": ["liver", "liver", "skeletal_muscle"],
+                "condition": ["flight", "ground_control", "flight"],
+                "sex": ["female", "male", "female"],
+                "muscle_group": ["unknown", "unknown", "soleus"],
+            }
+        )
+        return samples, build_factorized_schema(
+            samples, ["liver", "skeletal_muscle"]
+        )
+
+    def test_zero_adapter_preserves_pretrained_function(self):
+        samples, schema = self._schema()
+        torch.manual_seed(31)
+        base = upstream_model_class()(
+            model_config(expression_dim=12, num_classes=2, model=SMALL_MODEL)
+        ).eval()
+        adapter = FactorizedAdapterDDIM(base, schema).eval()
+        labels = torch.from_numpy(encode_factorized_labels(samples, schema))
+        expression = torch.randn(3, 12)
+        timesteps = torch.tensor([1.0, 3.0, 6.0])
+        expected = base(expression, timesteps, labels[:, :2])
+        observed = adapter(expression, timesteps, labels)
+        torch.testing.assert_close(observed, expected)
+
+    def test_stage_selection_exposes_only_requested_adapter_group(self):
+        _, schema = self._schema()
+        base = upstream_model_class()(
+            model_config(expression_dim=12, num_classes=2, model=SMALL_MODEL)
+        )
+        adapter = FactorizedAdapterDDIM(base, schema)
+        adapter.set_trainable_groups(["condition"])
+        trainable = [
+            name for name, value in adapter.named_parameters() if value.requires_grad
+        ]
+        self.assertTrue(trainable)
+        self.assertTrue(all("layers.condition" in name for name in trainable))
+
+    def test_condition_neutralization_keeps_base_and_domain_labels(self):
+        samples, schema = self._schema()
+        labels = torch.from_numpy(encode_factorized_labels(samples, schema))
+        neutral = neutralize_group(labels, schema, "condition")
+        self.assertTrue(torch.equal(labels[:, : schema.base_width], neutral[:, : schema.base_width]))
+        condition = schema.group_slices()["condition"]
+        start = schema.base_width + condition.start
+        stop = schema.base_width + condition.stop
+        self.assertEqual(int(neutral[:, start:stop].sum()), 0)
+        self.assertGreater(int(labels[:, start:stop].sum()), 0)
 
 
 class EvaluationMetricTests(unittest.TestCase):
