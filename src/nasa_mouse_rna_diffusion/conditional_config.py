@@ -29,6 +29,27 @@ def load_conditional_config(path: str | Path) -> dict[str, Any]:
     if split_strategy not in {"accession_holdout", "within_study_stratified"}:
         raise ValueError("Unsupported conditional DDIM data.split_strategy")
     data["split_strategy"] = split_strategy
+    validation_accessions = tuple(
+        map(str, data.get("validation_accessions", []))
+    )
+    test_accessions = tuple(map(str, data.get("test_accessions", [])))
+    if validation_accessions or test_accessions:
+        if split_strategy != "accession_holdout":
+            raise ValueError(
+                "Explicit validation/test accessions require accession_holdout"
+            )
+        if not validation_accessions or not test_accessions:
+            raise ValueError(
+                "Explicit accession splitting requires both validation_accessions "
+                "and test_accessions"
+            )
+        overlap = set(validation_accessions) & set(test_accessions)
+        if overlap:
+            raise ValueError(
+                f"Validation and test accessions overlap: {sorted(overlap)}"
+            )
+        data["validation_accessions"] = list(validation_accessions)
+        data["test_accessions"] = list(test_accessions)
     if (
         "study" in covariates
         and split_strategy == "accession_holdout"

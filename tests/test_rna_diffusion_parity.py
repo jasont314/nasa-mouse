@@ -11,6 +11,7 @@ import torch
 
 from nasa_mouse_rna_diffusion.conditional_config import load_conditional_config
 from nasa_mouse_rna_diffusion.conditional_data import (
+    _explicit_accession_roles,
     _full_transcriptome_tpm,
     _joint_class_labels,
     _within_study_roles,
@@ -181,6 +182,25 @@ class PaperConfigurationTests(unittest.TestCase):
 
 
 class ConditionalDataTests(unittest.TestCase):
+    def test_explicit_accession_split_keeps_whole_studies(self):
+        rows = pd.DataFrame(
+            {
+                "accession": ["train"] * 2 + ["val-a"] * 2 + ["val-b"] * 2 + ["test"] * 2,
+                "condition": ["flight", "ground_control"] * 4,
+            }
+        )
+        roles, audit = _explicit_accession_roles(
+            rows,
+            validation_accessions=["val-a", "val-b"],
+            test_accessions=["test"],
+        )
+        self.assertEqual(set(roles.iloc[:2]), {"train"})
+        self.assertEqual(set(roles.iloc[2:6]), {"validation"})
+        self.assertEqual(set(roles.iloc[6:]), {"test"})
+        self.assertEqual(
+            audit["accessions_by_role"]["validation"], ["val-a", "val-b"]
+        )
+
     def test_targeted_archs4_selection_obeys_tissue_quotas(self):
         metadata = pd.DataFrame(
             {

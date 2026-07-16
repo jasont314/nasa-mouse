@@ -94,6 +94,34 @@ def _within_study_roles(
     return roles
 
 
+def _explicit_accession_roles(
+    rows: pd.DataFrame,
+    *,
+    validation_accessions: Iterable[str],
+    test_accessions: Iterable[str],
+) -> tuple[pd.Series, dict[str, object]]:
+    validation = set(map(str, validation_accessions))
+    test = set(map(str, test_accessions))
+    available = set(rows["accession"].astype(str))
+    missing = sorted((validation | test) - available)
+    if missing:
+        raise ValueError(f"Explicit split accessions are absent from the cohort: {missing}")
+    roles = pd.Series("train", index=rows.index, dtype="object")
+    roles.loc[rows["accession"].astype(str).isin(validation)] = "validation"
+    roles.loc[rows["accession"].astype(str).isin(test)] = "test"
+    accessions_by_role = {
+        role: sorted(rows.loc[roles.eq(role), "accession"].astype(str).unique())
+        for role in ROLES
+    }
+    if any(not values for values in accessions_by_role.values()):
+        raise ValueError("Explicit accession split produced an empty role")
+    return roles, {
+        "kind": "explicit_accession_holdout",
+        "split_unit": "NASA OSDR accession",
+        "accessions_by_role": accessions_by_role,
+    }
+
+
 def _dense(values) -> np.ndarray:
     if sparse.issparse(values):
         values = values.toarray()
@@ -217,7 +245,14 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         tissue_override = requested_tissues[0]
     adata, rows, split_metadata = _osdr_rows(base, tissue_override)
     split_strategy = str(options.get("split_strategy", "accession_holdout"))
-    if split_strategy == "within_study_stratified":
+    if options.get("validation_accessions") or options.get("test_accessions"):
+        rows = rows.copy()
+        rows["role"], split_metadata = _explicit_accession_roles(
+            rows,
+            validation_accessions=options.get("validation_accessions", []),
+            test_accessions=options.get("test_accessions", []),
+        )
+    elif split_strategy == "within_study_stratified":
         rows = rows.copy()
         rows["role"] = _within_study_roles(
             rows,

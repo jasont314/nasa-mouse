@@ -20,6 +20,8 @@ data:
   include_accessions: []
   exclude_accessions: []
   split_strategy: accession_holdout
+  validation_accessions: [OSD-457, OSD-137, OSD-48]
+  test_accessions: [OSD-379]
   conditioning_covariates: [tissue, condition]
   unseen_study_policy: not_conditioned
   normalization: full_transcriptome_tpm_then_archs4_liver_enriched_train_maxabs
