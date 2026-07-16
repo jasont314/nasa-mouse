@@ -45,6 +45,20 @@ def infer_muscle_group(material: object, tissue: object) -> str:
     return "not_applicable"
 
 
+def canonicalize_sex(value: object) -> str:
+    text = re.sub(r"[^a-z0-9]+", " ", str(value).lower()).strip()
+    tokens = set(text.split())
+    female = bool(tokens.intersection({"f", "female", "females"}))
+    male = bool(tokens.intersection({"m", "male", "males"}))
+    if female and male or tokens.intersection({"both", "mixed"}):
+        return "mixed"
+    if female:
+        return "female"
+    if male:
+        return "male"
+    return "unknown_sex"
+
+
 def osdr_conditioning_frame(obs: pd.DataFrame) -> pd.DataFrame:
     result = pd.DataFrame(index=obs.index.copy())
     result["profile_id"] = _column(
@@ -65,7 +79,7 @@ def osdr_conditioning_frame(obs: pd.DataFrame) -> pd.DataFrame:
     result["study"] = result["accession"]
     result["sex"] = _column(
         obs, ("study.characteristics.sex",), "unknown_sex"
-    ).str.lower()
+    ).map(canonicalize_sex)
     result["age"] = _column(
         obs,
         (
@@ -128,7 +142,7 @@ def archs4_conditioning_frame(metadata: pd.DataFrame) -> pd.DataFrame:
     sex = characteristics.str.extract(
         r"(?:sex|gender)\s*[:=]\s*([^,;|]+)", flags=re.IGNORECASE, expand=False
     )
-    result["sex"] = sex.fillna("unknown_sex").str.lower()
+    result["sex"] = sex.fillna("unknown_sex").map(canonicalize_sex)
     age = characteristics.str.extract(
         r"(?:age|developmental stage)\s*[:=]\s*([^,;|]+)",
         flags=re.IGNORECASE,

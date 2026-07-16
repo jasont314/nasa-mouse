@@ -7,7 +7,11 @@ import h5py
 import numpy as np
 import pandas as pd
 
-from nasa_mouse_generative.conditioning import CategoryEncoder, UNKNOWN
+from nasa_mouse_generative.conditioning import (
+    CategoryEncoder,
+    UNKNOWN,
+    canonicalize_sex,
+)
 from nasa_mouse_generative.config import (
     BenchmarkConfig,
     DataConfig,
@@ -124,6 +128,14 @@ class RuntimeConfigTests(unittest.TestCase):
 
 
 class ConditioningTests(unittest.TestCase):
+    def test_sex_labels_are_canonicalized_without_strain_false_positives(self):
+        self.assertEqual(canonicalize_sex("M"), "male")
+        self.assertEqual(canonicalize_sex("virgin female"), "female")
+        self.assertEqual(canonicalize_sex("12 weeks/female"), "female")
+        self.assertEqual(canonicalize_sex("pooled male and female"), "mixed")
+        self.assertEqual(canonicalize_sex("3 males and 4 females"), "mixed")
+        self.assertEqual(canonicalize_sex("C57BL/6J"), "unknown_sex")
+
     def test_unseen_categories_use_explicit_unknown_code(self):
         encoder = CategoryEncoder.fit(
             [pd.DataFrame({"condition": ["flight", "ground_control"]})],
