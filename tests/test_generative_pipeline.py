@@ -15,6 +15,7 @@ from nasa_mouse_generative.config import (
     PreprocessingConfig,
     TrainingConfig,
 )
+from nasa_mouse_generative.effect_validation import compare_real_synthetic_effects
 from nasa_mouse_generative.experiment_plan import expand_matrix
 from nasa_mouse_generative.preprocessing import FittedPreprocessor, apply_stats
 from nasa_mouse_generative.osdr_expression import _read_accession_block
@@ -172,6 +173,57 @@ class PreprocessingTests(unittest.TestCase):
         expected = apply_stats(test, processor.global_stats)
         np.testing.assert_allclose(observed, expected)
         self.assertGreater(abs(float(observed.mean())), 1.0)
+
+
+class EffectValidationTests(unittest.TestCase):
+    def test_accession_aware_real_synthetic_effect_recovery(self):
+        rows = []
+        real = []
+        synthetic = []
+        for accession_index, accession in enumerate(("OSD-1", "OSD-2", "OSD-3")):
+            baseline = float(accession_index * 2)
+            for condition, delta in (("ground_control", 0.0), ("flight", 1.0)):
+                for replicate in range(3):
+                    jitter = 0.05 * (replicate - 1)
+                    rows.append(
+                        {
+                            "accession": accession,
+                            "tissue": "liver",
+                            "condition": condition,
+                        }
+                    )
+                    real.append(
+                        [baseline + delta + jitter, baseline - 0.5 * delta + jitter]
+                    )
+                    synthetic.append(
+                        [baseline + 0.9 * delta + jitter, baseline - 0.4 * delta + jitter]
+                    )
+        tables, summary = compare_real_synthetic_effects(
+            np.asarray(real),
+            np.asarray(synthetic),
+            pd.DataFrame(rows),
+            ["up", "down"],
+        )
+        self.assertEqual(summary["accessions"], 3)
+        self.assertAlmostEqual(summary["meta_direction_agreement"], 1.0)
+        self.assertGreater(summary["meta_effect_correlation"], 0.99)
+        self.assertEqual(len(tables["real_per_accession"]), 6)
+        self.assertEqual(len(tables["real_leave_one_out"]), 6)
+
+    def test_effect_validation_reports_insufficient_accessions(self):
+        samples = pd.DataFrame(
+            {
+                "accession": ["OSD-1", "OSD-1"],
+                "tissue": ["liver", "liver"],
+                "condition": ["flight", "ground_control"],
+            }
+        )
+        _, summary = compare_real_synthetic_effects(
+            np.ones((2, 1)), np.ones((2, 1)), samples, ["gene"]
+        )
+        self.assertEqual(
+            summary["status"], "insufficient_accessions_with_both_conditions"
+        )
 
 
 class OsdrExpressionTests(unittest.TestCase):

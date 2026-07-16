@@ -14,6 +14,7 @@ from nasa_mouse_rna_diffusion.conditional_data import (
     _full_transcriptome_tpm,
     _joint_class_labels,
 )
+from nasa_mouse_rna_diffusion.conditional_train import _expanded_condition_state
 from nasa_mouse_rna_diffusion.config import load_config
 from nasa_mouse_rna_diffusion.evaluate import (
     _nearest_neighbor_adversarial_accuracy,
@@ -125,6 +126,13 @@ class PaperConfigurationTests(unittest.TestCase):
         self.assertEqual(
             config["data"]["conditioning_covariates"], ["tissue", "condition"]
         )
+        pretrained = load_conditional_config(
+            "configs/rna_diffusion/osdr_archs4_pretrain_flt_gc_paper_architecture.yaml"
+        )
+        self.assertEqual(
+            pretrained["training"]["regime"],
+            "archs4_pretrain_osdr_finetune",
+        )
 
 
 class ConditionalDataTests(unittest.TestCase):
@@ -159,6 +167,37 @@ class ConditionalDataTests(unittest.TestCase):
                 "tissue=liver||condition=ground_control",
             ],
         )
+
+    def test_pretrained_tissue_columns_map_to_reference_classes(self):
+        source = {
+            "y_emb.weight": torch.arange(4, dtype=torch.float32).reshape(2, 2),
+            "mid.0.w1.weight": torch.arange(7, dtype=torch.float32).reshape(1, 7),
+            "mid.0.w1.bias": torch.asarray([4.0]),
+        }
+        template = {
+            "y_emb.weight": torch.zeros(3, 2),
+            "mid.0.w1.weight": torch.zeros(1, 9),
+            "mid.0.w1.bias": torch.zeros(1),
+        }
+        expanded, audit = _expanded_condition_state(
+            template,
+            source,
+            old_classes=["a", "b"],
+            new_classes=[
+                "tissue=a||condition=flight",
+                "tissue=a||condition=reference",
+                "tissue=b||condition=reference",
+            ],
+            embedding_dim=2,
+        )
+        torch.testing.assert_close(expanded["mid.0.w1.weight"][:, :3], source["mid.0.w1.weight"][:, :3])
+        torch.testing.assert_close(expanded["mid.0.w1.weight"][:, 5:7], source["mid.0.w1.weight"][:, 3:5])
+        torch.testing.assert_close(expanded["mid.0.w1.weight"][:, 7:9], source["mid.0.w1.weight"][:, 5:7])
+        torch.testing.assert_close(expanded["mid.0.w1.weight"][:, 3:5], torch.zeros(1, 2))
+        torch.testing.assert_close(expanded["y_emb.weight"][0], torch.zeros(2))
+        torch.testing.assert_close(expanded["y_emb.weight"][1], source["y_emb.weight"][0])
+        torch.testing.assert_close(expanded["y_emb.weight"][2], source["y_emb.weight"][1])
+        self.assertEqual(audit["mapped_classes"], 2)
 
 
 class EvaluationMetricTests(unittest.TestCase):

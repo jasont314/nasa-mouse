@@ -235,6 +235,64 @@ def _write_readme(run_dir: Path, summary: dict) -> None:
     (run_dir / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _plot_training_history(run_dir: Path) -> str:
+    history_path = run_dir / "training_history.tsv"
+    if not history_path.exists():
+        return ""
+    history = pd.read_csv(history_path, sep="\t")
+    if history.empty or "epoch" not in history:
+        return ""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    groups = (
+        (
+            "Optimization losses",
+            (
+                "loss",
+                "critic_loss",
+                "generator_loss",
+                "noise_absolute_error",
+                "cosine_loss",
+            ),
+        ),
+        (
+            "Training diagnostics",
+            (
+                "wasserstein_estimate",
+                "gradient_penalty",
+                "critic_gradient_norm",
+                "generator_gradient_norm",
+                "early_stopping_score",
+            ),
+        ),
+        ("Learning rate", ("learning_rate",)),
+    )
+    figure, axes = plt.subplots(3, 1, figsize=(9.2, 9.0), sharex=True)
+    for axis, (title, columns) in zip(axes, groups):
+        plotted = False
+        for column in columns:
+            if column in history and history[column].notna().any():
+                axis.plot(
+                    history["epoch"], history[column], linewidth=1.2, label=column
+                )
+                plotted = True
+        axis.set_title(title, fontweight="bold")
+        axis.grid(alpha=0.18, linewidth=0.7)
+        if plotted:
+            axis.legend(frameon=False, fontsize=8, ncol=2)
+        else:
+            axis.text(0.5, 0.5, "Not recorded", ha="center", va="center")
+    axes[-1].set_xlabel("Epoch")
+    figure.tight_layout()
+    path = run_dir / "training_history.png"
+    figure.savefig(path, dpi=200, bbox_inches="tight")
+    plt.close(figure)
+    return str(path)
+
+
 def _claim_run_identity(
     run_dir: Path, *, identifier: str, digest: str, model: str
 ) -> None:
@@ -389,6 +447,7 @@ def train_one(
                 ),
             )
         )
+    history_plot = _plot_training_history(run_dir)
     peak_memory_gb = (
         float(torch.cuda.max_memory_allocated(adapter.device) / GIB)
         if adapter.device.type == "cuda"
@@ -431,6 +490,7 @@ def train_one(
             "run_dir": str(run_dir),
             "model": str(model_path) if model_path is not None else "",
             "validation": validation_path,
+            "training_history_plot": history_plot,
             "resolved_config": str(run_dir / "resolved_config.yaml"),
         },
     }

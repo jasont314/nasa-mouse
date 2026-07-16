@@ -125,11 +125,28 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         ).encode()
     ).hexdigest()
     source_identity = _source_identity(options["osdr_h5ad"])
+    scale_source_option = str(options.get("maxabs_scale_source", "osdr_train"))
+    pretrained_classes_option = str(options.get("pretrained_classes_h5", ""))
+    optional_source_identities: dict[str, dict[str, object]] = {}
+    if scale_source_option != "osdr_train":
+        optional_source_identities["maxabs_scale_source"] = _source_identity(
+            scale_source_option
+        )
+    if pretrained_classes_option:
+        optional_source_identities["pretrained_classes_h5"] = (
+            optional_source_identities.get("maxabs_scale_source")
+            if pretrained_classes_option == scale_source_option
+            else _source_identity(pretrained_classes_option)
+        )
     if output.exists() and manifest_path.exists() and not force:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if (
             manifest.get("data_contract_sha256") == data_contract_sha256
             and manifest.get("source", {}).get("osdr_api_h5ad") == source_identity
+            and all(
+                manifest.get("source", {}).get(name) == identity
+                for name, identity in optional_source_identities.items()
+            )
         ):
             print(f"[conditional-ddim:data] using existing {output}", flush=True)
             return output
@@ -204,7 +221,16 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
             "Upstream ModelDDIM uses a joint class vocabulary, but held-out OSDR "
             f"profiles contain {len(unseen)} classes absent from training: {unseen[:5]}"
         )
-    classes = sorted(train_labels)
+    additional_classes: list[str] = []
+    pretrained_classes_h5 = str(options.get("pretrained_classes_h5", ""))
+    if pretrained_classes_h5:
+        with h5py.File(pretrained_classes_h5, "r") as handle:
+            pretrained_tissues = _decode(handle["classes"][:])
+        additional_classes = [
+            f"tissue={tissue}||condition=reference"
+            for tissue in pretrained_tissues
+        ]
+    classes = sorted(train_labels.union(additional_classes))
     class_map = {label: index for index, label in enumerate(classes)}
     samples["class_index"] = samples["class_label"].map(class_map).astype(int)
     role_indices = {
@@ -213,7 +239,17 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
     }
     if any(len(indices) == 0 for indices in role_indices.values()):
         raise ValueError("Conditional DDIM requires nonempty train/validation/test roles")
-    scale = np.max(np.abs(tpm[role_indices["train"]]), axis=0).astype(np.float32)
+    scale_source = scale_source_option
+    if scale_source == "osdr_train":
+        scale = np.max(np.abs(tpm[role_indices["train"]]), axis=0).astype(
+            np.float32
+        )
+    else:
+        with h5py.File(scale_source, "r") as handle:
+            source_genes = _decode(handle["genes"][:])
+            if source_genes != landmark_genes:
+                raise ValueError("Pretraining MaxAbs gene order differs from OSDR")
+            scale = np.asarray(handle["maxabs_scale"][:], dtype=np.float32)
     scale[scale == 0] = 1.0
     scaled = (tpm / scale.reshape(1, -1)).astype(np.float32)
     if not np.isfinite(scaled).all():
@@ -267,6 +303,19 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
     )
     coverage_path = output.with_suffix(".coverage.tsv")
     coverage.to_csv(coverage_path, sep="\t", index=False)
+    sources = {
+        "osdr_api_h5ad": source_identity,
+        "mouse_landmark_panel": _source_identity(options["mouse_landmark_panel"]),
+        "gene_lengths": _source_identity(options["gene_lengths"]),
+    }
+    if scale_source != "osdr_train":
+        sources["maxabs_scale_source"] = optional_source_identities[
+            "maxabs_scale_source"
+        ]
+    if pretrained_classes_h5:
+        sources["pretrained_classes_h5"] = optional_source_identities[
+            "pretrained_classes_h5"
+        ]
     manifest = {
         "format": FORMAT,
         "prepared_h5": str(output),
@@ -277,22 +326,24 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         "config_sha256": config_sha256,
         "data_contract_sha256": data_contract_sha256,
         "raw_integrated_osdr_h5_used": False,
-        "source": {
-            "osdr_api_h5ad": source_identity,
-            "mouse_landmark_panel": _source_identity(options["mouse_landmark_panel"]),
-            "gene_lengths": _source_identity(options["gene_lengths"]),
-        },
+        "source": sources,
         "split": split_metadata,
         "profiles": {role: int(len(indices)) for role, indices in role_indices.items()},
         "genes": len(landmark_genes),
         "full_transcriptome_genes": len(genes),
         "full_transcriptome_genes_with_lengths": int(np.isfinite(lengths).sum()),
         "classes": classes,
+        "additional_pretraining_classes": additional_classes,
         "conditioning_covariates": list(covariates),
+        "maxabs_scale_source": scale_source,
         "normalization": (
             "TPM denominator uses every OSDR API gene with a positive GENCODE M39 "
-            "length; the 974 landmarks are selected afterward; MaxAbs is fit on "
-            "training accessions only."
+            "length; the 974 landmarks are selected afterward; MaxAbs comes from "
+            + (
+                "OSDR training accessions only."
+                if scale_source == "osdr_train"
+                else "the declared ARCHS4 pretraining partition."
+            )
         ),
     }
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

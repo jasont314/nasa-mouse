@@ -17,6 +17,22 @@ phases:
       study_policy: [not_conditioned]
       seed: [2020]
 
+  - name: phase_0_wgan_osdr_preprocessing_pair
+    purpose: Compare strict released preprocessing with the declared CPM depth adaptation for pooled FLT/GC generation.
+    axes:
+      model: [vinas_wgan_gp]
+      model_profile: [paper_native]
+      task: [conditional_generation]
+      preprocessing_profile: [model_native, wgan_nasa_cpm_zscore]
+      feature_space: [hvg_2000]
+      harmonization: [none]
+      training_regime: [osdr_only]
+      accession_scope: [all_eligible]
+      tissue_mode: [pooled_conditioned]
+      condition_on_flight: [true]
+      study_policy: [not_conditioned]
+      seed: [2020]
+
   - name: phase_0_genejepa_paper_native_archs4
     purpose: Establish the official GeneJEPA representation architecture on broad mouse bulk profiles.
     axes:

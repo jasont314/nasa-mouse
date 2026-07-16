@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 import time
@@ -36,6 +37,14 @@ CHECKPOINT_FORMAT = "nasa_mouse_lacan_conditional_osdr_checkpoint_v1"
 MODEL_FORMAT = "nasa_mouse_lacan_conditional_osdr_model_v1"
 
 
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
 def _checkpoint(
     *,
     model,
@@ -62,15 +71,72 @@ def _checkpoint(
     )
 
 
+def _expanded_condition_state(
+    template: dict[str, torch.Tensor],
+    source: dict[str, torch.Tensor],
+    *,
+    old_classes: list[str],
+    new_classes: list[str],
+    embedding_dim: int,
+) -> tuple[dict[str, torch.Tensor], dict[str, Any]]:
+    """Map tissue-class weights into tissue/reference columns of a larger model."""
+
+    expanded = {
+        key: value.detach().cpu().clone() for key, value in template.items()
+    }
+    for key, value in source.items():
+        if (
+            key != "y_emb.weight"
+            and key in expanded
+            and tuple(value.shape) == tuple(expanded[key].shape)
+        ):
+            expanded[key] = value.detach().cpu().clone()
+
+    new_map = {label: index for index, label in enumerate(new_classes)}
+    class_mapping = {
+        old_index: new_map[f"tissue={tissue}||condition=reference"]
+        for old_index, tissue in enumerate(old_classes)
+    }
+    if "y_emb.weight" in source:
+        for old_index, new_index in class_mapping.items():
+            expanded["y_emb.weight"][new_index] = source["y_emb.weight"][
+                old_index
+            ].cpu()
+    condition_keys: list[str] = []
+    old_width = len(old_classes) * int(embedding_dim)
+    new_width = len(new_classes) * int(embedding_dim)
+    for key, old_value in source.items():
+        if key == "y_emb.weight" or key not in expanded or old_value.ndim != 2:
+            continue
+        new_value = expanded[key]
+        if old_value.shape[1] - old_width != new_value.shape[1] - new_width:
+            continue
+        base = int(old_value.shape[1] - old_width)
+        new_value[:, :base] = old_value[:, :base].cpu()
+        for old_index, new_index in class_mapping.items():
+            old_start = base + old_index * int(embedding_dim)
+            new_start = base + new_index * int(embedding_dim)
+            new_value[
+                :, new_start : new_start + int(embedding_dim)
+            ] = old_value[
+                :, old_start : old_start + int(embedding_dim)
+            ].cpu()
+        condition_keys.append(key)
+    return expanded, {
+        "old_classes": old_classes,
+        "new_classes": new_classes,
+        "mapped_classes": len(class_mapping),
+        "mapped_condition_weight_keys": sorted(condition_keys),
+        "new_flt_gc_condition_columns_randomly_initialized": True,
+    }
+
+
 def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path:
     config = load_conditional_config(config_path)
     run = config["run"]
     training = config["training"]
     model_options = config["model"]
-    if training["regime"] != "osdr_only":
-        raise NotImplementedError(
-            "Use the separate pretrain/fine-tune command for the ARCHS4 regime"
-        )
+    regime = str(training["regime"])
     output = Path(run["output_dir"])
     output.mkdir(parents=True, exist_ok=True)
     checkpoint_path = output / "checkpoints/latest.pt"
@@ -113,27 +179,69 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
     parameter_count = sum(
         parameter.numel() for parameter in model.parameters() if parameter.requires_grad
     )
+    pretraining_audit: dict[str, Any] = {}
+    pretrained_payload: dict[str, Any] | None = None
+    if regime == "archs4_pretrain_osdr_finetune":
+        pretrained_path = Path(training["pretrained_model"])
+        pretrained_payload = torch.load(
+            pretrained_path, map_location="cpu", weights_only=False
+        )
+        old_classes = list(map(str, pretrained_payload["metadata"]["classes"]))
+        expanded, pretraining_audit = _expanded_condition_state(
+            model.state_dict(),
+            pretrained_payload["model_state_dict"],
+            old_classes=old_classes,
+            new_classes=prepared["classes"],
+            embedding_dim=int(model_options["tissue_embedding_dim"]),
+        )
+        model.load_state_dict(expanded)
+        pretraining_audit.update(
+            {
+                "pretrained_model": str(pretrained_path.resolve()),
+                "pretrained_model_sha256": _sha256(pretrained_path),
+                "pretrained_epoch": int(pretrained_payload.get("epoch", 0)),
+                "pretrained_global_step": int(
+                    pretrained_payload.get("global_step", 0)
+                ),
+            }
+        )
+        stage_epochs = int(training["finetune_epochs"])
+        stage_learning_rate = float(training["finetune_learning_rate"])
+        peak_step = int(training["finetune_one_cycle_peak_step"])
+    else:
+        stage_epochs = int(training["epochs"])
+        stage_learning_rate = float(training["learning_rate"])
+        peak_step = int(training["one_cycle_peak_step"])
     optimizer = torch.optim.Adam(
         model.parameters(),
-        lr=float(training["learning_rate"]),
+        lr=stage_learning_rate,
         betas=(float(training["beta1"]), float(training["beta2"])),
         eps=float(training["epsilon"]),
         weight_decay=float(training["weight_decay"]),
     )
-    total_steps = len(loader) * int(training["epochs"])
-    peak_step = int(training["one_cycle_peak_step"])
+    total_steps = len(loader) * stage_epochs
     if peak_step >= total_steps:
         raise ValueError("OneCycle peak step must occur before the final optimizer step")
     scheduler = torch.optim.lr_scheduler.OneCycleLR(
         optimizer,
-        max_lr=float(training["learning_rate"]),
+        max_lr=stage_learning_rate,
         steps_per_epoch=len(loader),
-        epochs=int(training["epochs"]),
+        epochs=stage_epochs,
         pct_start=peak_step / total_steps,
     )
     amp = bool(training["amp"])
     scaler = torch.amp.GradScaler("cuda", enabled=amp)
     ema = EMA(model, float(model_options["ema_decay"]))
+    if pretrained_payload is not None:
+        expanded_ema, _ = _expanded_condition_state(
+            model.state_dict(),
+            pretrained_payload["ema_state_dict"],
+            old_classes=list(map(str, pretrained_payload["metadata"]["classes"])),
+            new_classes=prepared["classes"],
+            embedding_dim=int(model_options["tissue_embedding_dim"]),
+        )
+        ema.load_state_dict(expanded_ema, device)
+        del expanded_ema, expanded, pretrained_payload
     betas = quadratic_beta_schedule(
         beta_start=float(model_options["beta_start"]),
         beta_end=float(model_options["beta_end"]),
@@ -149,13 +257,18 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
         "genes": prepared["genes"],
         "classes": prepared["classes"],
         "conditioning_covariates": prepared["conditioning_covariates"],
+        "regime": regime,
+        "pretraining": pretraining_audit,
         "parameter_count": int(parameter_count),
         "device": torch.cuda.get_device_name(device),
         "torch_version": str(torch.__version__),
         "batches_per_epoch": len(loader),
         "total_optimizer_steps": total_steps,
         "one_cycle_peak_step": peak_step,
-        "regime": "osdr_only",
+        "stage_epochs": stage_epochs,
+        "stage_learning_rate": stage_learning_rate,
+        "regime": regime,
+        "pretraining": pretraining_audit,
         "extension_label": "unmodified_ModelDDIM_NASA_OSDR_condition_extension",
         "implementation_contract": {
             "upstream_model_class": True,
@@ -205,14 +318,14 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
     print(
         f"[conditional-ddim:train] device={metadata['device']} params={parameter_count:,} "
         f"profiles={len(dataset):,} classes={len(prepared['classes'])} "
-        f"batches={len(loader)} epochs={training['epochs']}",
+        f"batches={len(loader)} stage={regime} epochs={stage_epochs}",
         flush=True,
     )
     torch.cuda.reset_peak_memory_stats(device)
     started = time.time()
     completed_epoch = start_epoch
     try:
-        for epoch_index in range(start_epoch, int(training["epochs"])):
+        for epoch_index in range(start_epoch, stage_epochs):
             model.train()
             epoch_loss = 0.0
             epoch_error = 0.0
@@ -263,12 +376,12 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
             if completed_epoch == 1 or completed_epoch % log_every == 0:
                 elapsed = time.time() - started
                 rate = (completed_epoch - start_epoch) / max(elapsed, 1e-8)
-                remaining = (int(training["epochs"]) - completed_epoch) / max(
+                remaining = (stage_epochs - completed_epoch) / max(
                     rate, 1e-8
                 )
                 print(
                     f"[conditional-ddim:train] epoch={completed_epoch}/"
-                    f"{training['epochs']} loss={row['loss']:.6f} "
+                    f"{stage_epochs} loss={row['loss']:.6f} "
                     f"mae={row['noise_absolute_error']:.6f} "
                     f"lr={row['learning_rate']:.8g} eta_hours={remaining / 3600:.2f}",
                     flush=True,
@@ -365,7 +478,10 @@ def train_conditional(config_path: str | Path, *, restart: bool = False) -> Path
         "This NASA extension retains the pinned Lacan et al. ModelDDIM architecture, "
         "loss, optimizer, schedule, and 15,000-epoch duration. The substituted data "
         "are API-derived mouse OSDR profiles conditioned jointly on tissue and "
-        "flight/ground-control state. It is not a reproduction of the GTEx cohort.\n",
+        "flight/ground-control state. It is not a reproduction of the GTEx cohort.\n\n"
+        f"Training regime: `{regime}`. ARCHS4 pretraining, when selected, is loaded "
+        "from the completed exact tissue checkpoint and transferred with an explicit "
+        "class-column mapping before OSDR fine-tuning.\n",
         encoding="utf-8",
     )
     print(json.dumps(summary, indent=2), flush=True)

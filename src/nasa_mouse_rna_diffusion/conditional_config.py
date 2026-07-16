@@ -30,10 +30,21 @@ def load_conditional_config(path: str | Path) -> dict[str, Any]:
         )
     if int(data.get("landmark_dimensions", 0)) != 974:
         raise ValueError("The Lacan paper architecture requires 974 landmark genes")
-    if payload.get("training", {}).get("regime") not in {
+    regime = payload.get("training", {}).get("regime")
+    if regime not in {
         "osdr_only",
         "archs4_pretrain_osdr_finetune",
     }:
         raise ValueError("Unsupported conditional DDIM training regime")
+    if regime == "archs4_pretrain_osdr_finetune":
+        training = payload["training"]
+        for key in (
+            "pretrained_model",
+            "finetune_epochs",
+            "finetune_learning_rate",
+            "finetune_one_cycle_peak_step",
+        ):
+            if key not in training:
+                raise ValueError(f"Pretrain/fine-tune config requires training.{key}")
     payload["_config_path"] = str(config_path.resolve())
     return payload

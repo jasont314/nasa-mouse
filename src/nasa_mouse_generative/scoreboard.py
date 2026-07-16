@@ -154,12 +154,86 @@ def _exact_diffusion_row(summary_path: Path) -> dict[str, Any]:
     }
 
 
+def _conditional_diffusion_row(summary_path: Path) -> dict[str, Any]:
+    run = json.loads(summary_path.read_text(encoding="utf-8"))
+    evaluation_path = summary_path.parent / "evaluation/validation/summary.json"
+    evaluation = (
+        json.loads(evaluation_path.read_text(encoding="utf-8"))
+        if evaluation_path.exists()
+        else {}
+    )
+    fidelity = evaluation.get("fidelity_transformed", {})
+    selection = evaluation.get("model_selection", {})
+    utility = evaluation.get("flt_gc_classifier_utility", {})
+    real_utility = utility.get("real_train_real_evaluation", {})
+    augmented_utility = utility.get(
+        "real_plus_synthetic_train_real_evaluation", {}
+    )
+    classes = list(map(str, run.get("classes", [])))
+    tissues = sorted(
+        {
+            field.split("=", 1)[1]
+            for label in classes
+            for field in label.split("||")
+            if field.startswith("tissue=")
+        }
+    )
+    regime = str(run.get("regime", "osdr_only"))
+    return {
+        "run_id": summary_path.parent.name,
+        "model": "lacan_diffusion",
+        "implementation": "upstream ModelDDIM NASA condition extension",
+        "model_profile": "paper_architecture_osdr_extension",
+        "regime": regime,
+        "tissue_mode": "pooled_conditioned",
+        "tissues": ";".join(tissues),
+        "genes": 974,
+        "reference_samples": 9796 if regime.startswith("archs4_pretrain") else 0,
+        "train_samples": _nested(run, "profiles", "train"),
+        "training_seconds": run.get("training_seconds_this_invocation", np.nan),
+        "cuda_peak_memory_gb": run.get("cuda_peak_memory_gb", np.nan),
+        "generation_status": "complete" if evaluation else "missing",
+        "heldout_fidelity_composite": selection.get(
+            "heldout_fidelity_composite", np.nan
+        ),
+        "eligible_for_model_selection": selection.get(
+            "eligible_for_model_selection", False
+        ),
+        "diversity_gate": _nested(
+            selection, "diversity_gate", "passed", default=False
+        ),
+        "memorization_gate": _nested(
+            selection, "memorization_gate", "passed", default=False
+        ),
+        "gene_mean_correlation": fidelity.get("gene_mean_correlation", np.nan),
+        "gene_std_correlation": fidelity.get("gene_std_correlation", np.nan),
+        "precision": fidelity.get("precision", np.nan),
+        "recall": fidelity.get("recall", np.nan),
+        "adversarial_accuracy": fidelity.get("adversarial_accuracy", np.nan),
+        "flt_gc_delta_correlation": _nested(
+            evaluation, "flt_gc_effect_recovery", "delta_correlation"
+        ),
+        "real_validation_balanced_accuracy": real_utility.get(
+            "balanced_accuracy", np.nan
+        ),
+        "augmented_validation_balanced_accuracy": augmented_utility.get(
+            "balanced_accuracy", np.nan
+        ),
+        "augmentation_status": utility.get("augmentation_status", ""),
+        "summary_path": str(summary_path),
+    }
+
+
 def build_scoreboard(output_root: str | Path) -> pd.DataFrame:
     root = Path(output_root)
     rows: list[dict[str, Any]] = []
     for path in sorted((root / "runs").glob("*/*/run_summary.json")):
         if path.parent.name == "archs4_mouse_paper_parity_seed1234":
             rows.append(_exact_diffusion_row(path))
+        elif "ModelDDIM OSDR condition extension" in json.loads(
+            path.read_text(encoding="utf-8")
+        ).get("model", ""):
+            rows.append(_conditional_diffusion_row(path))
         else:
             rows.append(_unified_row(path))
     table = pd.DataFrame(rows)

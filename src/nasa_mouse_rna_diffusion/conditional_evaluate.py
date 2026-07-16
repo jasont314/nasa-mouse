@@ -17,6 +17,7 @@ from sklearn.decomposition import PCA
 import torch
 
 from nasa_mouse_diffusion.evaluate import generated_quality
+from nasa_mouse_generative.effect_validation import compare_real_synthetic_effects
 from nasa_mouse_generative.metrics import (
     _condition_effect,
     classifier_utility,
@@ -26,7 +27,12 @@ from nasa_mouse_generative.metrics import (
 
 from .conditional_config import load_conditional_config
 from .conditional_data import load_conditional_prepared
-from .evaluate import _classifier_predictions, _correlation, _load_model
+from .evaluate import (
+    _classifier_predictions,
+    _correlation,
+    _load_model,
+    _plot_training_history,
+)
 from .upstream import ddim_trajectory, quadratic_beta_schedule, verify_source
 
 
@@ -182,6 +188,53 @@ def _read_pathways(path: str | Path, genes: list[str]) -> dict[str, np.ndarray]:
     return result
 
 
+def _pathway_scores(
+    expression: np.ndarray, pathways: dict[str, np.ndarray]
+) -> tuple[np.ndarray, list[str]]:
+    names = list(pathways)
+    if not names:
+        return np.empty((len(expression), 0), dtype=np.float32), []
+    scores = np.column_stack(
+        [expression[:, pathways[name]].mean(axis=1) for name in names]
+    )
+    return scores.astype(np.float32), names
+
+
+def _write_accession_validation(
+    output: Path,
+    *,
+    real_tpm: np.ndarray,
+    synthetic_tpm: np.ndarray,
+    samples: pd.DataFrame,
+    genes: list[str],
+    pathway_file: str | Path,
+) -> tuple[dict[str, object], dict[str, str]]:
+    directory = output / "accession_validation"
+    directory.mkdir(parents=True, exist_ok=True)
+    real_expression = np.log1p(np.maximum(real_tpm, 0.0))
+    synthetic_expression = np.log1p(np.maximum(synthetic_tpm, 0.0))
+    gene_tables, gene_summary = compare_real_synthetic_effects(
+        real_expression, synthetic_expression, samples, genes
+    )
+    pathways = _read_pathways(pathway_file, genes)
+    real_pathways, pathway_names = _pathway_scores(real_expression, pathways)
+    synthetic_pathways, _ = _pathway_scores(synthetic_expression, pathways)
+    pathway_tables, pathway_summary = compare_real_synthetic_effects(
+        real_pathways, synthetic_pathways, samples, pathway_names
+    )
+    paths: dict[str, str] = {}
+    for level, tables in (("gene", gene_tables), ("pathway", pathway_tables)):
+        for name, table in tables.items():
+            path = directory / f"{level}_{name}.tsv.gz"
+            table.to_csv(path, sep="\t", index=False, compression="gzip")
+            paths[f"{level}_{name}"] = str(path)
+    summary = {"gene": gene_summary, "pathway": pathway_summary}
+    summary_path = directory / "summary.json"
+    summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    paths["summary"] = str(summary_path)
+    return summary, paths
+
+
 def _effect_tables(
     real_tpm: np.ndarray,
     synthetic_tpm: np.ndarray,
@@ -281,18 +334,17 @@ def evaluate_conditional(
     ).to(device)
     output = Path(config["run"]["output_dir"]) / "evaluation" / split
     output.mkdir(parents=True, exist_ok=True)
+    history_plot = _plot_training_history(Path(config["run"]["output_dir"]), output)
     metric_indices = _balanced_indices(
         prepared[split]["class_index"],
         int(options["metric_samples"]),
         int(config["run"]["seed"]) + 31,
     )
-    real = prepared[split]["expression"][metric_indices]
-    sample_frame = evaluation_samples.iloc[metric_indices].reset_index(drop=True)
-    class_indices = prepared[split]["class_index"][metric_indices]
+    all_class_indices = prepared[split]["class_index"]
     started = time.time()
-    synthetic = _sample(
+    synthetic_all = _sample(
         model=model,
-        class_indices=class_indices,
+        class_indices=all_class_indices,
         genes=len(prepared["genes"]),
         classes=len(prepared["classes"]),
         betas=betas,
@@ -302,8 +354,13 @@ def evaluate_conditional(
         device=device,
     )
     sampling_seconds = time.time() - started
-    synthetic_tpm = synthetic * prepared["maxabs_scale"].reshape(1, -1)
-    real_tpm = prepared[split]["tpm"][metric_indices]
+    real = prepared[split]["expression"][metric_indices]
+    synthetic = synthetic_all[metric_indices]
+    sample_frame = evaluation_samples.iloc[metric_indices].reset_index(drop=True)
+    synthetic_tpm_all = synthetic_all * prepared["maxabs_scale"].reshape(1, -1)
+    real_tpm_all = prepared[split]["tpm"]
+    synthetic_tpm = synthetic_tpm_all[metric_indices]
+    real_tpm = real_tpm_all[metric_indices]
     fidelity = generated_quality(real, synthetic, max_pr_samples=len(real))
     memorization = memorization_metrics(
         prepared["train"]["expression"],
@@ -361,11 +418,19 @@ def evaluate_conditional(
     )
     pca_path = _plot_real_synthetic_pca(real, synthetic, sample_frame, output)
     gene_effects, pathway_effects = _effect_tables(
-        real_tpm,
-        synthetic_tpm,
-        sample_frame,
+        real_tpm_all,
+        synthetic_tpm_all,
+        evaluation_samples.reset_index(drop=True),
         prepared["genes"],
         "data/pathways/reactome_current_mouse_ensembl.gmt",
+    )
+    accession_validation, accession_paths = _write_accession_validation(
+        output,
+        real_tpm=real_tpm_all,
+        synthetic_tpm=synthetic_tpm_all,
+        samples=evaluation_samples.reset_index(drop=True),
+        genes=prepared["genes"],
+        pathway_file="data/pathways/reactome_current_mouse_ensembl.gmt",
     )
     gene_effect_path = output / "flt_gc_gene_effect_recovery.tsv.gz"
     pathway_effect_path = output / "flt_gc_pathway_effect_recovery.tsv.gz"
@@ -389,10 +454,10 @@ def evaluate_conditional(
     }
     np.savez_compressed(
         output / "conditional_synthetic_expression.npz",
-        scaled_expression=synthetic,
-        tpm_unclipped=synthetic_tpm.astype(np.float32),
-        class_index=class_indices,
-        source_row=prepared[split]["source_row"][metric_indices],
+        scaled_expression=synthetic_all,
+        tpm_unclipped=synthetic_tpm_all.astype(np.float32),
+        class_index=all_class_indices,
+        source_row=prepared[split]["source_row"],
         genes=np.asarray(prepared["genes"]),
     )
     summary = {
@@ -403,7 +468,8 @@ def evaluate_conditional(
         "checkpoint_epoch": int(payload.get("epoch", 0)),
         "checkpoint_global_step": int(payload.get("global_step", 0)),
         "device": torch.cuda.get_device_name(device) if device.type == "cuda" else "cpu",
-        "samples": int(len(real)),
+        "samples": int(len(synthetic_all)),
+        "fidelity_metric_samples": int(len(real)),
         "sampling_seconds": float(sampling_seconds),
         "fidelity_transformed": fidelity,
         "memorization": memorization,
@@ -413,12 +479,19 @@ def evaluate_conditional(
         "condition_consistency": condition_consistency,
         "tissue_consistency": tissue_consistency,
         "pathway_effect_recovery": pathway_summary,
-        "synthetic_tpm_unclipped_min": float(synthetic_tpm.min()),
-        "synthetic_tpm_negative_fraction": float((synthetic_tpm < 0).mean()),
-        "plots": {"real_vs_synthetic_pca": str(pca_path)},
+        "accession_effect_validation": accession_validation,
+        "synthetic_tpm_unclipped_min": float(synthetic_tpm_all.min()),
+        "synthetic_tpm_negative_fraction": float(
+            (synthetic_tpm_all < 0).mean()
+        ),
+        "plots": {
+            "real_vs_synthetic_pca": str(pca_path),
+            "training_history": str(history_plot),
+        },
         "tables": {
             "gene_effect_recovery": str(gene_effect_path),
             "pathway_effect_recovery": str(pathway_effect_path),
+            **accession_paths,
         },
     }
     summary_path = output / "summary.json"
