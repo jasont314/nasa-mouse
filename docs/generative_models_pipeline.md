@@ -67,7 +67,8 @@ older 24,428-profile reference.
   mapped mouse L1000 landmarks plus reconstruction targets;
 - cohort: one accession, selected accessions, or all eligible accessions;
 - harmonization: none, within-study z-score, within-study then pooled z-score,
-  ComBat, ComBat-seq, or MOBER;
+  ComBat, ComBat-seq, MBatch Median Polish, MBatch Empirical Bayes, MBatch
+  ANOVA, or MOBER;
 - training: OSDR only, ARCHS4 only, or ARCHS4 pretrain then OSDR fine-tune;
 - tissue mode: pooled tissue-conditioned or standalone per tissue;
 - condition mode: FLT/GC conditioned or unconditional negative control;
@@ -92,28 +93,35 @@ to train the model. Set it to `0` for an exact all-training-profile variance sca
 Primary implementation references are the
 [Scanpy ComBat documentation](https://scanpy.readthedocs.io/en/stable/api/generated/scanpy.pp.combat.html),
 [Bioconductor `sva` package](https://bioconductor.org/packages/release/bioc/html/sva.html),
+[official MBatch repository](https://github.com/MD-Anderson-Bioinformatics/MBatch),
 and [official MOBER repository](https://github.com/Novartis/MOBER).
 
 - `within_study_zscore` implements the study-by-study log and gene scaling design
   used by Ilangovan et al. 2024.
 - `within_study_then_global_zscore` adds the mentor-proposed second scaling after
   concatenation.
-- `combat` and `combat_seq` follow the candidate methods assessed by Sanders et al.
-  2023. Their finding that library-preparation/ComBat ranked best was specific to
-  seven liver datasets and is not treated as universal.
+- `combat`, `combat_seq`, `mbatch_median_polish`,
+  `mbatch_empirical_bayes`, and `mbatch_anova` reproduce the five correction
+  families assessed by Sanders et al. 2023. Their finding that
+  library-preparation/ComBat ranked best was specific to seven liver datasets
+  and is not treated as universal.
 - `mober` uses a batch-aware VAE and projection to a trained source. It must be
   checked for preservation of FLT/GC effects, not merely batch mixing.
 
-ComBat and ComBat-seq have no natural inductive transform for a new batch. Any use
-on a held-out accession is marked transductive. MOBER can project new samples onto a
-trained source and is evaluated as an inductive model-based harmonizer.
+ComBat, ComBat-seq, and the three MBatch methods have no natural inductive
+transform for a new batch. Any use on a held-out accession is marked transductive.
+MOBER can project new samples onto a trained source and is evaluated as an
+inductive model-based harmonizer.
 
-All three adapters are executable and serialized with each run:
+All six model/correction adapters are executable and serialized with each run:
 
 | Method | Fit and held-out behavior | Main controls |
 | --- | --- | --- |
 | `combat` | Parametric empirical-Bayes fit; frozen correction for known batches and unlabeled transductive estimation for a new batch | `batch_key`, `max_batches`, `confounded_covariate_policy` |
 | `combat_seq` | Bioconductor `sva::ComBat_seq`; each held-out partition is corrected with training anchors | `rscript`, `anchor_samples`, `noninteger_policy`, `singleton_batch_policy`, `confounded_covariate_policy` |
+| `mbatch_median_polish` | Official MBatch batch-wise Median Polish; held-out partition corrected with training anchors | `rscript`, `source_root`, `anchor_samples` |
+| `mbatch_empirical_bayes` | Official MBatch parametric Empirical Bayes; held-out partition corrected with training anchors | `rscript`, `source_root`, `anchor_samples` |
+| `mbatch_anova` | Official variance-adjusted MBatch ANOVA; held-out partition corrected with training anchors | `rscript`, `source_root`, `anchor_samples`, `nonfinite_policy` |
 | `mober` | Batch-aware adversarial VAE fit; frozen encoder mean decoded onto one trained target batch | `target_batch`, `encoding_dim`, `epochs`, `batch_size`, `learning_rate`, `adversary_weight`, `kl_weight` |
 
 `batch_key=auto` uses `source` when ARCHS4 and OSDR are jointly fitted, and
@@ -121,7 +129,7 @@ All three adapters are executable and serialized with each run:
 fit on ARCHS4 plus the OSDR training partition only. Validation and test samples
 never enter that fit. MOBER automatically targets the OSDR source in this regime.
 
-ComBat variants require
+ComBat and MBatch variants require
 `validation.allow_transductive_preprocessing=true`; this is a deliberate opt-in,
 not a leakage-free inductive benchmark. Their preservation covariates default to
 `condition`, `tissue`, and `sex`. A preservation variable that is rank-confounded
@@ -139,6 +147,14 @@ recorded per partition. One-sample batches also stop by default. Set
 an explicitly exploratory pooled-singleton arm. The R and `sva` versions, anchor
 size, rounding, singleton handling, and confounded covariates are written to
 `harmonizer.json` and evaluation summaries.
+
+The MBatch adapters invoke the correction functions from the pinned official R
+source checkout rather than reimplementing their equations. Median Polish,
+Empirical Bayes, and ANOVA use balanced training anchors when correcting a held-out
+partition. Variance-adjusted ANOVA can return non-finite values for genes with
+degenerate within-batch variance. The optional `nonfinite_policy=identity_gene`
+restores each affected gene in full and records the count; it never fills isolated
+cells silently.
 
 MOBER follows the published encoder/decoder and adversarial batch-classifier design
 in a self-contained PyTorch adapter. Projection is deterministic: the encoder mean

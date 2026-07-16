@@ -37,6 +37,15 @@ PAPER_SOURCES: dict[str, dict[str, Any]] = {
             "genejepa/configs.py": "e4c995d06028cdd46165a00bbc2738689a050a45f6a737737542f17bdf524d55",
         },
     },
+    "mbatch": {
+        "url": "https://github.com/MD-Anderson-Bioinformatics/MBatch.git",
+        "commit": "93cddd2ba18ed8781b9865ba0259fafa057bcc17",
+        "files": {
+            "apps/MBatch/R/BEA_CorrectionsMP.R": "706084efe5c2bad7bad2ec24b7013c9105cfab7e1f865d72946c0cf3b411dc0f",
+            "apps/MBatch/R/BEA_CorrectionsEB.R": "897c03e2a375e0e3602330099a5d2ca3f02a593ea20fb792bb928f0a8ad52544",
+            "apps/MBatch/R/BEA_CorrectionsAN.R": "9f7afddf224d8fc5d46e74c5a55b2a98457a6c7aabf7a3e4328f6a66b2f8ff5b",
+        },
+    },
 }
 
 
