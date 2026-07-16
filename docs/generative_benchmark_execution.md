@@ -147,6 +147,14 @@ samples and synthetic-to-real ratios are evaluated independently. Real-plus-synt
 augmentation is calculated only after fidelity, diversity, and memorization gates
 pass.
 
+Matrix rows may set `conditioning_profile=all_configured` (the default),
+`condition_tissue`, or `condition_tissue_sex`. The compact profiles are important for
+ARCHS4 transfer because `source_name_ch1` is free text: the current full reference has
+6,989 material labels, including 5,430 observed no more than five times. The full
+profile remains an explicit stress-test baseline, not an assumption that those labels
+are reusable biological material classes. Sex labels are canonicalized across sources
+to `male`, `female`, `mixed`, or `unknown_sex` before fitting the category encoder.
+
 ## Storage And Checkpoints
 
 New unified runs default to one atomic `latest.pt` checkpoint every 100 epochs.
