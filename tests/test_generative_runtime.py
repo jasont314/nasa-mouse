@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import h5py
 import numpy as np
@@ -25,12 +26,16 @@ from nasa_mouse_generative.adapters import load_adapter
 from nasa_mouse_generative.adapters.diffusion import DiffusionAdapter
 from nasa_mouse_generative.adapters.wgan import WGANAdapter
 from nasa_mouse_generative.generate import _default_profile
+from nasa_mouse_generative.evaluate import (
+    _assert_preprocessing_matches,
+    _restore_saved_conditioning,
+)
 from nasa_mouse_generative.harmonizers import CombatHarmonizer, CombatSeqHarmonizer
 from nasa_mouse_generative.metrics import (
     conditional_effect_selection,
     fidelity_selection,
 )
-from nasa_mouse_generative.preprocessing import FittedPreprocessor
+from nasa_mouse_generative.preprocessing import FittedPreprocessor, ScaleStats
 from nasa_mouse_generative.profiles import resolve_preprocessing_profile
 from nasa_mouse_generative.runner import _claim_run_identity
 from nasa_mouse_generative.training_data import (
@@ -145,6 +150,52 @@ class ConditioningTests(unittest.TestCase):
         self.assertEqual(
             int(observed[0, 0]), encoder.vocabularies["condition"].index(UNKNOWN)
         )
+
+    def test_reconstructed_evaluation_restores_saved_encoder_and_order(self):
+        saved_obs = pd.DataFrame(
+            {
+                "profile_id": ["p1", "p2"],
+                "accession": ["OSD-1", "OSD-2"],
+                "condition": ["flight", "ground_control"],
+            }
+        )
+        current_obs = saved_obs.iloc[::-1].reset_index(drop=True)
+        encoder = CategoryEncoder.fit([saved_obs], ["condition"])
+        partition = DataPartition(
+            name="train",
+            matrix=np.asarray([[2.0], [1.0]], dtype=np.float32),
+            obs=current_obs,
+            categories=encoder.transform(current_obs),
+            weights=np.asarray([0.6, 0.4], dtype=np.float32),
+        )
+        adapter = SimpleNamespace(
+            covariates=encoder.covariates,
+            cardinalities=encoder.cardinalities,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            encoder.save(root / "categorical_encoder.json")
+            saved_obs.to_csv(root / "train_obs.tsv.gz", sep="\t", index=False)
+            restored = _restore_saved_conditioning(
+                {"train": partition}, root, adapter
+            )["train"]
+        np.testing.assert_array_equal(restored.matrix[:, 0], [1.0, 2.0])
+        self.assertEqual(restored.obs["profile_id"].tolist(), ["p1", "p2"])
+        np.testing.assert_array_equal(
+            restored.categories, encoder.transform(saved_obs)
+        )
+
+    def test_reconstructed_evaluation_rejects_changed_preprocessing_fit(self):
+        first = FittedPreprocessor(PreprocessingConfig())
+        second = FittedPreprocessor(PreprocessingConfig())
+        first.final_stats = ScaleStats(
+            center=np.asarray([0.0]), scale=np.asarray([1.0])
+        )
+        second.final_stats = ScaleStats(
+            center=np.asarray([0.1]), scale=np.asarray([1.0])
+        )
+        with self.assertRaisesRegex(ValueError, "final_stats differs"):
+            _assert_preprocessing_matches(first, second)
 
     def test_single_accession_fallback_preserves_each_condition_in_training(self):
         frame = pd.DataFrame(
