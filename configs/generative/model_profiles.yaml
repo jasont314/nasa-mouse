@@ -20,6 +20,7 @@ profiles:
       finetune_learning_rate: 0.0005
       early_stopping: true
       early_stopping_variant: released_code
+      early_stopping_first_epoch: 1
       early_stopping_evaluate_every_epochs: 5
       early_stopping_patience_checks: 10
       early_stopping_max_genes: 2000
@@ -41,6 +42,7 @@ profiles:
       finetune_learning_rate: 0.0005
       early_stopping: true
       early_stopping_variant: paper_text
+      early_stopping_first_epoch: 1
       early_stopping_evaluate_every_epochs: 5
       early_stopping_patience_epochs: 30
       early_stopping_max_genes: 2000

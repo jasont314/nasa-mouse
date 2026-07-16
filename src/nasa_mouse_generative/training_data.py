@@ -738,6 +738,42 @@ def _select_archs4_only_features(
             .head(selection_limit)
             .drop(columns=["_stable_key", "_within_tissue"])
         )
+    selection_cache = ""
+    if ranking_required and config.execution.cache_archs4:
+        source = Path(config.data.archs4_h5)
+        source_stat = source.stat()
+        cache_digest = hashlib.sha256()
+        cache_digest.update(
+            f"{source.resolve()}:{source_stat.st_size}:{source_stat.st_mtime_ns}".encode()
+        )
+        cache_digest.update(
+            np.asarray(
+                ranking_metadata["archs4_sample_index"], dtype="<i8"
+            ).tobytes()
+        )
+        cache_digest.update("\n".join(candidates).encode())
+        cache_digest.update(
+            f"{space}:{target}:{selection_limit}:{config.training.seed}".encode()
+        )
+        cache_dir = Path(config.output_root) / "cache" / "feature_selection"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_path = cache_dir / f"archs4_{cache_digest.hexdigest()[:20]}.json"
+        selection_cache = str(cache_path)
+        if cache_path.exists():
+            payload = json.loads(cache_path.read_text(encoding="utf-8"))
+            selected = list(map(str, payload.get("genes", [])))
+            if len(selected) == target and set(selected).issubset(candidates):
+                return selected, {
+                    "space": space,
+                    "selection_source": "archs4_training_series",
+                    "selected_genes": len(selected),
+                    "selection_fit_roles": ["archs4_train"],
+                    "selection_profiles_available": int(len(training_metadata)),
+                    "selection_profiles_used": int(len(ranking_metadata)),
+                    "selection_sample_limit": selection_limit,
+                    "selection_cache": selection_cache,
+                    "selection_cache_hit": True,
+                }
     if ranking_required:
         candidate_indices = np.asarray(
             [gene_map[gene] for gene in candidates], dtype=np.int64
@@ -749,6 +785,21 @@ def _select_archs4_only_features(
         )
         order = np.argsort(-variances, kind="stable")[:target]
         candidates = [candidates[int(index)] for index in order]
+        if selection_cache:
+            Path(selection_cache).write_text(
+                json.dumps(
+                    {
+                        "genes": candidates,
+                        "profiles_sha256": _values_sha256(
+                            ranking_metadata["geo_accession"]
+                        ),
+                        "fit_role": "archs4_train",
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
     return candidates, {
         "space": space,
         "selection_source": "archs4_training_series",
@@ -759,6 +810,8 @@ def _select_archs4_only_features(
             int(len(ranking_metadata)) if ranking_required else 0
         ),
         "selection_sample_limit": selection_limit,
+        "selection_cache": selection_cache,
+        "selection_cache_hit": False,
     }
 
 

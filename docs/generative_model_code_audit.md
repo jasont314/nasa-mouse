@@ -14,9 +14,10 @@ Repository commits were inspected on 2026-07-14.
 - Human RNA-seq code uses `log(1+x)`, a train-fitted gene-wise standard score,
   latent dimension 64, two 256-unit hidden layers, batch size 32, five critic
   updates per generator update, RMSprop at `5e-4`, and at most 2,000 epochs.
-- The source evaluates its gamma score every five epochs with default patience ten
-  checks. This is up to 50 no-improvement epochs, whereas the paper text states 30
-  epochs. Both variants are named explicitly in the benchmark.
+- The source's zero-based loop evaluates its gamma score after epochs 1, 6, 11, and
+  so on, with default patience ten checks. This is up to 50 no-improvement epochs,
+  whereas the paper text states 30 epochs. Both variants are named explicitly in
+  the benchmark.
 - The paper conditions GTEx/TCGA generation on tissue and dataset. Holding latent
   noise fixed while changing a category is its counterfactual construction.
 - The official split is sample-random. This benchmark replaces it with accession

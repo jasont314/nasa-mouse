@@ -17,12 +17,15 @@ contracts are implemented in `src/nasa_mouse_generative/paper_contracts.py`.
   two 256-unit ReLU layers; linear expression and critic outputs.
 - Training: batch 32, five critic steps, gradient penalty 10, TensorFlow-equivalent
   RMSprop (`lr=5e-4`, `rho=0.9`, `epsilon=1e-7`), at most 2,000 epochs.
-- Input transform: `log1p`, then training-gene standardization. CPM normalization
-  for raw NASA/ARCHS4 counts is a declared mouse data-interface adaptation.
+- Input transform: `log1p` applied directly to the supplied normalized expression,
+  then training-gene standardization. This is the `model_native` contract. CPM
+  normalization for depth-dependent NASA/ARCHS4 counts is tested separately as
+  `wgan_nasa_cpm_zscore`; it is a declared mouse data-interface adaptation and is
+  not scored as a strict preprocessing reproduction.
 
-There is a real paper/source early-stopping discrepancy. The released code evaluates
-the gamma correlation every five epochs and uses ten unsuccessful checks, equivalent
-to up to 50 epochs without improvement. The paper text says 30 epochs of patience.
+There is a real paper/source early-stopping discrepancy. The released zero-based loop
+evaluates gamma after epochs 1, 6, 11, and so on, and uses ten unsuccessful checks,
+equivalent to up to 50 epochs without improvement. The paper text says 30 epochs of patience.
 Profiles `paper_native` and `paper_native_paper_text` expose these variants explicitly.
 
 ### Lacan DDIM

@@ -15,8 +15,8 @@ import yaml
 
 from .config import BenchmarkConfig, load_config
 from .experiment_plan import expand_matrix
-from .profiles import resolve_preprocessing_profile
-from .runner import _smoke_config, train_one
+from .profiles import load_model_parameters, resolve_preprocessing_profile
+from .runner import _run_identity, _smoke_config, train_one
 
 
 SELECTION_PLACEHOLDERS = {
@@ -161,6 +161,39 @@ def config_for_row(base: BenchmarkConfig, row: dict[str, Any]) -> BenchmarkConfi
     return config
 
 
+def _resolve_row_ids(table: pd.DataFrame, base: BenchmarkConfig) -> pd.DataFrame:
+    result = table.copy()
+    identifiers: list[str] = []
+    for row in result.to_dict(orient="records"):
+        if str(row.get("status", "")) == "capability_blocked" or _unresolved_reason(
+            row, base
+        ):
+            identifiers.append(_row_id(row))
+            continue
+        config = config_for_row(base, row)
+        parameters = load_model_parameters(config)
+        _, digest = _run_identity(
+            config,
+            parameters,
+            str(row.get("tissue", "")) or None,
+            "",
+        )
+        backend_config = str(row.get("backend_config", ""))
+        if backend_config:
+            backend_path = Path(backend_config)
+            if backend_path.exists():
+                digest = hashlib.sha256(
+                    (
+                        digest
+                        + ":"
+                        + hashlib.sha256(backend_path.read_bytes()).hexdigest()
+                    ).encode()
+                ).hexdigest()
+        identifiers.append(digest[:16])
+    result["row_id"] = identifiers
+    return result
+
+
 def _write_status(table: pd.DataFrame, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
@@ -170,6 +203,7 @@ def _write_status(table: pd.DataFrame, path: Path) -> None:
 
 def _initial_status(plan: pd.DataFrame, existing: pd.DataFrame | None) -> pd.DataFrame:
     result = plan.copy()
+    result["in_current_plan"] = True
     result["status"] = result.get("status", "planned")
     for column, default in {
         "started_utc": "",
@@ -190,14 +224,43 @@ def _initial_status(plan: pd.DataFrame, existing: pd.DataFrame | None) -> pd.Dat
             previous = previous.iloc[-1]
         for column in ("status", "started_utc", "finished_utc", "run_summary", "error"):
             result.at[index, column] = previous.get(column, result.at[index, column])
+    retired = existing.loc[~existing["row_id"].isin(result["row_id"])].copy()
+    if not retired.empty:
+        never_started = retired["status"].astype(str).isin(
+            {
+                "planned",
+                "ready",
+                "awaiting_selection",
+                "awaiting_accession_selection",
+                "capability_blocked",
+            }
+        )
+        has_execution_record = pd.Series(False, index=retired.index)
+        for column in ("started_utc", "run_summary", "error"):
+            if column in retired:
+                has_execution_record |= retired[column].astype(str).str.len().gt(0)
+        retired = retired.loc[~never_started | has_execution_record].copy()
+        retired["in_current_plan"] = False
+        result = pd.concat([result, retired], ignore_index=True, sort=False)
     return result
+
+
+def _execution_mask(
+    status: pd.DataFrame, *, phases: list[str], tissue_filter: str
+) -> pd.Series:
+    mask = status["in_current_plan"].fillna(False).astype(bool)
+    if phases:
+        mask &= status["phase"].astype(str).isin(phases)
+    if tissue_filter:
+        mask &= status["tissue_mode"].astype(str).ne("per_tissue") | status[
+            "tissue"
+        ].astype(str).eq(tissue_filter)
+    return mask
 
 
 def run(args: argparse.Namespace) -> Path:
     payload = yaml.safe_load(Path(args.matrix).read_text(encoding="utf-8")) or {}
     plan = expand_matrix(payload)
-    if args.phase:
-        plan = plan.loc[plan["phase"].astype(str).isin(args.phase)].copy()
     base = load_config(args.config)
     plan = _expand_tissues(
         plan,
@@ -205,8 +268,9 @@ def run(args: argparse.Namespace) -> Path:
             Path(base.output_root)
             / "data_audit/osdr/osdr_tissue_inventory.tsv"
         ),
-        tissue_filter=args.tissue,
+        tissue_filter="",
     )
+    plan = _resolve_row_ids(plan, base)
     status_path = Path(args.status)
     existing = (
         pd.read_csv(status_path, sep="\t", keep_default_na=False)
@@ -214,8 +278,11 @@ def run(args: argparse.Namespace) -> Path:
         else None
     )
     status = _initial_status(plan, existing)
+    selected = _execution_mask(
+        status, phases=list(args.phase), tissue_filter=args.tissue
+    )
     executed = 0
-    for index, row_series in status.iterrows():
+    for index, row_series in status.loc[selected].iterrows():
         row = row_series.to_dict()
         current = str(row.get("status", "planned"))
         if current == "complete":

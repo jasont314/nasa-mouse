@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import asdict, replace
+from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path
@@ -29,6 +30,35 @@ from .training_data import prepare_training_data, save_prepared_osdr
 
 
 GIB = 1024**3
+
+
+@lru_cache(maxsize=None)
+def _pipeline_source_manifest(model: str) -> dict[str, object]:
+    source_root = Path(__file__).resolve().parents[1]
+    package_names = ["nasa_mouse_generative"]
+    package_names.extend(
+        {
+            "vinas_wgan_gp": ["nasa_mouse_wgan"],
+            "lacan_diffusion": ["nasa_mouse_diffusion"],
+            "genejepa": [],
+        }[model]
+    )
+    files = sorted(
+        path
+        for package in package_names
+        for path in (source_root / package).rglob("*.py")
+    )
+    hashes: dict[str, str] = {}
+    combined = hashlib.sha256()
+    for path in files:
+        relative = str(path.relative_to(source_root))
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        hashes[relative] = digest
+        combined.update(relative.encode())
+        combined.update(b"\0")
+        combined.update(digest.encode())
+        combined.update(b"\n")
+    return {"sha256": combined.hexdigest(), "files": hashes}
 
 
 def _directory_bytes(path: Path) -> int:
@@ -153,10 +183,12 @@ def _smoke_config(config: BenchmarkConfig) -> BenchmarkConfig:
 def _run_identity(
     config: BenchmarkConfig, parameters: dict, tissue: str | None, run_name: str
 ) -> tuple[str, str]:
+    pipeline_source = _pipeline_source_manifest(config.training.model)
     payload = {
         "config": config.to_dict(),
         "resolved_model_parameters": parameters,
         "tissue_override": tissue or "",
+        "pipeline_source_sha256": pipeline_source["sha256"],
     }
     serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     digest = hashlib.sha256(serialized.encode()).hexdigest()
@@ -274,6 +306,9 @@ def train_one(
     )
     resolved = config.to_dict()
     resolved["resolved_model_parameters"] = parameters
+    resolved["pipeline_source"] = _pipeline_source_manifest(
+        config.training.model
+    )
     resolved["run"] = {
         "id": identifier,
         "sha256": digest,
@@ -361,6 +396,7 @@ def train_one(
         "run_sha256": digest,
         "model": config.training.model,
         "model_provenance": asdict(MODEL_REGISTRY[config.training.model]),
+        "pipeline_source": _pipeline_source_manifest(config.training.model),
         "model_profile": config.training.model_profile,
         "task": config.training.task,
         "regime": config.training.regime,

@@ -130,22 +130,39 @@ class WGANAdapter(ModelAdapter):
         self._atomic_torch_save(payload, self.checkpoint_path)
 
     @staticmethod
-    def _gamma_coefficient(real: np.ndarray, fake: np.ndarray) -> float:
+    def _gamma_coefficient(
+        real: np.ndarray, fake: np.ndarray, *, device: torch.device
+    ) -> float:
         if real.shape[1] < 2 or len(real) < 3 or len(fake) < 3:
             return float("nan")
-        real_correlation = np.corrcoef(real, rowvar=False)
-        fake_correlation = np.corrcoef(fake, rowvar=False)
-        upper = np.triu_indices(real.shape[1], k=1)
-        real_distances = 1.0 - real_correlation[upper]
-        fake_distances = 1.0 - fake_correlation[upper]
-        finite = np.isfinite(real_distances) & np.isfinite(fake_distances)
-        if finite.sum() < 2:
-            return float("nan")
-        first = real_distances[finite]
-        second = fake_distances[finite]
-        if np.std(first) == 0 or np.std(second) == 0:
-            return float("nan")
-        return float(np.corrcoef(first, second)[0, 1])
+        with torch.no_grad():
+            first_matrix = torch.as_tensor(real, dtype=torch.float64, device=device)
+            second_matrix = torch.as_tensor(fake, dtype=torch.float64, device=device)
+
+            def correlation(matrix: torch.Tensor) -> torch.Tensor:
+                centered = matrix - matrix.mean(dim=0, keepdim=True)
+                norms = torch.linalg.vector_norm(centered, dim=0)
+                denominator = torch.outer(norms, norms)
+                return centered.T.mm(centered) / denominator
+
+            upper = torch.triu_indices(
+                real.shape[1], real.shape[1], offset=1, device=device
+            )
+            first = 1.0 - correlation(first_matrix)[upper[0], upper[1]]
+            second = 1.0 - correlation(second_matrix)[upper[0], upper[1]]
+            finite = torch.isfinite(first) & torch.isfinite(second)
+            if int(finite.sum().item()) < 2:
+                return float("nan")
+            first = first[finite]
+            second = second[finite]
+            first = first - first.mean()
+            second = second - second.mean()
+            denominator = torch.linalg.vector_norm(first) * torch.linalg.vector_norm(
+                second
+            )
+            if not torch.isfinite(denominator) or float(denominator.item()) == 0.0:
+                return float("nan")
+            return float((torch.dot(first, second) / denominator).item())
 
     def _monitor_score(self) -> float:
         partition = self.validation_partition
@@ -160,7 +177,7 @@ class WGANAdapter(ModelAdapter):
             generated = generated[:, selected]
         else:
             real = partition.matrix
-        return self._gamma_coefficient(real, generated)
+        return self._gamma_coefficient(real, generated, device=self.device)
 
     def _early_stopping_checks(self) -> int:
         variant = str(
@@ -180,6 +197,14 @@ class WGANAdapter(ModelAdapter):
         return max(
             1, int(self.parameters.get("early_stopping_patience_checks", 10))
         )
+
+    def _is_monitor_epoch(self, epoch: int) -> bool:
+        first = max(1, int(self.parameters.get("early_stopping_first_epoch", 1)))
+        every = max(
+            1,
+            int(self.parameters.get("early_stopping_evaluate_every_epochs", 5)),
+        )
+        return epoch >= first and (epoch - first) % every == 0
 
     def _paper_loader(self, partition: DataPartition):
         permutation = np.random.default_rng(self.seed).permutation(len(partition))
@@ -237,10 +262,6 @@ class WGANAdapter(ModelAdapter):
             stage, {"best_score": float("-inf"), "checks_without_improvement": 0}
         )
         patience_checks = self._early_stopping_checks() if early_stopping else 0
-        evaluate_every = max(
-            1,
-            int(self.parameters.get("early_stopping_evaluate_every_epochs", 5)),
-        )
         best_path = self.checkpoint_dir / f"best_{stage}.pt"
         for epoch in range(completed + 1, int(epochs) + 1):
             if bool(self.parameters.get("weighted_sampling", True)):
@@ -274,7 +295,7 @@ class WGANAdapter(ModelAdapter):
             self.state.history.append(row)
             self.state.completed_epochs[stage] = epoch
             should_stop = False
-            if early_stopping and monitor_compatible and epoch % evaluate_every == 0:
+            if early_stopping and monitor_compatible and self._is_monitor_epoch(epoch):
                 score = self._monitor_score()
                 row["early_stopping_score"] = score
                 if np.isfinite(score) and score > float(state["best_score"]):
@@ -295,6 +316,16 @@ class WGANAdapter(ModelAdapter):
                     ) + 1
                 row["early_stopping_checks_without_improvement"] = int(
                     state["checks_without_improvement"]
+                )
+                self.write_history()
+                print(
+                    f"[wgan] monitor stage={stage} epoch={epoch} "
+                    f"gamma={float(score):.6f} "
+                    f"best={float(state['best_score']):.6f} "
+                    f"checks_without_improvement="
+                    f"{int(state['checks_without_improvement'])}/"
+                    f"{patience_checks}",
+                    flush=True,
                 )
                 should_stop = (
                     int(state["checks_without_improvement"]) >= patience_checks

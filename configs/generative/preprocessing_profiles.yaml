@@ -42,14 +42,20 @@ shared_profiles:
     transform: none
     scaler: maxabs
     requires: mouse gene lengths aligned to the selected Ensembl IDs
-
-paper_native_profiles:
-  vinas_wgan_gp:
+  wgan_nasa_cpm_zscore:
     input_units: raw_counts
     library_normalization: cpm
     transform: log1p
     scaler: zscore
-    adaptation_note: CPM is added because OSDR provides library-size-dependent raw counts.
+    adaptation_note: NASA count-depth adaptation; this is not the paper-native RNASeqDB preprocessing contract.
+
+paper_native_profiles:
+  vinas_wgan_gp:
+    input_units: raw_counts
+    library_normalization: none
+    transform: log1p
+    scaler: zscore
+    source_contract: The released script applies log1p directly to normalized RNASeqDB expression, then fits per-gene mean and standard deviation on training profiles.
   lacan_diffusion:
     input_units: raw_counts
     library_normalization: tpm

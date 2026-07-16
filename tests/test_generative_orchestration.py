@@ -7,9 +7,16 @@ from unittest import mock
 
 import numpy as np
 import pandas as pd
+import torch
 
 from nasa_mouse_generative.config import BenchmarkConfig, load_config
-from nasa_mouse_generative.matrix_runner import _expand_tissues, config_for_row
+from nasa_mouse_generative.matrix_runner import (
+    _execution_mask,
+    _expand_tissues,
+    _initial_status,
+    _resolve_row_ids,
+    config_for_row,
+)
 from nasa_mouse_generative.metrics import (
     _synthetic_training_profiles,
     classifier_utility,
@@ -43,6 +50,20 @@ def _matrix_row(**updates):
 
 
 class PaperContractTests(unittest.TestCase):
+    def test_wgan_accelerated_gamma_matches_released_numpy_definition(self):
+        rng = np.random.default_rng(9)
+        real = rng.normal(size=(30, 8))
+        fake = 0.7 * real + rng.normal(scale=0.4, size=real.shape)
+        upper = np.triu_indices(real.shape[1], k=1)
+        expected = np.corrcoef(
+            1.0 - np.corrcoef(real, rowvar=False)[upper],
+            1.0 - np.corrcoef(fake, rowvar=False)[upper],
+        )[0, 1]
+        observed = WGANAdapter._gamma_coefficient(
+            real, fake, device=torch.device("cpu")
+        )
+        self.assertAlmostEqual(observed, expected, places=12)
+
     def test_wgan_uses_uncapped_official_embedding_rule(self):
         self.assertEqual(embedding_dim(10_000), 101)
         self.assertEqual(embedding_dim(1), 2)
@@ -86,6 +107,10 @@ class PaperContractTests(unittest.TestCase):
             self.assertEqual(generator_optimizer.defaults["alpha"], 0.9)
             self.assertEqual(generator_optimizer.defaults["eps"], 1e-7)
             self.assertEqual(adapter._early_stopping_checks(), 10)
+            self.assertEqual(
+                [epoch for epoch in range(1, 13) if adapter._is_monitor_epoch(epoch)],
+                [1, 6, 11],
+            )
             adapter.parameters.update(
                 {
                     "early_stopping_variant": "paper_text",
@@ -130,6 +155,56 @@ class MatrixResolutionTests(unittest.TestCase):
             table, inventory_path=Path("unused.tsv"), tissue_filter=""
         )
         self.assertEqual(first.loc[0, "row_id"], second.loc[0, "row_id"])
+
+    def test_phase_filter_does_not_remove_other_rows_from_ledger(self):
+        plan = pd.DataFrame(
+            [
+                {**_matrix_row(), "phase": "first", "row_id": "current-a"},
+                {**_matrix_row(), "phase": "second", "row_id": "current-b"},
+            ]
+        )
+        existing = pd.DataFrame(
+            [
+                {
+                    **_matrix_row(),
+                    "phase": "retired",
+                    "row_id": "old-row",
+                    "status": "complete",
+                    "run_summary": "old.json",
+                },
+                {
+                    **_matrix_row(),
+                    "phase": "retired",
+                    "row_id": "never-started",
+                    "status": "planned",
+                    "run_summary": "",
+                },
+            ]
+        )
+        status = _initial_status(plan, existing)
+        selected = _execution_mask(status, phases=["second"], tissue_filter="")
+        self.assertEqual(set(status["row_id"]), {"current-a", "current-b", "old-row"})
+        self.assertEqual(status.loc[selected, "row_id"].tolist(), ["current-b"])
+        self.assertFalse(
+            bool(status.loc[status["row_id"].eq("old-row"), "in_current_plan"].iloc[0])
+        )
+
+    def test_matrix_identity_uses_resolved_parameters(self):
+        table = _expand_tissues(
+            pd.DataFrame([{**_matrix_row(), "phase": "screen"}]),
+            inventory_path=Path("unused.tsv"),
+            tissue_filter="",
+        )
+        base = load_config("configs/generative/default.yaml")
+        changed = replace(
+            base,
+            training=replace(
+                base.training, model_parameters={"learning_rate": 0.000321}
+            ),
+        )
+        first = _resolve_row_ids(table, base).loc[0, "row_id"]
+        second = _resolve_row_ids(table, changed).loc[0, "row_id"]
+        self.assertNotEqual(first, second)
 
     def test_study_conditioning_is_an_explicit_alternative(self):
         config = config_for_row(

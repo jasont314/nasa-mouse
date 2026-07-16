@@ -88,6 +88,22 @@ class RuntimeConfigTests(unittest.TestCase):
         self.assertEqual(resolved.preprocessing.transform, "log1p")
         self.assertEqual(resolved.preprocessing.scaler, "maxabs")
 
+    def test_wgan_native_and_nasa_cpm_profiles_are_distinct(self):
+        native = load_config_with_overrides(
+            "configs/generative/default.yaml",
+            ["preprocessing.profile=model_native"],
+        )
+        nasa = load_config_with_overrides(
+            "configs/generative/default.yaml",
+            ["preprocessing.profile=wgan_nasa_cpm_zscore"],
+        )
+        native = resolve_preprocessing_profile(native)
+        nasa = resolve_preprocessing_profile(nasa)
+        self.assertEqual(native.preprocessing.library_normalization, "none")
+        self.assertEqual(nasa.preprocessing.library_normalization, "cpm")
+        self.assertEqual(native.preprocessing.transform, "log1p")
+        self.assertEqual(native.preprocessing.scaler, "zscore")
+
     def test_run_identity_checks_legacy_summary_before_writing(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -454,14 +470,18 @@ class Archs4ExtractionTests(unittest.TestCase):
                     conditioning_covariates=("tissue",),
                 ),
                 execution=replace(
-                    ExecutionConfig(), cache_archs4=False, device="cpu"
+                    ExecutionConfig(), cache_archs4=True, device="cpu"
                 ),
             )
             prepared = prepare_training_data(config)
+            cached = prepare_training_data(config)
         self.assertEqual(sum(map(len, prepared.partitions.values())), 24)
         self.assertFalse(prepared.metadata["osdr_expression_used"])
         self.assertEqual(prepared.reference.name, "train")
         self.assertEqual(len(prepared.genes), 4)
+        self.assertFalse(prepared.metadata["features"]["selection_cache_hit"])
+        self.assertTrue(cached.metadata["features"]["selection_cache_hit"])
+        self.assertEqual(prepared.genes, cached.genes)
 
     def test_selected_columns_and_gene_order_are_preserved(self):
         with tempfile.TemporaryDirectory() as directory:
