@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from dataclasses import replace
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 
 import h5py
@@ -490,6 +491,75 @@ class CombatSeqPolicyTests(unittest.TestCase):
         corrected = permissive.fit_transform(values, studies, metadata)
         self.assertEqual(corrected.shape, values.shape)
         self.assertEqual(permissive.audit()["dropped_covariates"], ["condition"])
+
+
+class MBatchAdapterTests(unittest.TestCase):
+    @unittest.skipUnless(
+        Path("assets/model_sources/MBatch/apps/MBatch/R").exists()
+        and Path(sys.executable).with_name("Rscript").exists(),
+        "optional pinned MBatch source and conda Rscript are required",
+    )
+    def test_official_mbatch_methods_round_trip_heldout_batches(self):
+        rng = np.random.default_rng(7)
+        train_studies = np.repeat(["A", "B", "C"], 8)
+        train = np.maximum(
+            rng.normal(5.0, 1.0, (24, 12))
+            + np.repeat([0.0, 2.0, -1.0], 8)[:, None],
+            0.0,
+        ).astype(np.float32)
+        heldout_studies = np.repeat(["D", "E"], 3)
+        heldout = np.maximum(
+            rng.normal(5.0, 1.0, (6, 12))
+            + np.repeat([3.0, -2.0], 3)[:, None],
+            0.0,
+        ).astype(np.float32)
+        train_metadata = pd.DataFrame({"study": train_studies})
+        heldout_metadata = pd.DataFrame({"study": heldout_studies})
+        for method in (
+            "mbatch_median_polish",
+            "mbatch_empirical_bayes",
+            "mbatch_anova",
+        ):
+            with self.subTest(method=method):
+                processor = FittedPreprocessor(
+                    PreprocessingConfig(
+                        input_units="normalized_counts",
+                        library_normalization="none",
+                        transform="none",
+                        scaler="none",
+                        harmonization=method,
+                        harmonization_covariates=(),
+                        harmonization_parameters={
+                            "batch_key": "study",
+                            "anchor_samples": 12,
+                            "nonfinite_policy": "identity_gene",
+                        },
+                        unseen_study_policy="transductive_unlabeled",
+                    ),
+                    device_spec="cpu",
+                    seed=7,
+                )
+                corrected = processor.fit_transform(
+                    train, train_studies, metadata=train_metadata
+                )
+                projected = processor.transform(
+                    heldout,
+                    heldout_studies,
+                    metadata=heldout_metadata,
+                    allow_transductive=True,
+                )
+                with tempfile.TemporaryDirectory() as directory:
+                    processor.save(directory)
+                    restored = FittedPreprocessor.load(directory)
+                    replay = restored.transform(
+                        heldout,
+                        heldout_studies,
+                        metadata=heldout_metadata,
+                        allow_transductive=True,
+                    )
+                self.assertEqual(corrected.shape, train.shape)
+                self.assertTrue(np.isfinite(projected).all())
+                np.testing.assert_allclose(projected, replay, atol=1e-5)
 
 
 class Archs4ExtractionTests(unittest.TestCase):
