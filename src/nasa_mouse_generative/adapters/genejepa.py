@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+import math
 from pathlib import Path
 import sys
 from typing import Any
@@ -12,6 +13,7 @@ import torch
 import torch.nn.functional as functional
 
 from ..training_data import DataPartition
+from ..paper_contracts import verify_pinned_source
 from .base import ModelAdapter, weighted_loader
 
 
@@ -56,6 +58,10 @@ class GeneJEPAAdapter(ModelAdapter):
     def __init__(self, *, source_path: str, **kwargs) -> None:
         super().__init__(**kwargs)
         self.source_path = str(source_path)
+        self.source_manifest = verify_pinned_source(
+            self.adapter_id, self.source_path
+        )
+        self.source_manifest["implementation"] = "official_model_classes_bulk_adapter"
         ModelConfig, GenePerceiverJEPA = _official_classes(self.source_path)
         self.model_config = {
             "d": int(self.parameters.get("d", 128)),
@@ -107,6 +113,7 @@ class GeneJEPAAdapter(ModelAdapter):
             + self.model_config["num_targets"]
             * self.model_config["min_target_genes_per_block"]
         )
+        self.minimum_tokens = int(minimum)
         if self.max_tokens < minimum:
             raise ValueError(
                 f"GeneJEPA max_tokens={self.max_tokens} is below its required "
@@ -146,8 +153,15 @@ class GeneJEPAAdapter(ModelAdapter):
         for row in matrix:
             finite = torch.isfinite(row)
             available = torch.nonzero(finite & row.ne(0), as_tuple=False).flatten()
-            if len(available) < self.max_tokens:
-                available = torch.nonzero(finite, as_tuple=False).flatten()
+            if len(available) < self.minimum_tokens:
+                absent = torch.nonzero(finite & row.eq(0), as_tuple=False).flatten()
+                required = self.minimum_tokens - len(available)
+                available = torch.cat([available, absent[:required]])
+            if len(available) < self.minimum_tokens:
+                raise ValueError(
+                    "GeneJEPA profile has too few finite genes for the configured "
+                    "context and target masks"
+                )
             if len(available) > self.max_tokens:
                 ranking = torch.topk(
                     row[available].abs(), self.max_tokens, sorted=False
@@ -165,7 +179,7 @@ class GeneJEPAAdapter(ModelAdapter):
         )
         return {"indices": flat_indices, "values": flat_values, "offsets": offsets}
 
-    def _save_checkpoint(self, stage: str, optimizer) -> None:
+    def _save_checkpoint(self, stage: str, optimizer, scheduler, scaler) -> None:
         payload = self._common_payload()
         payload.update(
             {
@@ -173,6 +187,8 @@ class GeneJEPAAdapter(ModelAdapter):
                 "model_state_dict": self.model.state_dict(),
                 "active_stage": stage,
                 "optimizer_state_dict": optimizer.state_dict(),
+                "scheduler_state_dict": scheduler.state_dict(),
+                "scaler_state_dict": scaler.state_dict(),
                 "source_path": self.source_path,
                 "source_commit": PINNED_COMMIT,
                 "max_tokens": self.max_tokens,
@@ -188,14 +204,68 @@ class GeneJEPAAdapter(ModelAdapter):
         completed = int(self.state.completed_epochs.get(stage, 0))
         if completed >= int(epochs):
             return [row for row in self.state.history if row.get("stage") == stage]
+        weight_decay = float(self.parameters.get("weight_decay", 2e-4))
+        decay_parameters = []
+        no_decay_parameters = []
+        for name, parameter in self.model.named_parameters():
+            if not parameter.requires_grad:
+                continue
+            normalized_name = name.lower()
+            if (
+                parameter.ndim <= 1
+                or normalized_name.endswith(".bias")
+                or "norm" in normalized_name
+                or "embed" in normalized_name
+            ):
+                no_decay_parameters.append(parameter)
+            else:
+                decay_parameters.append(parameter)
         optimizer = torch.optim.AdamW(
-            [parameter for parameter in self.model.parameters() if parameter.requires_grad],
+            [
+                {"params": decay_parameters, "weight_decay": weight_decay},
+                {"params": no_decay_parameters, "weight_decay": 0.0},
+            ],
             lr=float(learning_rate),
-            weight_decay=float(self.parameters.get("weight_decay", 2e-4)),
             betas=(0.9, 0.98),
+        )
+        accumulation = max(
+            1, int(self.parameters.get("accumulate_grad_batches", 2))
+        )
+        samples_per_epoch = int(self.parameters.get("samples_per_epoch", 0))
+        effective_samples = samples_per_epoch if samples_per_epoch > 0 else len(partition)
+        batches_per_epoch = math.ceil(
+            effective_samples / min(self.batch_size, len(partition))
+        )
+        updates_per_epoch = math.ceil(batches_per_epoch / accumulation)
+        total_updates = max(1, int(epochs) * updates_per_epoch)
+        warmup_steps = int(
+            round(total_updates * float(self.parameters.get("warmup_ratio", 0.05)))
+        )
+
+        def learning_rate_factor(step: int) -> float:
+            if warmup_steps > 0 and step < warmup_steps:
+                return float(step) / float(max(1, warmup_steps))
+            denominator = max(1, total_updates - warmup_steps)
+            progress = min(max((step - warmup_steps) / denominator, 0.0), 1.0)
+            return 0.5 * (1.0 + math.cos(math.pi * progress))
+
+        scheduler = torch.optim.lr_scheduler.LambdaLR(
+            optimizer, lr_lambda=learning_rate_factor
+        )
+        amp = bool(self.parameters.get("use_amp", True)) and self.device.type == "cuda"
+        amp_dtype_name = str(self.parameters.get("amp_dtype", "bfloat16")).lower()
+        amp_dtype = torch.float16 if amp_dtype_name == "float16" else torch.bfloat16
+        scaler = torch.amp.GradScaler(
+            "cuda", enabled=amp and amp_dtype == torch.float16
         )
         if self._resume_payload and self._resume_payload.get("active_stage") == stage:
             optimizer.load_state_dict(self._resume_payload["optimizer_state_dict"])
+            if self._resume_payload.get("scheduler_state_dict"):
+                scheduler.load_state_dict(
+                    self._resume_payload["scheduler_state_dict"]
+                )
+            if self._resume_payload.get("scaler_state_dict"):
+                scaler.load_state_dict(self._resume_payload["scaler_state_dict"])
         sim_coeff = float(self.parameters.get("sim_coeff", 1.0))
         var_coeff = float(self.parameters.get("var_coeff", 25.0))
         cov_coeff = float(self.parameters.get("cov_coeff", 1.0))
@@ -205,47 +275,69 @@ class GeneJEPAAdapter(ModelAdapter):
                 batch_size=self.batch_size,
                 seed=self.seed + epoch + 10000 * len(self.state.completed_epochs),
                 num_workers=self.num_workers,
+                num_samples=samples_per_epoch,
             )
             losses: list[float] = []
             similarities: list[float] = []
             self.model.train()
-            for expression, _ in loader:
+            optimizer.zero_grad(set_to_none=True)
+            for batch_index, (expression, _) in enumerate(loader):
                 expression = expression.to(self.device)
-                optimizer.zero_grad(set_to_none=True)
-                predicted, target, student = self.model(**self._ragged(expression))
-                if predicted.numel() == 0:
-                    continue
-                similarity = 1.0 - (
-                    functional.normalize(predicted.float(), dim=1)
-                    * functional.normalize(target.detach().float(), dim=1)
-                ).sum(dim=1).mean()
-                variance, covariance = _vicreg(predicted)
-                student_variance, student_covariance = _vicreg(student)
-                loss = (
-                    sim_coeff * similarity
-                    + var_coeff * variance
-                    + cov_coeff * covariance
-                    + 20.0 * student_variance
-                    + student_covariance
-                )
+                with torch.autocast(
+                    device_type=self.device.type,
+                    enabled=amp,
+                    dtype=amp_dtype,
+                ):
+                    predicted, target, student = self.model(**self._ragged(expression))
+                    if predicted.numel() == 0:
+                        continue
+                    similarity = 1.0 - (
+                        functional.normalize(predicted.float(), dim=1)
+                        * functional.normalize(target.detach().float(), dim=1)
+                    ).sum(dim=1).mean()
+                    variance, covariance = _vicreg(predicted)
+                    student_variance, student_covariance = _vicreg(student)
+                    loss = (
+                        sim_coeff * similarity
+                        + var_coeff * variance
+                        + cov_coeff * covariance
+                        + 20.0 * student_variance
+                        + student_covariance
+                    )
                 if not torch.isfinite(loss):
                     raise FloatingPointError(
                         f"Non-finite GeneJEPA loss at {stage} epoch {epoch}"
                     )
-                loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
-                optimizer.step()
-                progress = self.state.global_steps / max(1, int(epochs) * len(loader))
-                start_decay = float(self.parameters.get("ema_start_decay", 0.99))
-                end_decay = float(self.parameters.get("ema_end_decay", 0.999))
-                self.model.teacher_encoder.beta = start_decay + (
-                    end_decay - start_decay
-                ) * min(progress, 1.0)
-                if self.state.global_steps >= int(
-                    self.parameters.get("ema_warmup_steps", 0)
-                ):
-                    self.model.update_teacher()
-                self.state.global_steps += 1
+                scaler.scale(loss / accumulation).backward()
+                should_update = (
+                    (batch_index + 1) % accumulation == 0
+                    or batch_index + 1 == len(loader)
+                )
+                if should_update:
+                    scaler.unscale_(optimizer)
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
+                    scaler.step(optimizer)
+                    scaler.update()
+                    optimizer.zero_grad(set_to_none=True)
+                    scheduler.step()
+                    stage_step = (epoch - 1) * updates_per_epoch + (
+                        batch_index // accumulation + 1
+                    )
+                    progress = min(stage_step / max(total_updates, 1), 1.0)
+                    start_decay = float(
+                        self.parameters.get("ema_start_decay", 0.99)
+                    )
+                    end_decay = float(
+                        self.parameters.get("ema_end_decay", 0.999)
+                    )
+                    self.model.teacher_encoder.beta = end_decay - (
+                        end_decay - start_decay
+                    ) * (math.cos(math.pi * progress) + 1.0) / 2.0
+                    if self.state.global_steps >= int(
+                        self.parameters.get("ema_warmup_steps", 0)
+                    ):
+                        self.model.update_teacher()
+                    self.state.global_steps += 1
                 losses.append(float(loss.detach().cpu()))
                 similarities.append(float(similarity.detach().cpu()))
             if not losses:
@@ -256,14 +348,19 @@ class GeneJEPAAdapter(ModelAdapter):
             row = {
                 "stage": stage,
                 "epoch": epoch,
-                "learning_rate": float(learning_rate),
+                "learning_rate": float(optimizer.param_groups[0]["lr"]),
                 "loss": float(np.mean(losses)),
                 "cosine_loss": float(np.mean(similarities)),
             }
             self.state.history.append(row)
             self.state.completed_epochs[stage] = epoch
+            print(
+                f"[genejepa] stage={stage} epoch={epoch}/{epochs} "
+                f"loss={row['loss']:.6f} cosine={row['cosine_loss']:.6f}",
+                flush=True,
+            )
             if epoch % self.checkpoint_every == 0 or epoch == int(epochs):
-                self._save_checkpoint(stage, optimizer)
+                self._save_checkpoint(stage, optimizer, scheduler, scaler)
                 self.write_history()
         self._resume_payload = None
         return [row for row in self.state.history if row.get("stage") == stage]

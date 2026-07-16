@@ -11,11 +11,21 @@ import torch
 from sklearn.linear_model import Ridge
 
 from nasa_mouse_diffusion.data import select_landmarks
-from nasa_mouse_diffusion.diffusion import beta_schedule, noise_estimation_loss, sample
+from nasa_mouse_diffusion.diffusion import (
+    beta_schedule,
+    noise_estimation_loss,
+    sample,
+    sample_trajectory as diffusion_sample_trajectory,
+)
 from nasa_mouse_diffusion.model import ConditionalDiffusionMLP
 
 from ..training_data import DataPartition
+from ..paper_contracts import verify_pinned_source
 from .base import ModelAdapter, weighted_loader
+
+
+SOURCE_COMMIT = "cde890154698fcea96c924804aaff04af3351b48"
+SOURCE_URL = "https://forge.ibisc.univ-evry.fr/alacan/rna-diffusion.git"
 
 
 class DiffusionAdapter(ModelAdapter):
@@ -27,10 +37,26 @@ class DiffusionAdapter(ModelAdapter):
         *,
         reconstruction_matrix: np.ndarray | None,
         l1000_map: str,
+        source_path: str = "",
         serialized_payload: dict[str, Any] | None = None,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
+        self.source_path = str(source_path)
+        if bool(self.parameters.get("_paper_native", False)):
+            raise RuntimeError(
+                "The configurable diffusion adapter is not the exact upstream "
+                "ModelDDIM. Run the paper-native baseline through "
+                "`python -m nasa_mouse_rna_diffusion`; use practical_screen for "
+                "the configurable NASA extension."
+            )
+        if self.source_path and Path(self.source_path).exists():
+            self.source_manifest = verify_pinned_source(
+                self.adapter_id, self.source_path
+            )
+            self.source_manifest["implementation"] = (
+                "configurable_conditional_pytorch_extension"
+            )
         self.l1000_map = str(l1000_map)
         checkpoint_payload = None
         if self.resume and self.checkpoint_path.exists():
@@ -199,7 +225,7 @@ class DiffusionAdapter(ModelAdapter):
         finally:
             self.model.load_state_dict(current)
 
-    def _save_checkpoint(self, stage: str, optimizer, scaler) -> None:
+    def _save_checkpoint(self, stage: str, optimizer, scheduler, scaler) -> None:
         payload = self._common_payload()
         payload.update(
             {
@@ -209,6 +235,9 @@ class DiffusionAdapter(ModelAdapter):
                 "betas": self.betas.detach().cpu(),
                 "active_stage": stage,
                 "optimizer_state_dict": optimizer.state_dict(),
+                "scheduler_state_dict": (
+                    scheduler.state_dict() if scheduler is not None else None
+                ),
                 "scaler_state_dict": scaler.state_dict(),
                 "landmark_genes": self.landmark_genes,
                 "target_genes": self.target_genes,
@@ -218,6 +247,9 @@ class DiffusionAdapter(ModelAdapter):
                 "l1000_map": self.l1000_map,
                 "reconstruction_coef": self.reconstruction_coef,
                 "reconstruction_intercept": self.reconstruction_intercept,
+                "source_url": SOURCE_URL,
+                "source_commit": SOURCE_COMMIT,
+                "source_path": self.source_path,
             }
         )
         self._atomic_torch_save(payload, self.checkpoint_path)
@@ -230,13 +262,49 @@ class DiffusionAdapter(ModelAdapter):
         completed = int(self.state.completed_epochs.get(stage, 0))
         if completed >= int(epochs):
             return [row for row in self.state.history if row.get("stage") == stage]
-        optimizer = torch.optim.AdamW(
-            self.model.parameters(), lr=float(learning_rate), eps=1e-8
+        optimizer_name = str(self.parameters.get("optimizer", "adam")).lower()
+        optimizer_class = {
+            "adam": torch.optim.Adam,
+            "adamw": torch.optim.AdamW,
+        }.get(optimizer_name)
+        if optimizer_class is None:
+            raise ValueError(f"Unsupported diffusion optimizer: {optimizer_name}")
+        optimizer = optimizer_class(
+            self.model.parameters(),
+            lr=float(learning_rate),
+            eps=1e-8,
+            weight_decay=float(self.parameters.get("weight_decay", 0.0)),
         )
         amp = bool(self.parameters.get("use_amp", True)) and self.device.type == "cuda"
         scaler = torch.amp.GradScaler("cuda", enabled=amp)
+        batches_per_epoch = int(np.ceil(len(partition) / min(self.batch_size, len(partition))))
+        scheduler_name = str(self.parameters.get("scheduler", "none")).lower()
+        if scheduler_name == "one_cycle":
+            max_learning_rate = (
+                self.parameters.get("finetune_max_learning_rate", learning_rate)
+                if stage == "osdr_finetune"
+                else self.parameters.get("max_learning_rate", learning_rate)
+            )
+            scheduler = torch.optim.lr_scheduler.OneCycleLR(
+                optimizer,
+                max_lr=float(max_learning_rate),
+                epochs=int(epochs),
+                steps_per_epoch=batches_per_epoch,
+                pct_start=float(self.parameters.get("one_cycle_pct_start", 0.1)),
+                anneal_strategy="cos",
+            )
+        elif scheduler_name == "none":
+            scheduler = None
+        else:
+            raise ValueError(f"Unsupported diffusion scheduler: {scheduler_name}")
         if self._resume_payload and self._resume_payload.get("active_stage") == stage:
             optimizer.load_state_dict(self._resume_payload["optimizer_state_dict"])
+            if scheduler is not None and self._resume_payload.get(
+                "scheduler_state_dict"
+            ):
+                scheduler.load_state_dict(
+                    self._resume_payload["scheduler_state_dict"]
+                )
             if self._resume_payload.get("scaler_state_dict"):
                 scaler.load_state_dict(self._resume_payload["scaler_state_dict"])
         for epoch in range(completed + 1, int(epochs) + 1):
@@ -266,23 +334,33 @@ class DiffusionAdapter(ModelAdapter):
                 scaler.scale(loss).backward()
                 scaler.unscale_(optimizer)
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
+                scale_before_step = scaler.get_scale()
                 scaler.step(optimizer)
                 scaler.update()
-                self._update_ema()
+                optimizer_stepped = scaler.get_scale() >= scale_before_step
+                if optimizer_stepped:
+                    if scheduler is not None:
+                        scheduler.step()
+                    self._update_ema()
                 losses.append(float(loss.detach().cpu()))
                 errors.append(float(error.detach().cpu()))
-                self.state.global_steps += 1
+                self.state.global_steps += int(optimizer_stepped)
             row = {
                 "stage": stage,
                 "epoch": epoch,
-                "learning_rate": float(learning_rate),
+                "learning_rate": float(optimizer.param_groups[0]["lr"]),
                 "loss": float(np.mean(losses)),
                 "noise_abs_error": float(np.mean(errors)),
             }
             self.state.history.append(row)
             self.state.completed_epochs[stage] = epoch
+            print(
+                f"[lacan_diffusion] stage={stage} epoch={epoch}/{epochs} "
+                f"loss={row['loss']:.6f} error={row['noise_abs_error']:.6f}",
+                flush=True,
+            )
             if epoch % self.checkpoint_every == 0 or epoch == int(epochs):
-                self._save_checkpoint(stage, optimizer, scaler)
+                self._save_checkpoint(stage, optimizer, scheduler, scaler)
                 self.write_history()
         self._resume_payload = None
         return [row for row in self.state.history if row.get("stage") == stage]
@@ -350,6 +428,62 @@ class DiffusionAdapter(ModelAdapter):
             raise FloatingPointError("Diffusion generated non-finite expression")
         return result
 
+    def generate_trajectory(
+        self,
+        categories: np.ndarray,
+        *,
+        seed: int,
+        snapshot_timesteps: tuple[int, ...] = (1000, 200, 0),
+        sample_steps: int | None = None,
+        batch_size: int | None = None,
+    ) -> dict[int, np.ndarray]:
+        """Generate exact DDIM x_t snapshots in the adapter's feature space."""
+
+        batch_size = int(batch_size or self.batch_size)
+        categories = np.asarray(categories, dtype=np.int64)
+        steps = int(sample_steps or self.model_config["num_timesteps"])
+        eta = float(self.parameters.get("eta", 0.0))
+        generator = torch.Generator(device=self.device)
+        generator.manual_seed(int(seed))
+        batches: dict[int, list[np.ndarray]] = {
+            int(timestep): [] for timestep in snapshot_timesteps
+        }
+        self.model.eval()
+        with self._ema_weights(), torch.no_grad():
+            for start in range(0, len(categories), batch_size):
+                end = min(start + batch_size, len(categories))
+                noise = torch.randn(
+                    (end - start, len(self.landmark_indices)),
+                    generator=generator,
+                    device=self.device,
+                )
+                snapshots = diffusion_sample_trajectory(
+                    self.model,
+                    categories[start:end],
+                    betas=self.betas,
+                    sample_steps=steps,
+                    eta=eta,
+                    snapshot_timesteps=snapshot_timesteps,
+                    noise=noise,
+                    device=self.device,
+                )
+                for timestep, values in snapshots.items():
+                    batches[int(timestep)].append(values.cpu().numpy())
+        result: dict[int, np.ndarray] = {}
+        for timestep, values in batches.items():
+            if values:
+                reconstructed = self._reconstruct(
+                    np.concatenate(values).astype(np.float32)
+                )
+            else:
+                reconstructed = np.empty((0, len(self.genes)), dtype=np.float32)
+            if not np.isfinite(reconstructed).all():
+                raise FloatingPointError(
+                    f"Diffusion trajectory t={timestep} contains non-finite values"
+                )
+            result[timestep] = reconstructed
+        return result
+
     def save_final(self) -> Path:
         path = self.output_dir / "model.pt"
         payload = self._common_payload()
@@ -367,6 +501,9 @@ class DiffusionAdapter(ModelAdapter):
                 "l1000_map": self.l1000_map,
                 "reconstruction_coef": self.reconstruction_coef,
                 "reconstruction_intercept": self.reconstruction_intercept,
+                "source_url": SOURCE_URL,
+                "source_commit": SOURCE_COMMIT,
+                "source_path": self.source_path,
             }
         )
         self._atomic_torch_save(payload, path)
@@ -395,6 +532,7 @@ class DiffusionAdapter(ModelAdapter):
             reconstruction_matrix=None,
             l1000_map=str(payload.get("l1000_map", "")),
             serialized_payload=payload,
+            source_path=str(payload.get("source_path", "")),
         )
         adapter.model.load_state_dict(payload["model_state_dict"])
         adapter.ema_state = {

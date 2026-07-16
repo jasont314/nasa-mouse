@@ -60,5 +60,5 @@ paper_native_profiles:
     input_units: raw_counts
     library_normalization: none
     transform: log1p
-    scaler: global_zscore
-    adaptation_note: The paper uses sparse single-cell tokens; bulk compatibility is exploratory.
+    scaler: nonzero_global_zscore
+    adaptation_note: Nonzero bulk expression values follow the paper's scalar global Z-score; absent genes remain absent tokens.

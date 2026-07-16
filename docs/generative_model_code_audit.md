@@ -13,7 +13,10 @@ Repository commits were inspected on 2026-07-14.
   for categorical covariates.
 - Human RNA-seq code uses `log(1+x)`, a train-fitted gene-wise standard score,
   latent dimension 64, two 256-unit hidden layers, batch size 32, five critic
-  updates per generator update, RMSprop, and 2,000 epochs.
+  updates per generator update, RMSprop at `5e-4`, and at most 2,000 epochs.
+- The source evaluates its gamma score every five epochs with default patience ten
+  checks. This is up to 50 no-improvement epochs, whereas the paper text states 30
+  epochs. Both variants are named explicitly in the benchmark.
 - The paper conditions GTEx/TCGA generation on tissue and dataset. Holding latent
   noise fixed while changing a category is its counterfactual construction.
 - The official split is sample-random. This benchmark replaces it with accession
@@ -50,6 +53,9 @@ Repository commits were inspected on 2026-07-14.
 - Training uses Tahoe-100M, which is dominated by perturbed cancer cell lines.
   Values are globally standardized after `log1p` using scalar statistics estimated
   from one million cells.
+- The released configuration samples one million training cells in each of 50
+  epochs, uses batch 92 per device with accumulation two, and was designed for four
+  H100 80 GB GPUs. A short pass over the mouse profiles is not paper-native duration.
 - The paper explicitly states that it does not decode to counts. The public code has
   `get_embedding` but no expression decoder or generator.
 - Mouse bulk use therefore requires a new gene vocabulary and from-scratch or
@@ -63,3 +69,4 @@ The primary synthetic-expression comparison contains two native generators:
 Vinas WGAN-GP and Lacan diffusion. GeneJEPA remains one of the three named model
 adapters, but its valid initial task is representation quality and FLT/GC prediction.
 The run planner marks GeneJEPA conditional-generation rows as capability-blocked.
+Pinned source files are verified by SHA-256 in addition to checking Git commits.

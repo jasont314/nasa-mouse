@@ -24,14 +24,20 @@ def create_adapter(
         "device_spec": config.execution.device,
         "output_dir": Path(output_dir),
         "checkpoint_every": config.execution.checkpoint_every_epochs,
-        "num_workers": config.execution.num_workers,
+        "num_workers": int(
+            parameters.get("num_workers", config.execution.num_workers)
+        ),
         "resume": config.execution.resume,
         "seed": config.training.seed,
     }
     if config.training.model == "vinas_wgan_gp":
         from .wgan import WGANAdapter
 
-        return WGANAdapter(**common)
+        return WGANAdapter(
+            **common,
+            source_path=config.execution.wgan_source,
+            validation_partition=data.partitions.get("validation"),
+        )
     if config.training.model == "lacan_diffusion":
         from .diffusion import DiffusionAdapter
 
@@ -40,6 +46,7 @@ def create_adapter(
             **common,
             reconstruction_matrix=fit_partition.matrix,
             l1000_map=config.features.l1000_map,
+            source_path=config.execution.diffusion_source,
         )
     if config.training.model == "genejepa":
         from .genejepa import GeneJEPAAdapter

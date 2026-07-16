@@ -20,7 +20,14 @@ ALLOWED_TISSUE_MODES = {"pooled_conditioned", "per_tissue"}
 ALLOWED_INPUT_UNITS = {"raw_counts", "cpm", "tpm"}
 ALLOWED_LIBRARY_NORMALIZATIONS = {"none", "cpm", "tpm"}
 ALLOWED_TRANSFORMS = {"none", "log1p", "log2p1"}
-ALLOWED_SCALERS = {"none", "zscore", "global_zscore", "robust", "maxabs"}
+ALLOWED_SCALERS = {
+    "none",
+    "zscore",
+    "global_zscore",
+    "nonzero_global_zscore",
+    "robust",
+    "maxabs",
+}
 ALLOWED_HARMONIZERS = {
     "none",
     "within_study_zscore",
@@ -50,6 +57,7 @@ ALLOWED_CONDITIONING_COVARIATES = {
     "muscle_group",
     "study",
     "sex",
+    "age",
     "assay",
     "platform",
     "data_source",
@@ -83,6 +91,7 @@ class DataConfig:
     archs4_cohort: str = "healthy_preferred"
     archs4_max_per_tissue: int = 10000
     archs4_max_per_series: int = 100
+    archs4_max_corrupt_profiles: int = 100
     archs4_sample_limit: int = 0
     osdr_sample_limit: int = 0
     osdr_accession_scope: str = "all_eligible"
@@ -119,13 +128,14 @@ class TrainingConfig:
         "data_source",
     )
     seed: int = 2020
-    repeats: int = 5
+    repeats: int = 1
 
 
 @dataclass(frozen=True)
 class FeatureConfig:
     space: str = "all_shared"
     selection_source: str = "auto"
+    selection_sample_limit: int = 5000
     max_genes: int = 0
     hvg_genes: int = 2000
     l1000_map: str = "data/diffusion/l1000_human_to_mouse_ensembl.tsv"
@@ -156,14 +166,20 @@ class ValidationConfig:
 class ExecutionConfig:
     device: str = "auto"
     resume: bool = True
-    checkpoint_every_epochs: int = 10
+    checkpoint_every_epochs: int = 100
     num_workers: int = 0
     cache_archs4: bool = True
     evaluate_after_training: bool = True
     save_generated_matrix: bool = False
+    save_prepared_data: bool = False
     model_profiles: str = "configs/generative/model_profiles.yaml"
     preprocessing_profiles: str = "configs/generative/preprocessing_profiles.yaml"
     genejepa_source: str = "assets/model_sources/GeneJEPA"
+    wgan_source: str = "assets/model_sources/adversarial-gene-expression"
+    diffusion_source: str = "assets/model_sources/rna-diffusion"
+    retain_training_checkpoint: bool = False
+    min_free_space_gb: float = 8.0
+    max_run_output_gb: float = 12.0
 
 
 @dataclass(frozen=True)
@@ -310,6 +326,8 @@ class BenchmarkConfig:
             raise ValueError(
                 f"Unsupported feature-selection source: {f.selection_source}"
             )
+        if f.selection_sample_limit < 0:
+            raise ValueError("Feature-selection sample limit cannot be negative")
         if f.max_genes < 0 or f.hvg_genes < 1:
             raise ValueError("Feature counts must be non-negative, with hvg_genes >= 1")
         if g.samples_per_covariate_profile < 1:
@@ -342,6 +360,12 @@ class BenchmarkConfig:
             raise ValueError("execution.checkpoint_every_epochs must be positive")
         if e.num_workers < 0:
             raise ValueError("execution.num_workers cannot be negative")
+        if e.min_free_space_gb < 0 or e.max_run_output_gb <= 0:
+            raise ValueError(
+                "Storage guards require min_free_space_gb >= 0 and max_run_output_gb > 0"
+            )
+        if d.archs4_max_corrupt_profiles < 0:
+            raise ValueError("ARCHS4 corrupt-profile cap cannot be negative")
         if d.archs4_sample_limit < 0 or d.osdr_sample_limit < 0:
             raise ValueError("Runtime sample limits cannot be negative")
         for name, value in {

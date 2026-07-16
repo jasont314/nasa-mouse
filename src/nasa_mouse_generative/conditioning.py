@@ -66,6 +66,15 @@ def osdr_conditioning_frame(obs: pd.DataFrame) -> pd.DataFrame:
     result["sex"] = _column(
         obs, ("study.characteristics.sex",), "unknown_sex"
     ).str.lower()
+    result["age"] = _column(
+        obs,
+        (
+            "study.characteristics.age",
+            "study.characteristics.age at launch",
+            "age",
+        ),
+        "unknown_age",
+    ).str.lower()
     result["assay"] = _column(
         obs,
         (
@@ -120,6 +129,12 @@ def archs4_conditioning_frame(metadata: pd.DataFrame) -> pd.DataFrame:
         r"(?:sex|gender)\s*[:=]\s*([^,;|]+)", flags=re.IGNORECASE, expand=False
     )
     result["sex"] = sex.fillna("unknown_sex").str.lower()
+    age = characteristics.str.extract(
+        r"(?:age|developmental stage)\s*[:=]\s*([^,;|]+)",
+        flags=re.IGNORECASE,
+        expand=False,
+    )
+    result["age"] = age.fillna("unknown_age").str.lower()
     result["assay"] = _column(
         metadata, ("library_strategy",), "rna_seq"
     ).str.lower()

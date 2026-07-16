@@ -9,7 +9,7 @@ from .adapters import load_adapter
 from .config import load_config
 from .metrics import evaluate_model
 from .preprocessing import FittedPreprocessor
-from .training_data import load_prepared_osdr
+from .training_data import load_prepared_osdr, prepare_training_data
 
 
 def run(args: argparse.Namespace) -> Path:
@@ -20,7 +20,19 @@ def run(args: argparse.Namespace) -> Path:
             "The final test split is locked. Re-run with --unlock-test only after "
             "model and preprocessing choices are fixed."
         )
-    genes, partitions = load_prepared_osdr(run_dir)
+    if (run_dir / "prepared_data.h5").exists() or (
+        run_dir / "prepared_osdr.h5"
+    ).exists():
+        genes, partitions = load_prepared_osdr(run_dir)
+    else:
+        import yaml
+
+        resolved = yaml.safe_load(
+            (run_dir / "resolved_config.yaml").read_text(encoding="utf-8")
+        ) or {}
+        tissue = str(resolved.get("run", {}).get("tissue_override", "")) or None
+        prepared = prepare_training_data(config, tissue=tissue)
+        genes, partitions = prepared.genes, prepared.partitions
     preprocessor = FittedPreprocessor.load(run_dir)
     adapter = load_adapter(
         run_dir, device_spec=args.device or config.execution.device
@@ -38,6 +50,10 @@ def run(args: argparse.Namespace) -> Path:
         save_generated_matrix=(
             args.save_generated or config.execution.save_generated_matrix
         ),
+        samples_per_covariate_profile=(
+            config.generation.samples_per_covariate_profile
+        ),
+        synthetic_to_real_ratios=config.generation.synthetic_to_real_ratios,
     )
 
 

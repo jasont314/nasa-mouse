@@ -8,4 +8,5 @@ PyYAML>=6
 scikit-learn>=1.3
 scipy>=1.10
 torch>=2.6
+umap-learn>=0.5.7
 # ComBat-seq also requires conda packages r-base and bioconductor-sva.

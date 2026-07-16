@@ -12,6 +12,7 @@ from nasa_mouse_generative.config import (
     BenchmarkConfig,
     DataConfig,
     ExecutionConfig,
+    FeatureConfig,
     PreprocessingConfig,
     TrainingConfig,
     load_config_with_overrides,
@@ -27,8 +28,11 @@ from nasa_mouse_generative.profiles import resolve_preprocessing_profile
 from nasa_mouse_generative.runner import _claim_run_identity
 from nasa_mouse_generative.training_data import (
     DataPartition,
+    _retain_readable_archs4_metadata,
+    _split_archs4_selection,
     _single_accession_roles,
     extract_archs4_matrix,
+    prepare_training_data,
 )
 
 
@@ -204,6 +208,23 @@ class PreprocessorSerializationTests(unittest.TestCase):
         inverted = processor.inverse_transform(transformed, ["A", "B"])
         np.testing.assert_allclose(inverted.sum(axis=1), 1_000_000.0, rtol=1e-6)
 
+    def test_nonzero_global_scaler_preserves_absent_gene_tokens(self):
+        processor = FittedPreprocessor(
+            PreprocessingConfig(
+                input_units="raw_counts",
+                library_normalization="none",
+                transform="none",
+                scaler="nonzero_global_zscore",
+                harmonization="none",
+            )
+        )
+        matrix = np.asarray([[0.0, 2.0, 4.0], [8.0, 0.0, 0.0]])
+        transformed = processor.fit_transform(matrix, ["A", "B"])
+        np.testing.assert_array_equal(transformed[matrix == 0], 0.0)
+        np.testing.assert_allclose(transformed[matrix != 0].mean(), 0.0, atol=1e-6)
+        inverted = processor.inverse_transform(transformed, ["A", "B"])
+        np.testing.assert_allclose(inverted, matrix, atol=1e-6)
+
     @staticmethod
     def _harmonization_data():
         rng = np.random.default_rng(12)
@@ -335,6 +356,113 @@ class CombatSeqPolicyTests(unittest.TestCase):
 
 
 class Archs4ExtractionTests(unittest.TestCase):
+    def test_unreadable_archs4_profiles_are_removed_without_zero_imputation(self):
+        metadata = pd.DataFrame(
+            {
+                "archs4_sample_index": [11, 12, 13],
+                "geo_accession": ["GSM11", "GSM12", "GSM13"],
+            }
+        )
+        matrix = np.ones((2, 4), dtype=np.float32)
+        retained = _retain_readable_archs4_metadata(
+            metadata,
+            matrix,
+            {"skipped_corrupt_sample_indices": [12]},
+        )
+        self.assertEqual(retained["archs4_sample_index"].tolist(), [11, 13])
+
+    def test_archs4_series_split_never_crosses_roles(self):
+        rows = []
+        for tissue in ("liver", "kidney"):
+            for series_index in range(8):
+                for sample_index in range(2):
+                    rows.append(
+                        {
+                            "geo_accession": f"{tissue}-{series_index}-{sample_index}",
+                            "series_id": f"{tissue}-GSE{series_index}",
+                            "canonical_tissue": tissue,
+                        }
+                    )
+        metadata, audit = _split_archs4_selection(
+            pd.DataFrame(rows), BenchmarkConfig()
+        )
+        self.assertEqual(metadata.groupby("series_id")["role"].nunique().max(), 1)
+        self.assertEqual(set(metadata["role"]), {"train", "validation", "test"})
+        self.assertEqual(
+            set(metadata.loc[metadata["role"].eq("train"), "canonical_tissue"]),
+            {"liver", "kidney"},
+        )
+        self.assertEqual(audit["split_unit"], "GEO series_id")
+
+    def test_archs4_only_preparation_does_not_require_osdr_matrix(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "archs4.h5"
+            genes = [f"ENSMUSG{index:011d}" for index in range(6)]
+            rng = np.random.default_rng(8)
+            with h5py.File(source, "w") as handle:
+                handle.create_dataset(
+                    "meta/genes/ensembl_gene",
+                    data=np.asarray(genes, dtype="S"),
+                )
+                handle.create_dataset(
+                    "data/expression",
+                    data=rng.integers(0, 100, size=(6, 24), dtype=np.uint32),
+                )
+            catalog = root / "catalog"
+            catalog.mkdir()
+            rows = []
+            for sample_index in range(24):
+                tissue = "liver" if sample_index < 12 else "kidney"
+                rows.append(
+                    {
+                        "geo_accession": f"GSM{sample_index}",
+                        "series_id": f"GSE{sample_index // 2}",
+                        "canonical_tissue": tissue,
+                        "archs4_sample_index": sample_index,
+                        "source_name_ch1": tissue,
+                        "characteristics_ch1": "adult wild type control",
+                        "library_strategy": "RNA-Seq",
+                    }
+                )
+            pd.DataFrame(rows).to_csv(
+                catalog / "archs4_healthy_preferred_balanced.tsv.gz",
+                sep="\t",
+                index=False,
+                compression="gzip",
+            )
+            config = BenchmarkConfig(
+                output_root=str(root / "output"),
+                data=replace(
+                    DataConfig(),
+                    archs4_h5=str(source),
+                    archs4_catalog_dir=str(catalog),
+                    osdr_h5ad=str(root / "does-not-exist.h5ad"),
+                ),
+                features=FeatureConfig(space="all_shared", max_genes=4),
+                preprocessing=PreprocessingConfig(
+                    input_units="raw_counts",
+                    library_normalization="none",
+                    transform="log1p",
+                    scaler="none",
+                ),
+                training=TrainingConfig(
+                    model="genejepa",
+                    task="representation",
+                    regime="archs4_only",
+                    condition_on_flight=False,
+                    conditioning_covariates=("tissue",),
+                ),
+                execution=replace(
+                    ExecutionConfig(), cache_archs4=False, device="cpu"
+                ),
+            )
+            prepared = prepare_training_data(config)
+        self.assertEqual(sum(map(len, prepared.partitions.values())), 24)
+        self.assertFalse(prepared.metadata["osdr_expression_used"])
+        self.assertEqual(prepared.reference.name, "train")
+        self.assertEqual(len(prepared.genes), 4)
+
     def test_selected_columns_and_gene_order_are_preserved(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -474,8 +602,16 @@ class DiffusionAdapterTests(unittest.TestCase):
             adapter.save_final()
             loaded = load_adapter(root, device_spec="cpu")
             generated = loaded.generate(partition.categories[:3], seed=9)
+            trajectory = loaded.generate_trajectory(
+                partition.categories[:3],
+                seed=9,
+                snapshot_timesteps=(8, 2, 0),
+                sample_steps=8,
+            )
         self.assertEqual(generated.shape, (3, 16))
         self.assertTrue(np.isfinite(generated).all())
+        self.assertEqual(set(trajectory), {8, 2, 0})
+        self.assertTrue(all(values.shape == (3, 16) for values in trajectory.values()))
 
 
 if __name__ == "__main__":

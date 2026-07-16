@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+import math
 
 import numpy as np
 import torch
@@ -11,6 +12,7 @@ import torch
 from nasa_mouse_wgan.model import ConditionalWGANGP
 from nasa_mouse_wgan.training import TrainConfig, critic_features, train_epoch
 
+from ..paper_contracts import verify_pinned_source
 from ..training_data import DataPartition
 from .base import ModelAdapter, weighted_loader
 
@@ -19,8 +21,26 @@ class WGANAdapter(ModelAdapter):
     adapter_id = "vinas_wgan_gp"
     supports_generation = True
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(
+        self,
+        *,
+        source_path: str = "",
+        validation_partition: DataPartition | None = None,
+        **kwargs,
+    ) -> None:
         super().__init__(**kwargs)
+        self.source_path = str(source_path)
+        self.validation_partition = validation_partition
+        if self.source_path and Path(self.source_path).exists():
+            self.source_manifest = verify_pinned_source(
+                self.adapter_id, self.source_path
+            )
+            self.source_manifest["implementation"] = "pytorch_equivalent_port"
+        elif bool(self.parameters.get("_paper_native", False)):
+            raise FileNotFoundError(
+                "Paper-native WGAN requires the pinned source checkout. Run "
+                "`python -m nasa_mouse_generative prepare-upstreams`."
+            )
         hidden_dims = tuple(
             int(value) for value in self.parameters.get("hidden_dims", [256, 256])
         )
@@ -28,9 +48,12 @@ class WGANAdapter(ModelAdapter):
             "expression_dim": len(self.genes),
             "categorical_cardinalities": self.cardinalities,
             "noise_dim": int(self.parameters.get("noise_dim", 64)),
+            "numeric_dim": int(self.parameters.get("numeric_dim", 0)),
             "hidden_dims": hidden_dims,
         }
         self.model = ConditionalWGANGP(**self.model_config).to(self.device)
+        self.early_stopped_stages: set[str] = set()
+        self.early_stopping_state: dict[str, dict[str, float | int]] = {}
         self._resume_payload: dict[str, Any] | None = None
         if self.resume and self.checkpoint_path.exists():
             payload = torch.load(
@@ -39,6 +62,13 @@ class WGANAdapter(ModelAdapter):
             self._validate_payload(payload)
             self.model.load_state_dict(payload["model_state_dict"])
             self._restore_common(payload)
+            self.early_stopped_stages = set(
+                map(str, payload.get("early_stopped_stages", []))
+            )
+            self.early_stopping_state = {
+                str(key): dict(value)
+                for key, value in payload.get("early_stopping_state", {}).items()
+            }
             self._resume_payload = payload
 
     def _validate_payload(self, payload: dict[str, Any]) -> None:
@@ -53,10 +83,20 @@ class WGANAdapter(ModelAdapter):
         name = str(self.parameters.get("optimizer", "adam")).lower()
         if name == "rmsprop":
             optim_g = torch.optim.RMSprop(
-                self.model.generator.parameters(), lr=float(learning_rate)
+                self.model.generator.parameters(),
+                lr=float(learning_rate),
+                alpha=float(self.parameters.get("rmsprop_alpha", 0.9)),
+                eps=float(self.parameters.get("rmsprop_epsilon", 1e-7)),
+                momentum=0.0,
+                centered=False,
             )
             optim_d = torch.optim.RMSprop(
-                self.model.critic.parameters(), lr=float(learning_rate)
+                self.model.critic.parameters(),
+                lr=float(learning_rate),
+                alpha=float(self.parameters.get("rmsprop_alpha", 0.9)),
+                eps=float(self.parameters.get("rmsprop_epsilon", 1e-7)),
+                momentum=0.0,
+                centered=False,
             )
         elif name == "adam":
             optim_g = torch.optim.Adam(
@@ -82,9 +122,82 @@ class WGANAdapter(ModelAdapter):
                 "active_stage": stage,
                 "optimizer_g_state_dict": optim_g.state_dict(),
                 "optimizer_d_state_dict": optim_d.state_dict(),
+                "source_path": self.source_path,
+                "early_stopped_stages": sorted(self.early_stopped_stages),
+                "early_stopping_state": self.early_stopping_state,
             }
         )
         self._atomic_torch_save(payload, self.checkpoint_path)
+
+    @staticmethod
+    def _gamma_coefficient(real: np.ndarray, fake: np.ndarray) -> float:
+        if real.shape[1] < 2 or len(real) < 3 or len(fake) < 3:
+            return float("nan")
+        real_correlation = np.corrcoef(real, rowvar=False)
+        fake_correlation = np.corrcoef(fake, rowvar=False)
+        upper = np.triu_indices(real.shape[1], k=1)
+        real_distances = 1.0 - real_correlation[upper]
+        fake_distances = 1.0 - fake_correlation[upper]
+        finite = np.isfinite(real_distances) & np.isfinite(fake_distances)
+        if finite.sum() < 2:
+            return float("nan")
+        first = real_distances[finite]
+        second = fake_distances[finite]
+        if np.std(first) == 0 or np.std(second) == 0:
+            return float("nan")
+        return float(np.corrcoef(first, second)[0, 1])
+
+    def _monitor_score(self) -> float:
+        partition = self.validation_partition
+        if partition is None or len(partition) < 3:
+            return float("nan")
+        generated = self.generate(partition.categories, seed=self.seed + 7919)
+        maximum = int(self.parameters.get("early_stopping_max_genes", 2000))
+        if maximum > 0 and partition.matrix.shape[1] > maximum:
+            variances = np.var(partition.matrix, axis=0, dtype=np.float64)
+            selected = np.argsort(-variances, kind="stable")[:maximum]
+            real = partition.matrix[:, selected]
+            generated = generated[:, selected]
+        else:
+            real = partition.matrix
+        return self._gamma_coefficient(real, generated)
+
+    def _early_stopping_checks(self) -> int:
+        variant = str(
+            self.parameters.get("early_stopping_variant", "released_code")
+        )
+        every = max(
+            1,
+            int(self.parameters.get("early_stopping_evaluate_every_epochs", 5)),
+        )
+        if variant == "paper_text":
+            patience_epochs = int(
+                self.parameters.get("early_stopping_patience_epochs", 30)
+            )
+            return max(1, math.ceil(patience_epochs / every))
+        if variant != "released_code":
+            raise ValueError(f"Unknown WGAN early-stopping variant: {variant}")
+        return max(
+            1, int(self.parameters.get("early_stopping_patience_checks", 10))
+        )
+
+    def _paper_loader(self, partition: DataPartition):
+        permutation = np.random.default_rng(self.seed).permutation(len(partition))
+        expression = torch.as_tensor(
+            partition.matrix[permutation], dtype=torch.float32
+        )
+        categories = torch.as_tensor(
+            partition.categories[permutation], dtype=torch.long
+        )
+        dataset = torch.utils.data.TensorDataset(expression, categories)
+        return torch.utils.data.DataLoader(
+            dataset,
+            batch_size=min(self.batch_size, len(dataset)),
+            shuffle=False,
+            drop_last=False,
+            num_workers=self.num_workers,
+            pin_memory=torch.cuda.is_available(),
+        )
 
     def fit_stage(
         self, partition: DataPartition, *, stage: str, epochs: int, learning_rate: float
@@ -92,7 +205,7 @@ class WGANAdapter(ModelAdapter):
         if len(partition) < 2:
             raise ValueError(f"WGAN stage {stage} needs at least two profiles")
         completed = int(self.state.completed_epochs.get(stage, 0))
-        if completed >= int(epochs):
+        if completed >= int(epochs) or stage in self.early_stopped_stages:
             return [row for row in self.state.history if row.get("stage") == stage]
         optim_g, optim_d = self._optimizers(learning_rate)
         if self._resume_payload and self._resume_payload.get("active_stage") == stage:
@@ -106,13 +219,41 @@ class WGANAdapter(ModelAdapter):
             gradient_penalty=float(self.parameters.get("gradient_penalty", 10.0)),
             seed=self.seed,
         )
-        for epoch in range(completed + 1, int(epochs) + 1):
-            loader = weighted_loader(
-                partition,
-                batch_size=self.batch_size,
-                seed=self.seed + epoch + 10000 * len(self.state.completed_epochs),
-                num_workers=self.num_workers,
+        early_stopping = bool(self.parameters.get("early_stopping", False))
+        monitor_compatible = bool(
+            self.validation_partition is not None
+            and len(self.validation_partition) >= 3
+            and (
+                stage != "reference"
+                or set(
+                    self.validation_partition.obs.get(
+                        "source", np.asarray([], dtype=str)
+                    ).astype(str)
+                )
+                == {"archs4"}
             )
+        )
+        state = self.early_stopping_state.setdefault(
+            stage, {"best_score": float("-inf"), "checks_without_improvement": 0}
+        )
+        patience_checks = self._early_stopping_checks() if early_stopping else 0
+        evaluate_every = max(
+            1,
+            int(self.parameters.get("early_stopping_evaluate_every_epochs", 5)),
+        )
+        best_path = self.checkpoint_dir / f"best_{stage}.pt"
+        for epoch in range(completed + 1, int(epochs) + 1):
+            if bool(self.parameters.get("weighted_sampling", True)):
+                loader = weighted_loader(
+                    partition,
+                    batch_size=self.batch_size,
+                    seed=self.seed
+                    + epoch
+                    + 10000 * len(self.state.completed_epochs),
+                    num_workers=self.num_workers,
+                )
+            else:
+                loader = self._paper_loader(partition)
             metrics = train_epoch(
                 self.model,
                 loader,
@@ -132,9 +273,51 @@ class WGANAdapter(ModelAdapter):
             }
             self.state.history.append(row)
             self.state.completed_epochs[stage] = epoch
+            should_stop = False
+            if early_stopping and monitor_compatible and epoch % evaluate_every == 0:
+                score = self._monitor_score()
+                row["early_stopping_score"] = score
+                if np.isfinite(score) and score > float(state["best_score"]):
+                    state["best_score"] = float(score)
+                    state["checks_without_improvement"] = 0
+                    self._atomic_torch_save(
+                        {
+                            "model_state_dict": self.model.state_dict(),
+                            "stage": stage,
+                            "epoch": epoch,
+                            "score": score,
+                        },
+                        best_path,
+                    )
+                else:
+                    state["checks_without_improvement"] = int(
+                        state["checks_without_improvement"]
+                    ) + 1
+                row["early_stopping_checks_without_improvement"] = int(
+                    state["checks_without_improvement"]
+                )
+                should_stop = (
+                    int(state["checks_without_improvement"]) >= patience_checks
+                )
             if epoch % self.checkpoint_every == 0 or epoch == int(epochs):
                 self._save_checkpoint(stage, optim_g, optim_d)
                 self.write_history()
+            if should_stop:
+                self.early_stopped_stages.add(stage)
+                if best_path.exists():
+                    best = torch.load(
+                        best_path, map_location=self.device, weights_only=False
+                    )
+                    self.model.load_state_dict(best["model_state_dict"])
+                self._save_checkpoint(stage, optim_g, optim_d)
+                self.write_history()
+                print(
+                    f"[wgan] early stop stage={stage} epoch={epoch} "
+                    f"variant={self.parameters.get('early_stopping_variant')} "
+                    f"best_gamma={float(state['best_score']):.6f}",
+                    flush=True,
+                )
+                break
         self._resume_payload = None
         return [row for row in self.state.history if row.get("stage") == stage]
 
@@ -184,6 +367,9 @@ class WGANAdapter(ModelAdapter):
             {
                 "model_config": self.model_config,
                 "model_state_dict": self.model.state_dict(),
+                "source_path": self.source_path,
+                "early_stopped_stages": sorted(self.early_stopped_stages),
+                "early_stopping_state": self.early_stopping_state,
             }
         )
         self._atomic_torch_save(payload, path)
@@ -207,6 +393,8 @@ class WGANAdapter(ModelAdapter):
             resume=False,
             seed=int(payload["seed"]),
             num_workers=0,
+            source_path=str(payload.get("source_path", "")),
+            validation_partition=None,
         )
         adapter.model.load_state_dict(payload["model_state_dict"])
         adapter._restore_common(payload)

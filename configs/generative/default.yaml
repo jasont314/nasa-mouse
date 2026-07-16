@@ -10,6 +10,7 @@ data:
   archs4_cohort: healthy_preferred
   archs4_max_per_tissue: 10000
   archs4_max_per_series: 100
+  archs4_max_corrupt_profiles: 100
   archs4_sample_limit: 0
   osdr_sample_limit: 0
   osdr_accession_scope: all_eligible
@@ -27,6 +28,7 @@ data:
 features:
   space: all_shared
   selection_source: auto
+  selection_sample_limit: 5000
   max_genes: 0
   hvg_genes: 2000
   l1000_map: data/diffusion/l1000_human_to_mouse_ensembl.tsv
@@ -42,7 +44,7 @@ preprocessing:
   harmonization_covariates: [condition, tissue, sex]
   harmonization_parameters: {}
   unseen_study_policy: global_train_fallback
-  gene_lengths: ""
+  gene_lengths: data/reference/gencode_vM39_mouse_gene_lengths.tsv
 
 training:
   model: vinas_wgan_gp
@@ -63,7 +65,7 @@ training:
     - platform
     - data_source
   seed: 2020
-  repeats: 5
+  repeats: 1
 
 generation:
   samples_per_covariate_profile: 100
@@ -84,11 +86,17 @@ validation:
 execution:
   device: auto
   resume: true
-  checkpoint_every_epochs: 10
+  checkpoint_every_epochs: 100
   num_workers: 0
   cache_archs4: true
   evaluate_after_training: true
   save_generated_matrix: false
+  save_prepared_data: false
   model_profiles: configs/generative/model_profiles.yaml
   preprocessing_profiles: configs/generative/preprocessing_profiles.yaml
   genejepa_source: assets/model_sources/GeneJEPA
+  wgan_source: assets/model_sources/adversarial-gene-expression
+  diffusion_source: assets/model_sources/rna-diffusion
+  retain_training_checkpoint: false
+  min_free_space_gb: 8.0
+  max_run_output_gb: 12.0

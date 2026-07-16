@@ -16,10 +16,14 @@ def main() -> None:
             "archs4-catalog",
             "split-plan",
             "experiment-plan",
+            "matrix-run",
+            "scoreboard",
             "prepare-upstreams",
             "train",
             "evaluate",
             "generate",
+            "archs4-figures",
+            "gene-lengths",
         ],
     )
     args = parser.parse_args(sys.argv[1:2])
@@ -44,6 +48,14 @@ def main() -> None:
         from . import experiment_plan
 
         experiment_plan.main()
+    elif args.command == "matrix-run":
+        from . import matrix_runner
+
+        matrix_runner.main()
+    elif args.command == "scoreboard":
+        from . import scoreboard
+
+        scoreboard.main()
     elif args.command == "prepare-upstreams":
         from . import upstreams
 
@@ -56,6 +68,14 @@ def main() -> None:
         from . import evaluate
 
         evaluate.main()
+    elif args.command == "archs4-figures":
+        from . import archs4_figures
+
+        archs4_figures.main()
+    elif args.command == "gene-lengths":
+        from . import gene_lengths
+
+        gene_lengths.main()
     else:
         from . import generate
 

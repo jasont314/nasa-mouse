@@ -8,11 +8,9 @@ from nasa_mouse_glare.io import require_import
 
 
 def embedding_dim(cardinality: int) -> int:
-    """Bounded categorical embedding size inspired by the paper's rule of thumb."""
+    """Return the exact Viñas source rule ``int(sqrt(vocab)) + 1``."""
 
-    if cardinality <= 1:
-        return 1
-    return min(50, max(2, int(math.sqrt(cardinality)) + 1))
+    return int(math.sqrt(max(0, int(cardinality)))) + 1
 
 
 class CovariateEmbeddings(require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt").Module):
@@ -55,24 +53,36 @@ class Generator(require_import("torch.nn", "pip install -r requirements-nasa-mou
         noise_dim: int,
         output_dim: int,
         categorical_cardinalities: list[int],
+        numeric_dim: int = 0,
         hidden_dims: tuple[int, ...] = (256, 256),
     ):
         nn = require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt")
         super().__init__()
         self.noise_dim = int(noise_dim)
         self.output_dim = int(output_dim)
+        self.numeric_dim = int(numeric_dim)
         self.covariates = CovariateEmbeddings(categorical_cardinalities)
         layers = []
-        in_dim = self.noise_dim + self.covariates.output_dim
+        in_dim = self.noise_dim + self.numeric_dim + self.covariates.output_dim
         for hidden_dim in hidden_dims:
             layers.extend([nn.Linear(in_dim, hidden_dim), nn.ReLU()])
             in_dim = hidden_dim
         layers.append(nn.Linear(in_dim, self.output_dim))
         self.network = nn.Sequential(*layers)
 
-    def forward(self, noise, categories):
+    def forward(self, noise, categories, numeric=None):
         torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
-        x = torch.cat([noise, self.covariates(categories)], dim=1)
+        pieces = [noise]
+        if self.numeric_dim:
+            if numeric is None:
+                numeric = torch.zeros(
+                    (len(noise), self.numeric_dim),
+                    dtype=noise.dtype,
+                    device=noise.device,
+                )
+            pieces.append(numeric)
+        pieces.append(self.covariates(categories))
+        x = torch.cat(pieces, dim=1)
         return self.network(x)
 
 
@@ -84,14 +94,16 @@ class Critic(require_import("torch.nn", "pip install -r requirements-nasa-mouse-
         *,
         input_dim: int,
         categorical_cardinalities: list[int],
+        numeric_dim: int = 0,
         hidden_dims: tuple[int, ...] = (256, 256),
     ):
         nn = require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt")
         super().__init__()
         self.input_dim = int(input_dim)
+        self.numeric_dim = int(numeric_dim)
         self.covariates = CovariateEmbeddings(categorical_cardinalities)
         layers = []
-        in_dim = self.input_dim + self.covariates.output_dim
+        in_dim = self.input_dim + self.numeric_dim + self.covariates.output_dim
         for hidden_dim in hidden_dims:
             layers.extend([nn.Linear(in_dim, hidden_dim), nn.ReLU()])
             in_dim = hidden_dim
@@ -99,9 +111,21 @@ class Critic(require_import("torch.nn", "pip install -r requirements-nasa-mouse-
         self.output = nn.Linear(in_dim, 1)
         self.feature_dim = int(in_dim)
 
-    def forward(self, expression, categories, *, return_features: bool = False):
+    def forward(
+        self, expression, categories, numeric=None, *, return_features: bool = False
+    ):
         torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
-        x = torch.cat([expression, self.covariates(categories)], dim=1)
+        pieces = [expression]
+        if self.numeric_dim:
+            if numeric is None:
+                numeric = torch.zeros(
+                    (len(expression), self.numeric_dim),
+                    dtype=expression.dtype,
+                    device=expression.device,
+                )
+            pieces.append(numeric)
+        pieces.append(self.covariates(categories))
+        x = torch.cat(pieces, dim=1)
         features = self.features(x)
         score = self.output(features).view(-1)
         if return_features:
@@ -118,21 +142,25 @@ class ConditionalWGANGP(require_import("torch.nn", "pip install -r requirements-
         expression_dim: int,
         categorical_cardinalities: list[int],
         noise_dim: int = 128,
+        numeric_dim: int = 0,
         hidden_dims: tuple[int, ...] = (256, 256),
     ):
         nn = require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt")
         super().__init__()
         self.expression_dim = int(expression_dim)
         self.noise_dim = int(noise_dim)
+        self.numeric_dim = int(numeric_dim)
         self.generator = Generator(
             noise_dim=noise_dim,
             output_dim=expression_dim,
             categorical_cardinalities=categorical_cardinalities,
+            numeric_dim=numeric_dim,
             hidden_dims=hidden_dims,
         )
         self.critic = Critic(
             input_dim=expression_dim,
             categorical_cardinalities=categorical_cardinalities,
+            numeric_dim=numeric_dim,
             hidden_dims=hidden_dims,
         )
 

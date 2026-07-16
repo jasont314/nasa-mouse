@@ -3,19 +3,22 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import replace
+from dataclasses import asdict, replace
 import hashlib
 import json
 from pathlib import Path
 import re
+import shutil
 import time
 
 import yaml
 import pandas as pd
+import torch
 
 from .adapters import create_adapter
 from .config import BenchmarkConfig, load_config_with_overrides
 from .metrics import evaluate_model
+from .models import MODEL_REGISTRY
 from .profiles import (
     epochs_for_stage,
     learning_rate_for_stage,
@@ -23,6 +26,43 @@ from .profiles import (
     resolve_preprocessing_profile,
 )
 from .training_data import prepare_training_data, save_prepared_osdr
+
+
+GIB = 1024**3
+
+
+def _directory_bytes(path: Path) -> int:
+    if not path.exists():
+        return 0
+    return sum(item.stat().st_size for item in path.rglob("*") if item.is_file())
+
+
+def _storage_snapshot(path: Path) -> dict[str, float]:
+    probe = path
+    while not probe.exists() and probe != probe.parent:
+        probe = probe.parent
+    usage = shutil.disk_usage(probe)
+    return {
+        "total_gb": float(usage.total / GIB),
+        "used_gb": float(usage.used / GIB),
+        "free_gb": float(usage.free / GIB),
+    }
+
+
+def _enforce_storage(config: BenchmarkConfig, run_dir: Path, *, stage: str) -> dict:
+    snapshot = _storage_snapshot(run_dir)
+    size_gb = _directory_bytes(run_dir) / GIB
+    if snapshot["free_gb"] < config.execution.min_free_space_gb:
+        raise RuntimeError(
+            f"Storage guard stopped {stage}: {snapshot['free_gb']:.2f} GiB free, "
+            f"minimum is {config.execution.min_free_space_gb:.2f} GiB"
+        )
+    if size_gb > config.execution.max_run_output_gb:
+        raise RuntimeError(
+            f"Storage guard stopped {stage}: run uses {size_gb:.2f} GiB, "
+            f"maximum is {config.execution.max_run_output_gb:.2f} GiB"
+        )
+    return {**snapshot, "run_size_gb": float(size_gb), "stage": stage}
 
 
 def _smoke_config(config: BenchmarkConfig) -> BenchmarkConfig:
@@ -59,6 +99,8 @@ def _smoke_config(config: BenchmarkConfig) -> BenchmarkConfig:
             "predictor_depth": 2,
             "predictor_expansion_factor": 2,
             "ema_warmup_steps": 0,
+            "samples_per_epoch": 64,
+            "num_workers": 0,
         }
     parameters.update(common)
     parameters.update(specific)
@@ -98,7 +140,11 @@ def _smoke_config(config: BenchmarkConfig) -> BenchmarkConfig:
             config.preprocessing,
             harmonization_parameters=harmonization_parameters,
         ),
-        training=replace(config.training, model_parameters=parameters),
+        training=replace(
+            config.training,
+            model_profile="practical_screen",
+            model_parameters=parameters,
+        ),
         validation=replace(config.validation, max_metric_samples=64),
         execution=replace(config.execution, checkpoint_every_epochs=1),
     )
@@ -147,10 +193,11 @@ def _write_readme(run_dir: Path, summary: dict) -> None:
         f"- Tissues: `{', '.join(summary['data']['tissues'])}`",
         f"- Device: `{summary['device']['device']}` {summary['device']['cuda_device_name']}",
         f"- Reference profiles: {summary['data']['reference_samples']}",
-        f"- OSDR training profiles: {summary['data']['partition_samples']['train']}",
+        f"- Training profiles: {summary['data']['partition_samples']['train']}",
         f"- Genes: {summary['genes']}",
         "",
-        "The validation split is accession-held-out. The locked test split is not",
+        f"The split unit is {summary['data']['split'].get('split_unit', 'OSDR accession')}.",
+        "The locked test split is not",
         "evaluated automatically and requires an explicit `evaluate --unlock-test` call.",
     ]
     (run_dir / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -218,6 +265,7 @@ def train_one(
     identifier, digest = _run_identity(config, parameters, tissue, run_name)
     run_dir = Path(config.output_root) / "runs" / config.training.model / identifier
     run_dir.mkdir(parents=True, exist_ok=True)
+    storage_before = _enforce_storage(config, run_dir, stage="before_data_preparation")
     _claim_run_identity(
         run_dir,
         identifier=identifier,
@@ -235,21 +283,46 @@ def train_one(
         yaml.safe_dump(resolved, sort_keys=False), encoding="utf-8"
     )
     started = time.time()
+    print(
+        f"[{identifier}] preparing {config.training.regime} data",
+        flush=True,
+    )
     data = prepare_training_data(config, tissue=tissue)
+    print(
+        f"[{identifier}] prepared train={len(data.train)} "
+        f"validation={len(data.partitions['validation'])} "
+        f"test={len(data.partitions['test'])} genes={len(data.genes)}",
+        flush=True,
+    )
     data.encoder.save(run_dir / "categorical_encoder.json")
     data.preprocessor.save(run_dir)
-    save_prepared_osdr(data, run_dir)
+    save_prepared_osdr(
+        data,
+        run_dir,
+        include_matrix=config.execution.save_prepared_data,
+    )
     (run_dir / "genes.tsv").write_text(
         "gene_id\n" + "\n".join(data.genes) + "\n", encoding="utf-8"
     )
     adapter = create_adapter(config, data, parameters, run_dir)
+    if adapter.device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(adapter.device)
+    stage_runtime: dict[str, float] = {}
     for stage, partition in _stages(config, data):
+        print(
+            f"[{identifier}] training stage={stage} profiles={len(partition)} "
+            f"epochs={epochs_for_stage(parameters, stage)} device={adapter.device}",
+            flush=True,
+        )
+        stage_started = time.time()
         adapter.fit_stage(
             partition,
             stage=stage,
             epochs=epochs_for_stage(parameters, stage),
             learning_rate=learning_rate_for_stage(parameters, stage),
         )
+        stage_runtime[stage] = float(time.time() - stage_started)
+        _enforce_storage(config, run_dir, stage=f"after_{stage}")
     model_path = adapter.save_final()
     validation_path = ""
     if config.execution.evaluate_after_training and len(data.partitions["validation"]):
@@ -263,12 +336,31 @@ def train_one(
                 seed=config.training.seed,
                 max_samples=config.validation.max_metric_samples,
                 save_generated_matrix=config.execution.save_generated_matrix,
+                samples_per_covariate_profile=(
+                    config.generation.samples_per_covariate_profile
+                ),
+                synthetic_to_real_ratios=(
+                    config.generation.synthetic_to_real_ratios
+                ),
             )
+        )
+    peak_memory_gb = (
+        float(torch.cuda.max_memory_allocated(adapter.device) / GIB)
+        if adapter.device.type == "cuda"
+        else 0.0
+    )
+    storage_after = _enforce_storage(config, run_dir, stage="after_evaluation")
+    checkpoint_retained = bool(config.execution.retain_training_checkpoint)
+    if not checkpoint_retained and adapter.checkpoint_dir.exists():
+        shutil.rmtree(adapter.checkpoint_dir)
+        storage_after = _enforce_storage(
+            config, run_dir, stage="after_checkpoint_cleanup"
         )
     summary = {
         "run_id": identifier,
         "run_sha256": digest,
         "model": config.training.model,
+        "model_provenance": asdict(MODEL_REGISTRY[config.training.model]),
         "model_profile": config.training.model_profile,
         "task": config.training.task,
         "regime": config.training.regime,
@@ -280,6 +372,14 @@ def train_one(
         "data": data.metadata,
         "completed_epochs": adapter.state.completed_epochs,
         "training_seconds": float(time.time() - started),
+        "stage_training_seconds": stage_runtime,
+        "cuda_peak_memory_gb": peak_memory_gb,
+        "storage": {
+            "before": storage_before,
+            "after": storage_after,
+            "checkpoint_every_epochs": config.execution.checkpoint_every_epochs,
+            "training_checkpoint_retained": checkpoint_retained,
+        },
         "outputs": {
             "run_dir": str(run_dir),
             "model": str(model_path),
@@ -325,12 +425,27 @@ def run(args: argparse.Namespace) -> Path:
     if args.smoke:
         config = _smoke_config(config)
         config.validate()
+    repeat_count = int(config.training.repeats)
+    repeat_configs = [
+        replace(
+            config,
+            training=replace(
+                config.training,
+                seed=config.training.seed + index,
+                repeats=1,
+            ),
+        )
+        for index in range(repeat_count)
+    ]
     if args.all_tissues:
         if args.tissue:
             raise ValueError("Use either --tissue or --all-tissues, not both")
-        config = replace(
-            config, training=replace(config.training, tissue_mode="per_tissue")
-        )
+        repeat_configs = [
+            replace(
+                item, training=replace(item.training, tissue_mode="per_tissue")
+            )
+            for item in repeat_configs
+        ]
         inventory = pd.read_csv(
             Path(config.output_root)
             / "data_audit"
@@ -340,13 +455,16 @@ def run(args: argparse.Namespace) -> Path:
         )
         tissues = inventory.loc[
             inventory["training_tier"].ne("pooled_only"), "tissue_canonical"
-        ].astype(str)
+        ].astype(str).drop_duplicates()
         outputs = []
         for tissue in tissues:
-            name = f"{args.run_name}_{tissue}" if args.run_name else ""
-            outputs.append(
-                str(train_one(config, tissue=tissue, run_name=name))
-            )
+            for repeat_config in repeat_configs:
+                name = f"{args.run_name}_{tissue}" if args.run_name else ""
+                if repeat_count > 1 and name:
+                    name = f"{name}_seed{repeat_config.training.seed}"
+                outputs.append(
+                    str(train_one(repeat_config, tissue=tissue, run_name=name))
+                )
         summary_path = (
             Path(config.output_root)
             / "runs"
@@ -355,16 +473,59 @@ def run(args: argparse.Namespace) -> Path:
         )
         summary_path.parent.mkdir(parents=True, exist_ok=True)
         summary_path.write_text(
-            json.dumps({"tissues": list(tissues), "run_summaries": outputs}, indent=2)
+            json.dumps(
+                {
+                    "tissues": list(tissues),
+                    "requested_repeats": repeat_count,
+                    "seeds": [item.training.seed for item in repeat_configs],
+                    "run_summaries": outputs,
+                },
+                indent=2,
+            )
             + "\n",
             encoding="utf-8",
         )
         return summary_path
-    return train_one(
-        config,
-        tissue=args.tissue or None,
-        run_name=args.run_name,
+    if repeat_count == 1:
+        return train_one(
+            repeat_configs[0],
+            tissue=args.tissue or None,
+            run_name=args.run_name,
+        )
+    outputs = []
+    for repeat_config in repeat_configs:
+        name = args.run_name
+        if name:
+            name = f"{name}_seed{repeat_config.training.seed}"
+        outputs.append(
+            str(
+                train_one(
+                    repeat_config,
+                    tissue=args.tissue or None,
+                    run_name=name,
+                )
+            )
+        )
+    summary_path = (
+        Path(config.output_root)
+        / "runs"
+        / config.training.model
+        / "repeat_batch_summary.json"
     )
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(
+        json.dumps(
+            {
+                "requested_repeats": repeat_count,
+                "seeds": [item.training.seed for item in repeat_configs],
+                "run_summaries": outputs,
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return summary_path
 
 
 def main() -> None:

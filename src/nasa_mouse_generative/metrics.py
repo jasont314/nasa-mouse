@@ -84,6 +84,8 @@ def classifier_utility(
     evaluation_labels: np.ndarray,
     *,
     synthetic_train: np.ndarray | None = None,
+    synthetic_labels: np.ndarray | None = None,
+    allow_augmentation: bool = True,
 ) -> dict[str, object]:
     train_labels = np.asarray(train_labels, dtype=str)
     evaluation_labels = np.asarray(evaluation_labels, dtype=str)
@@ -97,18 +99,87 @@ def classifier_utility(
         ),
     }
     if synthetic_train is not None:
-        synthetic_model = _classifier().fit(synthetic_train, train_labels)
-        augmented_model = _classifier().fit(
-            np.concatenate([real_train, synthetic_train]),
-            np.concatenate([train_labels, train_labels]),
-        )
+        if synthetic_labels is None:
+            if len(synthetic_train) != len(train_labels):
+                raise ValueError(
+                    "Synthetic labels are required when synthetic and real counts differ"
+                )
+            synthetic_labels = train_labels
+        synthetic_labels = np.asarray(synthetic_labels, dtype=str)
+        if len(synthetic_labels) != len(synthetic_train):
+            raise ValueError("Synthetic expression and labels have different lengths")
+        if len(np.unique(synthetic_labels)) < 2:
+            result["synthetic_status"] = "insufficient_two_condition_data"
+            return result
+        synthetic_model = _classifier().fit(synthetic_train, synthetic_labels)
         result["synthetic_train_real_evaluation"] = _score_classifier(
             synthetic_model, real_evaluation, evaluation_labels
         )
-        result["real_plus_synthetic_train_real_evaluation"] = _score_classifier(
-            augmented_model, real_evaluation, evaluation_labels
-        )
+        if allow_augmentation:
+            augmented_model = _classifier().fit(
+                np.concatenate([real_train, synthetic_train]),
+                np.concatenate([train_labels, synthetic_labels]),
+            )
+            result["real_plus_synthetic_train_real_evaluation"] = _score_classifier(
+                augmented_model, real_evaluation, evaluation_labels
+            )
+            result["augmentation_status"] = "evaluated_after_quality_gates_passed"
+        else:
+            result["augmentation_status"] = "blocked_by_generator_quality_gates"
     return result
+
+
+def _synthetic_training_profiles(
+    partition: DataPartition,
+    *,
+    ratio: float,
+    samples_per_covariate_profile: int,
+    max_samples: int,
+    seed: int,
+) -> tuple[np.ndarray, np.ndarray, dict[str, object]]:
+    """Sample observed joint covariate profiles without inventing combinations."""
+
+    labels = partition.obs["condition"].astype(str).to_numpy()
+    columns = [f"category_{index}" for index in range(partition.categories.shape[1])]
+    frame = pd.DataFrame(partition.categories, columns=columns)
+    frame["condition_label"] = labels
+    profiles = frame.drop_duplicates().reset_index(drop=True)
+    repetitions = max(1, int(samples_per_covariate_profile))
+    pool = profiles.loc[profiles.index.repeat(repetitions)].reset_index(drop=True)
+    requested = max(2, int(round(len(partition) * float(ratio))))
+    if max_samples > 0:
+        requested = min(requested, max(2, int(round(max_samples * float(ratio)))))
+    target = min(requested, len(pool))
+    rng = np.random.default_rng(seed)
+    selected: list[int] = []
+    pool_labels = pool["condition_label"].astype(str).to_numpy()
+    for label in sorted(set(pool_labels)):
+        positions = np.flatnonzero(pool_labels == label)
+        share = max(1, int(round(target * len(positions) / len(pool))))
+        selected.extend(
+            rng.choice(positions, min(share, len(positions)), replace=False).tolist()
+        )
+    if len(selected) > target:
+        selected = rng.choice(selected, target, replace=False).tolist()
+    elif len(selected) < target:
+        remaining = np.setdiff1d(np.arange(len(pool)), np.asarray(selected, dtype=int))
+        extra = rng.choice(
+            remaining, min(target - len(selected), len(remaining)), replace=False
+        )
+        selected.extend(extra.tolist())
+    selected_array = np.asarray(selected, dtype=int)
+    return (
+        pool.iloc[selected_array][columns].to_numpy(dtype=np.int64),
+        pool.iloc[selected_array]["condition_label"].astype(str).to_numpy(),
+        {
+            "ratio": float(ratio),
+            "requested": int(requested),
+            "generated": int(len(selected_array)),
+            "observed_profiles": int(len(profiles)),
+            "per_profile_cap": repetitions,
+            "capacity_limited": bool(len(selected_array) < requested),
+        },
+    )
 
 
 def memorization_metrics(
@@ -369,6 +440,8 @@ def evaluate_model(
     seed: int,
     max_samples: int,
     save_generated_matrix: bool,
+    samples_per_covariate_profile: int = 1,
+    synthetic_to_real_ratios: tuple[float, ...] = (1.0,),
 ) -> Path:
     if split not in partitions:
         raise ValueError(f"Unknown evaluation split: {split}")
@@ -423,7 +496,6 @@ def evaluate_model(
         fake_evaluation = adapter.generate(
             metric_evaluation.categories, seed=seed + 17
         )
-        fake_train = adapter.generate(metric_train.categories, seed=seed + 29)
         fidelity = generated_quality(
             metric_evaluation.matrix,
             fake_evaluation,
@@ -439,13 +511,6 @@ def evaluate_model(
             fake_evaluation,
             max_samples=max_samples,
             seed=seed,
-        )
-        expression_utility = classifier_utility(
-            metric_train.matrix,
-            metric_train.obs["condition"].astype(str).to_numpy(),
-            metric_evaluation.matrix,
-            metric_evaluation.obs["condition"].astype(str).to_numpy(),
-            synthetic_train=fake_train,
         )
         fake_normalized = preprocessor.inverse_transform(
             fake_evaluation, metric_evaluation.obs["study"]
@@ -465,6 +530,32 @@ def evaluate_model(
             "maximum": float(fake_normalized.max()),
         }
         selection = fidelity_selection(fidelity, memorization)
+        utility_by_ratio: dict[str, object] = {}
+        generation_audit: dict[str, object] = {}
+        for ratio_index, ratio in enumerate(synthetic_to_real_ratios):
+            categories, synthetic_labels, audit = _synthetic_training_profiles(
+                metric_train,
+                ratio=float(ratio),
+                samples_per_covariate_profile=samples_per_covariate_profile,
+                max_samples=max_samples,
+                seed=seed + 1000 + ratio_index,
+            )
+            key = f"ratio_{float(ratio):g}"
+            generation_audit[key] = audit
+            synthetic_train = adapter.generate(
+                categories, seed=seed + 2000 + ratio_index
+            )
+            utility_by_ratio[key] = classifier_utility(
+                metric_train.matrix,
+                metric_train.obs["condition"].astype(str).to_numpy(),
+                metric_evaluation.matrix,
+                metric_evaluation.obs["condition"].astype(str).to_numpy(),
+                synthetic_train=synthetic_train,
+                synthetic_labels=synthetic_labels,
+                allow_augmentation=bool(
+                    selection["eligible_for_model_selection"]
+                ),
+            )
         generation_plots = _plot_generation(
             output,
             metric_evaluation.matrix,
@@ -479,7 +570,8 @@ def evaluate_model(
             "flt_gc_effect_recovery": effect,
             "memorization": memorization,
             "model_selection": selection,
-            "expression_flt_gc_utility": expression_utility,
+            "configured_generation": generation_audit,
+            "expression_flt_gc_utility_by_ratio": utility_by_ratio,
         }
         if save_generated_matrix:
             np.savez_compressed(

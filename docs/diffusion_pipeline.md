@@ -8,8 +8,10 @@ The downloaded accepted-manuscript PDF is stored at:
 
 - `docs/papers/lacan_diffusion_2026_reference.pdf`
 
-Code lives in `src/nasa_mouse_diffusion/`, separate from
-`src/nasa_mouse_glare/` and `src/nasa_mouse_wgan/`.
+The configurable OSDR extension lives in `src/nasa_mouse_diffusion/`. The strict
+paper-parity ARCHS4 comparison lives separately in
+`src/nasa_mouse_rna_diffusion/`, so extensions cannot be mistaken for the published
+architecture.
 
 ## Paper And Code Review
 
@@ -51,8 +53,27 @@ Paper/code caveats:
   is under `src/generation/ddim/runners/diffusion.py`;
 - Frechet scoring depends on pretrained tissue classifiers in unavailable
   hardcoded paths;
-- the NASA implementation therefore reimplements the method in local repo style
-  instead of vendoring the paper scripts directly.
+- the configurable NASA implementation reimplements the method in local repo style;
+- the paper-parity implementation imports the unmodified pinned upstream
+  `ModelDDIM` after verifying commit and source hashes, while replacing only the
+  hardcoded data loader and output handling.
+
+## Paper-Parity ARCHS4 Baseline
+
+The controlled mouse baseline is documented in
+[`rna_diffusion_paper_parity.md`](rna_diffusion_paper_parity.md). It uses the exact
+GTEx DDIM hidden layers, tissue-conditioning representation, loss, diffusion
+schedule, optimizer, OneCycle peak, EMA, AMP, batch size, and 15,000 epochs. Data
+preparation matches the paper's 9,796/2,448/5,000 split sizes and performs TPM over
+the full length-annotated transcriptome before selecting 974 mouse landmarks.
+
+The completed A100 run trained all 15,000 epochs. A probe trained on its 9,796
+synthetic profiles reached 0.869 balanced accuracy on the locked real test set,
+compared with 0.895 when trained on real profiles. Direct scaled-L974
+precision/recall were 0.966/0.865 and nearest-neighbor adversarial accuracy was
+0.512. This establishes that the full model learned mouse tissue-conditioned
+generation; the negative two-dimensional PCA silhouette and 9.04% negative output
+entries remain explicit limitations.
 
 ## NASA Mouse Adaptation
 
@@ -146,11 +167,10 @@ Production summary tables are written under:
 - `outputs/diffusion_conditional_generation/summary/diffusion_subgroup_analysis_summary.tsv`
 - `outputs/diffusion_conditional_generation/summary/diffusion_reverse_validation_refresh.tsv`
 
-## Current Deviations From The Paper
+## Configurable OSDR Extension Deviations
 
-- The local first pass uses a smaller residual MLP by default than the paper's
-  4096/8192 hidden dimensions so smoke and production runs fit the current
-  iterative workflow.
+- The configurable direct/pretrain-fine-tune workflow can use smaller residual MLPs
+  for screening. Those runs are extensions and are not paper-parity evidence.
 - Frechet distance is computed in PCA space rather than a paper-trained GTEx/TCGA
   classifier embedding because the official pretrained classifier weights are not
   distributed in the cloned repo.

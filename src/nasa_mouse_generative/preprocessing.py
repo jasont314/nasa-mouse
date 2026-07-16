@@ -204,7 +204,12 @@ class FittedPreprocessor:
         if result.ndim != 2 or len(studies_array) != len(result):
             raise ValueError("values and studies must be aligned samples x genes")
         if self.final_stats is not None:
-            result = invert_stats(result, self.final_stats)
+            if self.spec.scaler == "nonzero_global_zscore":
+                result = apply_nonzero_stats(
+                    result, self.final_stats, inverse=True
+                )
+            else:
+                result = invert_stats(result, self.final_stats)
         if self.post_harmonization_stats is not None:
             result = invert_stats(result, self.post_harmonization_stats)
         if self.spec.harmonization in {
@@ -320,6 +325,11 @@ class FittedPreprocessor:
     def audit(self) -> dict[str, object]:
         return {
             "method": self.spec.harmonization,
+            "input_units": self.spec.input_units,
+            "library_normalization": self.spec.library_normalization,
+            "transform": self.spec.transform,
+            "scaler": self.spec.scaler,
+            "output_units": self.output_units,
             "covariates": list(self.spec.harmonization_covariates),
             "outcome_informed": (
                 self.harmonizer.audit().get("outcome_informed", False)
@@ -327,6 +337,25 @@ class FittedPreprocessor:
                 else False
             ),
             "adapter": self.harmonizer.audit() if self.harmonizer is not None else None,
+            "inverse_transform_policy": {
+                "harmonizer_inverse": (
+                    "not_available_output_remains_in_harmonized_space"
+                    if self.harmonizer is not None
+                    else "not_applicable"
+                ),
+                "log_transform": "analytic_inverse_with_exponent_clip_[-30,30]",
+                "negative_values": (
+                    "clip_to_zero"
+                    if self.spec.input_units == "raw_counts"
+                    or self.spec.library_normalization != "none"
+                    else "retain"
+                ),
+                "library_scale": (
+                    "renormalize_each_profile_to_1e6"
+                    if self.spec.library_normalization in {"cpm", "tpm"}
+                    else "unchanged"
+                ),
+            },
         }
 
     def _base_transform(
@@ -371,6 +400,8 @@ class FittedPreprocessor:
         stats = fit_stats(values, self.spec.scaler)
         # Keep final scaling separate from the mentor method's second z-score.
         self.final_stats = stats
+        if self.spec.scaler == "nonzero_global_zscore":
+            return apply_nonzero_stats(values, stats)
         return apply_stats(values, stats)
 
     def _apply_final_scaler(self, values: np.ndarray) -> np.ndarray:
@@ -378,6 +409,8 @@ class FittedPreprocessor:
             return values.astype(np.float32, copy=False)
         if self.final_stats is None:
             raise RuntimeError("Preprocessor is not fitted")
+        if self.spec.scaler == "nonzero_global_zscore":
+            return apply_nonzero_stats(values, self.final_stats)
         return apply_stats(values, self.final_stats)
 
 
@@ -389,6 +422,14 @@ def fit_stats(values: np.ndarray, method: str) -> ScaleStats:
     elif method == "global_zscore":
         center = np.asarray([array.mean()], dtype=np.float64)
         scale = np.asarray([array.std()], dtype=np.float64)
+    elif method == "nonzero_global_zscore":
+        observed = array[array != 0]
+        if observed.size < 2:
+            raise ValueError(
+                "nonzero_global_zscore requires at least two nonzero expression values"
+            )
+        center = np.asarray([observed.mean()], dtype=np.float64)
+        scale = np.asarray([observed.std()], dtype=np.float64)
     elif method == "robust":
         center = np.median(array, axis=0)
         q25, q75 = np.percentile(array, [25, 75], axis=0)
@@ -412,3 +453,22 @@ def invert_stats(values: np.ndarray, stats: ScaleStats) -> np.ndarray:
     return (
         np.asarray(values, dtype=np.float32) * stats.scale + stats.center
     ).astype(np.float32)
+
+
+def apply_nonzero_stats(
+    values: np.ndarray, stats: ScaleStats, *, inverse: bool = False
+) -> np.ndarray:
+    """Scale sparse expression tokens while preserving absent genes as zero."""
+
+    array = np.asarray(values, dtype=np.float32)
+    result = np.zeros_like(array, dtype=np.float32)
+    observed = array != 0
+    if inverse:
+        result[observed] = array[observed] * float(stats.scale[0]) + float(
+            stats.center[0]
+        )
+    else:
+        result[observed] = (array[observed] - float(stats.center[0])) / float(
+            stats.scale[0]
+        )
+    return result

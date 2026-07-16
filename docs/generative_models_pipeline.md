@@ -44,6 +44,11 @@ weights. Training samples tissue uniformly, then study uniformly within tissue, 
 sample uniformly within study. Rare tissues are retained rather than downsampling all
 tissues to the smallest class.
 
+Unreadable compressed ARCHS4 columns are excluded rather than zero-imputed. Their H5
+sample indices are stored in the content-addressed cache and run manifest. A run stops
+if the count exceeds `data.archs4_max_corrupt_profiles` (100 by default), preventing a
+damaged source file from being silently treated as a usable cohort.
+
 The completed scan selected 62,299 healthy-preferred profiles from 5,307 GEO
 series across 23 matchable classes. A stricter 23,614-profile control-only cohort
 and a 134,250-profile broad cohort are retained as sensitivity arms. See
@@ -64,7 +69,7 @@ older 24,428-profile reference.
 - tissue mode: pooled tissue-conditioned or standalone per tissue;
 - condition mode: FLT/GC conditioned or unconditional negative control;
 - study policy: no study input or explicit study conditioning;
-- balancing, seed, repeats, generated sample count, and synthetic-to-real ratio;
+- balancing, seed, executable repeats, generated sample count, and synthetic-to-real ratio;
 - technical-replicate handling (`keep`, `sum`, or `mean`, with `sum` as default);
 - optional conditioning on tissue, material type, muscle group, study, sex, assay,
   platform, and data source.
@@ -73,6 +78,11 @@ Normalization, transformation, scaling, and harmonization are separate parameter
 All fitted statistics use training folds only. Study-wise scaling for an unseen study
 uses training-global fallback by default. Estimating statistics from the held-out
 study is an explicitly labeled transductive sensitivity analysis.
+
+HVG ranking can be bounded independently with
+`features.selection_sample_limit`. The default deterministically round-robins 5,000
+training profiles across tissues for ranking, but does not reduce the profiles used
+to train the model. Set it to `0` for an exact all-training-profile variance scan.
 
 ## Harmonization Arms
 
@@ -142,9 +152,16 @@ Each native generator receives both:
 2. its paper-native preprocessing, including Vinas log/z-score and Lacan
    TPM/L1000/MaxAbs where gene lengths and ortholog mappings permit it.
 
-GeneJEPA receives its global scalar `log1p` standardization in its own adapter. Its
-single-cell ragged-token input and lack of a decoder are not disguised as a native
-bulk generator.
+GeneJEPA receives `log1p` followed by one scalar mean and standard deviation fitted
+only over nonzero training expression values. Zero remains the absent-token sentinel,
+matching the official sparse input contract. Its single-cell ragged-token input and
+lack of a decoder are not disguised as a native bulk generator.
+
+Lacan's native arm uses TPM followed by training-fold MaxAbs scaling. Mouse gene
+lengths are generated from the union of GENCODE M39 exon intervals for each
+versionless Ensembl gene ID. The table in
+`data/reference/gencode_vM39_mouse_gene_lengths.tsv` covers all 980 mapped mouse
+L1000 genes; its source URL and GTF SHA-256 are recorded in the adjacent manifest.
 
 ## Validation And Model Selection
 
@@ -201,7 +218,7 @@ be written under a run ID derived from the complete resolved configuration.
 Implemented in `src/nasa_mouse_generative/`:
 
 - three-model capability and paper/code provenance registry;
-- validated configuration schema and 458-row gated experiment plan;
+- validated configuration schema and 463-row gated experiment plan;
 - current OSDR API inventory, technical-replicate-aware expression builder, and
   tissue eligibility tiers;
 - full ARCHS4 metadata scan and balanced reference manifests;
@@ -215,11 +232,64 @@ Implemented in `src/nasa_mouse_generative/`:
 - epoch checkpoints, deterministic resume, final model serialization, and GPU records;
 - conditioned generation, inverse preprocessing, held-out fidelity/diversity/
   memorization metrics, and real/synthetic FLT/GC classifier evaluation;
-- locked-test enforcement and pooled, individual-tissue, or all-eligible-tissue CLI runs.
+- locked-test enforcement and pooled, individual-tissue, or all-eligible-tissue CLI runs;
+- resumable experiment-matrix execution, bounded rows per invocation, durable status,
+  disk guards, sparse checkpoint retention, and ranked scoreboard generation;
+- ARCHS4-only GEO-series train/validation/test partitions and held-out tissue plots;
+- GeneJEPA held-out tissue UMAP and Lacan-style DDIM `t=1000,200,0` PCA trajectory.
 
 GeneJEPA uses the pinned official model source at commit
 `a2f4d7218b17f2f52cc5f1cc94420c8ef1ae3265`. It is evaluated only as a
 representation model and never appears in synthetic-expression results.
+
+The configurable Lacan adapter was checked against official code commit
+`cde890154698fcea96c924804aaff04af3351b48`, but it remains an extension for
+arbitrary OSDR covariates and pretrain/fine-tune stages. Exact architecture and
+training-procedure comparisons use the separate pinned implementation under
+`src/nasa_mouse_rna_diffusion/`; see `docs/rna_diffusion_paper_parity.md`.
+
+The `paper_native` hyperparameter profiles enforce the source configurations and
+reject locked-value overrides. Full
+GeneJEPA (`d=768`, 24 blocks, 50 epochs) and Lacan (`8192` hidden units, batch 2048,
+15,000 epochs) runs are expensive. `practical_screen` retains the model family,
+native transformation, conditioning, objective, diffusion schedule, and held-out
+evaluation while reducing architecture or epochs. Outputs must state which profile
+was used; a practical bulk adaptation is not an exact paper reproduction.
+
+## ARCHS4 Tissue Benchmark Results
+
+The first ARCHS4-only benchmark used 62,297 readable healthy-preferred profiles
+from 5,307 GEO series and 23 canonical tissue classes. GEO series were assigned as
+whole groups: 43,744 profiles for training, 10,003 for validation, and 8,550 for the
+locked test. Two unreadable source columns were excluded and recorded. These runs
+did not open or fine-tune on OSDR expression. All training and figure inference ran
+on an NVIDIA A100-SXM4-40GB.
+
+The practical GeneJEPA bulk adaptation used 4,096 train-fold HVGs, the official
+nonzero `log1p` global standardization, a 128-dimensional/4-block model, and 10
+epochs. On 20 tissues represented in held-out validation series, a linear probe on
+the learned embedding reached 0.453 balanced accuracy and 0.423 macro F1. The same
+probe on preprocessed expression reached 0.839 balanced accuracy and 0.840 macro
+F1. Embedding and UMAP silhouettes were -0.223 and -0.233. The model retained some
+tissue information, but the UMAP did not reproduce the paper's clean cell-type
+clusters. Results and coordinates are under
+`outputs/generative_benchmark/runs/genejepa/archs4_genejepa_tissues_paper_preprocessing_v4/figures/archs4_tissues_validation/`.
+
+The earlier reduced Lacan proxy and its failed 100/500-epoch output directories were
+removed. They changed architecture, optimizer behavior, sampling weights, training
+duration, input normalization, and split policy simultaneously, so they could not
+attribute a result to mouse data. The replacement uses the unmodified upstream
+227,109,786-parameter `ModelDDIM`, the paper's 9,796/2,448/5,000 split sizes, and
+full-transcriptome TPM before selecting 974 mouse landmark genes. Its run directory
+is `outputs/generative_benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_seed1234/`.
+The completed 15,000-epoch run reached 0.869 synthetic-to-real held-out tissue
+balanced accuracy versus 0.895 for real-to-real, direct L974 precision/recall of
+0.966/0.865, gene mean/SD/correlation-matrix agreement of 0.997/0.944/0.879, and
+nearest-neighbor adversarial accuracy of 0.512. Thus the exact model learns useful
+mouse tissue-conditioned generation, unlike the deleted proxy. The first two PCA
+components still overlap across tissues (silhouette -0.271), and 9.04% of generated
+scaled entries are negative; see `docs/rna_diffusion_paper_parity.md` for the full
+interpretation and output paths.
 
 ## Installation
 
@@ -313,6 +383,53 @@ For GeneJEPA, set both `training.model=genejepa` and
 `training.condition_on_flight=false`: ARCHS4 has no flight labels, so it is only a
 tissue/reference baseline and cannot identify a spaceflight effect.
 
+Train GeneJEPA on ARCHS4 only with tissue retained as an evaluation label. The model
+itself is not tissue-conditioned and cannot generate expression:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative train \
+  --set training.model=genejepa \
+  --set training.task=representation \
+  --set training.regime=archs4_only \
+  --set training.condition_on_flight=false \
+  --set 'training.conditioning_covariates=[tissue]' \
+  --set preprocessing.profile=model_native \
+  --set features.space=hvg \
+  --set features.hvg_genes=4096 \
+  --set execution.device=cuda \
+  --run-name archs4_genejepa_tissues
+```
+
+Prepare and train the paper-parity tissue-conditioned ARCHS4 diffusion baseline:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_rna_diffusion prepare
+PYTHONPATH=src python -m nasa_mouse_rna_diffusion train
+PYTHONPATH=src python -m nasa_mouse_rna_diffusion evaluate
+```
+
+Selected archival runs can save `prepared_data.h5`; loading remains compatible with
+the older `prepared_osdr.h5` filename. The storage-safe default records profile and
+accession hashes and deterministically rebuilds matrices for later evaluation. In an
+ARCHS4-only run, `reference` is the ARCHS4 training partition and no OSDR expression
+file is opened.
+
+Create paper-style held-out tissue figures after the configuration is fixed:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative archs4-figures \
+  --run-dir outputs/generative_benchmark/runs/genejepa/RUN_ID \
+  --split validation --device cuda
+
+PYTHONPATH=src python -m nasa_mouse_rna_diffusion evaluate
+```
+
+The GeneJEPA command fits UMAP only on held-out embeddings using the official test
+callback defaults. The paper-parity diffusion evaluation fits one PCA basis only on
+real ARCHS4 training profiles, then projects real profiles and exact 1,000-step EMA
+DDIM trajectory snapshots. Tissue classifier and silhouette metrics are written
+beside the figures.
+
 One-study runs use `data.osdr_accession_scope=single` with exactly one
 `data.osdr_include_accessions` value. Because accession holdout is impossible in
 that design, the run manifest labels its deterministic condition-stratified sample
@@ -346,9 +463,10 @@ generation manifest records model inputs and the full generation profile separat
 and flags requested combinations not observed during training.
 
 Each run contains the resolved configuration, fitted preprocessing and categorical
-vocabularies, prepared OSDR partitions, epoch history, latest resumable checkpoint,
-final model, validation metrics, PCA/fidelity plots, embeddings, device record, and
-concise README.
+vocabularies, data/split identities, epoch history, final model, validation metrics,
+PCA/fidelity plots, embeddings, runtime/device/storage records, and a concise README.
+The latest training checkpoint is overwritten sparsely and removed after successful
+finalization unless retention is explicitly enabled.
 
 ComBat, ComBat-seq, and MOBER now have executable, reloadable adapters. ComBat-seq
 uses R 4.5 and Bioconductor `sva`; the other two run in the Python environment.

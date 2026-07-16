@@ -27,6 +27,81 @@ from .split_plan import build_pooled_plan
 PARTITION_NAMES = ("train", "validation", "test")
 
 
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _file_identity(path: str | Path, *, hash_limit_gb: float = 1.0) -> dict[str, object]:
+    source = Path(path)
+    if not source.exists():
+        return {"path": str(source), "exists": False}
+    stat = source.stat()
+    result: dict[str, object] = {
+        "path": str(source.resolve()),
+        "exists": True,
+        "size_bytes": int(stat.st_size),
+        "mtime_ns": int(stat.st_mtime_ns),
+    }
+    if stat.st_size <= hash_limit_gb * 1024**3:
+        result["sha256"] = _sha256_file(source)
+    else:
+        result["sha256"] = None
+        result["hash_policy"] = "omitted_for_source_larger_than_hash_limit"
+    return result
+
+
+def _values_sha256(values: Iterable[object]) -> str:
+    digest = hashlib.sha256()
+    for value in values:
+        digest.update(str(value).encode("utf-8", "replace"))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
+def _prepared_identity(
+    config: BenchmarkConfig,
+    genes: list[str],
+    partitions: dict[str, "DataPartition"],
+    reference: "DataPartition | None",
+) -> dict[str, object]:
+    selection = _archs4_selection_path(config)
+    osdr_used = config.training.regime != "archs4_only"
+    return {
+        "genes_sha256": _values_sha256(genes),
+        "partition_profile_ids_sha256": {
+            name: _values_sha256(partition.obs.get("profile_id", []))
+            for name, partition in partitions.items()
+        },
+        "partition_accessions_sha256": {
+            name: _values_sha256(partition.obs.get("accession", []))
+            for name, partition in partitions.items()
+        },
+        "reference_profile_ids_sha256": (
+            _values_sha256(reference.obs.get("profile_id", []))
+            if reference is not None
+            else ""
+        ),
+        "sources": {
+            "osdr_api_expression": (
+                _file_identity(config.data.osdr_h5ad)
+                if osdr_used
+                else {"path": config.data.osdr_h5ad, "used": False}
+            ),
+            "osdr_api_metadata": (
+                _file_identity(config.data.osdr_metadata)
+                if osdr_used
+                else {"path": config.data.osdr_metadata, "used": False}
+            ),
+            "archs4_h5": _file_identity(config.data.archs4_h5),
+            "archs4_selection": _file_identity(selection),
+        },
+    }
+
+
 @dataclass
 class DataPartition:
     name: str
@@ -342,6 +417,39 @@ def _archs4_gene_map(path: str | Path) -> tuple[list[str], dict[str, int]]:
     return genes, {gene: index for index, gene in enumerate(genes)}
 
 
+def _read_archs4_column(
+    expression: h5py.Dataset,
+    sorted_gene_indices: np.ndarray,
+    sample_index: int,
+) -> np.ndarray:
+    """Read one column using the source H5 chunk layout efficiently."""
+
+    indices = np.asarray(sorted_gene_indices, dtype=np.int64)
+    if len(indices) == 0:
+        return np.empty(0, dtype=expression.dtype)
+    contiguous = bool(indices[-1] - indices[0] + 1 == len(indices))
+    if contiguous:
+        return np.asarray(
+            expression[int(indices[0]) : int(indices[-1]) + 1, int(sample_index)]
+        )
+
+    try:
+        return np.asarray(expression[indices, int(sample_index)])
+    except OSError as indexed_error:
+        try:
+            full_column = np.asarray(expression[:, int(sample_index)])
+        except OSError as full_error:
+            raise OSError(
+                "ARCHS4 expression decompression failed for sample column "
+                f"{sample_index} using both indexed and contiguous reads"
+            ) from full_error
+        if full_column.shape[0] != expression.shape[0]:
+            raise OSError(
+                f"ARCHS4 fallback read for sample {sample_index} was truncated"
+            ) from indexed_error
+        return full_column[indices]
+
+
 def _stream_archs4_variance(
     path: str | Path, sample_indices: np.ndarray, gene_indices: np.ndarray
 ) -> np.ndarray:
@@ -356,7 +464,10 @@ def _stream_archs4_variance(
         expression = handle["data/expression"]
         for sample_index in sample_indices:
             sorted_values = np.asarray(
-                expression[sorted_indices, int(sample_index)], dtype=np.float64
+                _read_archs4_column(
+                    expression, sorted_indices, int(sample_index)
+                ),
+                dtype=np.float64,
             )
             values = np.empty_like(sorted_values)
             values[order] = sorted_values
@@ -456,19 +567,56 @@ def extract_archs4_matrix(
     if config.execution.cache_archs4 and cache_path.exists():
         with h5py.File(cache_path, "r") as handle:
             matrix = np.asarray(handle["expression"][:], dtype=np.float32)
-        if matrix.shape == (len(metadata), len(genes)):
-            return matrix, {"cache": str(cache_path), "cache_hit": True}
+            skipped = (
+                np.asarray(handle["skipped_sample_indices"][:], dtype=np.int64).tolist()
+                if "skipped_sample_indices" in handle
+                else []
+            )
+        if matrix.shape == (len(metadata) - len(skipped), len(genes)):
+            return matrix, {
+                "cache": str(cache_path),
+                "cache_hit": True,
+                "requested_profiles": int(len(metadata)),
+                "retained_profiles": int(len(matrix)),
+                "skipped_corrupt_sample_indices": skipped,
+            }
 
     matrix = np.empty((len(metadata), len(genes)), dtype=np.float32)
+    retained = np.ones(len(metadata), dtype=bool)
+    skipped: list[int] = []
     order = np.argsort(gene_indices)
     sorted_gene_indices = gene_indices[order]
     with h5py.File(source, "r") as handle:
         expression = handle["data/expression"]
-        for row, sample_index in enumerate(sample_indices):
-            values = np.asarray(
-                expression[sorted_gene_indices, int(sample_index)], dtype=np.float32
-            )
+        for row in np.argsort(sample_indices, kind="stable"):
+            sample_index = sample_indices[row]
+            try:
+                values = np.asarray(
+                    _read_archs4_column(
+                        expression, sorted_gene_indices, int(sample_index)
+                    ),
+                    dtype=np.float32,
+                )
+            except OSError as error:
+                retained[row] = False
+                skipped.append(int(sample_index))
+                if len(skipped) > config.data.archs4_max_corrupt_profiles:
+                    raise OSError(
+                        "ARCHS4 unreadable-profile count exceeded "
+                        f"data.archs4_max_corrupt_profiles="
+                        f"{config.data.archs4_max_corrupt_profiles}"
+                    ) from error
+                continue
             matrix[row, order] = values
+    matrix = matrix[retained]
+    if not len(matrix):
+        raise OSError("Every selected ARCHS4 profile was unreadable")
+    if skipped:
+        print(
+            "[archs4] excluded unreadable sample columns: "
+            + ",".join(map(str, skipped)),
+            flush=True,
+        )
     if config.execution.cache_archs4:
         cache_dir.mkdir(parents=True, exist_ok=True)
         temporary = cache_path.with_suffix(".tmp.h5")
@@ -479,11 +627,43 @@ def extract_archs4_matrix(
                 chunks=(min(256, len(matrix)), min(1024, len(genes))),
                 compression="lzf",
             )
+            handle.create_dataset(
+                "skipped_sample_indices",
+                data=np.asarray(skipped, dtype=np.int64),
+            )
             handle.attrs["genes_sha256"] = hashlib.sha256(
                 "\n".join(genes).encode()
             ).hexdigest()
         temporary.replace(cache_path)
-    return matrix, {"cache": str(cache_path), "cache_hit": False}
+    return matrix, {
+        "cache": str(cache_path),
+        "cache_hit": False,
+        "requested_profiles": int(len(metadata)),
+        "retained_profiles": int(len(matrix)),
+        "skipped_corrupt_sample_indices": skipped,
+    }
+
+
+def _retain_readable_archs4_metadata(
+    metadata: pd.DataFrame,
+    matrix: np.ndarray,
+    cache_metadata: dict[str, object],
+) -> pd.DataFrame:
+    skipped = set(
+        map(int, cache_metadata.get("skipped_corrupt_sample_indices", []))
+    )
+    if skipped:
+        retained = metadata.loc[
+            ~metadata["archs4_sample_index"].astype(int).isin(skipped)
+        ].copy()
+    else:
+        retained = metadata.copy()
+    retained = retained.reset_index(drop=True)
+    if len(retained) != len(matrix):
+        raise RuntimeError(
+            "ARCHS4 cache metadata is not aligned with the extracted matrix"
+        )
+    return retained
 
 
 def _gene_lengths(config: BenchmarkConfig, genes: list[str]) -> np.ndarray | None:
@@ -506,6 +686,226 @@ def _gene_lengths(config: BenchmarkConfig, genes: list[str]) -> np.ndarray | Non
     if missing:
         raise ValueError(f"Gene lengths missing for {len(missing)} selected genes")
     return lengths.loc[genes].to_numpy(dtype=np.float32)
+
+
+def _select_archs4_only_features(
+    config: BenchmarkConfig, training_metadata: pd.DataFrame
+) -> tuple[list[str], dict[str, object]]:
+    archs4_genes, gene_map = _archs4_gene_map(config.data.archs4_h5)
+    space = config.features.space
+    if space == "reactome_shared":
+        allowed = _read_gmt_genes(config.features.reactome_gmt)
+        candidates = [gene for gene in archs4_genes if gene in allowed]
+    elif space == "l1000_landmarks":
+        candidates = [
+            gene
+            for gene in _read_l1000_genes(config.features.l1000_map)
+            if gene in gene_map
+        ]
+    else:
+        candidates = archs4_genes
+    if not candidates:
+        raise ValueError(f"Feature space {space!r} selected no ARCHS4 genes")
+
+    target = 0
+    if space == "hvg":
+        target = config.features.hvg_genes
+    elif config.features.max_genes > 0:
+        target = config.features.max_genes
+    target = min(target, len(candidates)) if target else 0
+    ranking_required = bool(target and target < len(candidates))
+    ranking_metadata = training_metadata
+    selection_limit = int(config.features.selection_sample_limit)
+    if (
+        ranking_required
+        and selection_limit > 0
+        and len(ranking_metadata) > selection_limit
+    ):
+        ranking_metadata = ranking_metadata.copy()
+        ranking_metadata["_stable_key"] = ranking_metadata["geo_accession"].map(
+            lambda value: _stable_hash(config.training.seed, "feature_rank", value)
+        )
+        ranking_metadata = ranking_metadata.sort_values(
+            ["canonical_tissue", "_stable_key"], kind="stable"
+        )
+        ranking_metadata["_within_tissue"] = ranking_metadata.groupby(
+            "canonical_tissue", sort=True
+        ).cumcount()
+        ranking_metadata = (
+            ranking_metadata.sort_values(
+                ["_within_tissue", "_stable_key"], kind="stable"
+            )
+            .head(selection_limit)
+            .drop(columns=["_stable_key", "_within_tissue"])
+        )
+    if ranking_required:
+        candidate_indices = np.asarray(
+            [gene_map[gene] for gene in candidates], dtype=np.int64
+        )
+        variances = _stream_archs4_variance(
+            config.data.archs4_h5,
+            ranking_metadata["archs4_sample_index"].to_numpy(dtype=np.int64),
+            candidate_indices,
+        )
+        order = np.argsort(-variances, kind="stable")[:target]
+        candidates = [candidates[int(index)] for index in order]
+    return candidates, {
+        "space": space,
+        "selection_source": "archs4_training_series",
+        "selected_genes": len(candidates),
+        "selection_fit_roles": ["archs4_train"],
+        "selection_profiles_available": int(len(training_metadata)),
+        "selection_profiles_used": (
+            int(len(ranking_metadata)) if ranking_required else 0
+        ),
+        "selection_sample_limit": selection_limit,
+    }
+
+
+def _split_archs4_selection(
+    metadata: pd.DataFrame, config: BenchmarkConfig
+) -> tuple[pd.DataFrame, dict[str, object]]:
+    split_input = metadata.rename(
+        columns={
+            "series_id": "id.accession",
+            "canonical_tissue": "tissue_canonical",
+            "geo_accession": "profile_id",
+        }
+    ).copy()
+    split_input["condition_inferred"] = "archs4_reference"
+    plan = build_pooled_plan(
+        split_input,
+        seed=config.training.seed,
+        validation_fraction=config.validation.pooled_validation_fraction,
+        test_fraction=config.validation.pooled_test_fraction,
+    )
+    role_names = {
+        "training": "train",
+        "validation": "validation",
+        "locked_test": "test",
+    }
+    role_by_series = {
+        str(row["id.accession"]): role_names[str(row["role"])]
+        for _, row in plan.iterrows()
+    }
+    result = metadata.copy()
+    result["role"] = result["series_id"].astype(str).map(role_by_series)
+    if result["role"].isna().any():
+        raise RuntimeError("ARCHS4 split omitted one or more GEO series")
+    if not result["role"].eq("train").any():
+        raise ValueError("ARCHS4 split contains no training profiles")
+    return result, {
+        "kind": "archs4_geo_series_grouped",
+        "split_unit": "GEO series_id",
+        "expression_values_used_for_split": False,
+        "series_by_role": {
+            role: int(
+                result.loc[result["role"].eq(role), "series_id"].astype(str).nunique()
+            )
+            for role in PARTITION_NAMES
+        },
+        "profiles_by_role": {
+            role: int(result["role"].eq(role).sum()) for role in PARTITION_NAMES
+        },
+    }
+
+
+def _prepare_archs4_only(
+    config: BenchmarkConfig, *, tissue: str | None
+) -> PreparedTrainingData:
+    requested_tissues = tuple(config.data.osdr_tissues)
+    if tissue:
+        requested_tissues = (tissue,)
+    metadata = load_archs4_selection(config, requested_tissues)
+    metadata, split_metadata = _split_archs4_selection(metadata, config)
+    training_metadata = metadata.loc[metadata["role"].eq("train")].copy()
+    genes, feature_metadata = _select_archs4_only_features(
+        config, training_metadata
+    )
+    raw_matrix, cache_metadata = extract_archs4_matrix(config, metadata, genes)
+    metadata = _retain_readable_archs4_metadata(
+        metadata, raw_matrix, cache_metadata
+    )
+    if cache_metadata.get("skipped_corrupt_sample_indices"):
+        split_metadata["profiles_by_role_before_readability_filter"] = dict(
+            split_metadata["profiles_by_role"]
+        )
+        split_metadata["profiles_by_role"] = {
+            role: int(metadata["role"].eq(role).sum()) for role in PARTITION_NAMES
+        }
+    lengths = _gene_lengths(config, genes)
+    obs = archs4_conditioning_frame(metadata).reset_index(drop=True)
+    obs["role"] = metadata["role"].to_numpy()
+    covariates = effective_covariates(config)
+    train_mask = obs["role"].eq("train").to_numpy()
+    train_obs = obs.loc[train_mask].reset_index(drop=True)
+    encoder = CategoryEncoder.fit([train_obs], covariates)
+    processor = FittedPreprocessor(
+        config.preprocessing,
+        device_spec=config.execution.device,
+        seed=config.training.seed,
+    )
+    train_transformed = processor.fit_transform(
+        raw_matrix[train_mask],
+        train_obs["study"],
+        gene_lengths=lengths,
+        metadata=train_obs,
+    )
+
+    partitions: dict[str, DataPartition] = {}
+    for role in PARTITION_NAMES:
+        mask = obs["role"].eq(role).to_numpy()
+        role_obs = obs.loc[mask].reset_index(drop=True)
+        if role == "train":
+            transformed = train_transformed
+        elif mask.any():
+            transformed = processor.transform(
+                raw_matrix[mask],
+                role_obs["study"],
+                gene_lengths=lengths,
+                allow_transductive=config.validation.allow_transductive_preprocessing,
+                metadata=role_obs,
+            )
+        else:
+            transformed = np.empty((0, len(genes)), dtype=np.float32)
+        partitions[role] = DataPartition(
+            name=role,
+            matrix=transformed,
+            obs=role_obs,
+            categories=encoder.transform(role_obs),
+            weights=_sampling_weights(role_obs),
+        )
+
+    tissues = sorted(metadata["canonical_tissue"].astype(str).unique())
+    return PreparedTrainingData(
+        genes=genes,
+        covariates=covariates,
+        encoder=encoder,
+        preprocessor=processor,
+        partitions=partitions,
+        reference=partitions["train"],
+        metadata={
+            "source": "full-catalog ARCHS4 selection",
+            "raw_integrated_osdr_h5_used": False,
+            "osdr_expression_used": False,
+            "tissues": tissues,
+            "split": split_metadata,
+            "features": feature_metadata,
+            "archs4": cache_metadata,
+            "harmonization": processor.audit(),
+            "transductive_preprocessing_enabled": (
+                config.validation.allow_transductive_preprocessing
+            ),
+            "partition_samples": {
+                name: len(partition) for name, partition in partitions.items()
+            },
+            "reference_samples": len(partitions["train"]),
+            "preprocessing_fit_source": "archs4_training_series",
+            "data_identity": _prepared_identity(
+                config, genes, partitions, partitions["train"]
+            ),
+        },
+    )
 
 
 def _sampling_weights(obs: pd.DataFrame) -> np.ndarray:
@@ -533,6 +933,8 @@ def prepare_training_data(
             tissue = configured[0]
         if not tissue:
             raise ValueError("Pass --tissue for a per_tissue run")
+    if config.training.regime == "archs4_only":
+        return _prepare_archs4_only(config, tissue=tissue)
     adata, rows, split_metadata = _osdr_rows(config, tissue)
     tissues = sorted(rows["tissue"].astype(str).unique())
     needs_reference = config.training.regime in {
@@ -572,6 +974,9 @@ def prepare_training_data(
     if reference_metadata is not None:
         reference_matrix, cache_metadata = extract_archs4_matrix(
             config, reference_metadata, genes
+        )
+        reference_metadata = _retain_readable_archs4_metadata(
+            reference_metadata, reference_matrix, cache_metadata
         )
         reference_obs = archs4_conditioning_frame(reference_metadata).reset_index(
             drop=True
@@ -721,37 +1126,64 @@ def prepare_training_data(
                 if reference is not None
                 else "osdr_train"
             ),
+            "data_identity": _prepared_identity(
+                config, genes, partitions, reference
+            ),
         },
     )
 
 
-def save_prepared_osdr(data: PreparedTrainingData, directory: str | Path) -> Path:
+def save_prepared_osdr(
+    data: PreparedTrainingData,
+    directory: str | Path,
+    *,
+    include_matrix: bool = True,
+) -> Path:
     output_dir = Path(directory)
     output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / "prepared_osdr.h5"
-    with h5py.File(path, "w") as handle:
-        handle.create_dataset("genes", data=np.asarray(data.genes, dtype="S"))
-        for name, partition in data.partitions.items():
-            group = handle.create_group(name)
-            group.create_dataset("matrix", data=partition.matrix, compression="lzf")
-            group.create_dataset("categories", data=partition.categories)
-            group.create_dataset("weights", data=partition.weights)
-            partition.obs.to_csv(
-                output_dir / f"{name}_obs.tsv.gz",
-                sep="\t",
-                index=False,
-                compression="gzip",
-            )
-    (output_dir / "prepared_data_manifest.json").write_text(
+    path = output_dir / "prepared_data.h5"
+    for name, partition in data.partitions.items():
+        partition.obs.to_csv(
+            output_dir / f"{name}_obs.tsv.gz",
+            sep="\t",
+            index=False,
+            compression="gzip",
+        )
+    if include_matrix:
+        with h5py.File(path, "w") as handle:
+            handle.create_dataset("genes", data=np.asarray(data.genes, dtype="S"))
+            for name, partition in data.partitions.items():
+                group = handle.create_group(name)
+                group.create_dataset(
+                    "matrix", data=partition.matrix, compression="lzf"
+                )
+                group.create_dataset("categories", data=partition.categories)
+                group.create_dataset("weights", data=partition.weights)
+        data.metadata.setdefault("data_identity", {})["prepared_data_h5"] = {
+            "path": str(path.resolve()),
+            "size_bytes": int(path.stat().st_size),
+            "sha256": _sha256_file(path),
+        }
+    else:
+        data.metadata.setdefault("data_identity", {})["prepared_data_h5"] = {
+            "saved": False,
+            "reason": "execution.save_prepared_data=false",
+            "reconstruction": "deterministic_reprepare_from_resolved_config",
+        }
+    manifest_path = output_dir / "prepared_data_manifest.json"
+    manifest_path.write_text(
         json.dumps(data.metadata, indent=2) + "\n", encoding="utf-8"
     )
-    return path
+    return path if include_matrix else manifest_path
 
 
 def load_prepared_osdr(directory: str | Path) -> tuple[list[str], dict[str, DataPartition]]:
     input_dir = Path(directory)
     partitions: dict[str, DataPartition] = {}
-    with h5py.File(input_dir / "prepared_osdr.h5", "r") as handle:
+    path = input_dir / "prepared_data.h5"
+    if not path.exists():
+        path = input_dir / "prepared_osdr.h5"
+    with h5py.File(path, "r") as handle:
         genes = [value.decode("utf-8") for value in handle["genes"][:]]
         for name in PARTITION_NAMES:
             group = handle[name]

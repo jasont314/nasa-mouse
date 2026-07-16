@@ -47,6 +47,7 @@ def weighted_loader(
     batch_size: int,
     seed: int,
     num_workers: int = 0,
+    num_samples: int = 0,
 ):
     expression = torch.as_tensor(partition.matrix, dtype=torch.float32)
     categories = torch.as_tensor(partition.categories, dtype=torch.long)
@@ -58,7 +59,7 @@ def weighted_loader(
         weights = torch.ones(len(dataset), dtype=torch.double)
     sampler = torch.utils.data.WeightedRandomSampler(
         weights,
-        num_samples=len(dataset),
+        num_samples=int(num_samples) if int(num_samples) > 0 else len(dataset),
         replacement=True,
         generator=generator,
     )
@@ -104,6 +105,7 @@ class ModelAdapter(ABC):
         self.seed = int(seed)
         self.num_workers = int(num_workers)
         self.state = AdapterState(completed_epochs={}, history=[])
+        self.source_manifest: dict[str, Any] = {}
         seed_everything(self.seed)
 
     @property
@@ -139,6 +141,7 @@ class ModelAdapter(ABC):
                 "history": self.state.history,
                 "global_steps": self.state.global_steps,
             },
+            "source_manifest": self.source_manifest,
             "rng_state": torch.get_rng_state(),
             "cuda_rng_state": (
                 torch.cuda.get_rng_state_all() if torch.cuda.is_available() else []
@@ -161,6 +164,7 @@ class ModelAdapter(ABC):
             torch.cuda.set_rng_state_all(
                 [state.cpu() for state in payload["cuda_rng_state"]]
             )
+        self.source_manifest = dict(payload.get("source_manifest", {}))
 
     def _atomic_torch_save(self, payload: dict[str, Any], path: Path) -> None:
         temporary = path.with_suffix(path.suffix + ".tmp")
@@ -184,6 +188,7 @@ class ModelAdapter(ABC):
             "device": self.device_summary(),
             "completed_epochs": self.state.completed_epochs,
             "global_steps": self.state.global_steps,
+            "source_manifest": self.source_manifest,
         }
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         return path

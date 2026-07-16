@@ -1,10 +1,43 @@
 version: 1
 
 phases:
+  - name: phase_0_wgan_paper_native_archs4
+    purpose: Establish the exact Viñas architecture/training contract on broad mouse tissues before tuning.
+    axes:
+      model: [vinas_wgan_gp]
+      model_profile: [paper_native]
+      task: [conditional_generation]
+      preprocessing_profile: [model_native]
+      feature_space: [hvg_2000]
+      harmonization: [none]
+      training_regime: [archs4_only]
+      accession_scope: [all_eligible]
+      tissue_mode: [pooled_conditioned]
+      condition_on_flight: [false]
+      study_policy: [not_conditioned]
+      seed: [2020]
+
+  - name: phase_0_genejepa_paper_native_archs4
+    purpose: Establish the official GeneJEPA representation architecture on broad mouse bulk profiles.
+    axes:
+      model: [genejepa]
+      model_profile: [paper_native]
+      task: [representation]
+      preprocessing_profile: [model_native]
+      feature_space: [hvg_4096]
+      harmonization: [none]
+      training_regime: [archs4_only]
+      accession_scope: [all_eligible]
+      tissue_mode: [pooled_conditioned]
+      condition_on_flight: [false]
+      study_policy: [not_conditioned]
+      seed: [2020]
+
   - name: phase_0_smoke
     purpose: Verify data flow, conditioning, inverse transforms, and finite generation.
     axes:
       model: [vinas_wgan_gp, lacan_diffusion]
+      model_profile: [practical_screen]
       task: [conditional_generation]
       preprocessing_profile: [shared_log1p_cpm_zscore]
       feature_space: [hvg_2000]
@@ -20,21 +53,41 @@ phases:
     purpose: Evaluate GeneJEPA only as an embedding model because it has no expression decoder.
     axes:
       model: [genejepa]
+      model_profile: [practical_screen]
       task: [representation]
       preprocessing_profile: [genejepa_native, shared_log1p_cpm_zscore]
       feature_space: [all_shared_tokens]
       harmonization: [none]
-      training_regime: [osdr_only, archs4_pretrain_osdr_finetune]
+      training_regime: [osdr_only, archs4_only, archs4_pretrain_osdr_finetune]
       accession_scope: [all_eligible]
       tissue_mode: [pooled_conditioned]
       condition_on_flight: [false]
       study_policy: [not_conditioned]
       seed: [2020]
 
+  - name: phase_0_archs4_tissue_generation
+    purpose: Register or reproduce the completed exact upstream ModelDDIM ARCHS4 tissue baseline.
+    axes:
+      model: [lacan_diffusion]
+      model_profile: [paper_native]
+      execution_backend: [nasa_mouse_rna_diffusion]
+      backend_config: [configs/rna_diffusion/archs4_mouse_paper_parity.yaml]
+      task: [conditional_generation]
+      preprocessing_profile: [model_native]
+      feature_space: [l1000_landmarks]
+      harmonization: [none]
+      training_regime: [archs4_only]
+      accession_scope: [all_eligible]
+      tissue_mode: [pooled_conditioned]
+      condition_on_flight: [false]
+      study_policy: [not_conditioned]
+      seed: [1234]
+
   - name: phase_1_preprocessing_screen
     purpose: Screen shared and paper-native preprocessing on pooled data before tissue expansion.
     axes:
       model: [vinas_wgan_gp, lacan_diffusion]
+      model_profile: [practical_screen]
       task: [conditional_generation]
       preprocessing_profile:
         - shared_raw
@@ -60,6 +113,7 @@ phases:
     purpose: Compare one-study, selected multi-study, and all-accession OSDR training.
     axes:
       model: [vinas_wgan_gp, lacan_diffusion]
+      model_profile: [practical_screen]
       task: [conditional_generation]
       preprocessing_profile: [best_shared, model_native]
       feature_space: [selected_from_phase_1]
@@ -75,6 +129,7 @@ phases:
     purpose: Test whether explicit accession conditioning improves fidelity without memorizing study identity.
     axes:
       model: [vinas_wgan_gp, lacan_diffusion]
+      model_profile: [practical_screen]
       task: [conditional_generation]
       preprocessing_profile: [selected_from_phase_1, model_native]
       feature_space: [selected_from_phase_1]
@@ -90,6 +145,7 @@ phases:
     purpose: Run finalists across every eligible tissue tier and the pooled model.
     axes:
       model: [vinas_wgan_gp, lacan_diffusion]
+      model_profile: [practical_screen]
       task: [conditional_generation]
       preprocessing_profile: [best_shared, model_native]
       feature_space: [best_validated]
@@ -105,6 +161,7 @@ phases:
     purpose: Quantify whether FLT/GC conditioning adds information beyond tissue and study structure.
     axes:
       model: [vinas_wgan_gp, lacan_diffusion]
+      model_profile: [practical_screen]
       task: [conditional_generation]
       preprocessing_profile: [best_shared]
       feature_space: [best_validated]

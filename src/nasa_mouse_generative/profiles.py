@@ -9,6 +9,7 @@ from typing import Any
 import yaml
 
 from .config import BenchmarkConfig
+from .paper_contracts import validate_paper_native_parameters
 
 
 def load_model_parameters(config: BenchmarkConfig) -> dict[str, Any]:
@@ -28,6 +29,12 @@ def load_model_parameters(config: BenchmarkConfig) -> dict[str, Any]:
         )
     resolved = dict(profile)
     resolved.update(config.training.model_parameters)
+    if config.training.model_profile.startswith("paper_native"):
+        validate_paper_native_parameters(config.training.model, resolved)
+    resolved["_model_profile"] = config.training.model_profile
+    resolved["_paper_native"] = config.training.model_profile.startswith(
+        "paper_native"
+    )
     return resolved
 
 
