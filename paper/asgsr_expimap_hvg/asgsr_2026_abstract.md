@@ -2,7 +2,7 @@
 
 ## Title
 
-Reference-guided expiMap prioritizes reproducible tissue-specific pathway shifts in mouse spaceflight transcriptomes
+Cross-mission expiMap analysis recovers established tissue responses and identifies complementary pathway shifts in mouse spaceflight transcriptomes
 
 ## Authors and affiliations
 

@@ -80,8 +80,9 @@ def run() -> None:
         render("asgsr_2026_abstract.md", "ASGSR 2026 Abstract"),
         render(
             "manuscript.md",
-            "Reference-guided expiMap prioritizes reproducible tissue-specific "
-            "pathway shifts in mouse spaceflight transcriptomes",
+            "Cross-mission expiMap analysis recovers established tissue responses "
+            "and identifies complementary pathway shifts in mouse spaceflight "
+            "transcriptomes",
         ),
     ]
     try:
