@@ -56,4 +56,6 @@ evaluation:
   calibration_residual_seed: 9100
   calibration_prior_strength: 5.0
   calibration_residual_scale: 0.5
+  calibration_screen_prior_strengths: [1.0, 5.0, 20.0]
+  calibration_screen_residual_scales: [0.5, 0.75, 1.0, 1.25]
   minimum_repeat_pass_fraction: 0.75

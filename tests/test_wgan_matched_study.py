@@ -111,6 +111,10 @@ class MatchedStudyWGANTests(unittest.TestCase):
         self.assertEqual(config["model"]["critic_steps"], 5)
         self.assertIn("study", config["conditioning"]["covariates"])
         self.assertEqual(config["evaluation"]["minimum_repeat_pass_fraction"], 0.75)
+        self.assertEqual(
+            config["evaluation"]["calibration_screen_prior_strengths"],
+            [1.0, 5.0, 20.0],
+        )
 
 
 if __name__ == "__main__":

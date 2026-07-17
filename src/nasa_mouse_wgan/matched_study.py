@@ -743,6 +743,232 @@ def evaluate_validation(config_path: str | Path) -> Path:
     return summary_path
 
 
+def screen_calibration(config_path: str | Path) -> Path:
+    """Select a train-only calibrator using repeated validation, never test."""
+
+    config = load_config(config_path)
+    run_output = Path(config["run"]["output_dir"])
+    validation = run_output / "evaluation" / "matched_validation"
+    base_summary = json.loads((validation / "summary.json").read_text())
+    if base_summary.get("locked_test_opened", True):
+        raise RuntimeError("Calibration selection requires validation-only inputs")
+    output = validation / "calibration_screen"
+    summary_path = output / "summary.json"
+    if summary_path.exists() or output.exists():
+        raise FileExistsError(f"Calibration screen already exists: {output}")
+    output.mkdir(parents=True, exist_ok=False)
+    adapter, data = _load_model_and_data(config, include_test=False)
+    options = config["evaluation"]
+    batch_size = int(options["batch_size"])
+    train_seeds = tuple(map(int, options["train_generation_seeds"]))
+    validation_seeds = tuple(map(int, options["validation_generation_seeds"]))
+    priors = tuple(map(float, options["calibration_screen_prior_strengths"]))
+    residual_scales = tuple(
+        map(float, options["calibration_screen_residual_scales"])
+    )
+    if not priors or not residual_scales:
+        raise ValueError("Calibration screen grid cannot be empty")
+
+    real_fit_parts: list[np.ndarray] = []
+    synthetic_fit_parts: list[np.ndarray] = []
+    metadata_fit_parts: list[pd.DataFrame] = []
+    train_draws = output / "train_draws"
+    train_draws.mkdir()
+    for seed in train_seeds:
+        generated = _generate_scaled(
+            adapter,
+            data.osdr["train"],
+            data.scaler,
+            data.maxabs_scale,
+            seed=seed,
+            batch_size=batch_size,
+        )
+        np.savez_compressed(
+            train_draws / f"seed{seed}.npz",
+            scaled_expression=generated,
+            sampling_seed=seed,
+        )
+        real_fit_parts.append(data.osdr_scaled["train"])
+        synthetic_fit_parts.append(generated)
+        metadata_fit_parts.append(data.osdr["train"].obs.copy())
+    real_fit = np.concatenate(real_fit_parts)
+    synthetic_fit = np.concatenate(synthetic_fit_parts)
+    metadata_fit = pd.concat(metadata_fit_parts, ignore_index=True)
+
+    validation_draws = {
+        seed: np.asarray(
+            np.load(validation / "raw" / f"seed{seed}" / "synthetic_scaled_expression.npz")[
+                "scaled_expression"
+            ],
+            dtype=np.float32,
+        )
+        for seed in validation_seeds
+    }
+    residual_seed = int(options["calibration_residual_seed"])
+    all_rows: list[dict[str, object]] = []
+    variant_rows: list[dict[str, object]] = []
+    calibrators: dict[float, PositiveResidualCalibrator] = {}
+    minimum = float(options["minimum_repeat_pass_fraction"])
+    for prior in priors:
+        calibrator = PositiveResidualCalibrator(
+            ("accession", "tissue"),
+            prior,
+            0.0,
+            clip_nonnegative=True,
+            noise_group_columns=("accession", "tissue", "condition"),
+        ).fit(real_fit, synthetic_fit, metadata_fit)
+        calibrators[prior] = calibrator
+        for residual_scale in residual_scales:
+            calibrator.residual_scale = residual_scale
+            variant = f"prior_{prior:g}_residual_{residual_scale:g}"
+            rows: list[dict[str, object]] = []
+            for index, seed in enumerate(validation_seeds):
+                synthetic = calibrator.apply(
+                    validation_draws[seed],
+                    data.osdr["validation"].obs,
+                    seed=residual_seed + index,
+                )
+                fidelity = generated_quality(
+                    data.osdr_scaled["validation"],
+                    synthetic,
+                    max_pr_samples=len(synthetic),
+                )
+                memorization = memorization_metrics(
+                    data.osdr_scaled["train"],
+                    synthetic,
+                    max_samples=max(len(synthetic), 50),
+                    seed=int(config["run"]["seed"]),
+                )
+                selection = fidelity_selection(fidelity, memorization)
+                effect = _condition_effect(
+                    data.osdr_scaled["validation"],
+                    synthetic,
+                    data.osdr["validation"].obs["condition"].astype(str).to_numpy(),
+                )
+                effect_gate = conditional_effect_selection(effect)
+                row = {
+                    "calibration_variant": variant,
+                    "sampling_seed": seed,
+                    "correlation": fidelity["correlation_matrix_agreement"],
+                    "correlation_minimum": selection["fidelity_gate"][
+                        "requirements"
+                    ]["correlation_matrix_agreement"]["minimum"],
+                    "precision": fidelity["precision"],
+                    "recall": fidelity["recall"],
+                    "f1": fidelity["f1"],
+                    "adversarial_accuracy": fidelity["adversarial_accuracy"],
+                    "frechet_ratio": fidelity["frechet_ratio_to_real_split_p95"],
+                    "negative_fraction": float(np.mean(synthetic < 0)),
+                    "diversity_pass": selection["diversity_gate"]["passed"],
+                    "memorization_pass": selection["memorization_gate"]["passed"],
+                    "fidelity_pass": selection["eligible_for_model_selection"],
+                    "condition_delta_correlation": effect["delta_correlation"],
+                    "condition_direction_agreement": effect["direction_agreement"],
+                    "condition_effect_pass": effect_gate["passed"],
+                }
+                rows.append(row)
+                all_rows.append(row)
+            table = pd.DataFrame(rows)
+            metrics = _metric_repeat_summary(table)
+            fidelity_stable = all(
+                float(value["pass_fraction"]) >= minimum
+                for value in metrics.values()
+            ) and bool(
+                table["diversity_pass"].all()
+                and table["memorization_pass"].all()
+            )
+            condition_stable = bool(
+                table["condition_effect_pass"].mean() >= minimum
+            )
+            variant_rows.append(
+                {
+                    "calibration_variant": variant,
+                    "prior_strength": prior,
+                    "residual_scale": residual_scale,
+                    "mean_correlation": table["correlation"].mean(),
+                    "correlation_pass_fraction": metrics["correlation"][
+                        "pass_fraction"
+                    ],
+                    "mean_precision": table["precision"].mean(),
+                    "mean_recall": table["recall"].mean(),
+                    "mean_f1": table["f1"].mean(),
+                    "mean_adversarial_accuracy": table[
+                        "adversarial_accuracy"
+                    ].mean(),
+                    "adversarial_accuracy_pass_fraction": metrics[
+                        "adversarial_accuracy"
+                    ]["pass_fraction"],
+                    "mean_frechet_ratio": table["frechet_ratio"].mean(),
+                    "fidelity_stable": fidelity_stable,
+                    "condition_effect_pass_fraction": table[
+                        "condition_effect_pass"
+                    ].mean(),
+                    "condition_stable": condition_stable,
+                    "candidate_pass": bool(fidelity_stable and condition_stable),
+                }
+            )
+
+    repeats = pd.DataFrame(all_rows)
+    variants = pd.DataFrame(variant_rows)
+    repeats.to_csv(output / "repeat_metrics.tsv", sep="\t", index=False)
+    variants.to_csv(output / "variant_summary.tsv", sep="\t", index=False)
+    eligible = variants.loc[variants["candidate_pass"]].copy()
+    selected: dict[str, object] | None = None
+    if not eligible.empty:
+        eligible["aa_distance_from_chance"] = (
+            eligible["mean_adversarial_accuracy"] - 0.5
+        ).abs()
+        eligible = eligible.sort_values(
+            ["aa_distance_from_chance", "mean_correlation"],
+            ascending=[True, False],
+            kind="stable",
+        )
+        selected = eligible.iloc[0].to_dict()
+        selected_prior = float(selected["prior_strength"])
+        selected_calibrator = calibrators[selected_prior]
+        selected_calibrator.residual_scale = float(selected["residual_scale"])
+        selected_directory = output / "selected_calibrator"
+        selected_calibrator.save(selected_directory)
+        selected["calibrator"] = str(selected_directory)
+
+    summary = {
+        "status": "complete",
+        "split": "validation",
+        "locked_test_opened": False,
+        "grid": {
+            "prior_strengths": list(priors),
+            "residual_scales": list(residual_scales),
+            "generation_seeds": list(validation_seeds),
+        },
+        "minimum_repeat_pass_fraction": minimum,
+        "eligible_variants": int(variants["candidate_pass"].sum()),
+        "validation_candidate_pass": selected is not None,
+        "selected": selected,
+        "selection_rule": (
+            "First require every fidelity metric and pooled condition recovery to "
+            "pass independently in the declared repeat fraction. Among eligible "
+            "variants only, minimize mean |AA-0.5| and then maximize mean Corr."
+        ),
+        "test_loaded": False,
+    }
+    summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    finalist_path = validation / "finalist_selection.json"
+    finalist_path.write_text(
+        json.dumps(
+            {
+                "validation_candidate_pass": selected is not None,
+                "selected": selected,
+                "selection_summary": str(summary_path),
+                "locked_test_opened": False,
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return summary_path
+
+
 def _require_test_unlock(unlock_test: bool) -> None:
     if not unlock_test:
         raise PermissionError("Matched WGAN test evaluation requires --unlock-test")
@@ -752,7 +978,12 @@ def evaluate_test(config_path: str | Path, *, unlock_test: bool = False) -> Path
     _require_test_unlock(unlock_test)
     config = load_config(config_path)
     run_output = Path(config["run"]["output_dir"])
-    validation_path = run_output / "evaluation" / "matched_validation" / "summary.json"
+    validation_path = (
+        run_output
+        / "evaluation"
+        / "matched_validation"
+        / "finalist_selection.json"
+    )
     validation = json.loads(validation_path.read_text(encoding="utf-8"))
     if not validation.get("validation_candidate_pass", False):
         raise RuntimeError("Validation candidate did not pass; locked test stays closed")
@@ -763,7 +994,9 @@ def evaluate_test(config_path: str | Path, *, unlock_test: bool = False) -> Path
     adapter, data = _load_model_and_data(config, include_test=True)
     output.mkdir(parents=True, exist_ok=False)
     options = config["evaluation"]
-    calibrator = PositiveResidualCalibrator.load(validation["calibrator"])
+    calibrator = PositiveResidualCalibrator.load(
+        validation["selected"]["calibrator"]
+    )
     batch_size = int(options["batch_size"])
     residual_seed = int(options["calibration_residual_seed"]) + 10_000
     rows: list[dict[str, object]] = []
@@ -856,7 +1089,13 @@ def evaluate_test(config_path: str | Path, *, unlock_test: bool = False) -> Path
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "command", choices=("train", "evaluate-validation", "evaluate-test")
+        "command",
+        choices=(
+            "train",
+            "evaluate-validation",
+            "screen-calibration",
+            "evaluate-test",
+        ),
     )
     parser.add_argument(
         "--config",
@@ -872,6 +1111,8 @@ def main() -> None:
         path = train(args.config)
     elif args.command == "evaluate-validation":
         path = evaluate_validation(args.config)
+    elif args.command == "screen-calibration":
+        path = screen_calibration(args.config)
     else:
         path = evaluate_test(args.config, unlock_test=args.unlock_test)
     print(path)
