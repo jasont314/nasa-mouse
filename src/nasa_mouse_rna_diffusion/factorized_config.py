@@ -49,6 +49,26 @@ def load_factorized_config(path: str | Path) -> dict[str, Any]:
         raise ValueError("adapter.domain_lora_rank cannot be negative")
     if float(adapter.get("domain_lora_alpha", 1.0)) <= 0:
         raise ValueError("adapter.domain_lora_alpha must be positive")
+    if adapter.get("initial_model") and not isinstance(
+        adapter.get("initial_model"), str
+    ):
+        raise ValueError("adapter.initial_model must be a path string")
+    for name, stage in training["stages"].items():
+        regularization = stage.get("correlation_regularization")
+        if regularization is None:
+            continue
+        if name != "domain":
+            raise ValueError(
+                "correlation_regularization is supported only for the domain stage"
+            )
+        if float(regularization.get("weight", 0.0)) <= 0.0:
+            raise ValueError("correlation_regularization.weight must be positive")
+        if int(regularization.get("genes", 0)) < 2:
+            raise ValueError("correlation_regularization.genes must be at least two")
+        if int(regularization.get("max_timestep", -1)) < 0:
+            raise ValueError(
+                "correlation_regularization.max_timestep cannot be negative"
+            )
     evaluation = payload.get("evaluation", {})
     if evaluation.get("split", "validation") != "validation":
         raise ValueError("Development configs must evaluate validation, not locked test")

@@ -14,6 +14,7 @@ from .real_effect_ceiling import run_ceiling
 from .factorized_train import train_factorized
 from .factorized_evaluate import evaluate_factorized
 from .factorized_calibrate import calibrate_factorized
+from .factorized_mean_calibrate import calibrate_factorized_means
 
 
 def parse_args() -> argparse.Namespace:
@@ -88,6 +89,9 @@ def parse_args() -> argparse.Namespace:
     adapter_evaluate.add_argument("--config", required=True)
     adapter_evaluate.add_argument("--guidance-scales", nargs="+", type=float)
     adapter_evaluate.add_argument("--model-artifact", default="model.pt")
+    adapter_evaluate.add_argument("--validation-sampling-seed", type=int)
+    adapter_evaluate.add_argument("--train-sampling-seed", type=int)
+    adapter_evaluate.add_argument("--evaluation-variant", default="")
     adapter_calibrate = subparsers.add_parser(
         "calibrate-adapter", help="Fit train-only covariance calibration"
     )
@@ -96,6 +100,19 @@ def parse_args() -> argparse.Namespace:
     adapter_calibrate.add_argument(
         "--ridge-fractions", nargs="+", type=float, default=[0.001, 0.01, 0.1]
     )
+    mean_calibrate = subparsers.add_parser(
+        "calibrate-mean-adapter",
+        help="Fit train-only condition-blind hierarchical mean calibration",
+    )
+    mean_calibrate.add_argument("--config", required=True)
+    mean_calibrate.add_argument("--guidance-scale", type=float, default=1.0)
+    mean_calibrate.add_argument(
+        "--group-columns", nargs="+", default=["accession", "tissue"]
+    )
+    mean_calibrate.add_argument(
+        "--prior-strengths", nargs="+", type=float, default=[2.0, 5.0, 10.0]
+    )
+    mean_calibrate.add_argument("--evaluation-variant", default="")
     return parser.parse_args()
 
 
@@ -135,12 +152,23 @@ def main() -> None:
             args.config,
             guidance_scales=args.guidance_scales,
             model_artifact=args.model_artifact,
+            validation_sampling_seed=args.validation_sampling_seed,
+            train_sampling_seed=args.train_sampling_seed,
+            evaluation_variant=args.evaluation_variant,
         )
     elif args.command == "calibrate-adapter":
         calibrate_factorized(
             args.config,
             guidance_scale=args.guidance_scale,
             ridge_fractions=args.ridge_fractions,
+        )
+    elif args.command == "calibrate-mean-adapter":
+        calibrate_factorized_means(
+            args.config,
+            guidance_scale=args.guidance_scale,
+            group_columns=args.group_columns,
+            prior_strengths=args.prior_strengths,
+            evaluation_variant=args.evaluation_variant,
         )
 
 

@@ -53,7 +53,15 @@ from nasa_mouse_rna_diffusion.factorized_adapter import (
     encode_factorized_labels,
     neutralize_group,
 )
+from nasa_mouse_rna_diffusion.factorized_train import _correlation_structure_loss
 from nasa_mouse_rna_diffusion.factorized_calibrate import CovarianceCalibrator
+from nasa_mouse_rna_diffusion.factorized_evaluate import (
+    _evaluation_sampling_seeds,
+    _variant_label,
+)
+from nasa_mouse_rna_diffusion.factorized_mean_calibrate import (
+    HierarchicalMeanCalibrator,
+)
 
 
 SMALL_MODEL = {
@@ -486,6 +494,38 @@ class RealEffectCeilingTests(unittest.TestCase):
 
 
 class FactorizedAdapterTests(unittest.TestCase):
+    def test_hierarchical_mean_calibrator_round_trips_and_stays_condition_blind(self):
+        metadata = pd.DataFrame(
+            {
+                "accession": ["a", "a", "b", "b"],
+                "tissue": ["liver"] * 4,
+                "condition": ["flight", "ground_control"] * 2,
+            }
+        )
+        synthetic = np.asarray(
+            [[0.0, 1.0], [1.0, 2.0], [2.0, 3.0], [3.0, 4.0]],
+            dtype=np.float32,
+        )
+        real = synthetic * 2.0 + np.asarray([[1.0, -1.0]] * 2 + [[3.0, 2.0]] * 2)
+        calibrator = HierarchicalMeanCalibrator(
+            ("accession", "tissue"), 1e-9
+        ).fit(real, synthetic, metadata)
+        calibrated = calibrator.apply(synthetic, metadata)
+        for accession in ("a", "b"):
+            mask = metadata["accession"].eq(accession).to_numpy()
+            np.testing.assert_allclose(
+                calibrated[mask].mean(axis=0), real[mask].mean(axis=0), atol=1e-5
+            )
+        with self.assertRaises(ValueError):
+            HierarchicalMeanCalibrator(("condition",), 1.0)
+
+    def test_correlation_structure_loss_is_zero_for_exact_reconstruction(self):
+        torch.manual_seed(31)
+        expression = torch.randn(12, 8)
+        genes = torch.tensor([0, 2, 3, 6, 7])
+        observed = _correlation_structure_loss(expression, expression, genes)
+        self.assertAlmostEqual(float(observed), 0.0, places=7)
+
     def _schema(self):
         samples = pd.DataFrame(
             {
@@ -577,6 +617,21 @@ class FactorizedAdapterTests(unittest.TestCase):
 
 
 class EvaluationMetricTests(unittest.TestCase):
+    def test_guidance_screen_uses_declared_common_random_seeds(self):
+        self.assertEqual(_evaluation_sampling_seeds(20, {}), (1020, 2020))
+        self.assertEqual(
+            _evaluation_sampling_seeds(
+                20,
+                {"validation_sampling_seed": 7, "train_sampling_seed": 9},
+            ),
+            (7, 9),
+        )
+
+    def test_evaluation_variant_rejects_path_traversal(self):
+        self.assertEqual(_variant_label("seed3021"), "seed3021")
+        with self.assertRaises(ValueError):
+            _variant_label("../test")
+
     def test_per_tissue_fidelity_reports_each_sufficient_group(self):
         rng = np.random.default_rng(9)
         real = rng.normal(size=(12, 8))

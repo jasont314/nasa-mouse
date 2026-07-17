@@ -75,6 +75,29 @@ def _balanced_indices(
     return np.asarray(selected, dtype=int)
 
 
+def _evaluation_sampling_seeds(
+    run_seed: int, options: dict[str, object]
+) -> tuple[int, int]:
+    """Resolve fixed seeds shared by every guidance scale in one screen."""
+
+    return (
+        int(options.get("validation_sampling_seed", int(run_seed) + 1000)),
+        int(options.get("train_sampling_seed", int(run_seed) + 2000)),
+    )
+
+
+def _variant_label(value: str) -> str:
+    value = str(value).strip()
+    if not value:
+        return ""
+    if Path(value).name != value or any(
+        character not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+        for character in value
+    ):
+        raise ValueError("evaluation_variant must contain only letters, digits, _ or -")
+    return value
+
+
 class _GuidedModel(torch.nn.Module):
     def __init__(
         self,
@@ -317,6 +340,9 @@ def evaluate_factorized(
     *,
     guidance_scales: Iterable[float] | None = None,
     model_artifact: str = "model.pt",
+    validation_sampling_seed: int | None = None,
+    train_sampling_seed: int | None = None,
+    evaluation_variant: str = "",
 ) -> Path:
     config = load_factorized_config(config_path)
     options = config["evaluation"]
@@ -325,6 +351,7 @@ def evaluate_factorized(
         raise RuntimeError("Factorized paper ModelDDIM evaluation requires CUDA")
     if Path(model_artifact).name != model_artifact:
         raise ValueError("model_artifact must be a filename under the run directory")
+    variant = _variant_label(evaluation_variant)
     model, schema, payload = _load_adapter_model(
         config, device, artifact_name=model_artifact
     )
@@ -363,13 +390,26 @@ def evaluate_factorized(
     run_output = Path(config["run"]["output_dir"])
     summaries: list[dict[str, object]] = []
     summary_paths: list[Path] = []
-    for scale_index, scale in enumerate(scales):
+    default_validation_seed, default_train_seed = _evaluation_sampling_seeds(
+        int(config["run"]["seed"]), options
+    )
+    validation_sampling_seed = (
+        default_validation_seed
+        if validation_sampling_seed is None
+        else int(validation_sampling_seed)
+    )
+    train_sampling_seed = (
+        default_train_seed if train_sampling_seed is None else int(train_sampling_seed)
+    )
+    for scale in scales:
         artifact_label = Path(model_artifact).stem
         output_label = (
             f"validation_guidance_{scale:g}"
             if model_artifact == "model.pt"
             else f"validation_{artifact_label}_guidance_{scale:g}"
         )
+        if variant:
+            output_label = f"{output_label}_{variant}"
         output = run_output / "evaluation" / output_label
         output.mkdir(parents=True, exist_ok=True)
         started = time.time()
@@ -383,7 +423,7 @@ def evaluate_factorized(
             sampling_steps=int(options.get("sampling_steps", 1000)),
             batch_size=int(options.get("batch_size", 128)),
             guidance_scale=scale,
-            seed=int(config["run"]["seed"]) + 1000 + scale_index,
+            seed=validation_sampling_seed,
             device=device,
         )
         synthetic_train = _sample(
@@ -396,7 +436,7 @@ def evaluate_factorized(
             sampling_steps=int(options.get("sampling_steps", 1000)),
             batch_size=int(options.get("batch_size", 128)),
             guidance_scale=scale,
-            seed=int(config["run"]["seed"]) + 2000 + scale_index,
+            seed=train_sampling_seed,
             device=device,
         )
         real = validation["expression"][validation_indices]
@@ -487,6 +527,9 @@ def evaluate_factorized(
             "locked_test_opened": False,
             "guidance_scale": scale,
             "sampling_steps": int(options.get("sampling_steps", 1000)),
+            "validation_sampling_seed": validation_sampling_seed,
+            "train_sampling_seed": train_sampling_seed,
+            "evaluation_variant": variant,
             "sampling_seconds": float(time.time() - started),
             "profiles": int(len(real)),
             "fidelity": fidelity,
@@ -550,5 +593,7 @@ def evaluate_factorized(
         if model_artifact == "model.pt"
         else f"{Path(model_artifact).stem}_guidance_screen.tsv"
     )
+    if variant:
+        screen_name = f"{Path(screen_name).stem}_{variant}.tsv"
     table.to_csv(run_output / "evaluation" / screen_name, sep="\t", index=False)
     return summary_paths[0]

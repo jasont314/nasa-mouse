@@ -133,6 +133,76 @@ def _drop_condition_rows(
     return result
 
 
+def _correlation_structure_loss(
+    clean: torch.Tensor, reconstructed: torch.Tensor, gene_indices: torch.Tensor
+) -> torch.Tensor:
+    """Compare gene-correlation structure across profiles in one batch."""
+
+    if len(clean) < 3:
+        return reconstructed.sum() * 0.0
+    expected = clean.index_select(1, gene_indices).float()
+    observed = reconstructed.index_select(1, gene_indices).float()
+
+    def correlation(values: torch.Tensor) -> torch.Tensor:
+        centered = values - values.mean(dim=0, keepdim=True)
+        norms = torch.linalg.vector_norm(centered, dim=0).clamp_min(1e-6)
+        return centered.T.mm(centered) / torch.outer(norms, norms)
+
+    expected_correlation = correlation(expected).detach()
+    observed_correlation = correlation(observed)
+    upper = torch.triu_indices(
+        observed_correlation.shape[0],
+        observed_correlation.shape[1],
+        offset=1,
+        device=observed.device,
+    )
+    return torch.mean(
+        (
+            observed_correlation[upper[0], upper[1]]
+            - expected_correlation[upper[0], upper[1]]
+        ).square()
+    )
+
+
+def _regularized_noise_loss(
+    model: FactorizedAdapterDDIM,
+    clean: torch.Tensor,
+    timesteps: torch.Tensor,
+    noise: torch.Tensor,
+    betas: torch.Tensor,
+    labels: torch.Tensor,
+    options: dict[str, object] | None,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    if not options:
+        loss, error = noise_estimation_loss(
+            model, clean, timesteps, noise, betas, labels
+        )
+        return loss, error, loss.detach() * 0.0
+    alpha = (1 - betas).cumprod(dim=0).index_select(0, timesteps).view(-1, 1)
+    noisy = clean * alpha.sqrt() + noise * (1.0 - alpha).sqrt()
+    prediction = model(noisy, timesteps, labels)
+    residual = noise - prediction
+    noise_loss = residual.square().sum(dim=1).mean(dim=0)
+    error = residual.abs().mean(dim=1).mean(dim=0)
+    eligible = timesteps <= int(options["max_timestep"])
+    if int(eligible.sum().item()) < 3:
+        return noise_loss, error, noise_loss.detach() * 0.0
+    reconstructed = (
+        noisy[eligible]
+        - prediction[eligible] * (1.0 - alpha[eligible]).sqrt()
+    ) / alpha[eligible].sqrt().clamp_min(1e-6)
+    gene_count = min(int(options["genes"]), clean.shape[1])
+    gene_indices = torch.randperm(clean.shape[1], device=clean.device)[:gene_count]
+    correlation_loss = _correlation_structure_loss(
+        clean[eligible], reconstructed, gene_indices
+    )
+    return (
+        noise_loss + float(options["weight"]) * correlation_loss,
+        error,
+        correlation_loss,
+    )
+
+
 @torch.no_grad()
 def _validation_loss(
     model: FactorizedAdapterDDIM,
@@ -301,6 +371,7 @@ def _train_stage(
     torch.cuda.reset_peak_memory_stats(device)
     interval_loss = 0.0
     interval_error = 0.0
+    interval_correlation_loss = 0.0
     interval_profiles = 0
     interval_started = time.time()
     log_every = int(common.get("log_every_steps", 100))
@@ -320,8 +391,14 @@ def _train_stage(
         with torch.autocast(
             "cuda", dtype=torch.float16, enabled=bool(common.get("amp", True))
         ):
-            loss, error = noise_estimation_loss(
-                model, clean, timesteps, noise, betas, condition
+            loss, error, correlation_loss = _regularized_noise_loss(
+                model,
+                clean,
+                timesteps,
+                noise,
+                betas,
+                condition,
+                options.get("correlation_regularization"),
             )
         if not torch.isfinite(loss):
             raise FloatingPointError(f"Non-finite {stage} loss at step {step_index}")
@@ -332,6 +409,9 @@ def _train_stage(
         ema.update(model)
         interval_loss += float(loss.detach().cpu()) * len(clean)
         interval_error += float(error.detach().cpu()) * len(clean)
+        interval_correlation_loss += float(correlation_loss.detach().cpu()) * len(
+            clean
+        )
         interval_profiles += len(clean)
 
         should_log = step_index == 1 or step_index % log_every == 0 or step_index == steps
@@ -341,6 +421,9 @@ def _train_stage(
                 "step": step_index,
                 "loss": interval_loss / interval_profiles,
                 "noise_absolute_error": interval_error / interval_profiles,
+                "correlation_structure_loss": (
+                    interval_correlation_loss / interval_profiles
+                ),
                 "learning_rate": float(optimizer.param_groups[0]["lr"]),
                 "interval_seconds": float(time.time() - interval_started),
                 "cuda_peak_memory_gb": float(
@@ -371,6 +454,7 @@ def _train_stage(
             )
             interval_loss = 0.0
             interval_error = 0.0
+            interval_correlation_loss = 0.0
             interval_profiles = 0
             interval_started = time.time()
         if step_index % checkpoint_every == 0 and step_index < steps:
@@ -452,6 +536,16 @@ def train_factorized(config_path: str | Path, *, restart: bool = False) -> Path:
         domain_lora_rank=int(adapter_options.get("domain_lora_rank", 0)),
         domain_lora_alpha=float(adapter_options.get("domain_lora_alpha", 1.0)),
     ).to(device)
+    initial_model = str(adapter_options.get("initial_model", ""))
+    if initial_model:
+        initial_payload = torch.load(
+            initial_model, map_location="cpu", weights_only=False
+        )
+        if initial_payload.get("format") != FORMAT:
+            raise ValueError("adapter.initial_model has an incompatible format")
+        if initial_payload.get("metadata", {}).get("schema") != schema.as_dict():
+            raise ValueError("adapter.initial_model uses a different factorized schema")
+        model.load_adapter_state_dict(initial_payload["adapter_state_dict"])
     betas = quadratic_beta_schedule(
         beta_start=float(config["model"]["beta_start"]),
         beta_end=float(config["model"]["beta_end"]),
@@ -468,6 +562,12 @@ def train_factorized(config_path: str | Path, *, restart: bool = False) -> Path:
         "pretrained_epoch": int(pretrained_payload.get("epoch", 0)),
         "pretrained_global_step": int(pretrained_payload.get("global_step", 0)),
         "pretrained_state": "ema_state_dict",
+        "initial_adapter_model": (
+            str(Path(initial_model).resolve()) if initial_model else ""
+        ),
+        "initial_adapter_model_sha256": (
+            _sha256(initial_model) if initial_model else ""
+        ),
         "genes": train["genes"],
         "schema": schema.as_dict(),
         "train_profiles": int(len(train["expression"])),

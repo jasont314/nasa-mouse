@@ -2,7 +2,7 @@ version: 1
 contract: lacan_modelddim_factorized_adapter_v1
 
 run:
-  output_dir: outputs/generative_benchmark/runs/lacan_diffusion/osdr_factorized_study_lora64_replicated_validation_seed2020
+  output_dir: outputs/generative_benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine50_seed2020
   seed: 2020
   source_root: assets/model_sources/rna-diffusion
 
@@ -16,8 +16,9 @@ conditioning:
   material_type: true
 
 adapter:
-  domain_lora_rank: 64
-  domain_lora_alpha: 64.0
+  domain_lora_rank: 512
+  domain_lora_alpha: 512.0
+  initial_model: outputs/generative_benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_seed2020/model.pt
 
 model:
   hidden_dims: [8192, 8192]
@@ -32,7 +33,7 @@ model:
   ema_decay: 0.999
 
 training:
-  batch_size: 256
+  batch_size: 512
   num_workers: 4
   amp: true
   beta1: 0.9
@@ -45,14 +46,18 @@ training:
   checkpoint_every_steps: 1000
   stages:
     domain:
-      steps: 6000
-      learning_rate: 0.000075
-      warmup_steps: 300
+      steps: 5000
+      learning_rate: 0.00001
+      warmup_steps: 250
       sampling_strata: [tissue, accession]
+      correlation_regularization:
+        weight: 50.0
+        genes: 512
+        max_timestep: 200
     condition:
-      steps: 2500
-      learning_rate: 0.000075
-      warmup_steps: 200
+      steps: 1000
+      learning_rate: 0.00001
+      warmup_steps: 100
       sampling_strata: [tissue, accession, condition]
 
 evaluation:
@@ -61,4 +66,6 @@ evaluation:
   train_metric_samples: 0
   batch_size: 128
   sampling_steps: 100
-  guidance_scales: [1.0, 1.25, 1.5]
+  validation_sampling_seed: 3020
+  train_sampling_seed: 4020
+  guidance_scales: [1.0]
