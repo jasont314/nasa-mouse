@@ -44,6 +44,11 @@ def load_factorized_config(path: str | Path) -> dict[str, Any]:
         raise ValueError(
             f"Unsupported factorized conditioning keys: {sorted(unknown_conditioning)}"
         )
+    adapter = payload.get("adapter", {})
+    if int(adapter.get("domain_lora_rank", 0)) < 0:
+        raise ValueError("adapter.domain_lora_rank cannot be negative")
+    if float(adapter.get("domain_lora_alpha", 1.0)) <= 0:
+        raise ValueError("adapter.domain_lora_alpha must be positive")
     evaluation = payload.get("evaluation", {})
     if evaluation.get("split", "validation") != "validation":
         raise ValueError("Development configs must evaluate validation, not locked test")

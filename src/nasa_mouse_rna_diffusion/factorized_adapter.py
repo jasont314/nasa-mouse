@@ -313,10 +313,38 @@ class _GroupedProjection(nn.Module):
         return result
 
 
+class _LowRankResidual(nn.Module):
+    def __init__(
+        self, input_dim: int, output_dim: int, rank: int, alpha: float
+    ) -> None:
+        super().__init__()
+        self.rank = int(rank)
+        self.scale = float(alpha) / max(self.rank, 1)
+        if self.rank > 0:
+            self.down = nn.Linear(input_dim, self.rank, bias=False)
+            self.up = nn.Linear(self.rank, output_dim, bias=False)
+            nn.init.kaiming_uniform_(self.down.weight, a=np.sqrt(5))
+            nn.init.zeros_(self.up.weight)
+
+    def forward(self, values: torch.Tensor) -> torch.Tensor:
+        if self.rank <= 0:
+            return torch.zeros(
+                (len(values), 0), dtype=values.dtype, device=values.device
+            )
+        return self.up(self.down(values)) * self.scale
+
+
 class FactorizedAdapterDDIM(nn.Module):
     """Frozen upstream DDIM with residual projections for factorized metadata."""
 
-    def __init__(self, base_model: nn.Module, schema: FactorizedSchema) -> None:
+    def __init__(
+        self,
+        base_model: nn.Module,
+        schema: FactorizedSchema,
+        *,
+        domain_lora_rank: int = 0,
+        domain_lora_alpha: float = 1.0,
+    ) -> None:
         super().__init__()
         self.base_model = base_model
         self.schema = schema
@@ -345,6 +373,46 @@ class FactorizedAdapterDDIM(nn.Module):
                 if block.in_channels != block.out_channels
             }
         )
+        self.w1_domain_lora = nn.ModuleList(
+            [
+                _LowRankResidual(
+                    block.w1.in_features,
+                    block.w1.out_features,
+                    domain_lora_rank,
+                    domain_lora_alpha,
+                )
+                for block in base_model.mid
+            ]
+        )
+        self.w2_domain_lora = nn.ModuleList(
+            [
+                _LowRankResidual(
+                    block.w2.in_features,
+                    block.w2.out_features,
+                    domain_lora_rank,
+                    domain_lora_alpha,
+                )
+                for block in base_model.mid
+            ]
+        )
+        self.x_domain_lora = nn.ModuleDict(
+            {
+                str(index): _LowRankResidual(
+                    block.x_proj.in_features,
+                    block.x_proj.out_features,
+                    domain_lora_rank,
+                    domain_lora_alpha,
+                )
+                for index, block in enumerate(base_model.mid)
+                if block.in_channels != block.out_channels
+            }
+        )
+        self.output_domain_lora = _LowRankResidual(
+            base_model.lin_out.in_features,
+            base_model.lin_out.out_features,
+            domain_lora_rank,
+            domain_lora_alpha,
+        )
         self.set_trainable_groups(())
 
     def set_trainable_groups(self, groups: Iterable[str]) -> None:
@@ -358,6 +426,7 @@ class FactorizedAdapterDDIM(nn.Module):
                 continue
             parameter.requires_grad_(
                 any(f"layers.{group}." in name for group in selected)
+                or ("domain" in selected and "_domain_lora." in name)
             )
 
     def trainable_parameter_count(self) -> int:
@@ -412,23 +481,37 @@ class FactorizedAdapterDDIM(nn.Module):
         for index, block in enumerate(base.mid):
             projected = torch.cat((hidden, temporal), dim=1)
             projected = block.batch_norm_temb1(projected)
-            projected = block.w1(torch.cat((projected, base_labels), dim=1))
+            first_input = torch.cat((projected, base_labels), dim=1)
+            projected = block.w1(first_input)
             projected = projected + self.w1_adapters[index](adapter_inputs)
+            if self.w1_domain_lora[index].rank:
+                projected = projected + self.w1_domain_lora[index](first_input)
             projected = block.batch_norm1(projected)
             projected = block.dropout(block.relu(projected))
             projected = torch.cat((projected, temporal), dim=1)
             projected = block.batch_norm_temb2(projected)
-            projected = block.w2(torch.cat((projected, base_labels), dim=1))
+            second_input = torch.cat((projected, base_labels), dim=1)
+            projected = block.w2(second_input)
             projected = projected + self.w2_adapters[index](adapter_inputs)
+            if self.w2_domain_lora[index].rank:
+                projected = projected + self.w2_domain_lora[index](second_input)
             projected = block.batch_norm2(projected)
             projected = block.dropout(block.relu(projected))
             residual = hidden
             if block.in_channels != block.out_channels:
-                residual = block.x_proj(torch.cat((hidden, base_labels), dim=1))
+                residual_input = torch.cat((hidden, base_labels), dim=1)
+                residual = block.x_proj(residual_input)
                 residual = residual + self.x_adapters[str(index)](adapter_inputs)
+                if self.x_domain_lora[str(index)].rank:
+                    residual = residual + self.x_domain_lora[str(index)](
+                        residual_input
+                    )
             hidden = residual + projected
         hidden = _swish(base.norm_out(hidden))
-        return base.lin_out(hidden)
+        output = base.lin_out(hidden)
+        if self.output_domain_lora.rank:
+            output = output + self.output_domain_lora(hidden)
+        return output
 
 
 def neutralize_group(

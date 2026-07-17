@@ -445,7 +445,13 @@ def train_factorized(config_path: str | Path, *, restart: bool = False) -> Path:
     )
     train_labels = encode_factorized_labels(train["samples"], schema)
     validation_labels = encode_factorized_labels(validation["samples"], schema)
-    model = FactorizedAdapterDDIM(base, schema).to(device)
+    adapter_options = config.get("adapter", {})
+    model = FactorizedAdapterDDIM(
+        base,
+        schema,
+        domain_lora_rank=int(adapter_options.get("domain_lora_rank", 0)),
+        domain_lora_alpha=float(adapter_options.get("domain_lora_alpha", 1.0)),
+    ).to(device)
     betas = quadratic_beta_schedule(
         beta_start=float(config["model"]["beta_start"]),
         beta_end=float(config["model"]["beta_end"]),
@@ -477,6 +483,12 @@ def train_factorized(config_path: str | Path, *, restart: bool = False) -> Path:
             "study_conditioning": bool(conditioning.get("study", False)),
             "material_type_conditioning": bool(
                 conditioning.get("material_type", False)
+            ),
+            "domain_lora_rank": int(
+                adapter_options.get("domain_lora_rank", 0)
+            ),
+            "domain_lora_alpha": float(
+                adapter_options.get("domain_lora_alpha", 1.0)
             ),
             "domain_then_condition_staging": True,
             "condition_dropout_for_guidance": float(

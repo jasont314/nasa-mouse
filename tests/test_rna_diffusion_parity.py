@@ -486,7 +486,9 @@ class FactorizedAdapterTests(unittest.TestCase):
         base = upstream_model_class()(
             model_config(expression_dim=12, num_classes=2, model=SMALL_MODEL)
         ).eval()
-        adapter = FactorizedAdapterDDIM(base, schema).eval()
+        adapter = FactorizedAdapterDDIM(
+            base, schema, domain_lora_rank=4, domain_lora_alpha=4
+        ).eval()
         labels = torch.from_numpy(encode_factorized_labels(samples, schema))
         expression = torch.randn(3, 12)
         timesteps = torch.tensor([1.0, 3.0, 6.0])
@@ -506,6 +508,13 @@ class FactorizedAdapterTests(unittest.TestCase):
         ]
         self.assertTrue(trainable)
         self.assertTrue(all("layers.condition" in name for name in trainable))
+
+        adapter = FactorizedAdapterDDIM(base, schema, domain_lora_rank=2)
+        adapter.set_trainable_groups(["domain"])
+        trainable = [
+            name for name, value in adapter.named_parameters() if value.requires_grad
+        ]
+        self.assertTrue(any("_domain_lora." in name for name in trainable))
 
     def test_condition_neutralization_keeps_base_and_domain_labels(self):
         samples, schema = self._schema()

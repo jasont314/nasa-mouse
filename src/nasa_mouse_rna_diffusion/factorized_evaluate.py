@@ -298,7 +298,13 @@ def _load_adapter_model(
     )
     if tuple(classes) != schema.base_classes:
         raise ValueError("Pretrained classes differ from the adapter schema")
-    model = FactorizedAdapterDDIM(base, schema)
+    adapter_options = config.get("adapter", {})
+    model = FactorizedAdapterDDIM(
+        base,
+        schema,
+        domain_lora_rank=int(adapter_options.get("domain_lora_rank", 0)),
+        domain_lora_alpha=float(adapter_options.get("domain_lora_alpha", 1.0)),
+    )
     model.load_adapter_state_dict(payload["adapter_state_dict"])
     model.to(device).eval()
     return model, schema, payload
@@ -523,4 +529,3 @@ def evaluate_factorized(
         run_output / "evaluation" / "guidance_screen.tsv", sep="\t", index=False
     )
     return summary_paths[0]
-
