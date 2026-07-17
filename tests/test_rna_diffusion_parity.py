@@ -278,6 +278,24 @@ class ConditionalDataTests(unittest.TestCase):
                 self.assertEqual(observed[accession, condition, "validation"], 1)
                 self.assertEqual(observed[accession, condition, "test"], 1)
 
+    def test_within_study_split_can_reserve_replicated_validation_effects(self):
+        rows = pd.DataFrame(
+            {
+                "profile_id": [f"p{index}" for index in range(12)],
+                "accession": ["a"] * 12,
+                "tissue": ["skeletal_muscle"] * 12,
+                "condition": ["flight"] * 6 + ["ground_control"] * 6,
+            }
+        )
+        roles = _within_study_roles(
+            rows, seed=5, validation_fraction=0.34, test_fraction=0.17
+        )
+        observed = rows.assign(role=roles).groupby(["condition", "role"]).size()
+        for condition in ("flight", "ground_control"):
+            self.assertEqual(observed[condition, "train"], 3)
+            self.assertEqual(observed[condition, "validation"], 2)
+            self.assertEqual(observed[condition, "test"], 1)
+
     def test_tpm_denominator_uses_genes_outside_landmark_panel(self):
         matrix = np.asarray(
             [[100.0, 100.0, 0.0], [100.0, 0.0, 900.0]], dtype=np.float32

@@ -320,16 +320,30 @@ def prepare_conditional(config_path: str | Path, *, force: bool = False) -> Path
         )
     elif split_strategy == "within_study_stratified":
         rows = rows.copy()
+        validation_fraction = float(
+            options.get(
+                "within_study_validation_fraction",
+                base.validation.pooled_validation_fraction,
+            )
+        )
+        test_fraction = float(
+            options.get(
+                "within_study_test_fraction",
+                base.validation.pooled_test_fraction,
+            )
+        )
         rows["role"] = _within_study_roles(
             rows,
             seed=int(config["run"]["seed"]),
-            validation_fraction=float(base.validation.pooled_validation_fraction),
-            test_fraction=float(base.validation.pooled_test_fraction),
+            validation_fraction=validation_fraction,
+            test_fraction=test_fraction,
         )
         split_metadata = {
             "kind": "within_study_stratified",
             "split_unit": "sample within accession/tissue/condition",
             "accessions": int(rows["accession"].nunique()),
+            "validation_fraction": validation_fraction,
+            "test_fraction": test_fraction,
             "limitation": (
                 "Evaluates generation for studies represented during training; "
                 "it does not measure unseen-study generalization."

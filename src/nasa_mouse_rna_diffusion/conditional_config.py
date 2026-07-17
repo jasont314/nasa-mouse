@@ -29,6 +29,27 @@ def load_conditional_config(path: str | Path) -> dict[str, Any]:
     if split_strategy not in {"accession_holdout", "within_study_stratified"}:
         raise ValueError("Unsupported conditional DDIM data.split_strategy")
     data["split_strategy"] = split_strategy
+    if split_strategy == "within_study_stratified":
+        validation_fraction = data.get("within_study_validation_fraction")
+        test_fraction = data.get("within_study_test_fraction")
+        if (validation_fraction is None) != (test_fraction is None):
+            raise ValueError(
+                "Within-study splitting requires both fraction overrides or neither"
+            )
+        if validation_fraction is not None:
+            validation_fraction = float(validation_fraction)
+            test_fraction = float(test_fraction)
+            if (
+                validation_fraction <= 0.0
+                or test_fraction <= 0.0
+                or validation_fraction + test_fraction >= 1.0
+            ):
+                raise ValueError(
+                    "Within-study validation/test fractions must be positive and sum "
+                    "to less than one"
+                )
+            data["within_study_validation_fraction"] = validation_fraction
+            data["within_study_test_fraction"] = test_fraction
     validation_accessions = tuple(
         map(str, data.get("validation_accessions", []))
     )
