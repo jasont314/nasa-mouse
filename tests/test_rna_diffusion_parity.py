@@ -5,6 +5,7 @@ from pathlib import Path
 import unittest
 
 import anndata as ad
+import h5py
 import numpy as np
 import pandas as pd
 import torch
@@ -69,6 +70,8 @@ from nasa_mouse_rna_diffusion.factorized_mean_calibrate import (
 from nasa_mouse_rna_diffusion.factorized_distribution_calibrate import (
     PositiveResidualCalibrator,
 )
+from nasa_mouse_rna_diffusion.factorized_subset import subset_factorized_data
+from nasa_mouse_rna_diffusion.factorized_final_evaluate import _require_test_unlock
 
 
 SMALL_MODEL = {
@@ -501,6 +504,47 @@ class RealEffectCeilingTests(unittest.TestCase):
 
 
 class FactorizedAdapterTests(unittest.TestCase):
+    def test_finalist_test_requires_explicit_unlock(self):
+        with self.assertRaises(PermissionError):
+            _require_test_unlock(False)
+        _require_test_unlock(True)
+
+    def test_tissue_subset_never_copies_locked_test(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.h5"
+            samples_path = root / "samples.tsv"
+            output = root / "muscle.h5"
+            samples = pd.DataFrame(
+                {
+                    "_row_index": [10, 11, 12, 13, 14, 15],
+                    "tissue": ["liver", "skeletal_muscle"] * 3,
+                }
+            )
+            samples.to_csv(samples_path, sep="\t", index=False)
+            with h5py.File(source, "w") as handle:
+                handle.create_dataset("genes", data=np.asarray([b"a", b"b"]))
+                for role, rows in (
+                    ("train", [10, 11]),
+                    ("validation", [12, 13]),
+                    ("test", [14, 15]),
+                ):
+                    group = handle.create_group(role)
+                    group.create_dataset("source_row", data=np.asarray(rows))
+                    group.create_dataset(
+                        "expression", data=np.ones((2, 2), dtype=np.float32)
+                    )
+            subset_factorized_data(
+                source,
+                samples_path,
+                output,
+                tissues=["skeletal_muscle"],
+            )
+            with h5py.File(output) as handle:
+                self.assertNotIn("test", handle)
+                self.assertEqual(handle["train/expression"].shape, (1, 2))
+                self.assertEqual(handle["validation/expression"].shape, (1, 2))
+
     def test_positive_residual_calibrator_round_trips_and_clips(self):
         rng = np.random.default_rng(42)
         metadata = pd.DataFrame(

@@ -53,6 +53,12 @@ def load_factorized_config(path: str | Path) -> dict[str, Any]:
         adapter.get("initial_model"), str
     ):
         raise ValueError("adapter.initial_model must be a path string")
+    if not isinstance(adapter.get("schema_from_initial_model", False), bool):
+        raise ValueError("adapter.schema_from_initial_model must be boolean")
+    if adapter.get("schema_from_initial_model", False) and not adapter.get(
+        "initial_model"
+    ):
+        raise ValueError("schema_from_initial_model requires adapter.initial_model")
     for name, stage in training["stages"].items():
         regularization = stage.get("correlation_regularization")
         if regularization is not None:

@@ -365,6 +365,18 @@ def _restore_rng(payload: dict[str, Any]) -> None:
     random.setstate(payload["python_rng_state"])
 
 
+def _scaled_optimizer_step(
+    scaler: torch.amp.GradScaler, optimizer: torch.optim.Optimizer
+) -> tuple[bool, float]:
+    """Advance AMP and report whether GradScaler ran the optimizer update."""
+
+    scale_before = float(scaler.get_scale())
+    scaler.step(optimizer)
+    scaler.update()
+    scale_after = float(scaler.get_scale())
+    return scale_after >= scale_before, scale_after
+
+
 def _train_stage(
     model: FactorizedAdapterDDIM,
     schema: FactorizedSchema,
@@ -452,6 +464,8 @@ def _train_stage(
     interval_error = 0.0
     interval_correlation_loss = 0.0
     interval_effect_loss = 0.0
+    interval_optimizer_steps = 0
+    interval_skipped_optimizer_steps = 0
     interval_profiles = 0
     interval_started = time.time()
     log_every = int(common.get("log_every_steps", 100))
@@ -485,10 +499,13 @@ def _train_stage(
         if not torch.isfinite(loss):
             raise FloatingPointError(f"Non-finite {stage} loss at step {step_index}")
         scaler.scale(loss).backward()
-        scaler.step(optimizer)
-        scaler.update()
-        scheduler.step()
-        ema.update(model)
+        step_succeeded, grad_scale = _scaled_optimizer_step(scaler, optimizer)
+        if step_succeeded:
+            scheduler.step()
+            ema.update(model)
+            interval_optimizer_steps += 1
+        else:
+            interval_skipped_optimizer_steps += 1
         interval_loss += float(loss.detach().cpu()) * len(clean)
         interval_error += float(error.detach().cpu()) * len(clean)
         interval_correlation_loss += float(correlation_loss.detach().cpu()) * len(
@@ -510,6 +527,9 @@ def _train_stage(
                 "condition_effect_direction_loss": (
                     interval_effect_loss / interval_profiles
                 ),
+                "optimizer_steps": interval_optimizer_steps,
+                "skipped_optimizer_steps": interval_skipped_optimizer_steps,
+                "grad_scale": grad_scale,
                 "learning_rate": float(optimizer.param_groups[0]["lr"]),
                 "interval_seconds": float(time.time() - interval_started),
                 "cuda_peak_memory_gb": float(
@@ -542,6 +562,8 @@ def _train_stage(
             interval_error = 0.0
             interval_correlation_loss = 0.0
             interval_effect_loss = 0.0
+            interval_optimizer_steps = 0
+            interval_skipped_optimizer_steps = 0
             interval_profiles = 0
             interval_started = time.time()
         if step_index % checkpoint_every == 0 and step_index < steps:
@@ -608,29 +630,42 @@ def train_factorized(config_path: str | Path, *, restart: bool = False) -> Path:
         data_options["pretrained_model"], config["model"], len(train["genes"])
     )
     conditioning = config.get("conditioning", {})
-    schema = build_factorized_schema(
-        train["samples"],
-        classes,
-        include_study=bool(conditioning.get("study", False)),
-        include_material_type=bool(conditioning.get("material_type", False)),
-    )
-    train_labels = encode_factorized_labels(train["samples"], schema)
-    validation_labels = encode_factorized_labels(validation["samples"], schema)
     adapter_options = config.get("adapter", {})
-    model = FactorizedAdapterDDIM(
-        base,
-        schema,
-        domain_lora_rank=int(adapter_options.get("domain_lora_rank", 0)),
-        domain_lora_alpha=float(adapter_options.get("domain_lora_alpha", 1.0)),
-    ).to(device)
     initial_model = str(adapter_options.get("initial_model", ""))
+    initial_payload: dict[str, Any] | None = None
     if initial_model:
         initial_payload = torch.load(
             initial_model, map_location="cpu", weights_only=False
         )
         if initial_payload.get("format") != FORMAT:
             raise ValueError("adapter.initial_model has an incompatible format")
-        if initial_payload.get("metadata", {}).get("schema") != schema.as_dict():
+    if bool(adapter_options.get("schema_from_initial_model", False)):
+        if initial_payload is None:
+            raise ValueError("schema_from_initial_model requires an initial model")
+        schema = FactorizedSchema.from_dict(initial_payload["metadata"]["schema"])
+        if schema.base_classes != tuple(classes):
+            raise ValueError("Initial adapter schema uses different pretrained classes")
+    else:
+        schema = build_factorized_schema(
+            train["samples"],
+            classes,
+            include_study=bool(conditioning.get("study", False)),
+            include_material_type=bool(conditioning.get("material_type", False)),
+        )
+    train_labels = encode_factorized_labels(train["samples"], schema)
+    validation_labels = encode_factorized_labels(validation["samples"], schema)
+    model = FactorizedAdapterDDIM(
+        base,
+        schema,
+        domain_lora_rank=int(adapter_options.get("domain_lora_rank", 0)),
+        domain_lora_alpha=float(adapter_options.get("domain_lora_alpha", 1.0)),
+    ).to(device)
+    if initial_model:
+        assert initial_payload is not None
+        source_schema = FactorizedSchema.from_dict(
+            initial_payload.get("metadata", {})["schema"]
+        )
+        if source_schema != schema:
             raise ValueError("adapter.initial_model uses a different factorized schema")
         model.load_adapter_state_dict(initial_payload["adapter_state_dict"])
     betas = quadratic_beta_schedule(
@@ -654,6 +689,9 @@ def train_factorized(config_path: str | Path, *, restart: bool = False) -> Path:
         ),
         "initial_adapter_model_sha256": (
             _sha256(initial_model) if initial_model else ""
+        ),
+        "schema_from_initial_adapter": bool(
+            adapter_options.get("schema_from_initial_model", False)
         ),
         "genes": train["genes"],
         "schema": schema.as_dict(),

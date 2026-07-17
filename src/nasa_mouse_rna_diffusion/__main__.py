@@ -16,6 +16,8 @@ from .factorized_evaluate import evaluate_factorized
 from .factorized_calibrate import calibrate_factorized
 from .factorized_mean_calibrate import calibrate_factorized_means
 from .factorized_distribution_calibrate import calibrate_factorized_distribution
+from .factorized_subset import subset_factorized_data
+from .factorized_final_evaluate import evaluate_factorized_finalist_test
 
 
 def parse_args() -> argparse.Namespace:
@@ -146,6 +148,28 @@ def parse_args() -> argparse.Namespace:
     distribution_calibrate.add_argument(
         "--minimum-repeat-pass-fraction", type=float, default=0.75
     )
+    subset = subparsers.add_parser(
+        "subset-factorized-data",
+        help="Create a train/validation tissue subset without opening locked test",
+    )
+    subset.add_argument("--source-h5", required=True)
+    subset.add_argument("--samples-tsv", required=True)
+    subset.add_argument("--output-h5", required=True)
+    subset.add_argument("--tissues", nargs="+", required=True)
+    final_test = subparsers.add_parser(
+        "evaluate-finalist-test",
+        help="Run the one-time repeated locked-test evaluation",
+    )
+    final_test.add_argument("--config", required=True)
+    final_test.add_argument("--calibrator-dir", required=True)
+    final_test.add_argument("--unlock-test", action="store_true")
+    final_test.add_argument(
+        "--sampling-seeds", nargs="+", type=int, default=[5020, 5021, 5022, 5023]
+    )
+    final_test.add_argument("--residual-seed", type=int, default=15020)
+    final_test.add_argument(
+        "--minimum-repeat-pass-fraction", type=float, default=0.75
+    )
     return parser.parse_args()
 
 
@@ -215,6 +239,22 @@ def main() -> None:
             residual_scale=args.residual_scale,
             residual_seed=args.residual_seed,
             noise_group_columns=args.noise_group_columns,
+            minimum_repeat_pass_fraction=args.minimum_repeat_pass_fraction,
+        )
+    elif args.command == "subset-factorized-data":
+        subset_factorized_data(
+            args.source_h5,
+            args.samples_tsv,
+            args.output_h5,
+            tissues=args.tissues,
+        )
+    elif args.command == "evaluate-finalist-test":
+        evaluate_factorized_finalist_test(
+            args.config,
+            args.calibrator_dir,
+            unlock_test=args.unlock_test,
+            sampling_seeds=args.sampling_seeds,
+            residual_seed=args.residual_seed,
             minimum_repeat_pass_fraction=args.minimum_repeat_pass_fraction,
         )
 
