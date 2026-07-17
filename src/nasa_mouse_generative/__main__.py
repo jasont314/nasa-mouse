@@ -23,6 +23,7 @@ def main() -> None:
             "evaluate",
             "generate",
             "archs4-figures",
+            "condition-figures",
             "gene-lengths",
         ],
     )
@@ -72,6 +73,10 @@ def main() -> None:
         from . import archs4_figures
 
         archs4_figures.main()
+    elif args.command == "condition-figures":
+        from . import condition_figures
+
+        condition_figures.main()
     elif args.command == "gene-lengths":
         from . import gene_lengths
 
