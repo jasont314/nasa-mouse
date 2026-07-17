@@ -2,14 +2,18 @@ version: 1
 contract: lacan_modelddim_factorized_adapter_v1
 
 run:
-  output_dir: outputs/generative_benchmark/runs/lacan_diffusion/osdr_factorized_adapter_screen_seed2020
+  output_dir: outputs/generative_benchmark/runs/lacan_diffusion/osdr_factorized_study_conditioned_seed2020
   seed: 2020
   source_root: assets/model_sources/rna-diffusion
 
 data:
-  prepared_h5: outputs/generative_benchmark/data/lacan_diffusion/osdr_factorized_dev_l974.h5
-  samples_tsv: outputs/generative_benchmark/data/lacan_diffusion/osdr_factorized_dev_l974.samples.tsv.gz
+  prepared_h5: outputs/generative_benchmark/data/lacan_diffusion/osdr_factorized_within_study_l974.h5
+  samples_tsv: outputs/generative_benchmark/data/lacan_diffusion/osdr_factorized_within_study_l974.samples.tsv.gz
   pretrained_model: outputs/generative_benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_seed1234/model.pt
+
+conditioning:
+  study: true
+  material_type: true
 
 model:
   hidden_dims: [8192, 8192]
@@ -32,25 +36,25 @@ training:
   epsilon: 1.0e-08
   ema_decay: 0.999
   condition_dropout: 0.15
-  log_every_steps: 50
-  validate_every_steps: 250
-  checkpoint_every_steps: 250
+  log_every_steps: 250
+  validate_every_steps: 1000
+  checkpoint_every_steps: 1000
   stages:
     domain:
-      steps: 500
-      learning_rate: 0.0003
-      warmup_steps: 50
+      steps: 5000
+      learning_rate: 0.0001
+      warmup_steps: 250
       sampling_strata: [tissue, accession]
     condition:
-      steps: 500
-      learning_rate: 0.0005
-      warmup_steps: 50
+      steps: 5000
+      learning_rate: 0.0002
+      warmup_steps: 250
       sampling_strata: [tissue, accession, condition]
 
 evaluation:
   split: validation
   metric_samples: 0
-  train_metric_samples: 240
+  train_metric_samples: 300
   batch_size: 128
-  sampling_steps: 1000
+  sampling_steps: 100
   guidance_scales: [1.0, 1.5, 2.0]

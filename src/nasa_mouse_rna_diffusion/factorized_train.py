@@ -436,7 +436,13 @@ def train_factorized(config_path: str | Path, *, restart: bool = False) -> Path:
     base, pretrained_payload, classes = _base_model(
         data_options["pretrained_model"], config["model"], len(train["genes"])
     )
-    schema = build_factorized_schema(train["samples"], classes)
+    conditioning = config.get("conditioning", {})
+    schema = build_factorized_schema(
+        train["samples"],
+        classes,
+        include_study=bool(conditioning.get("study", False)),
+        include_material_type=bool(conditioning.get("material_type", False)),
+    )
     train_labels = encode_factorized_labels(train["samples"], schema)
     validation_labels = encode_factorized_labels(validation["samples"], schema)
     model = FactorizedAdapterDDIM(base, schema).to(device)
@@ -468,6 +474,10 @@ def train_factorized(config_path: str | Path, *, restart: bool = False) -> Path:
             "base_parameters_frozen": True,
             "zero_initialization_preserves_base_function": True,
             "factorized_tissue_condition_covariates": True,
+            "study_conditioning": bool(conditioning.get("study", False)),
+            "material_type_conditioning": bool(
+                conditioning.get("material_type", False)
+            ),
             "domain_then_condition_staging": True,
             "condition_dropout_for_guidance": float(
                 common.get("condition_dropout", 0.0)
@@ -545,4 +555,3 @@ def train_factorized(config_path: str | Path, *, restart: bool = False) -> Path:
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"
     )
     return final_path
-

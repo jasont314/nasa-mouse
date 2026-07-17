@@ -81,6 +81,9 @@ class FactorizedSchema:
 def build_factorized_schema(
     train_samples: pd.DataFrame,
     base_classes: Iterable[str],
+    *,
+    include_study: bool = False,
+    include_material_type: bool = False,
 ) -> FactorizedSchema:
     base = tuple(map(str, base_classes))
     base_set = set(base)
@@ -108,12 +111,32 @@ def build_factorized_schema(
             if value not in {"", "unknown", "nan", "none"}
         )
     )
+    studies = (
+        tuple(sorted(train_samples["accession"].dropna().astype(str).unique()))
+        if include_study
+        else ()
+    )
+    material_types = (
+        tuple(
+            sorted(
+                value
+                for value in train_samples.get(
+                    "material_type", pd.Series(dtype=str)
+                ).dropna().astype(str).unique()
+                if value not in {"", "unknown", "nan", "none"}
+            )
+        )
+        if include_material_type
+        else ()
+    )
     condition_values = ("ground_control", "flight")
     domain = (
         ("domain=osdr",)
         + tuple(f"tissue_residual={value}" for value in tissues)
         + tuple(f"sex={value}" for value in sexes)
         + tuple(f"muscle_group={value}" for value in muscle_groups)
+        + tuple(f"study={value}" for value in studies)
+        + tuple(f"material_type={value}" for value in material_types)
     )
     condition = (
         tuple(f"condition={value}" for value in condition_values)
@@ -125,6 +148,11 @@ def build_factorized_schema(
         + tuple(
             f"muscle_condition={muscle_group}::{condition_value}"
             for muscle_group in muscle_groups
+            for condition_value in condition_values
+        )
+        + tuple(
+            f"study_condition={study}::{condition_value}"
+            for study in studies
             for condition_value in condition_values
         )
     )
@@ -174,6 +202,21 @@ def encode_factorized_labels(
                     .to_numpy()
                     == value
                 )
+            elif name.startswith("study="):
+                value = name.split("=", 1)[1]
+                labels[:, column] = (
+                    samples["accession"].astype(str).to_numpy() == value
+                )
+            elif name.startswith("material_type="):
+                value = name.split("=", 1)[1]
+                labels[:, column] = (
+                    samples.get(
+                        "material_type", pd.Series("unknown", index=samples.index)
+                    )
+                    .astype(str)
+                    .to_numpy()
+                    == value
+                )
             elif name.startswith("condition="):
                 value = name.split("=", 1)[1]
                 labels[:, column] = samples["condition"].astype(str).to_numpy() == value
@@ -190,6 +233,11 @@ def encode_factorized_labels(
                 labels[:, column] = (observed_group == muscle_group) & (
                     samples["condition"].astype(str).to_numpy() == condition
                 )
+            elif name.startswith("study_condition="):
+                study, condition = name.split("=", 1)[1].split("::", 1)
+                labels[:, column] = (
+                    samples["accession"].astype(str).to_numpy() == study
+                ) & (samples["condition"].astype(str).to_numpy() == condition)
             else:
                 raise ValueError(f"Unsupported factorized feature: {name}")
         adapter_offset += len(names)
@@ -392,4 +440,3 @@ def neutralize_group(
     stop = schema.base_width + int(bounds.stop)
     result[:, start:stop] = 0
     return result
-

@@ -518,6 +518,21 @@ class FactorizedAdapterTests(unittest.TestCase):
         self.assertEqual(int(neutral[:, start:stop].sum()), 0)
         self.assertGreater(int(labels[:, start:stop].sum()), 0)
 
+    def test_study_conditioning_adds_main_and_interaction_features(self):
+        samples, _ = self._schema()
+        samples["accession"] = ["OSD-1", "OSD-1", "OSD-2"]
+        schema = build_factorized_schema(
+            samples,
+            ["liver", "skeletal_muscle"],
+            include_study=True,
+        )
+        self.assertIn("study=OSD-1", schema.groups["domain"])
+        self.assertIn(
+            "study_condition=OSD-2::flight", schema.groups["condition"]
+        )
+        labels = encode_factorized_labels(samples, schema)
+        self.assertEqual(labels.shape[1], schema.total_width)
+
 
 class EvaluationMetricTests(unittest.TestCase):
     def test_per_tissue_fidelity_reports_each_sufficient_group(self):

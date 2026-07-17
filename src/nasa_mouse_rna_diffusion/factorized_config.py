@@ -36,6 +36,14 @@ def load_factorized_config(path: str | Path) -> dict[str, Any]:
             raise ValueError(f"Stage {name} requires positive steps and learning_rate")
     if not 0.0 <= float(training.get("condition_dropout", 0.0)) < 1.0:
         raise ValueError("training.condition_dropout must be in [0, 1)")
+    conditioning = payload.get("conditioning", {})
+    unknown_conditioning = set(conditioning).difference(
+        {"study", "material_type"}
+    )
+    if unknown_conditioning:
+        raise ValueError(
+            f"Unsupported factorized conditioning keys: {sorted(unknown_conditioning)}"
+        )
     evaluation = payload.get("evaluation", {})
     if evaluation.get("split", "validation") != "validation":
         raise ValueError("Development configs must evaluate validation, not locked test")
