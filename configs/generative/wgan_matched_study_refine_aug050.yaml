@@ -1,0 +1,58 @@
+version: 1
+contract: vinas_wgan_gp_matched_study_v1
+
+run:
+  output_dir: outputs/generative_benchmark/runs/vinas_wgan_gp/osdr_matched_study_refine_aug050_seed2023
+  seed: 2023
+  source_root: assets/model_sources/adversarial-gene-expression
+
+data:
+  archs4_h5: outputs/generative_benchmark/data/lacan_diffusion/archs4_mouse_paper_parity_l974.h5
+  osdr_h5: outputs/generative_benchmark/data/lacan_diffusion/osdr_factorized_within_study_replicated_validation_l974.h5
+  osdr_samples: outputs/generative_benchmark/data/lacan_diffusion/osdr_factorized_within_study_replicated_validation_l974.samples.tsv.gz
+
+conditioning:
+  covariates: [tissue, condition, study, material_type, sex, muscle_group]
+
+model:
+  noise_dim: 64
+  numeric_dim: 1
+  hidden_dims: [256, 256]
+  batch_size: 32
+  critic_steps: 5
+  gradient_penalty: 10.0
+  optimizer: rmsprop
+  rmsprop_alpha: 0.9
+  rmsprop_epsilon: 0.0000001
+  learning_rate: 0.0005
+  finetune_learning_rate: 0.0001
+  reference_epochs: 2000
+  finetune_epochs: 2000
+  weighted_sampling: false
+  augmentation_probability: 0.5
+  augmentation_noise_scale: 0.25
+  early_stopping: true
+  early_stopping_variant: released_code
+  early_stopping_first_epoch: 1
+  early_stopping_evaluate_every_epochs: 5
+  early_stopping_patience_checks: 20
+  early_stopping_max_genes: 974
+  progress_every_epochs: 5
+
+training:
+  checkpoint_every_epochs: 5
+  num_workers: 0
+  device: cuda
+  reference_initializer: outputs/generative_benchmark/runs/vinas_wgan_gp/osdr_matched_study_conditioned_seed2020/reference_model.pt
+
+evaluation:
+  batch_size: 256
+  train_generation_seeds: [4100, 4101, 4102]
+  validation_generation_seeds: [3020, 3021, 3022, 3023, 3024, 3025]
+  test_generation_seeds: [6020, 6021, 6022, 6023]
+  calibration_residual_seed: 9100
+  calibration_prior_strength: 5.0
+  calibration_residual_scale: 0.5
+  calibration_screen_prior_strengths: [1.0, 5.0, 20.0]
+  calibration_screen_residual_scales: [0.5, 0.75, 1.0, 1.25]
+  minimum_repeat_pass_fraction: 0.75
