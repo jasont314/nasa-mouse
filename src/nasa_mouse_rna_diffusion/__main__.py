@@ -13,6 +13,7 @@ from .conditional_train import train_conditional
 from .real_effect_ceiling import run_ceiling
 from .factorized_train import train_factorized
 from .factorized_evaluate import evaluate_factorized
+from .factorized_calibrate import calibrate_factorized
 
 
 def parse_args() -> argparse.Namespace:
@@ -86,6 +87,15 @@ def parse_args() -> argparse.Namespace:
     )
     adapter_evaluate.add_argument("--config", required=True)
     adapter_evaluate.add_argument("--guidance-scales", nargs="+", type=float)
+    adapter_evaluate.add_argument("--model-artifact", default="model.pt")
+    adapter_calibrate = subparsers.add_parser(
+        "calibrate-adapter", help="Fit train-only covariance calibration"
+    )
+    adapter_calibrate.add_argument("--config", required=True)
+    adapter_calibrate.add_argument("--guidance-scale", type=float, default=1.0)
+    adapter_calibrate.add_argument(
+        "--ridge-fractions", nargs="+", type=float, default=[0.001, 0.01, 0.1]
+    )
     return parser.parse_args()
 
 
@@ -122,7 +132,15 @@ def main() -> None:
         train_factorized(args.config, restart=args.restart)
     elif args.command == "evaluate-adapter":
         evaluate_factorized(
-            args.config, guidance_scales=args.guidance_scales
+            args.config,
+            guidance_scales=args.guidance_scales,
+            model_artifact=args.model_artifact,
+        )
+    elif args.command == "calibrate-adapter":
+        calibrate_factorized(
+            args.config,
+            guidance_scale=args.guidance_scale,
+            ridge_fractions=args.ridge_fractions,
         )
 
 

@@ -284,10 +284,12 @@ def _plot_pca(
 
 
 def _load_adapter_model(
-    config: dict[str, Any], device: torch.device
+    config: dict[str, Any], device: torch.device, artifact_name: str = "model.pt"
 ) -> tuple[FactorizedAdapterDDIM, FactorizedSchema, dict[str, Any]]:
     output = Path(config["run"]["output_dir"])
-    payload = torch.load(output / "model.pt", map_location="cpu", weights_only=False)
+    payload = torch.load(
+        output / artifact_name, map_location="cpu", weights_only=False
+    )
     if payload.get("format") != FORMAT:
         raise ValueError("Incompatible factorized adapter model")
     schema = FactorizedSchema.from_dict(payload["metadata"]["schema"])
@@ -314,13 +316,18 @@ def evaluate_factorized(
     config_path: str | Path,
     *,
     guidance_scales: Iterable[float] | None = None,
+    model_artifact: str = "model.pt",
 ) -> Path:
     config = load_factorized_config(config_path)
     options = config["evaluation"]
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if device.type != "cuda":
         raise RuntimeError("Factorized paper ModelDDIM evaluation requires CUDA")
-    model, schema, payload = _load_adapter_model(config, device)
+    if Path(model_artifact).name != model_artifact:
+        raise ValueError("model_artifact must be a filename under the run directory")
+    model, schema, payload = _load_adapter_model(
+        config, device, artifact_name=model_artifact
+    )
     data_options = config["data"]
     train = load_factorized_role(
         data_options["prepared_h5"], data_options["samples_tsv"], "train"
@@ -357,7 +364,13 @@ def evaluate_factorized(
     summaries: list[dict[str, object]] = []
     summary_paths: list[Path] = []
     for scale_index, scale in enumerate(scales):
-        output = run_output / "evaluation" / f"validation_guidance_{scale:g}"
+        artifact_label = Path(model_artifact).stem
+        output_label = (
+            f"validation_guidance_{scale:g}"
+            if model_artifact == "model.pt"
+            else f"validation_{artifact_label}_guidance_{scale:g}"
+        )
+        output = run_output / "evaluation" / output_label
         output.mkdir(parents=True, exist_ok=True)
         started = time.time()
         synthetic_all = _sample(
@@ -461,6 +474,13 @@ def evaluate_factorized(
             genes=np.asarray(validation["genes"]),
             guidance_scale=scale,
         )
+        np.savez_compressed(
+            output / "synthetic_train_expression.npz",
+            scaled_expression=synthetic_train,
+            source_row=train["source_row"][train_indices],
+            genes=np.asarray(train["genes"]),
+            guidance_scale=scale,
+        )
         summary: dict[str, object] = {
             "status": "complete",
             "split": "validation",
@@ -493,7 +513,7 @@ def evaluate_factorized(
                 "and skeletal-muscle accession effect must pass independently"
             ),
             "device": torch.cuda.get_device_name(device),
-            "model": str(run_output / "model.pt"),
+            "model": str(run_output / model_artifact),
             "pretrained_model": payload["metadata"]["pretrained_model"],
         }
         summary_path = output / "summary.json"
@@ -525,7 +545,10 @@ def evaluate_factorized(
             }
         )
     table = pd.DataFrame(summaries)
-    table.to_csv(
-        run_output / "evaluation" / "guidance_screen.tsv", sep="\t", index=False
+    screen_name = (
+        "guidance_screen.tsv"
+        if model_artifact == "model.pt"
+        else f"{Path(model_artifact).stem}_guidance_screen.tsv"
     )
+    table.to_csv(run_output / "evaluation" / screen_name, sep="\t", index=False)
     return summary_paths[0]

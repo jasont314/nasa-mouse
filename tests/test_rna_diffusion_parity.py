@@ -53,6 +53,7 @@ from nasa_mouse_rna_diffusion.factorized_adapter import (
     encode_factorized_labels,
     neutralize_group,
 )
+from nasa_mouse_rna_diffusion.factorized_calibrate import CovarianceCalibrator
 
 
 SMALL_MODEL = {
@@ -541,6 +542,20 @@ class FactorizedAdapterTests(unittest.TestCase):
         )
         labels = encode_factorized_labels(samples, schema)
         self.assertEqual(labels.shape[1], schema.total_width)
+
+    def test_covariance_calibration_matches_training_correlation_structure(self):
+        rng = np.random.default_rng(91)
+        real = rng.normal(size=(800, 12)) @ rng.normal(size=(12, 12))
+        synthetic = rng.normal(size=(800, 12)) @ rng.normal(size=(12, 12))
+        calibrated = CovarianceCalibrator(1e-6).fit(real, synthetic).apply(
+            synthetic
+        )
+        upper = np.triu_indices(real.shape[1], 1)
+        agreement = np.corrcoef(
+            np.corrcoef(real, rowvar=False)[upper],
+            np.corrcoef(calibrated, rowvar=False)[upper],
+        )[0, 1]
+        self.assertGreater(agreement, 0.999)
 
 
 class EvaluationMetricTests(unittest.TestCase):
