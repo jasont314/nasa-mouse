@@ -18,6 +18,7 @@ from .factorized_mean_calibrate import calibrate_factorized_means
 from .factorized_distribution_calibrate import calibrate_factorized_distribution
 from .factorized_subset import subset_factorized_data
 from .factorized_final_evaluate import evaluate_factorized_finalist_test
+from .factorized_trajectory import plot_factorized_trajectory
 
 
 def parse_args() -> argparse.Namespace:
@@ -170,6 +171,18 @@ def parse_args() -> argparse.Namespace:
     final_test.add_argument(
         "--minimum-repeat-pass-fraction", type=float, default=0.75
     )
+    adapter_trajectory = subparsers.add_parser(
+        "plot-adapter-trajectory",
+        help="Plot validation-only factorized DDIM denoising states",
+    )
+    adapter_trajectory.add_argument("--config", required=True)
+    adapter_trajectory.add_argument("--sample-count", type=int, default=128)
+    adapter_trajectory.add_argument("--batch-size", type=int, default=64)
+    adapter_trajectory.add_argument(
+        "--snapshot-timesteps", nargs="+", type=int, default=[1000, 200, 0]
+    )
+    adapter_trajectory.add_argument("--sampling-seed", type=int)
+    adapter_trajectory.add_argument("--model-artifact", default="model.pt")
     return parser.parse_args()
 
 
@@ -256,6 +269,15 @@ def main() -> None:
             sampling_seeds=args.sampling_seeds,
             residual_seed=args.residual_seed,
             minimum_repeat_pass_fraction=args.minimum_repeat_pass_fraction,
+        )
+    elif args.command == "plot-adapter-trajectory":
+        plot_factorized_trajectory(
+            args.config,
+            sample_count=args.sample_count,
+            batch_size=args.batch_size,
+            snapshot_timesteps=args.snapshot_timesteps,
+            sampling_seed=args.sampling_seed,
+            model_artifact=args.model_artifact,
         )
 
 

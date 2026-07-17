@@ -217,6 +217,9 @@ def _plot_trajectory(
     real_background: np.ndarray,
     output: Path,
     seed: int,
+    title: str = "Upstream-parity DDIM generation across ARCHS4 mouse tissues",
+    background_label: str = "real ARCHS4",
+    filename: str = "archs4_mouse_ddim_trajectory_pca.png",
 ) -> tuple[Path, dict[int, np.ndarray], PCA]:
     pca = PCA(n_components=2, random_state=int(seed)).fit(real_background)
     real_coordinates = pca.transform(real_background)
@@ -236,7 +239,7 @@ def _plot_trajectory(
             color="#686868",
             edgecolors="none",
             rasterized=True,
-            label="real ARCHS4",
+            label=background_label,
         )
         for class_index, class_name in enumerate(classes):
             mask = labels == class_index
@@ -263,13 +266,9 @@ def _plot_trajectory(
         fontsize=8,
         frameon=False,
     )
-    figure.suptitle(
-        "Upstream-parity DDIM generation across ARCHS4 mouse tissues",
-        fontsize=15,
-        fontweight="bold",
-    )
+    figure.suptitle(title, fontsize=15, fontweight="bold")
     figure.tight_layout(rect=(0, 0.15, 1, 0.94))
-    path = output / "archs4_mouse_ddim_trajectory_pca.png"
+    path = output / filename
     figure.savefig(path, dpi=240, bbox_inches="tight")
     figure.savefig(path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(figure)
