@@ -15,6 +15,7 @@ from .factorized_train import train_factorized
 from .factorized_evaluate import evaluate_factorized
 from .factorized_calibrate import calibrate_factorized
 from .factorized_mean_calibrate import calibrate_factorized_means
+from .factorized_distribution_calibrate import calibrate_factorized_distribution
 
 
 def parse_args() -> argparse.Namespace:
@@ -92,6 +93,10 @@ def parse_args() -> argparse.Namespace:
     adapter_evaluate.add_argument("--validation-sampling-seed", type=int)
     adapter_evaluate.add_argument("--train-sampling-seed", type=int)
     adapter_evaluate.add_argument("--evaluation-variant", default="")
+    adapter_evaluate.add_argument(
+        "--sampling-noise",
+        choices=["pseudo_random", "stratified_antithetic"],
+    )
     adapter_calibrate = subparsers.add_parser(
         "calibrate-adapter", help="Fit train-only covariance calibration"
     )
@@ -113,6 +118,34 @@ def parse_args() -> argparse.Namespace:
         "--prior-strengths", nargs="+", type=float, default=[2.0, 5.0, 10.0]
     )
     mean_calibrate.add_argument("--evaluation-variant", default="")
+    distribution_calibrate = subparsers.add_parser(
+        "calibrate-distribution-adapter",
+        help="Fit and evaluate repeated-seed train-only distribution calibration",
+    )
+    distribution_calibrate.add_argument("--config", required=True)
+    distribution_calibrate.add_argument("--guidance-scale", type=float, default=1.0)
+    distribution_calibrate.add_argument(
+        "--fit-variants", nargs="+", default=["base", "seed3022", "seed3023"]
+    )
+    distribution_calibrate.add_argument(
+        "--evaluation-variants",
+        nargs="+",
+        default=["base", "seed3021", "seed3022", "seed3023"],
+    )
+    distribution_calibrate.add_argument(
+        "--group-columns", nargs="+", default=["accession", "tissue"]
+    )
+    distribution_calibrate.add_argument("--prior-strength", type=float, default=5.0)
+    distribution_calibrate.add_argument("--residual-scale", type=float, default=0.5)
+    distribution_calibrate.add_argument("--residual-seed", type=int, default=9100)
+    distribution_calibrate.add_argument(
+        "--noise-group-columns",
+        nargs="+",
+        default=["accession", "tissue", "condition"],
+    )
+    distribution_calibrate.add_argument(
+        "--minimum-repeat-pass-fraction", type=float, default=0.75
+    )
     return parser.parse_args()
 
 
@@ -155,6 +188,7 @@ def main() -> None:
             validation_sampling_seed=args.validation_sampling_seed,
             train_sampling_seed=args.train_sampling_seed,
             evaluation_variant=args.evaluation_variant,
+            sampling_noise=args.sampling_noise,
         )
     elif args.command == "calibrate-adapter":
         calibrate_factorized(
@@ -169,6 +203,19 @@ def main() -> None:
             group_columns=args.group_columns,
             prior_strengths=args.prior_strengths,
             evaluation_variant=args.evaluation_variant,
+        )
+    elif args.command == "calibrate-distribution-adapter":
+        calibrate_factorized_distribution(
+            args.config,
+            guidance_scale=args.guidance_scale,
+            fit_variants=args.fit_variants,
+            evaluation_variants=args.evaluation_variants,
+            group_columns=args.group_columns,
+            prior_strength=args.prior_strength,
+            residual_scale=args.residual_scale,
+            residual_seed=args.residual_seed,
+            noise_group_columns=args.noise_group_columns,
+            minimum_repeat_pass_fraction=args.minimum_repeat_pass_fraction,
         )
 
 

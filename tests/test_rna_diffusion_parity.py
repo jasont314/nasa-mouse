@@ -53,14 +53,21 @@ from nasa_mouse_rna_diffusion.factorized_adapter import (
     encode_factorized_labels,
     neutralize_group,
 )
-from nasa_mouse_rna_diffusion.factorized_train import _correlation_structure_loss
+from nasa_mouse_rna_diffusion.factorized_train import (
+    _condition_effect_direction_loss,
+    _correlation_structure_loss,
+)
 from nasa_mouse_rna_diffusion.factorized_calibrate import CovarianceCalibrator
 from nasa_mouse_rna_diffusion.factorized_evaluate import (
     _evaluation_sampling_seeds,
+    _stratified_antithetic_noise,
     _variant_label,
 )
 from nasa_mouse_rna_diffusion.factorized_mean_calibrate import (
     HierarchicalMeanCalibrator,
+)
+from nasa_mouse_rna_diffusion.factorized_distribution_calibrate import (
+    PositiveResidualCalibrator,
 )
 
 
@@ -494,6 +501,34 @@ class RealEffectCeilingTests(unittest.TestCase):
 
 
 class FactorizedAdapterTests(unittest.TestCase):
+    def test_positive_residual_calibrator_round_trips_and_clips(self):
+        rng = np.random.default_rng(42)
+        metadata = pd.DataFrame(
+            {
+                "accession": ["a"] * 20 + ["b"] * 20,
+                "tissue": ["liver"] * 40,
+                "condition": ["flight", "ground_control"] * 20,
+            }
+        )
+        synthetic = rng.normal(0.2, 0.05, size=(40, 6)).astype(np.float32)
+        real = synthetic + rng.normal(0.0, 0.08, size=(40, 6)).astype(np.float32)
+        calibrator = PositiveResidualCalibrator(
+            ("accession", "tissue"),
+            2.0,
+            0.5,
+            noise_group_columns=("accession", "condition"),
+        ).fit(real, synthetic, metadata)
+        first = calibrator.apply(synthetic, metadata, seed=7)
+        second = calibrator.apply(synthetic, metadata, seed=7)
+        np.testing.assert_allclose(first, second)
+        self.assertGreaterEqual(float(first.min()), 0.0)
+        with tempfile.TemporaryDirectory() as directory:
+            calibrator.save(directory)
+            loaded = PositiveResidualCalibrator.load(directory)
+            np.testing.assert_allclose(
+                first, loaded.apply(synthetic, metadata, seed=7)
+            )
+
     def test_hierarchical_mean_calibrator_round_trips_and_stays_condition_blind(self):
         metadata = pd.DataFrame(
             {
@@ -525,6 +560,29 @@ class FactorizedAdapterTests(unittest.TestCase):
         genes = torch.tensor([0, 2, 3, 6, 7])
         observed = _correlation_structure_loss(expression, expression, genes)
         self.assertAlmostEqual(float(observed), 0.0, places=7)
+
+    def test_condition_effect_loss_is_zero_for_exact_reconstruction(self):
+        _, schema = self._schema()
+        samples = pd.DataFrame(
+            {
+                "tissue": ["liver"] * 8,
+                "condition": ["flight"] * 4 + ["ground_control"] * 4,
+                "accession": ["study_a"] * 8,
+                "sex": ["female"] * 8,
+                "muscle_group": ["unknown"] * 8,
+                "material_type": ["liver"] * 8,
+            }
+        )
+        labels = torch.from_numpy(encode_factorized_labels(samples, schema))
+        expression = torch.randn(8, 9)
+        observed = _condition_effect_direction_loss(
+            expression,
+            expression,
+            labels,
+            schema,
+            torch.arange(9),
+        )
+        self.assertAlmostEqual(float(observed), 0.0, places=6)
 
     def _schema(self):
         samples = pd.DataFrame(
@@ -617,6 +675,17 @@ class FactorizedAdapterTests(unittest.TestCase):
 
 
 class EvaluationMetricTests(unittest.TestCase):
+    def test_antithetic_noise_balances_each_even_condition_profile(self):
+        labels = np.asarray(
+            [[1, 0], [1, 0], [0, 1], [0, 1], [0, 1], [0, 1]],
+            dtype=np.int64,
+        )
+        noise = _stratified_antithetic_noise(
+            labels, 7, seed=12, device=torch.device("cpu")
+        ).numpy()
+        np.testing.assert_allclose(noise[:2].mean(axis=0), 0.0, atol=1e-7)
+        np.testing.assert_allclose(noise[2:].mean(axis=0), 0.0, atol=1e-7)
+
     def test_guidance_screen_uses_declared_common_random_seeds(self):
         self.assertEqual(_evaluation_sampling_seeds(20, {}), (1020, 2020))
         self.assertEqual(

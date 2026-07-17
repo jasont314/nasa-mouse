@@ -164,6 +164,66 @@ def _correlation_structure_loss(
     )
 
 
+def _condition_effect_direction_loss(
+    clean: torch.Tensor,
+    reconstructed: torch.Tensor,
+    labels: torch.Tensor,
+    schema: FactorizedSchema,
+    gene_indices: torch.Tensor,
+) -> torch.Tensor:
+    """Match within-study FLT-minus-GC directions without fitting validation data."""
+
+    condition_names = list(schema.groups["condition"])
+    condition_bounds = schema.group_slices()["condition"]
+    condition_start = schema.base_width + int(condition_bounds.start)
+    try:
+        ground_column = condition_start + condition_names.index(
+            "condition=ground_control"
+        )
+        flight_column = condition_start + condition_names.index("condition=flight")
+    except ValueError as error:
+        raise ValueError("Factorized schema lacks the two condition main effects") from error
+
+    domain_names = list(schema.groups["domain"])
+    domain_bounds = schema.group_slices()["domain"]
+    domain_start = schema.base_width + int(domain_bounds.start)
+    grouping_columns = [
+        domain_start + index
+        for index, name in enumerate(domain_names)
+        if name.startswith("study=")
+    ]
+    if not grouping_columns:
+        grouping_columns = [
+            domain_start + index
+            for index, name in enumerate(domain_names)
+            if name.startswith("tissue_residual=")
+        ]
+
+    expected = clean.index_select(1, gene_indices).float()
+    observed = reconstructed.index_select(1, gene_indices).float()
+    losses: list[torch.Tensor] = []
+    for column in grouping_columns:
+        in_group = labels[:, column].bool()
+        flight = in_group & labels[:, flight_column].bool()
+        ground = in_group & labels[:, ground_column].bool()
+        if int(flight.sum().item()) < 2 or int(ground.sum().item()) < 2:
+            continue
+        expected_delta = (
+            expected[flight].mean(dim=0) - expected[ground].mean(dim=0)
+        ).detach()
+        observed_delta = observed[flight].mean(dim=0) - observed[ground].mean(dim=0)
+        expected_delta = expected_delta - expected_delta.mean()
+        observed_delta = observed_delta - observed_delta.mean()
+        denominator = (
+            torch.linalg.vector_norm(expected_delta)
+            * torch.linalg.vector_norm(observed_delta)
+        ).clamp_min(1e-8)
+        losses.append(1.0 - torch.dot(expected_delta, observed_delta) / denominator)
+    if not losses:
+        return reconstructed.sum() * 0.0
+    return torch.stack(losses).mean()
+
+
 def _regularized_noise_loss(
     model: FactorizedAdapterDDIM,
     clean: torch.Tensor,
@@ -171,36 +231,55 @@ def _regularized_noise_loss(
     noise: torch.Tensor,
     betas: torch.Tensor,
     labels: torch.Tensor,
-    options: dict[str, object] | None,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    if not options:
+    schema: FactorizedSchema,
+    correlation_options: dict[str, object] | None,
+    effect_options: dict[str, object] | None,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    if not correlation_options and not effect_options:
         loss, error = noise_estimation_loss(
             model, clean, timesteps, noise, betas, labels
         )
-        return loss, error, loss.detach() * 0.0
+        zero = loss.detach() * 0.0
+        return loss, error, zero, zero
     alpha = (1 - betas).cumprod(dim=0).index_select(0, timesteps).view(-1, 1)
     noisy = clean * alpha.sqrt() + noise * (1.0 - alpha).sqrt()
     prediction = model(noisy, timesteps, labels)
     residual = noise - prediction
     noise_loss = residual.square().sum(dim=1).mean(dim=0)
     error = residual.abs().mean(dim=1).mean(dim=0)
-    eligible = timesteps <= int(options["max_timestep"])
-    if int(eligible.sum().item()) < 3:
-        return noise_loss, error, noise_loss.detach() * 0.0
-    reconstructed = (
-        noisy[eligible]
-        - prediction[eligible] * (1.0 - alpha[eligible]).sqrt()
-    ) / alpha[eligible].sqrt().clamp_min(1e-6)
-    gene_count = min(int(options["genes"]), clean.shape[1])
-    gene_indices = torch.randperm(clean.shape[1], device=clean.device)[:gene_count]
-    correlation_loss = _correlation_structure_loss(
-        clean[eligible], reconstructed, gene_indices
-    )
-    return (
-        noise_loss + float(options["weight"]) * correlation_loss,
-        error,
-        correlation_loss,
-    )
+    correlation_loss = noise_loss.detach() * 0.0
+    effect_loss = noise_loss.detach() * 0.0
+    total = noise_loss
+    for kind, options in (
+        ("correlation", correlation_options),
+        ("effect", effect_options),
+    ):
+        if not options:
+            continue
+        eligible = timesteps <= int(options["max_timestep"])
+        if int(eligible.sum().item()) < 4:
+            continue
+        reconstructed = (
+            noisy[eligible]
+            - prediction[eligible] * (1.0 - alpha[eligible]).sqrt()
+        ) / alpha[eligible].sqrt().clamp_min(1e-6)
+        gene_count = min(int(options["genes"]), clean.shape[1])
+        gene_indices = torch.randperm(clean.shape[1], device=clean.device)[:gene_count]
+        if kind == "correlation":
+            correlation_loss = _correlation_structure_loss(
+                clean[eligible], reconstructed, gene_indices
+            )
+            total = total + float(options["weight"]) * correlation_loss
+        else:
+            effect_loss = _condition_effect_direction_loss(
+                clean[eligible],
+                reconstructed,
+                labels[eligible],
+                schema,
+                gene_indices,
+            )
+            total = total + float(options["weight"]) * effect_loss
+    return total, error, correlation_loss, effect_loss
 
 
 @torch.no_grad()
@@ -372,6 +451,7 @@ def _train_stage(
     interval_loss = 0.0
     interval_error = 0.0
     interval_correlation_loss = 0.0
+    interval_effect_loss = 0.0
     interval_profiles = 0
     interval_started = time.time()
     log_every = int(common.get("log_every_steps", 100))
@@ -391,14 +471,16 @@ def _train_stage(
         with torch.autocast(
             "cuda", dtype=torch.float16, enabled=bool(common.get("amp", True))
         ):
-            loss, error, correlation_loss = _regularized_noise_loss(
+            loss, error, correlation_loss, effect_loss = _regularized_noise_loss(
                 model,
                 clean,
                 timesteps,
                 noise,
                 betas,
                 condition,
+                schema,
                 options.get("correlation_regularization"),
+                options.get("effect_regularization"),
             )
         if not torch.isfinite(loss):
             raise FloatingPointError(f"Non-finite {stage} loss at step {step_index}")
@@ -412,6 +494,7 @@ def _train_stage(
         interval_correlation_loss += float(correlation_loss.detach().cpu()) * len(
             clean
         )
+        interval_effect_loss += float(effect_loss.detach().cpu()) * len(clean)
         interval_profiles += len(clean)
 
         should_log = step_index == 1 or step_index % log_every == 0 or step_index == steps
@@ -423,6 +506,9 @@ def _train_stage(
                 "noise_absolute_error": interval_error / interval_profiles,
                 "correlation_structure_loss": (
                     interval_correlation_loss / interval_profiles
+                ),
+                "condition_effect_direction_loss": (
+                    interval_effect_loss / interval_profiles
                 ),
                 "learning_rate": float(optimizer.param_groups[0]["lr"]),
                 "interval_seconds": float(time.time() - interval_started),
@@ -455,6 +541,7 @@ def _train_stage(
             interval_loss = 0.0
             interval_error = 0.0
             interval_correlation_loss = 0.0
+            interval_effect_loss = 0.0
             interval_profiles = 0
             interval_started = time.time()
         if step_index % checkpoint_every == 0 and step_index < steps:

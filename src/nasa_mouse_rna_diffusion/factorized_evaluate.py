@@ -98,6 +98,39 @@ def _variant_label(value: str) -> str:
     return value
 
 
+def _stratified_antithetic_noise(
+    labels: np.ndarray,
+    genes: int,
+    *,
+    seed: int,
+    device: torch.device,
+) -> torch.Tensor:
+    """Draw Gaussian antithetic pairs within each complete condition profile."""
+
+    labels = np.asarray(labels)
+    if labels.ndim != 2:
+        raise ValueError("Factorized labels must be a two-dimensional matrix")
+    generator = torch.Generator(device=device).manual_seed(int(seed))
+    assignment_rng = np.random.default_rng(int(seed) + 1)
+    noise = torch.empty((len(labels), int(genes)), device=device)
+    _, groups = np.unique(labels, axis=0, return_inverse=True)
+    for group in np.unique(groups):
+        indices = np.flatnonzero(groups == group)
+        pairs = len(indices) // 2
+        positive = torch.randn(
+            (pairs, int(genes)), generator=generator, device=device
+        )
+        draws = [positive, -positive]
+        if len(indices) % 2:
+            draws.append(
+                torch.randn((1, int(genes)), generator=generator, device=device)
+            )
+        values = torch.cat(draws, dim=0)
+        assigned = indices[assignment_rng.permutation(len(indices))]
+        noise[torch.as_tensor(assigned, device=device)] = values
+    return noise
+
+
 class _GuidedModel(torch.nn.Module):
     def __init__(
         self,
@@ -143,16 +176,30 @@ def _sample(
     guidance_scale: float,
     seed: int,
     device: torch.device,
+    noise_method: str = "pseudo_random",
 ) -> np.ndarray:
     guided = _GuidedModel(model, schema, guidance_scale)
     sequence = _sampling_sequence(diffusion_timesteps, sampling_steps)
     generator = torch.Generator(device=device).manual_seed(int(seed))
+    if noise_method not in {"pseudo_random", "stratified_antithetic"}:
+        raise ValueError(f"Unsupported sampling noise method: {noise_method!r}")
+    initial_noise = (
+        _stratified_antithetic_noise(
+            labels, genes, seed=int(seed), device=device
+        )
+        if noise_method == "stratified_antithetic"
+        else None
+    )
     collected: list[np.ndarray] = []
     for start in range(0, len(labels), int(batch_size)):
         end = min(start + int(batch_size), len(labels))
         condition = torch.as_tensor(labels[start:end], device=device)
-        noise = torch.randn(
-            (end - start, genes), generator=generator, device=device
+        noise = (
+            initial_noise[start:end]
+            if initial_noise is not None
+            else torch.randn(
+                (end - start, genes), generator=generator, device=device
+            )
         )
         generated = ddim_trajectory(
             noise,
@@ -343,6 +390,7 @@ def evaluate_factorized(
     validation_sampling_seed: int | None = None,
     train_sampling_seed: int | None = None,
     evaluation_variant: str = "",
+    sampling_noise: str | None = None,
 ) -> Path:
     config = load_factorized_config(config_path)
     options = config["evaluation"]
@@ -352,6 +400,13 @@ def evaluate_factorized(
     if Path(model_artifact).name != model_artifact:
         raise ValueError("model_artifact must be a filename under the run directory")
     variant = _variant_label(evaluation_variant)
+    sampling_noise = str(
+        options.get("sampling_noise", "pseudo_random")
+        if sampling_noise is None
+        else sampling_noise
+    )
+    if sampling_noise not in {"pseudo_random", "stratified_antithetic"}:
+        raise ValueError(f"Unsupported sampling noise method: {sampling_noise!r}")
     model, schema, payload = _load_adapter_model(
         config, device, artifact_name=model_artifact
     )
@@ -410,6 +465,8 @@ def evaluate_factorized(
         )
         if variant:
             output_label = f"{output_label}_{variant}"
+        if sampling_noise != "pseudo_random":
+            output_label = f"{output_label}_{sampling_noise}"
         output = run_output / "evaluation" / output_label
         output.mkdir(parents=True, exist_ok=True)
         started = time.time()
@@ -425,6 +482,7 @@ def evaluate_factorized(
             guidance_scale=scale,
             seed=validation_sampling_seed,
             device=device,
+            noise_method=sampling_noise,
         )
         synthetic_train = _sample(
             model,
@@ -438,6 +496,7 @@ def evaluate_factorized(
             guidance_scale=scale,
             seed=train_sampling_seed,
             device=device,
+            noise_method=sampling_noise,
         )
         real = validation["expression"][validation_indices]
         synthetic = synthetic_all[validation_indices]
@@ -530,6 +589,7 @@ def evaluate_factorized(
             "validation_sampling_seed": validation_sampling_seed,
             "train_sampling_seed": train_sampling_seed,
             "evaluation_variant": variant,
+            "sampling_noise": sampling_noise,
             "sampling_seconds": float(time.time() - started),
             "profiles": int(len(real)),
             "fidelity": fidelity,
@@ -595,5 +655,7 @@ def evaluate_factorized(
     )
     if variant:
         screen_name = f"{Path(screen_name).stem}_{variant}.tsv"
+    if sampling_noise != "pseudo_random":
+        screen_name = f"{Path(screen_name).stem}_{sampling_noise}.tsv"
     table.to_csv(run_output / "evaluation" / screen_name, sep="\t", index=False)
     return summary_paths[0]

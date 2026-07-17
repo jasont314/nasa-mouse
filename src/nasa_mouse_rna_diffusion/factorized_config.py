@@ -55,22 +55,38 @@ def load_factorized_config(path: str | Path) -> dict[str, Any]:
         raise ValueError("adapter.initial_model must be a path string")
     for name, stage in training["stages"].items():
         regularization = stage.get("correlation_regularization")
-        if regularization is None:
-            continue
-        if name != "domain":
-            raise ValueError(
-                "correlation_regularization is supported only for the domain stage"
-            )
-        if float(regularization.get("weight", 0.0)) <= 0.0:
-            raise ValueError("correlation_regularization.weight must be positive")
-        if int(regularization.get("genes", 0)) < 2:
-            raise ValueError("correlation_regularization.genes must be at least two")
-        if int(regularization.get("max_timestep", -1)) < 0:
-            raise ValueError(
-                "correlation_regularization.max_timestep cannot be negative"
-            )
+        if regularization is not None:
+            if name != "domain":
+                raise ValueError(
+                    "correlation_regularization is supported only for the domain stage"
+                )
+            if float(regularization.get("weight", 0.0)) <= 0.0:
+                raise ValueError("correlation_regularization.weight must be positive")
+            if int(regularization.get("genes", 0)) < 2:
+                raise ValueError("correlation_regularization.genes must be at least two")
+            if int(regularization.get("max_timestep", -1)) < 0:
+                raise ValueError(
+                    "correlation_regularization.max_timestep cannot be negative"
+                )
+        effect_regularization = stage.get("effect_regularization")
+        if effect_regularization is not None:
+            if name != "condition":
+                raise ValueError(
+                    "effect_regularization is supported only for the condition stage"
+                )
+            if float(effect_regularization.get("weight", 0.0)) <= 0.0:
+                raise ValueError("effect_regularization.weight must be positive")
+            if int(effect_regularization.get("genes", 0)) < 2:
+                raise ValueError("effect_regularization.genes must be at least two")
+            if int(effect_regularization.get("max_timestep", -1)) < 0:
+                raise ValueError("effect_regularization.max_timestep cannot be negative")
     evaluation = payload.get("evaluation", {})
     if evaluation.get("split", "validation") != "validation":
         raise ValueError("Development configs must evaluate validation, not locked test")
+    if evaluation.get("sampling_noise", "pseudo_random") not in {
+        "pseudo_random",
+        "stratified_antithetic",
+    }:
+        raise ValueError("evaluation.sampling_noise is unsupported")
     payload["_config_path"] = str(config_path.resolve())
     return payload
