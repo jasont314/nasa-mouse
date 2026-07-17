@@ -177,26 +177,24 @@ Build the scoreboard after each bounded batch:
 PYTHONPATH=src python -m nasa_mouse_generative scoreboard
 ```
 
-Promotion is based on held-out fidelity subject to fixed gates selected before the
-conditional results are inspected. Fidelity requires composite >= 0.70, gene-mean
-correlation >= 0.80, gene-SD correlation >= 0.70, precision/recall F1 >= 0.50, and
-adversarial indistinguishability >= 0.50. Diversity requires recall >= 0.10 and a
-synthetic-to-real global-SD ratio >= 0.10; memorization requires no more than 5% of
-synthetic samples below the first percentile of real training nearest-neighbor
-distances. Conditional-effect eligibility additionally requires FLT-minus-GC delta
-correlation >= 0.30 and direction agreement >= 0.55. FLT/GC classifier augmentation
-is not scored as eligible unless all four gates pass.
+Promotion is based on held-out fidelity subject to gates fixed before conditional
+results are inspected. The former scalar composite is retired. Every candidate must
+independently pass Corr, precision, recall, F1, adversarial accuracy, FD relative to
+a real-split reference, diversity, and memorization. The absolute Corr target is
+0.98 and a separately reported finite-cohort rule uses the lower of 0.98 and the
+fifth percentile from same-size real bootstraps. Conditional-effect eligibility
+requires FLT-minus-GC delta correlation at least 0.30 and direction agreement at
+least 0.55. Classifier augmentation is evaluated only after fidelity and condition
+gates pass and cannot be claimed unless it improves real held-out performance.
 
-The locked OSDR test accessions remain unavailable until preprocessing, architecture,
-and seed policy are fixed. A failing screen should redirect the next run; it should
-not trigger the full Cartesian matrix.
+The locked OSDR test remained unavailable until preprocessing, architecture, and
+seed policy were fixed in commit `7e8dec7`. It was then opened once for the selected
+factorized DDIM. Future candidates must use new validation data rather than tune on
+that revealed test result.
 
-The exact ARCHS4 DDIM is currently the only full generator that passes the broad
-tissue benchmark. The one-epoch study-conditioned WGAN orchestration check correctly
-fails diversity and is not a biological result.
-
-Neither direct nor ARCHS4-transferred conditional DDIM currently passes all OSDR
-gates. The best function-preserving validation checkpoint passes pooled FLT/GC effect,
-diversity, and memorization checks, but fails the fidelity composite and local
-real-versus-synthetic indistinguishability checks. Consequently no conditional model
-has been promoted to three seeds, augmentation claims, or the locked test.
+The exact ARCHS4 DDIM passes the broad tissue benchmark except for the separate 0.98
+Corr target. The WGAN arms remain rejected. The ARCHS4-pretrained factorized OSDR
+DDIM plus its train-only calibrator passed repeated validation and the one-time
+locked-test broad rule. Its accepted scope is generation for studies represented in
+training. It did not improve FLT/GC classifier augmentation and does not establish
+unseen-study transfer. See `osdr_conditional_diffusion_finalist.md`.

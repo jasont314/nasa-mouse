@@ -8,6 +8,39 @@ former scalar composite was retired on 2026-07-16; current selection requires ev
 paper-aligned metric to pass independently, so no historical composite value can
 promote a model.
 
+## 2026-07-17
+
+1. **Use a replicated within-study split for the conditional-generation target.**
+   The unseen-accession experiments tested study extrapolation as well as synthetic
+   fidelity and failed. The replacement split contains 781 train, 536 validation,
+   and 293 locked-test profiles across 75 accessions, stratified within
+   accession/tissue/condition. This answers generation for represented studies and
+   is explicitly not an unseen-study benchmark.
+2. **Promote the factorized ModelDDIM after repeated validation.** Starting from the
+   exact ARCHS4 tissue model, the selected adapter uses study and material
+   conditioning, rank-512 domain LoRA, and correlation-regularized refinement. Its
+   train-only condition-blind mean/covariance calibration passed all broad fidelity
+   metrics and pooled FLT/GC recovery across the required fraction of six validation
+   generations. Validation muscle recovery was unstable, so muscle remained a
+   diagnostic rather than part of broad finalist selection.
+3. **Lock the final protocol before opening test.** Commit `7e8dec7` fixed four
+   generation seeds, a 75% repeat threshold, independent metric gates, classifier
+   utility analysis, and overwrite refusal. The one-time test then passed the broad
+   rule: mean Corr/P/R/F1/AA were 0.977/0.998/0.997/0.997/0.458, FD ratio was 0.075,
+   and pooled FLT/GC recovery passed three of four generations. All four muscle
+   accession diagnostics passed, but exact concordant LOO-stable gene hits remained
+   0, 0, 0, and 1.
+4. **Do not claim paper parity or augmentation benefit.** All test generations fall
+   below the separate 0.98 Corr target despite passing the finite-sample Corr floor.
+   Real-plus-synthetic FLT/GC training scored 0.734 balanced accuracy versus 0.754
+   for real-only training. The accepted scope is therefore within-study conditional
+   simulation, not strict paper parity, unseen-study generation, or improved
+   downstream classification.
+5. **Reject skeletal-muscle specialist branches.** ARCHS4-initialized, pooled-model
+   transfer, frozen-control, and effect-refined specialist runs were less faithful
+   and more seed-sensitive than the pooled factorized generator. They are retained
+   as negative evidence and are not promoted.
+
 ## 2026-07-16
 
 1. **Promote the completed exact ARCHS4 ModelDDIM baseline.** It has common-score

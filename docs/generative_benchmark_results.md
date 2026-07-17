@@ -1,7 +1,7 @@
 # Generative Benchmark Results
 
-This report summarizes the adaptive mouse bulk RNA-seq benchmark completed on
-2026-07-16. OSDR expression came from the NASA OSDR API-derived count matrix; the
+This report summarizes the adaptive mouse bulk RNA-seq benchmark completed through
+2026-07-17. OSDR expression came from the NASA OSDR API-derived count matrix; the
 old integrated raw OSDR H5 was not used. OSDR partitions were grouped by accession,
 ARCHS4 partitions by GEO series, and preprocessing was fitted on training data only.
 
@@ -14,6 +14,7 @@ metric, diversity, memorization, and conditional-effect gate to pass independent
 | model and arm | regime | independent result | decision |
 |---|---|---|---|
 | Exact Lacan ModelDDIM | ARCHS4 only | Precision/recall/F1 0.966/0.865/0.912 and AA 0.512 pass; correlation-matrix agreement 0.879 fails 0.98 | Useful tissue baseline; not an all-metric finalist |
+| Factorized ModelDDIM plus train-only calibration | ARCHS4 then OSDR | Locked-test mean Corr/P/R/F1/AA 0.977/0.998/0.997/0.997/0.458; FD ratio 0.075; pooled FLT/GC recovery passes 3/4 generations | Accepted for within-study conditional generation; not unseen-study transfer |
 | Paper-native Vinas WGAN-GP | ARCHS4 only | Mean/SD correlations 0.323/0.563; AA 0.950 | Rejected |
 | Exact ModelDDIM condition extension | OSDR only | FLT/GC delta correlation 0.125; SD correlation 0.153 | Rejected |
 | Function-preserving ModelDDIM transfer | ARCHS4 then OSDR | Training Corr/P/R/F1/AA 0.949/0.986/0.966/0.976/0.646; held-out 0.767/0.454/0.788/0.576/0.985 | Rejected |
@@ -31,11 +32,21 @@ spaceflight generator. Generated scaled values include 9.04% negatives, so expor
 must use the documented nonnegative clipping policy before treating inverse-scaled
 values as TPM.
 
-No OSDR FLT/GC generator passes all independent fidelity gates. The OSDR locked
-test therefore remains unopened and augmentation is blocked. Pooled FLT/GC recovery
-alone is not accepted:
-promotion now also requires accession-aware meta-effect correlation at least 0.30
-and direction agreement at least 0.55.
+The factorized DDIM is the first OSDR FLT/GC generator to pass the fixed broad
+locked-test rule. It passed every finite-sample fidelity metric in four of four test
+generations and pooled FLT/GC recovery in three of four. Skeletal-muscle
+accession-aware recovery also passed in four of four test generations, although
+joint real/synthetic LOO-stable gene hits remained 0, 0, 0, and 1. The mean Corr of
+0.977 passes the test-size real-bootstrap floor of 0.950 but remains below the
+separate strict 0.98 paper benchmark.
+
+This result is limited to within-study interpolation: the 781/536/293-profile split
+places samples from each eligible accession in train, validation, and test strata.
+The train-only calibrator does not fit FLT/GC effects, but it does use known
+accession/tissue means. It therefore does not establish generation for a novel
+study. Real-plus-synthetic classifier training also failed to improve over real-only
+training (balanced accuracy 0.734 versus 0.754), so augmentation is not promoted.
+See `osdr_conditional_diffusion_finalist.md` for the fixed protocol and full result.
 
 ## Matched Liver Harmonization Benchmark
 
@@ -72,9 +83,9 @@ under `outputs/generative_benchmark/summary/liver_harmonization/`.
 
 ## Adaptive Comparisons
 
-- **ARCHS4 pretraining:** improved several exact-DDIM distribution and pooled
-  condition metrics, but did not solve real-versus-synthetic separation on unseen
-  accessions. There is no accepted conditional benefit yet.
+- **ARCHS4 pretraining:** the exact tissue model plus factorized OSDR adaptation and
+  train-only calibration is now accepted for within-study conditional generation.
+  It does not solve unseen-accession transfer or improve classifier augmentation.
 - **Preprocessing:** CPM plus `log1p` and gene z-score improved direct WGAN over the
   strict paper transform (0.468 versus 0.424), but both failed fidelity. Paper-native
   full-transcriptome TPM plus train-fitted MaxAbs worked for broad ModelDDIM.
@@ -85,8 +96,10 @@ under `outputs/generative_benchmark/summary/liver_harmonization/`.
   liver study conditioning separately reduced held-out AA from 0.985 to 0.618 but
   also failed Corr and FLT/GC recovery.
 - **Per-tissue behavior:** the WGAN transfer failed FLT/GC recovery in all nine
-  evaluable validation tissues. Standalone per-tissue expansion was stopped because
-  the pooled candidate failed the fixed gate.
+  evaluable validation tissues. Small skeletal-muscle DDIM specialists were less
+  stable than the pooled factorized model and were rejected. The pooled model's
+  muscle accession diagnostic passed on locked test, but exact LOO-stable gene
+  overlap remained negligible.
 
 ## GeneJEPA
 
@@ -106,7 +119,9 @@ The ranked table is at `outputs/generative_benchmark/scoreboard.tsv`. Each model
 stores a resolved configuration, source and data identities, split hashes, fitted
 preprocessing, device/runtime records, model checkpoint, validation summary, and
 plots under `outputs/generative_benchmark/runs/`. The experiment matrix is resumable
-and content-addressed. The final validation run passed all 94 repository tests.
+and content-addressed. The finalist protocol implementation passed all 111
+repository tests.
 
-See `generative_models_pipeline.md`, `generative_benchmark_decisions.md`, and
-`rna_diffusion_paper_parity.md` for implementation details and experiment history.
+See `generative_models_pipeline.md`, `generative_benchmark_decisions.md`,
+`rna_diffusion_paper_parity.md`, and `osdr_conditional_diffusion_finalist.md` for
+implementation details and experiment history.
