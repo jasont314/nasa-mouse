@@ -242,6 +242,12 @@ class WGANAdapter(ModelAdapter):
             learning_rate=float(learning_rate),
             critic_steps=int(self.parameters.get("critic_steps", 5)),
             gradient_penalty=float(self.parameters.get("gradient_penalty", 10.0)),
+            augmentation_probability=float(
+                self.parameters.get("augmentation_probability", 0.0)
+            ),
+            augmentation_noise_scale=float(
+                self.parameters.get("augmentation_noise_scale", 0.5)
+            ),
             seed=self.seed,
         )
         early_stopping = bool(self.parameters.get("early_stopping", False))

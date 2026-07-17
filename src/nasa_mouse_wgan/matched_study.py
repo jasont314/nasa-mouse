@@ -19,6 +19,7 @@ import yaml
 
 from nasa_mouse_diffusion.evaluate import generated_quality
 from nasa_mouse_generative.adapters.wgan import WGANAdapter
+from nasa_mouse_generative.adapters.base import seed_everything
 from nasa_mouse_generative.conditioning import CategoryEncoder
 from nasa_mouse_generative.metrics import (
     _condition_effect,
@@ -399,6 +400,46 @@ def train(config_path: str | Path) -> Path:
         source_path=str(config["run"]["source_root"]),
         validation_partition=data.reference["validation"],
     )
+    reference_initializer = str(
+        config["training"].get("reference_initializer", "")
+    ).strip()
+    initialization_lineage: dict[str, object] = {}
+    if reference_initializer and not adapter.checkpoint_path.exists():
+        initializer_path = Path(reference_initializer)
+        if not initializer_path.exists():
+            raise FileNotFoundError(initializer_path)
+        payload = torch.load(
+            initializer_path, map_location=adapter.device, weights_only=False
+        )
+        adapter._validate_payload(payload)
+        adapter.model.load_state_dict(payload["model_state_dict"])
+        adapter._restore_common(payload)
+        adapter.early_stopped_stages = set(
+            map(str, payload.get("early_stopped_stages", []))
+        )
+        if "reference" not in adapter.early_stopped_stages:
+            raise ValueError(
+                "reference_initializer must contain a completed reference stage"
+            )
+        adapter._resume_payload = None
+        seed_everything(adapter.seed)
+        shutil.copy2(initializer_path, output / "reference_model.pt")
+        initialization_lineage = {
+            "reference_initializer": str(initializer_path.resolve()),
+            "reference_initializer_sha256": _sha256(initializer_path),
+            "imported_completed_epochs": dict(adapter.state.completed_epochs),
+            "imported_early_stopped_stages": sorted(adapter.early_stopped_stages),
+        }
+        (output / "reference_initialization.json").write_text(
+            json.dumps(initialization_lineage, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    elif (output / "reference_initialization.json").exists():
+        initialization_lineage = json.loads(
+            (output / "reference_initialization.json").read_text(
+                encoding="utf-8"
+            )
+        )
     if adapter.device.type != "cuda":
         raise RuntimeError("Matched WGAN training requires CUDA")
     torch.cuda.reset_peak_memory_stats(adapter.device)
@@ -460,6 +501,7 @@ def train(config_path: str | Path) -> Path:
             torch.cuda.max_memory_allocated(adapter.device) / 1024**3
         ),
         "query_embedding_initialization": initialization,
+        "initialization_lineage": initialization_lineage,
         "test_loaded": False,
         "data": data.source_manifest,
     }

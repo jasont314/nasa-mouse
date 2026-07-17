@@ -16,9 +16,24 @@ from nasa_mouse_wgan.matched_study import (
     initialize_query_embeddings,
     load_config,
 )
+from nasa_mouse_wgan.training import augment_expression
 
 
 class MatchedStudyWGANTests(unittest.TestCase):
+    def test_paper_augmentation_can_be_disabled_or_applied(self):
+        expression = torch.zeros((8, 4), dtype=torch.float32)
+        self.assertIs(
+            augment_expression(expression, probability=0.0, noise_scale=0.5),
+            expression,
+        )
+        torch.manual_seed(3)
+        augmented = augment_expression(
+            expression, probability=1.0, noise_scale=0.25
+        )
+        self.assertFalse(torch.equal(augmented, expression))
+        with self.assertRaises(ValueError):
+            augment_expression(expression, probability=1.1, noise_scale=0.25)
+
     def test_native_scaler_round_trip_to_common_scale(self):
         tpm = np.asarray(
             [[0.0, 2.0, 8.0], [1.0, 5.0, 4.0], [4.0, 9.0, 2.0]],
