@@ -72,6 +72,9 @@ from nasa_mouse_rna_diffusion.factorized_distribution_calibrate import (
 )
 from nasa_mouse_rna_diffusion.factorized_subset import subset_factorized_data
 from nasa_mouse_rna_diffusion.factorized_final_evaluate import _require_test_unlock
+from nasa_mouse_rna_diffusion.factorized_trajectory import (
+    _balanced_resampled_indices,
+)
 
 
 SMALL_MODEL = {
@@ -171,6 +174,20 @@ class UpstreamParityTests(unittest.TestCase):
                 )[0]
             )
         torch.testing.assert_close(outputs[0], outputs[1])
+
+    def test_balanced_trajectory_indices_repeat_small_groups(self):
+        samples = pd.DataFrame(
+            {
+                "tissue": ["liver", "liver", "kidney"],
+                "condition": ["flight", "ground_control", "flight"],
+            }
+        )
+        first = _balanced_resampled_indices(samples, 9, seed=17)
+        second = _balanced_resampled_indices(samples, 9, seed=17)
+        np.testing.assert_array_equal(first, second)
+        self.assertEqual(len(first), 9)
+        self.assertEqual(set(first), {0, 1, 2})
+        np.testing.assert_array_equal(np.bincount(first, minlength=3), [3, 3, 3])
 
 
 class PaperConfigurationTests(unittest.TestCase):

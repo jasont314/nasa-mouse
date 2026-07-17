@@ -14,12 +14,41 @@ import torch
 from .evaluate import _plot_trajectory
 from .factorized_adapter import encode_factorized_labels, load_factorized_role
 from .factorized_config import load_factorized_config
-from .factorized_evaluate import (
-    _GuidedModel,
-    _balanced_indices,
-    _load_adapter_model,
-)
+from .factorized_evaluate import _GuidedModel, _load_adapter_model
 from .upstream import ddim_trajectory, quadratic_beta_schedule
+
+
+def _balanced_resampled_indices(
+    samples: pd.DataFrame, count: int, seed: int
+) -> np.ndarray:
+    """Round-robin tissue/condition groups, reshuffling groups when exhausted."""
+
+    if count <= 0 or samples.empty:
+        return np.asarray([], dtype=int)
+    labels = (
+        samples[["tissue", "condition"]]
+        .fillna("unknown")
+        .astype(str)
+        .agg("||".join, axis=1)
+        .to_numpy()
+    )
+    rng = np.random.default_rng(seed)
+    groups = {
+        label: rng.permutation(np.flatnonzero(labels == label))
+        for label in sorted(set(labels))
+    }
+    offsets = {label: 0 for label in groups}
+    selected: list[int] = []
+    while len(selected) < count:
+        for label, indices in groups.items():
+            if offsets[label] == len(indices):
+                groups[label] = rng.permutation(indices)
+                offsets[label] = 0
+            selected.append(int(groups[label][offsets[label]]))
+            offsets[label] += 1
+            if len(selected) == count:
+                break
+    return np.asarray(selected, dtype=int)
 
 
 def plot_factorized_trajectory(
@@ -55,8 +84,8 @@ def plot_factorized_trajectory(
         if sampling_seed is None
         else int(sampling_seed)
     )
-    selected = _balanced_indices(
-        validation["samples"], min(int(sample_count), len(validation["samples"])), seed
+    selected = _balanced_resampled_indices(
+        validation["samples"], int(sample_count), seed
     )
     samples = validation["samples"].iloc[selected].reset_index(drop=True)
     labels = encode_factorized_labels(samples, schema)
@@ -125,6 +154,7 @@ def plot_factorized_trajectory(
 
     np.savez_compressed(
         output / "trajectory_scaled_expression.npz",
+        synthetic_draw=np.arange(len(samples), dtype=np.int64),
         source_row=np.asarray(validation["source_row"])[selected],
         tissue=samples["tissue"].to_numpy(dtype=str),
         condition=samples["condition"].to_numpy(dtype=str),
@@ -146,6 +176,7 @@ def plot_factorized_trajectory(
     ]
     for timestep, values in coordinates.items():
         table = samples[metadata_columns].copy()
+        table.insert(0, "synthetic_draw", np.arange(len(table), dtype=np.int64))
         table.insert(0, "PC2", values[:, 1])
         table.insert(0, "PC1", values[:, 0])
         table.to_csv(
@@ -162,6 +193,11 @@ def plot_factorized_trajectory(
         "split": "validation",
         "test_loaded": False,
         "profiles": int(len(samples)),
+        "unique_covariate_profiles": int(len(np.unique(selected))),
+        "covariate_sampling": (
+            "round-robin balanced by tissue and condition; profiles reshuffled and "
+            "reused with independent Gaussian noise after a group is exhausted"
+        ),
         "validation_background_profiles": int(len(validation["expression"])),
         "genes": int(genes),
         "tissues": tissues,
