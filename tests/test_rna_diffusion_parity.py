@@ -75,6 +75,10 @@ from nasa_mouse_rna_diffusion.factorized_final_evaluate import _require_test_unl
 from nasa_mouse_rna_diffusion.factorized_trajectory import (
     _balanced_resampled_indices,
 )
+from nasa_mouse_rna_diffusion.contrastive_guidance import (
+    contrastive_ddim_final,
+    opposite_condition_indices,
+)
 
 
 SMALL_MODEL = {
@@ -174,6 +178,50 @@ class UpstreamParityTests(unittest.TestCase):
                 )[0]
             )
         torch.testing.assert_close(outputs[0], outputs[1])
+
+    def test_contrastive_guidance_scale_one_matches_conditional_ddim(self):
+        model = self._model()
+        initial = torch.randn(4, 12)
+        target = torch.nn.functional.one_hot(
+            torch.tensor([0, 1, 2, 1]), num_classes=3
+        )
+        opposite = torch.nn.functional.one_hot(
+            torch.tensor([1, 0, 1, 2]), num_classes=3
+        )
+        betas = quadratic_beta_schedule(
+            beta_start=0.0001, beta_end=0.02, timesteps=8
+        )
+        expected = ddim_trajectory(
+            initial.clone(),
+            target,
+            model,
+            betas,
+            sequence=range(8),
+            snapshot_timesteps=(0,),
+        )[0]
+        observed = contrastive_ddim_final(
+            initial.clone(),
+            target,
+            opposite,
+            model,
+            betas,
+            sequence=range(8),
+            guidance_scale=1.0,
+        )
+        torch.testing.assert_close(observed, expected)
+
+    def test_opposite_condition_indices_preserve_tissue(self):
+        classes = [
+            "tissue=kidney||condition=flight",
+            "tissue=kidney||condition=ground_control",
+            "tissue=liver||condition=flight",
+            "tissue=liver||condition=ground_control",
+            "tissue=liver||condition=reference",
+        ]
+        observed = opposite_condition_indices(
+            classes, np.asarray([0, 1, 2, 3], dtype=np.int64)
+        )
+        np.testing.assert_array_equal(observed, [1, 0, 3, 2])
 
     def test_balanced_trajectory_indices_repeat_small_groups(self):
         samples = pd.DataFrame(

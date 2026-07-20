@@ -19,6 +19,7 @@ from .factorized_distribution_calibrate import calibrate_factorized_distribution
 from .factorized_subset import subset_factorized_data
 from .factorized_final_evaluate import evaluate_factorized_finalist_test
 from .factorized_trajectory import plot_factorized_trajectory
+from .contrastive_guidance import generate_contrastive_training
 
 
 def parse_args() -> argparse.Namespace:
@@ -183,6 +184,17 @@ def parse_args() -> argparse.Namespace:
     )
     adapter_trajectory.add_argument("--sampling-seed", type=int)
     adapter_trajectory.add_argument("--model-artifact", default="model.pt")
+    contrastive = subparsers.add_parser(
+        "generate-contrastive-osdr",
+        help="Generate train profiles with opposite-condition DDIM guidance",
+    )
+    contrastive.add_argument("--config", required=True)
+    contrastive.add_argument(
+        "--guidance-scales", nargs="+", type=float, required=True
+    )
+    contrastive.add_argument("--seeds", nargs="+", type=int, required=True)
+    contrastive.add_argument("--batch-size", type=int, default=256)
+    contrastive.add_argument("--eta", type=float, default=0.0)
     return parser.parse_args()
 
 
@@ -278,6 +290,14 @@ def main() -> None:
             snapshot_timesteps=args.snapshot_timesteps,
             sampling_seed=args.sampling_seed,
             model_artifact=args.model_artifact,
+        )
+    elif args.command == "generate-contrastive-osdr":
+        generate_contrastive_training(
+            args.config,
+            guidance_scales=args.guidance_scales,
+            seeds=args.seeds,
+            batch_size=args.batch_size,
+            eta=args.eta,
         )
 
 
