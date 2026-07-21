@@ -1580,7 +1580,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     )
     add_text(
         slide,
-        "Final robustness-filtered tissue stories",
+        "Prior evidence, observed shifts, and hypotheses to test",
         right_x + 0.50,
         6.42,
         right_w - 1.00,
@@ -1600,8 +1600,8 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         11.22,
         name="Tissue-state hypotheses",
         description=(
-            "Observed lower expiMap program scores and qualified tissue-state "
-            "hypotheses for thymus, skin, liver, and spleen."
+            "Prior-literature phenotypes, observed lower expiMap program scores, "
+            "and complementary hypotheses for thymus, skin, liver, and spleen."
         ),
     )
 

@@ -1269,21 +1269,23 @@ def plot_presentation_process_summary() -> None:
 
 
 def plot_tissue_state_hypotheses() -> None:
-    """Separate observed bulk-tissue scores from their proposed interpretation."""
+    """Separate prior evidence, observed bulk-tissue scores, and new hypotheses."""
     rows = (
         (
             "A",
             "Thymus",
+            "Involution with reduced\nthymocyte proliferation and\nadaptive activity [6-9]",
             (
                 "DNA repair",
                 "RHOA cytoskeletal cycle",
                 "Lymphoid-stromal interactions",
             ),
-            "Consistent with reduced repair, cell motility, and niche coordination",
+            "Known involution may also involve lower repair, thymocyte motility, and stromal-niche coordination.",
         ),
         (
             "B",
             "Skin",
+            "Barrier injury, inflammation,\nand impaired regeneration\n[12-16]",
             (
                 "Chromatin-modifying enzymes",
                 "DNA repair",
@@ -1291,47 +1293,49 @@ def plot_tissue_state_hypotheses() -> None:
                 "Sphingolipid metabolism",
                 "Cell-cell junction organization",
             ),
-            "Consistent with reduced tissue maintenance, barrier support, and cell coordination",
+            "Barrier injury may include a broader maintenance deficit spanning regulation, repair, barrier lipids, and cell coordination.",
         ),
         (
             "C",
             "Liver",
+            "Metabolic and xenobiotic\ndysregulation [17-23]",
             (
                 "MHC class II antigen presentation",
                 "T-cell receptor signaling",
             ),
-            "Consistent with lower adaptive immune communication",
+            "Metabolic heterogeneity may coexist with lower adaptive immune communication.",
         ),
         (
             "D",
             "Spleen",
+            "Lower T-cell abundance,\nactivation, and responsiveness\n[35-37]",
             (
                 "T-cell receptor signaling",
                 "Neutrophil degranulation",
                 "C-type lectin receptor signaling",
             ),
-            "Consistent with lower adaptive activation, innate sensing, and effector-related transcription",
+            "Reduced adaptive activity may extend to lower innate sensing and effector-related transcription.",
         ),
     )
 
-    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH, 6.35), layout="constrained")
+    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH, 6.35))
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.98, bottom=0.02)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis("off")
     ax.text(
         0.5,
         0.985,
-        "Flight-associated pathway-score patterns and tissue-state hypotheses",
+        "Prior literature, observed pathway shifts, and hypotheses to test",
         ha="center",
         va="top",
         fontsize=10.0,
         fontweight="bold",
     )
-    ax.text(0.11, 0.925, "Tissue context", ha="center", va="center", fontsize=7.2, fontweight="bold")
     ax.text(
-        0.425,
+        0.17,
         0.925,
-        "Observed lower expiMap\nprogram scores in flight",
+        "Established phenotype\nfrom prior literature",
         ha="center",
         va="center",
         fontsize=6.9,
@@ -1339,23 +1343,24 @@ def plot_tissue_state_hypotheses() -> None:
         linespacing=1.15,
     )
     ax.text(
-        0.68,
+        0.49,
         0.925,
-        "Interpretive link\n(not causal order)",
+        "Observed lower expiMap\nscores in flight",
         ha="center",
         va="center",
-        fontsize=6.4,
-        color="#596267",
+        fontsize=6.9,
+        fontweight="bold",
         linespacing=1.15,
     )
     ax.text(
         0.855,
         0.925,
-        "Tissue-state hypothesis",
+        "Complementary tissue-state\nhypothesis to test",
         ha="center",
         va="center",
-        fontsize=7.2,
+        fontsize=6.9,
         fontweight="bold",
+        linespacing=1.15,
     )
 
     def draw_thymus(y: float) -> None:
@@ -1449,31 +1454,43 @@ def plot_tissue_state_hypotheses() -> None:
         "Spleen": draw_spleen,
     }
     row_centers = (0.805, 0.61, 0.415, 0.22)
-    for index, ((letter, tissue, programs, hypothesis), y) in enumerate(zip(rows, row_centers, strict=True)):
+    for index, ((letter, tissue, prior_literature, programs, hypothesis), y) in enumerate(
+        zip(rows, row_centers, strict=True)
+    ):
         color = TISSUE_COLORS[tissue.lower()]
         ax.text(0.02, y + 0.07, letter, ha="left", va="top", fontsize=8.5, fontweight="bold")
         ax.text(0.045, y + 0.07, tissue.upper(), ha="left", va="top", fontsize=8.2, fontweight="bold", color=color)
-        icon_drawers[tissue](y - 0.005)
+        icon_drawers[tissue](y - 0.018)
+        ax.text(
+            0.18,
+            y - 0.005,
+            prior_literature,
+            ha="left",
+            va="center",
+            fontsize=5.55,
+            linespacing=1.2,
+            color="#4E575B",
+        )
 
         spread = min(0.125, 0.034 * (len(programs) - 1))
         program_ys = np.linspace(y + spread / 2, y - spread / 2, len(programs))
         for program, program_y in zip(programs, program_ys, strict=True):
             ax.add_patch(
                 FancyArrowPatch(
-                    (0.235, program_y + 0.012),
-                    (0.235, program_y - 0.012),
+                    (0.355, program_y + 0.012),
+                    (0.355, program_y - 0.012),
                     arrowstyle="-|>",
                     mutation_scale=7.0,
                     linewidth=1.0,
                     color=GROUND_COLOR,
                 )
             )
-            ax.text(0.252, program_y, program, ha="left", va="center", fontsize=6.25)
+            ax.text(0.372, program_y, program, ha="left", va="center", fontsize=5.85)
 
         ax.add_patch(
             FancyArrowPatch(
-                (0.635, y),
-                (0.72, y),
+                (0.64, y),
+                (0.715, y),
                 arrowstyle="-|>",
                 mutation_scale=9.0,
                 linewidth=1.0,
@@ -1495,10 +1512,10 @@ def plot_tissue_state_hypotheses() -> None:
         ax.text(
             0.857,
             y,
-            textwrap.fill(hypothesis, width=34),
+            textwrap.fill(hypothesis, width=36),
             ha="center",
             va="center",
-            fontsize=6.2,
+            fontsize=5.85,
             linespacing=1.2,
         )
         if index < len(rows) - 1:
@@ -1507,11 +1524,11 @@ def plot_tissue_state_hypotheses() -> None:
     ax.text(
         0.5,
         0.035,
-        "Conceptual synthesis of bulk-tissue pathway scores. Lower scores do not prove pathway inhibition; "
-        "cell-composition shifts may contribute.",
+        "Prior literature, this study's observations, and new hypotheses are shown separately; dotted arrows denote "
+        "inference, not causality.\nLower scores do not prove pathway inhibition, and cell composition may contribute.",
         ha="center",
         va="center",
-        fontsize=6.3,
+        fontsize=5.9,
         color="#596267",
     )
     save_figure(fig, "figure_6_tissue_state_hypotheses")

@@ -4,7 +4,7 @@ figure_2_latent_mapping	2160	1755	7.2	5.85	755371	True	125919	0.0
 figure_3_tissue_pathway_shifts	2160	1875	7.2	6.25	213291	True	54015	0.0
 figure_4_evidence_gene_support	2160	2025	7.2	6.75	292229	True	51491	0.0
 figure_5_skin_protocol_context	2160	1905	7.2	6.35	458862	True	82825	0.0
-figure_6_tissue_state_hypotheses	2160	1905	7.2	6.35	326370	True	110103	0.0
+figure_6_tissue_state_hypotheses	2160	1905	7.2	6.35	389732	True	136588	0.0
 figure_s1_broad_pathway_screen	2160	2640	7.2	8.8	610465	True	112699	0.0
 figure_s2_skin_project_balance_sensitivity	4954	2722	16.513333333333332	9.073333333333334	560292	True	49204	0.0
 figure_s3_expanded_family_review	4699	3317	15.663333333333334	11.056666666666667	795985	True	46160	0.0
