@@ -45,8 +45,10 @@ TITLE = (
     "and identifies complementary pathway shifts in mouse spaceflight "
     "transcriptomes"
 )
-DISPLAY_TITLE = (
-    "Cross-mission expiMap analysis recovers established tissue responses\n"
+TITLE_LINE_1 = (
+    "Cross-mission expiMap analysis recovers established tissue responses"
+)
+TITLE_LINE_2 = (
     "and identifies complementary pathway shifts in mouse spaceflight transcriptomes"
 )
 
@@ -102,11 +104,12 @@ def add_text(
     align=PP_ALIGN.LEFT,
     valign=MSO_ANCHOR.TOP,
     margin: float = 0.0,
+    word_wrap: bool = True,
 ):
     shape = slide.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
     frame = shape.text_frame
     frame.clear()
-    frame.word_wrap = True
+    frame.word_wrap = word_wrap
     frame.margin_left = Inches(margin)
     frame.margin_right = Inches(margin)
     frame.margin_top = Inches(margin)
@@ -204,6 +207,7 @@ def add_section(
         bold=True,
         align=PP_ALIGN.CENTER,
         valign=MSO_ANCHOR.MIDDLE,
+        word_wrap=False,
     )
 
 
@@ -240,6 +244,7 @@ def add_badge(
         bold=True,
         align=PP_ALIGN.CENTER,
         valign=MSO_ANCHOR.MIDDLE,
+        word_wrap=False,
     )
 
 
@@ -263,7 +268,7 @@ def add_box(
     shape.adjustments[0] = 0.06
     frame = shape.text_frame
     frame.clear()
-    frame.word_wrap = True
+    frame.word_wrap = False
     frame.margin_left = Inches(0.10)
     frame.margin_right = Inches(0.10)
     frame.margin_top = Inches(0.05)
@@ -349,6 +354,7 @@ def set_table_cell(
     cell.margin_right = Inches(0.06)
     cell.margin_top = Inches(0.03)
     cell.margin_bottom = Inches(0.03)
+    cell.text_frame.word_wrap = False
     cell.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     paragraph = cell.text_frame.paragraphs[0]
     paragraph.alignment = PP_ALIGN.CENTER if center else PP_ALIGN.LEFT
@@ -435,10 +441,11 @@ def add_challenge_equation(slide, x: float, y: float, w: float) -> None:
         y + 0.48,
         2.70,
         0.60,
-        size=18,
+        size=17,
         color=INK,
         bold=True,
         valign=MSO_ANCHOR.MIDDLE,
+        word_wrap=False,
     )
     parts = [
         ("Spaceflight biology", ORANGE, 2.75),
@@ -461,6 +468,7 @@ def add_challenge_equation(slide, x: float, y: float, w: float) -> None:
                 bold=True,
                 align=PP_ALIGN.CENTER,
                 valign=MSO_ANCHOR.MIDDLE,
+                word_wrap=False,
             )
             cursor += 0.43
         add_rect(slide, cursor, y + 0.48, width, 0.60, color, rounded=True)
@@ -476,6 +484,7 @@ def add_challenge_equation(slide, x: float, y: float, w: float) -> None:
             bold=True,
             align=PP_ALIGN.CENTER,
             valign=MSO_ANCHOR.MIDDLE,
+            word_wrap=False,
         )
         cursor += width
 
@@ -492,6 +501,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         color=INK,
         bold=True,
         align=PP_ALIGN.CENTER,
+        word_wrap=False,
     )
     add_text(
         slide,
@@ -506,6 +516,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         size=16,
         color=MUTED,
         align=PP_ALIGN.CENTER,
+        word_wrap=False,
     )
 
     add_text(
@@ -522,7 +533,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     add_box(
         slide,
         "ARCHS4 reference",
-        "tissue-matched non-spaceflight counts",
+        "non-spaceflight tissue counts",
         x + 0.15,
         y + 1.45,
         3.55,
@@ -559,7 +570,8 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     )
 
     input_x = x + 4.95
-    encoder_x = x + 5.72
+    encoder_x = x + 5.35
+    encoder_w = 2.10
     latent_x = x + 7.68
     output_x = x + 13.55
     gene_ys = [y + 2.05 + 0.42 * index for index in range(4)]
@@ -578,23 +590,24 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         MSO_SHAPE.TRAPEZOID,
         Inches(encoder_x),
         Inches(y + 1.92),
-        Inches(1.50),
+        Inches(encoder_w),
         Inches(1.42),
     )
     set_fill(encoder, "DCE6F2")
     set_line(encoder, BLUE, 1.4)
     add_text(
         slide,
-        "dense\nencoder",
-        encoder_x + 0.20,
-        y + 2.18,
-        1.10,
-        0.80,
-        size=16,
+        "Dense encoder",
+        encoder_x + 0.12,
+        y + 2.42,
+        encoder_w - 0.24,
+        0.38,
+        size=14.5,
         color=INK,
         bold=True,
         align=PP_ALIGN.CENTER,
         valign=MSO_ANCHOR.MIDDLE,
+        word_wrap=False,
     )
     for gene_y in gene_ys:
         add_connector(
@@ -615,7 +628,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     for label, color, node_y in latent_rows:
         add_connector(
             slide,
-            encoder_x + 1.32,
+            encoder_x + encoder_w - 0.18,
             y + 2.63,
             latent_x,
             node_y + 0.16,
@@ -655,6 +668,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
             bold=True,
             align=PP_ALIGN.CENTER,
             valign=MSO_ANCHOR.MIDDLE,
+            word_wrap=False,
         )
 
     add_rect(
@@ -670,7 +684,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     )
     add_text(
         slide,
-        "Reactome gene-program mask",
+        "Reactome program mask",
         x + 10.68,
         y + 1.48,
         3.29,
@@ -680,6 +694,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         bold=True,
         align=PP_ALIGN.CENTER,
         valign=MSO_ANCHOR.MIDDLE,
+        word_wrap=False,
     )
     add_down_arrow(slide, x + 12.00, y + 2.03, GREEN)
 
@@ -718,10 +733,11 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         size=14,
         color=MUTED,
         align=PP_ALIGN.CENTER,
+        word_wrap=False,
     )
     add_text(
         slide,
-        "annotated latent program scores",
+        "annotated program scores",
         latent_x - 0.30,
         y + 3.48,
         3.10,
@@ -729,6 +745,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         size=14,
         color=MUTED,
         align=PP_ALIGN.CENTER,
+        word_wrap=False,
     )
     add_text(
         slide,
@@ -740,10 +757,11 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         size=14,
         color=MUTED,
         align=PP_ALIGN.CENTER,
+        word_wrap=False,
     )
     add_text(
         slide,
-        "reconstructed genes",
+        "output genes",
         x + 12.70,
         y + 3.48,
         1.85,
@@ -751,6 +769,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         size=14,
         color=MUTED,
         align=PP_ALIGN.CENTER,
+        word_wrap=False,
     )
 
     add_text(
@@ -767,7 +786,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     add_box(
         slide,
         "NASA OSDR query",
-        "FLT and GC counts + accession",
+        "FLT, GC, and accession",
         x + 0.15,
         y + 4.48,
         3.20,
@@ -809,7 +828,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     add_box(
         slide,
         "Project-balanced shift",
-        "equal-weight mean FLT minus GC",
+        "equal-weight FLT - GC mean",
         x + 11.45,
         y + 4.48,
         3.30,
@@ -820,19 +839,32 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         subtitle_size=14,
     )
 
+    add_down_arrow(slide, x + 13.10, y + 5.60, GREEN)
+    add_box(
+        slide,
+        "Post-score annotation",
+        "literature and mission-context role",
+        x + 9.10,
+        y + 5.94,
+        5.65,
+        0.62,
+        fill="EBF5EF",
+        line=GREEN,
+        title_size=15.5,
+        subtitle_size=13.5,
+    )
+
     add_text(
         slide,
-        (
-            "approximately 2,000 HVGs | 319-387 retained Reactome programs | "
-            "negative-binomial reference | 250-epoch query map"
-        ),
-        x + 0.25,
-        y + h - 0.56,
-        w - 0.50,
-        0.42,
+        "~2,000 HVGs | 319-387 Reactome programs | 250-epoch query mapping",
+        x + 0.20,
+        y + 6.08,
+        8.55,
+        0.34,
         size=14,
         color=MUTED,
         align=PP_ALIGN.CENTER,
+        word_wrap=False,
     )
 
 
@@ -1178,19 +1210,21 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         size=16,
         color=MUTED,
     )
-    add_text(
-        slide,
-        DISPLAY_TITLE,
-        0.80,
-        0.92,
-        42.40,
-        2.40,
-        size=54,
-        color="111111",
-        bold=True,
-        align=PP_ALIGN.CENTER,
-        valign=MSO_ANCHOR.MIDDLE,
-    )
+    for line, line_y in ((TITLE_LINE_1, 1.00), (TITLE_LINE_2, 1.92)):
+        add_text(
+            slide,
+            line,
+            0.60,
+            line_y,
+            42.80,
+            0.82,
+            size=50,
+            color="111111",
+            bold=True,
+            align=PP_ALIGN.CENTER,
+            valign=MSO_ANCHOR.MIDDLE,
+            word_wrap=False,
+        )
     add_text(
         slide,
         (
@@ -1206,6 +1240,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         bold=True,
         align=PP_ALIGN.CENTER,
         valign=MSO_ANCHOR.MIDDLE,
+        word_wrap=False,
     )
     add_nasa_logo(slide, template)
 
@@ -1255,17 +1290,15 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     )
     add_text(
         slide,
-        (
-            "Identify gene programs that respond consistently to spaceflight "
-            "across missions."
-        ),
+        "Identify gene programs that shift consistently across spaceflight missions.",
         left_x + 0.55,
         11.05,
         left_w - 1.10,
         1.10,
-        size=26,
+        size=25,
         color=INK,
         bold=True,
+        word_wrap=False,
     )
     add_challenge_equation(slide, left_x + 0.55, 12.30, left_w - 1.10)
     add_text(
@@ -1429,6 +1462,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         color=BLUE,
         bold=True,
         align=PP_ALIGN.CENTER,
+        word_wrap=False,
     )
     hypothesis_ppi = add_picture_contain(
         slide,
@@ -1536,6 +1570,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         color=NAVY,
         bold=True,
         align=PP_ALIGN.RIGHT,
+        word_wrap=False,
     )
     add_text(
         slide,
