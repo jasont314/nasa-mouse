@@ -1468,14 +1468,12 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     add_panel(slide, left_x, 5.35, left_w, 3.78)
     add_section(slide, "ABSTRACT", left_x + 0.28, 5.55, left_w - 0.56)
     abstract_lines = (
-        "Mission differences can obscure spaceflight responses shared across studies.",
-        "We mapped NASA OSDR mouse bulk RNA sequencing samples to tissue-matched ARCHS4 references.",
-        "Reactome-constrained expiMap models analyzed about 2,000 highly variable genes.",
-        "Flight-ground shifts were balanced across projects and evaluated with gene-set enrichment,",
-        "project holdouts, three complete training runs, composition proxies, and member-gene review.",
-        "Literature review was performed after scoring. Retained programs were lower for thymic repair,",
-        "skin maintenance, liver adaptive immunity, and splenic adaptive and innate immunity.",
-        "Spleen showed the strongest result across multiple pathways.",
+        "Mission differences can obscure spaceflight responses shared across studies. We mapped NASA OSDR mouse bulk RNA",
+        "sequencing samples to tissue-matched ARCHS4 references. Reactome-constrained expiMap models analyzed about",
+        "2,000 highly variable genes. Flight-ground shifts were balanced across projects and evaluated with gene-set",
+        "enrichment, project holdouts, three complete training runs, composition proxies, and member-gene review.",
+        "Literature review followed scoring. Retained programs were lower for thymic repair, skin maintenance, liver",
+        "adaptive immunity, and splenic adaptive and innate immunity. Spleen showed the strongest multi-pathway result.",
     )
     add_text_lines(
         slide,
@@ -1483,7 +1481,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         left_x + 0.50,
         6.48,
         left_w - 1.00,
-        2.50,
+        1.86,
         size=18.5,
         color=BODY,
     )
@@ -1517,9 +1515,9 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     add_text_lines(
         slide,
         (
-            "Study identity and protocol can dominate an unconstrained expression representation.",
-            "Tissue-matched reference mapping, accession conditioning, and equal project weighting",
-            "reduce this bias without claiming to remove all mission confounding.",
+            "Study identity and protocol can dominate an unconstrained expression representation. Tissue-matched",
+            "reference mapping, accession conditioning, and equal project weighting reduce this bias without claiming",
+            "to remove all mission confounding.",
         ),
         left_x + 0.55,
         13.62,
@@ -1544,14 +1542,11 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     )
     add_text_lines(
         slide,
-        (
-            "OSDR counts are primary analysis samples.",
-            "Spleen excludes one condition-strain-confounded project.",
-        ),
+        ("OSDR counts are primary analysis samples. Spleen excludes one condition-strain-confounded project.",),
         left_x + 0.55,
         19.97,
         left_w - 1.10,
-        0.55,
+        0.30,
         size=14.5,
         color=MUTED,
         italic=True,
@@ -1591,13 +1586,13 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     add_text_lines(
         slide,
         (
-            "Complementary programs add a plausible perspective beyond the dominant phenotype",
-            "in prior literature. De novo nodes were not retained in the final models.",
+            "Complementary programs add a plausible perspective beyond the dominant phenotype in prior literature. De novo",
+            "nodes were not retained in the final models.",
         ),
         left_x + 0.55,
         23.08,
         left_w - 1.10,
-        0.66,
+        0.56,
         size=16.5,
         color=BODY,
     )
@@ -1638,14 +1633,13 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     add_text_lines(
         slide,
         (
-            "Filled markers show 13 retained programs. Open diamonds are literature-aligned context only,",
-            "not retained findings; keratinization reversed in one of three trainings.",
-            "Colored ranges span three complete trainings; axes are tissue specific.",
+            "Filled markers show 13 retained programs. Open diamonds are literature-aligned context only, not retained findings;",
+            "keratinization reversed in one of three trainings. Colored ranges span three complete trainings; axes are tissue specific.",
         ),
         center_x + 0.60,
         23.62,
         center_w - 1.20,
-        0.78,
+        0.56,
         size=14.5,
         color=MUTED,
         italic=True,
