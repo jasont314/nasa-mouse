@@ -20,7 +20,7 @@ from PIL import Image
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, MSO_SHAPE_TYPE
-from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
+from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, PP_ALIGN
 from pptx.util import Inches, Pt
 
 from .integrate_reassessed_tissues_paper import (
@@ -388,7 +388,7 @@ def set_table_cell(
     center: bool,
 ) -> None:
     cell.text = ""
-    cell.margin_left = Inches(0.07)
+    cell.margin_left = Inches(0.20 if not center else 0.07)
     cell.margin_right = Inches(0.06)
     cell.margin_top = Inches(0.03)
     cell.margin_bottom = Inches(0.03)
@@ -735,14 +735,22 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         Inches(1.42),
     )
     decoder.rotation = 270
-    set_fill(decoder, "E5F1EC")
+    decoder.fill.background()
     set_line(decoder, GREEN, 1.4)
+    add_rect(
+        slide,
+        decoder_x + 0.27,
+        y + 2.43,
+        0.94,
+        0.34,
+        WHITE,
+    )
     add_text(
         slide,
         "Decoder",
-        decoder_x - 0.12,
+        decoder_x + 0.22,
         y + 2.42,
-        decoder_w + 0.24,
+        1.04,
         0.38,
         size=13.5,
         color=INK,
@@ -1110,9 +1118,9 @@ def render_poster_pathway_asset(output: Path) -> None:
                     label=label,
                 )
                 for role, label in (
-                    ("aligned", "Literature aligned"),
-                    ("complementary", "Complementary"),
-                    ("context_sensitive", "Context sensitive"),
+                    ("aligned", "Aligned and retained"),
+                    ("complementary", "Complementary and retained"),
+                    ("context_sensitive", "Context sensitive and retained"),
                 )
             ],
             Line2D(
@@ -1126,7 +1134,7 @@ def render_poster_pathway_asset(output: Path) -> None:
                 markeredgewidth=1.5,
                 linewidth=2.0,
                 markersize=7,
-                label="Aligned context; model sensitive",
+                label="Literature aligned, not retained",
             ),
         ]
         fig.legend(
@@ -1223,6 +1231,12 @@ def validate(prs: Presentation) -> None:
             raise ValueError(f"{shape.name!r} exceeds the slide width")
         if shape.top + shape.height > prs.slide_height + 1:
             raise ValueError(f"{shape.name!r} exceeds the slide height")
+        if shape.has_text_frame:
+            normalized = " ".join(shape.text.split())
+            if len(normalized) >= 60 and shape.text_frame.word_wrap:
+                raise ValueError(
+                    f"{shape.name!r} contains long auto-wrapped text; author explicit lines"
+                )
 
 
 def render_poster(pptx_path: Path) -> tuple[Path | None, Path | None]:
@@ -1379,28 +1393,30 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
 
     add_panel(slide, left_x, 5.35, left_w, 3.78)
     add_section(slide, "ABSTRACT", left_x + 0.28, 5.55, left_w - 0.56)
-    abstract = (
-        "Mission differences can obscure spaceflight responses shared across studies. "
-        "We mapped NASA OSDR mouse bulk RNA sequencing samples to ARCHS4 references "
-        "matched by tissue. We used expiMap models constrained by Reactome to analyze "
-        "about 2,000 highly variable genes. Flight versus ground shifts were balanced "
-        "across projects and assessed with enrichment tests, project holdouts, three "
-        "training runs, composition proxies, review of member genes, and literature "
-        "annotation after scoring. Retained programs were lower for thymic repair and "
-        "cytoskeletal processes, skin maintenance and barrier processes, liver adaptive "
-        "immunity, and spleen adaptive and innate immunity. Spleen showed the strongest "
-        "result across multiple pathways."
+    abstract = "\n".join(
+        (
+            "Mission differences can obscure spaceflight responses shared across studies.",
+            "We mapped NASA OSDR mouse bulk RNA sequencing samples to tissue-matched ARCHS4",
+            "references and analyzed about 2,000 highly variable genes with Reactome-constrained expiMap.",
+            "Flight-ground shifts were balanced across projects and evaluated with gene-set enrichment,",
+            "project holdouts, three complete training runs, composition proxies, member-gene review,",
+            "and literature annotation after scoring. Retained programs were lower for thymic repair,",
+            "skin maintenance, liver adaptive immunity, and splenic adaptive and innate immunity.",
+            "Spleen showed the strongest result across multiple pathways.",
+        )
     )
-    add_text(
+    abstract_shape = add_text(
         slide,
         abstract,
         left_x + 0.50,
         6.48,
         left_w - 1.00,
         2.50,
-        size=20,
+        size=18.5,
         color=BODY,
+        word_wrap=False,
     )
+    abstract_shape.text_frame.auto_size = MSO_AUTO_SIZE.NONE
 
     add_panel(slide, left_x, 9.43, left_w, 15.25)
     add_section(slide, "INTRODUCTION", left_x + 0.28, 9.63, left_w - 0.56)
@@ -1428,13 +1444,12 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         word_wrap=False,
     )
     add_challenge_equation(slide, left_x + 0.55, 12.30, left_w - 1.10)
-    add_text(
+    context_note = add_text(
         slide,
         (
-            "Study identity and protocol can dominate an unconstrained expression "
-            "representation. Tissue-matched reference mapping, accession conditioning, "
-            "and equal project weighting reduce this bias without claiming to remove "
-            "all mission confounding."
+            "Study identity and protocol can dominate an unconstrained expression representation.\n"
+            "Tissue-matched reference mapping, accession conditioning, and equal project weighting\n"
+            "reduce this bias without claiming to remove all mission confounding."
         ),
         left_x + 0.55,
         13.62,
@@ -1442,7 +1457,9 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         1.55,
         size=19,
         color=BODY,
+        word_wrap=False,
     )
+    context_note.text_frame.auto_size = MSO_AUTO_SIZE.NONE
     add_text(
         slide,
         "FINAL ANALYSIS SCOPE",
@@ -1457,12 +1474,9 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     add_scope_table(
         slide, left_x + 0.55, 15.83, left_w - 1.10, 4.05
     )
-    add_text(
+    scope_note = add_text(
         slide,
-        (
-            "OSDR counts are primary analysis samples. Spleen excludes one "
-            "condition-strain-confounded project."
-        ),
+        "OSDR counts are primary analysis samples. Spleen excludes one condition-strain-confounded project.",
         left_x + 0.55,
         19.97,
         left_w - 1.10,
@@ -1470,7 +1484,9 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         size=14.5,
         color=MUTED,
         italic=True,
+        word_wrap=False,
     )
+    scope_note.text_frame.auto_size = MSO_AUTO_SIZE.NONE
     add_text(
         slide,
         "ROBUSTNESS GATE",
@@ -1503,12 +1519,11 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
             badge_w,
             color=GREEN,
         )
-    add_text(
+    robustness_note = add_text(
         slide,
         (
-            "Complementary means an annotated Reactome program that adds a plausible "
-            "perspective beyond the dominant phenotype in prior literature. De novo "
-            "nodes were not retained in the final models."
+            "Complementary programs add a plausible perspective beyond the dominant phenotype\n"
+            "in prior literature. De novo nodes were not retained in the final models."
         ),
         left_x + 0.55,
         23.08,
@@ -1516,7 +1531,9 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         1.15,
         size=16.5,
         color=BODY,
+        word_wrap=False,
     )
+    robustness_note.text_frame.auto_size = MSO_AUTO_SIZE.NONE
 
     add_panel(slide, center_x, 5.35, center_w, 8.05)
     add_section(slide, "METHODS", center_x + 0.28, 5.55, center_w - 0.56)
@@ -1551,23 +1568,24 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
             "three-training ranges."
         ),
     )
-    add_text(
+    results_note = add_text(
         slide,
         (
-            "Filled markers show the 13 primary retained programs. Four open green "
-            "diamonds show literature-aligned anchors that failed at least one "
-            "robustness gate and provide context rather than additional claims. "
-            "Colored ranges span three complete trainings; axes are tissue specific."
+            "Filled markers show 13 retained programs. Open diamonds are literature-aligned context only,\n"
+            "not retained findings; keratinization reversed in one of three trainings. Colored ranges span\n"
+            "three complete trainings; axes are tissue specific."
         ),
         center_x + 0.60,
         23.62,
         center_w - 1.20,
         0.78,
-        size=15,
+        size=14.5,
         color=MUTED,
         italic=True,
         align=PP_ALIGN.CENTER,
+        word_wrap=False,
     )
+    results_note.text_frame.auto_size = MSO_AUTO_SIZE.NONE
 
     add_panel(slide, right_x, 5.35, right_w, 13.28)
     add_section(
@@ -1607,31 +1625,48 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
 
     add_panel(slide, right_x, 18.93, right_w, 3.55)
     add_section(slide, "CONCLUSIONS", right_x + 0.28, 19.13, right_w - 0.56)
-    add_paragraphs(
+    conclusion_1 = add_text(
         slide,
-        [
-            (
-                "\u2022 Spleen was strongest: T cell receptor, neutrophil "
-                "degranulation, and C\u2011type lectin receptor programs were lower "
-                "across five projects and three trainings; all had GSEA FDR <0.05."
-            ),
-            (
-                "\u2022 Skin and thymus emphasized lower tissue maintenance programs; "
-                "liver showed lower adaptive immune signaling amid heterogeneous metabolism."
-            ),
-            (
-                "\u2022 Bulk latent scores are testable hypotheses, not causal or "
-                "cell resolved measures of pathway activity."
-            ),
-        ],
+        (
+            "\u2022 Spleen was strongest: T cell receptor, neutrophil degranulation, and C\u2011type lectin\n"
+            "  receptor programs were lower across five projects and three trainings; all had GSEA FDR <0.05."
+        ),
         right_x + 0.55,
-        20.05,
+        20.02,
         right_w - 1.10,
-        2.25,
-        size=18,
+        0.68,
+        size=17.5,
         color=BODY,
-        gap=4,
+        word_wrap=False,
     )
+    conclusion_1.text_frame.auto_size = MSO_AUTO_SIZE.NONE
+    conclusion_2 = add_text(
+        slide,
+        (
+            "\u2022 Skin and thymus emphasized lower tissue maintenance programs; liver showed lower\n"
+            "  adaptive immune signaling amid heterogeneous metabolism."
+        ),
+        right_x + 0.55,
+        20.80,
+        right_w - 1.10,
+        0.68,
+        size=17.5,
+        color=BODY,
+        word_wrap=False,
+    )
+    conclusion_2.text_frame.auto_size = MSO_AUTO_SIZE.NONE
+    conclusion_3 = add_text(
+        slide,
+        "\u2022 Bulk latent scores are testable hypotheses, not causal or cell-resolved measures of pathway activity.",
+        right_x + 0.55,
+        21.58,
+        right_w - 1.10,
+        0.36,
+        size=17.5,
+        color=BODY,
+        word_wrap=False,
+    )
+    conclusion_3.text_frame.auto_size = MSO_AUTO_SIZE.NONE
 
     add_panel(slide, right_x, 22.75, right_w, 1.93)
     add_section(
@@ -1642,23 +1677,25 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         right_w - 0.56,
         size=22,
     )
-    references = (
-        "1 Gebre et al., NAR 2025 (OSDR). 2 Lotfollahi et al., Nat Cell Biol "
-        "2023 (expiMap). 3 Lachmann et al., Nat Commun 2018 (ARCHS4). "
-        "4 Milacic et al., NAR 2024 (Reactome). 5 Horie et al., Sci Rep 2019. "
-        "6 Cope et al., Commun Med 2024. 7 Beheshti et al., Sci Rep 2019. "
-        "8 Gridley et al., J Appl Physiol 2009."
+    references = "\n".join(
+        (
+            "1 Gebre et al., NAR 2025 (OSDR). 2 Lotfollahi et al., Nat Cell Biol 2023 (expiMap).",
+            "3 Lachmann et al., Nat Commun 2018 (ARCHS4). 4 Milacic et al., NAR 2024 (Reactome).",
+            "5 Horie et al., Sci Rep 2019. 6 Cope et al., Commun Med 2024. 7 Beheshti et al., Sci Rep 2019. 8 Gridley et al., J Appl Physiol 2009.",
+        )
     )
-    add_text(
+    references_shape = add_text(
         slide,
         references,
         right_x + 0.52,
         23.78,
         right_w - 1.04,
         0.78,
-        size=14.5,
+        size=13.5,
         color=BODY,
+        word_wrap=False,
     )
+    references_shape.text_frame.auto_size = MSO_AUTO_SIZE.NONE
 
     # Approved-template footer and acknowledgements
     add_rect(slide, center_x, 24.92, center_w + right_w + 0.05, 2.08, HEADER)
@@ -1673,10 +1710,10 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         color=MUTED,
         bold=True,
     )
-    add_text(
+    acknowledgements = add_text(
         slide,
         (
-            "Mentor: James Casaletto | NASA Space Life Sciences Training Program | "
+            "Mentor: James Casaletto | NASA Space Life Sciences Training Program\n"
             "NASA OSDR, ARCHS4, and Reactome investigators and curation teams"
         ),
         center_x + 0.35,
@@ -1685,7 +1722,9 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         0.88,
         size=16,
         color=BODY,
+        word_wrap=False,
     )
+    acknowledgements.text_frame.auto_size = MSO_AUTO_SIZE.NONE
     add_text(
         slide,
         "jasontrinh@berkeley.edu\ngithub.com/jasont314/nasa-mouse",
