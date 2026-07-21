@@ -4,7 +4,9 @@
 
 The PDF is the print-ready export, and `asgsr_expimap_poster_preview.png` is a 4,800 x 2,700 pixel visual-check copy. `assets/expimap_architecture_visualization_300dpi.png` is a separate high-resolution export of the architecture panel for reuse in talks or documents.
 
-The title, architecture, tables, evidence summaries, interpretation text, and footer remain native PowerPoint objects. The two data-dense figures are rendered at 700 dpi from the paper's vector PDFs and retain more than 300 effective pixels per inch at their placed poster dimensions.
+The title, architecture, tables, evidence summaries, interpretation text, and footer remain native PowerPoint objects. The retained-pathway plot is regenerated from the paper's source data at a wider poster-specific aspect ratio and 400 dpi so that all 13 labels remain readable. The tissue-state figure is rendered at 700 dpi from the paper's vector PDF. Both retain more than 300 effective pixels per inch at their placed poster dimensions.
+
+The poster abstract is condensed for viewing distance but retains the manuscript abstract's methods, tissue directions, and strength-of-evidence language. The central results figure displays all 13 primary retained pathways across thymus, skin, liver, and spleen. The three additional retained kidney pathways remain explicitly exploratory and are not promoted into the primary poster figure.
 
 Rebuild from the repository root:
 

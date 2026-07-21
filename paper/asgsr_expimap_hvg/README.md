@@ -8,7 +8,7 @@ The primary descriptive quantity is the equally weighted project- or accession-s
 
 - `asgsr_2026_abstract.md`: ASGSR-formatted abstract, under the 300-word limit.
 - `manuscript.md`: full manuscript with references and embedded figure captions.
-- `poster/`: editable 48 x 27 inch PowerPoint poster based on the approved NASA template, print PDF, high-resolution preview, reusable architecture graphic, and 700-dpi embedded figure assets.
+- `poster/`: editable 48 x 27 inch PowerPoint poster based on the approved NASA template, print PDF, high-resolution preview, reusable architecture graphic, and high-resolution embedded figure assets.
 - `supplementary_methods.md`: exact runs, effect definitions, safeguards, and rebuild commands.
 - `tissue_selection_audit.md`: reconstruction of the eight-tissue screen and corrected kidney/spleen reassessment.
 - `figures/`: publication figures in PNG and vector PDF formats.
@@ -47,7 +47,7 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_sc
 
 `build_publication_figures` authors the final main figures and dense supplementary summaries at a 7.2-inch publication width, writes 300-dpi PNG and vector PDF copies, and checks image borders and dimensions. It also produces the latent-mapping, sample-score, and retained-member-gene source tables. Figure 6 is a deterministic Discussion schematic that explicitly separates observed pathway-score directions from tissue-state hypotheses. The broader non-evidentiary process summary remains separate in `presentation/expimap/asgsr_process_summary.*`.
 
-`build_asgsr_poster` creates an editable, single-slide 48 x 27 inch landscape PowerPoint using the approved NASA poster template's 16:9 structure and branding. The project objective and cross-study framing are adapted from the midpoint presentation, while all biological claims use the final robustness-filtered analysis. Native PowerPoint objects are used for poster text, architecture, and tables; the retained-pathway and tissue-state figures are rendered from vector PDFs at 700 dpi, giving at least 300 effective pixels per inch at final placement. When LibreOffice is installed, the command also exports the print PDF, 4,800 x 2,700 pixel preview, and a 300-dpi standalone architecture graphic.
+`build_asgsr_poster` creates an editable, single-slide 48 x 27 inch landscape PowerPoint using the approved NASA poster template's 16:9 structure and branding. The project objective and cross-study framing are adapted from the midpoint presentation, while all biological claims use the final robustness-filtered analysis. Native PowerPoint objects are used for poster text, architecture, and tables. The retained-pathway plot is regenerated at a poster-readable 400 dpi from the same source data as manuscript Figure 3, and the tissue-state figure is rendered from its vector PDF at 700 dpi; both exceed 300 effective pixels per inch at final placement. When LibreOffice is installed, the command also exports the print PDF, 4,800 x 2,700 pixel preview, and a 300-dpi standalone architecture graphic.
 
 ## Model scope
 
