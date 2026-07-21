@@ -127,6 +127,14 @@ def set_line(shape, color: str, width: float = 1.0) -> None:
     shape.line.width = Pt(width)
 
 
+def keep_words_intact(paragraph) -> None:
+    """Require PowerPoint to wrap Latin text only at word boundaries."""
+    properties = paragraph._p.get_or_add_pPr()
+    properties.set("latinLnBrk", "0")
+    properties.set("eaLnBrk", "0")
+    properties.set("hangingPunct", "0")
+
+
 def add_text(
     slide,
     value: str,
@@ -158,6 +166,7 @@ def add_text(
     paragraph.space_before = Pt(0)
     paragraph.space_after = Pt(0)
     paragraph.line_spacing = 1.0
+    keep_words_intact(paragraph)
     run = paragraph.add_run()
     run.text = value
     run.font.name = FONT
@@ -193,6 +202,7 @@ def add_paragraphs(
         paragraph.space_before = Pt(0)
         paragraph.space_after = Pt(gap)
         paragraph.line_spacing = 1.0
+        keep_words_intact(paragraph)
         run = paragraph.add_run()
         run.text = value
         run.font.name = FONT
@@ -315,6 +325,7 @@ def add_box(
     first = frame.paragraphs[0]
     first.alignment = PP_ALIGN.CENTER
     first.space_after = Pt(2)
+    keep_words_intact(first)
     run = first.add_run()
     run.text = title
     run.font.name = FONT
@@ -325,6 +336,7 @@ def add_box(
     second.alignment = PP_ALIGN.CENTER
     second.space_before = Pt(0)
     second.space_after = Pt(0)
+    keep_words_intact(second)
     run = second.add_run()
     run.text = subtitle
     run.font.name = FONT
@@ -396,6 +408,7 @@ def set_table_cell(
     cell.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     paragraph = cell.text_frame.paragraphs[0]
     paragraph.alignment = PP_ALIGN.CENTER if center else PP_ALIGN.LEFT
+    keep_words_intact(paragraph)
     run = paragraph.add_run()
     run.text = value
     run.font.name = FONT
@@ -1232,11 +1245,25 @@ def validate(prs: Presentation) -> None:
         if shape.top + shape.height > prs.slide_height + 1:
             raise ValueError(f"{shape.name!r} exceeds the slide height")
         if shape.has_text_frame:
-            normalized = " ".join(shape.text.split())
-            if len(normalized) >= 60 and shape.text_frame.word_wrap:
-                raise ValueError(
-                    f"{shape.name!r} contains long auto-wrapped text; author explicit lines"
-                )
+            for paragraph in shape.text_frame.paragraphs:
+                if not paragraph.text:
+                    continue
+                properties = paragraph._p.get_or_add_pPr()
+                if properties.get("latinLnBrk") != "0":
+                    raise ValueError(
+                        f"{shape.name!r} allows a Latin word to break between letters"
+                    )
+        if shape.has_table:
+            for row in shape.table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.text_frame.paragraphs:
+                        if not paragraph.text:
+                            continue
+                        properties = paragraph._p.get_or_add_pPr()
+                        if properties.get("latinLnBrk") != "0":
+                            raise ValueError(
+                                "A table cell allows a Latin word to break between letters"
+                            )
 
 
 def render_poster(pptx_path: Path) -> tuple[Path | None, Path | None]:
@@ -1393,7 +1420,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
 
     add_panel(slide, left_x, 5.35, left_w, 3.78)
     add_section(slide, "ABSTRACT", left_x + 0.28, 5.55, left_w - 0.56)
-    abstract = "\n".join(
+    abstract = " ".join(
         (
             "Mission differences can obscure spaceflight responses shared across studies.",
             "We mapped NASA OSDR mouse bulk RNA sequencing samples to tissue-matched ARCHS4",
@@ -1414,7 +1441,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         2.50,
         size=18.5,
         color=BODY,
-        word_wrap=False,
+        word_wrap=True,
     )
     abstract_shape.text_frame.auto_size = MSO_AUTO_SIZE.NONE
 
@@ -1447,8 +1474,8 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     context_note = add_text(
         slide,
         (
-            "Study identity and protocol can dominate an unconstrained expression representation.\n"
-            "Tissue-matched reference mapping, accession conditioning, and equal project weighting\n"
+            "Study identity and protocol can dominate an unconstrained expression representation. "
+            "Tissue-matched reference mapping, accession conditioning, and equal project weighting "
             "reduce this bias without claiming to remove all mission confounding."
         ),
         left_x + 0.55,
@@ -1457,7 +1484,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         1.55,
         size=19,
         color=BODY,
-        word_wrap=False,
+        word_wrap=True,
     )
     context_note.text_frame.auto_size = MSO_AUTO_SIZE.NONE
     add_text(
@@ -1484,7 +1511,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         size=14.5,
         color=MUTED,
         italic=True,
-        word_wrap=False,
+        word_wrap=True,
     )
     scope_note.text_frame.auto_size = MSO_AUTO_SIZE.NONE
     add_text(
@@ -1522,7 +1549,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     robustness_note = add_text(
         slide,
         (
-            "Complementary programs add a plausible perspective beyond the dominant phenotype\n"
+            "Complementary programs add a plausible perspective beyond the dominant phenotype "
             "in prior literature. De novo nodes were not retained in the final models."
         ),
         left_x + 0.55,
@@ -1531,7 +1558,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         1.15,
         size=16.5,
         color=BODY,
-        word_wrap=False,
+        word_wrap=True,
     )
     robustness_note.text_frame.auto_size = MSO_AUTO_SIZE.NONE
 
@@ -1571,8 +1598,8 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     results_note = add_text(
         slide,
         (
-            "Filled markers show 13 retained programs. Open diamonds are literature-aligned context only,\n"
-            "not retained findings; keratinization reversed in one of three trainings. Colored ranges span\n"
+            "Filled markers show 13 retained programs. Open diamonds are literature-aligned context only, "
+            "not retained findings; keratinization reversed in one of three trainings. Colored ranges span "
             "three complete trainings; axes are tissue specific."
         ),
         center_x + 0.60,
@@ -1583,7 +1610,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         color=MUTED,
         italic=True,
         align=PP_ALIGN.CENTER,
-        word_wrap=False,
+        word_wrap=True,
     )
     results_note.text_frame.auto_size = MSO_AUTO_SIZE.NONE
 
@@ -1628,8 +1655,8 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     conclusion_1 = add_text(
         slide,
         (
-            "\u2022 Spleen was strongest: T cell receptor, neutrophil degranulation, and C\u2011type lectin\n"
-            "  receptor programs were lower across five projects and three trainings; all had GSEA FDR <0.05."
+            "\u2022 Spleen was strongest: T cell receptor, neutrophil degranulation, and C\u2011type lectin "
+            "receptor programs were lower across five projects and three trainings; all had GSEA FDR <0.05."
         ),
         right_x + 0.55,
         20.02,
@@ -1637,14 +1664,14 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         0.68,
         size=17.5,
         color=BODY,
-        word_wrap=False,
+        word_wrap=True,
     )
     conclusion_1.text_frame.auto_size = MSO_AUTO_SIZE.NONE
     conclusion_2 = add_text(
         slide,
         (
-            "\u2022 Skin and thymus emphasized lower tissue maintenance programs; liver showed lower\n"
-            "  adaptive immune signaling amid heterogeneous metabolism."
+            "\u2022 Skin and thymus emphasized lower tissue maintenance programs; liver showed lower "
+            "adaptive immune signaling amid heterogeneous metabolism."
         ),
         right_x + 0.55,
         20.80,
@@ -1652,7 +1679,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         0.68,
         size=17.5,
         color=BODY,
-        word_wrap=False,
+        word_wrap=True,
     )
     conclusion_2.text_frame.auto_size = MSO_AUTO_SIZE.NONE
     conclusion_3 = add_text(
@@ -1664,7 +1691,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         0.36,
         size=17.5,
         color=BODY,
-        word_wrap=False,
+        word_wrap=True,
     )
     conclusion_3.text_frame.auto_size = MSO_AUTO_SIZE.NONE
 
@@ -1677,7 +1704,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         right_w - 0.56,
         size=22,
     )
-    references = "\n".join(
+    references = " ".join(
         (
             "1 Gebre et al., NAR 2025 (OSDR). 2 Lotfollahi et al., Nat Cell Biol 2023 (expiMap).",
             "3 Lachmann et al., Nat Commun 2018 (ARCHS4). 4 Milacic et al., NAR 2024 (Reactome).",
@@ -1693,7 +1720,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         0.78,
         size=13.5,
         color=BODY,
-        word_wrap=False,
+        word_wrap=True,
     )
     references_shape.text_frame.auto_size = MSO_AUTO_SIZE.NONE
 
@@ -1713,7 +1740,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     acknowledgements = add_text(
         slide,
         (
-            "Mentor: James Casaletto | NASA Space Life Sciences Training Program\n"
+            "Mentor: James Casaletto | NASA Space Life Sciences Training Program | "
             "NASA OSDR, ARCHS4, and Reactome investigators and curation teams"
         ),
         center_x + 0.35,
@@ -1722,7 +1749,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         0.88,
         size=16,
         color=BODY,
-        word_wrap=False,
+        word_wrap=True,
     )
     acknowledgements.text_frame.auto_size = MSO_AUTO_SIZE.NONE
     add_text(
