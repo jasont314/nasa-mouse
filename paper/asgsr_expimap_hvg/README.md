@@ -8,6 +8,7 @@ The primary descriptive quantity is the equally weighted project- or accession-s
 
 - `asgsr_2026_abstract.md`: ASGSR-formatted abstract, under the 300-word limit.
 - `manuscript.md`: full manuscript with references and embedded figure captions.
+- `poster/`: editable 48 x 36 inch PowerPoint poster, print PDF, high-resolution preview, and 700-dpi embedded figure assets.
 - `supplementary_methods.md`: exact runs, effect definitions, safeguards, and rebuild commands.
 - `tissue_selection_audit.md`: reconstruction of the eight-tissue screen and corrected kidney/spleen reassessment.
 - `figures/`: publication figures in PNG and vector PDF formats.
@@ -41,9 +42,12 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_sc
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.integrate_reassessed_tissues_paper
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.build_publication_figures
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.render_asgsr_documents
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.build_asgsr_poster
 ```
 
 `build_publication_figures` authors the final main figures and dense supplementary summaries at a 7.2-inch publication width, writes 300-dpi PNG and vector PDF copies, and checks image borders and dimensions. It also produces the latent-mapping, sample-score, and retained-member-gene source tables. Figure 6 is a deterministic Discussion schematic that explicitly separates observed pathway-score directions from tissue-state hypotheses. The broader non-evidentiary process summary remains separate in `presentation/expimap/asgsr_process_summary.*`.
+
+`build_asgsr_poster` creates an editable, single-slide 48 x 36 inch landscape PowerPoint. Native PowerPoint objects are used for poster text, workflow, and tables; the retained-pathway and tissue-state figures are rendered from vector PDFs at 700 dpi, giving at least 300 effective pixels per inch at final placement. When LibreOffice is installed, the command also exports the print PDF and 4,800 x 3,600 pixel preview.
 
 ## Model scope
 
