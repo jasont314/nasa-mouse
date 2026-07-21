@@ -1252,17 +1252,16 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     add_panel(slide, left_x, 5.35, left_w, 3.78)
     add_section(slide, "ABSTRACT", left_x + 0.28, 5.55, left_w - 0.56)
     abstract = (
-        "Spaceflight affects multiple organs, but differences among missions can "
-        "obscure responses that recur across studies. We asked whether pathway-"
-        "constrained expiMap models could identify reproducible programs in NASA "
-        "OSDR mouse bulk RNA-seq. Samples were mapped into tissue-matched ARCHS4 "
-        "references using approximately 2,000 highly variable genes linked to current "
-        "mouse Reactome pathways. Project-balanced flight-ground shifts were evaluated "
-        "with enrichment, held-out projects, three complete trainings, composition "
-        "proxies, and member-gene review. Retained patterns included lower repair and "
-        "cytoskeletal programs in thymus, lower maintenance and barrier programs in "
-        "skin, lower adaptive-immune programs in liver, and coordinated lower adaptive "
-        "and innate immune programs in spleen, the strongest multi-pathway result."
+        "Mission differences can obscure spaceflight responses shared across studies. "
+        "We mapped NASA OSDR mouse bulk RNA sequencing samples to ARCHS4 references "
+        "matched by tissue and analyzed about 2,000 highly variable genes with expiMap "
+        "models constrained by Reactome. Flight versus ground shifts were balanced "
+        "across projects and assessed with enrichment tests, project holdouts, three "
+        "training runs, composition proxies, review of member genes, and post-score "
+        "literature annotation. Retained programs were lower for thymic repair and "
+        "cytoskeletal processes, skin maintenance and barrier processes, liver adaptive "
+        "immunity, and spleen adaptive and innate immunity. Spleen showed the strongest "
+        "result across multiple pathways."
     )
     add_text(
         slide,
@@ -1270,7 +1269,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         left_x + 0.50,
         6.48,
         left_w - 1.00,
-        2.42,
+        2.50,
         size=20,
         color=BODY,
     )
