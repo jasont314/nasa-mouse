@@ -15,6 +15,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
+import pandas as pd
 from PIL import Image
 from pptx import Presentation
 from pptx.dml.color import RGBColor
@@ -73,6 +74,43 @@ THYMUS = "6A4C93"
 SKIN = "C65D37"
 LIVER = "13877C"
 SPLEEN = "A64D67"
+
+ALIGNED_CONTEXT_TERMS = {
+    "thymus": (
+        "R-MMU-69278_CELL_CYCLE_MITOTIC",
+        "R-MMU-202403_TCR_SIGNALING",
+    ),
+    "skin": ("R-MMU-6805567_KERATINIZATION",),
+    "liver": ("R-MMU-422356_REGULATION_OF_INSULIN_SECRETION",),
+    "spleen": (),
+}
+POSTER_TERMS = {
+    "thymus": (
+        *ALIGNED_CONTEXT_TERMS["thymus"],
+        *RETAINED_TERMS["thymus"],
+    ),
+    "skin": (
+        *ALIGNED_CONTEXT_TERMS["skin"],
+        "R-MMU-421270_CELL_CELL_JUNCTION_ORGANIZATION",
+        "R-MMU-3247509_CHROMATIN_MODIFYING_ENZYMES",
+        "R-MMU-5358351_SIGNALING_BY_HEDGEHOG",
+        "R-MMU-428157_SPHINGOLIPID_METABOLISM",
+        "R-MMU-73894_DNA_REPAIR",
+    ),
+    "liver": (
+        *ALIGNED_CONTEXT_TERMS["liver"],
+        *RETAINED_TERMS["liver"],
+    ),
+    "spleen": RETAINED_TERMS["spleen"],
+}
+CONTEXT_DISPLAY_LABELS = {
+    "R-MMU-69278_CELL_CYCLE_MITOTIC": "Mitotic cell cycle",
+    "R-MMU-202403_TCR_SIGNALING": "T-cell receptor signaling",
+    "R-MMU-6805567_KERATINIZATION": "Keratinization",
+    "R-MMU-422356_REGULATION_OF_INSULIN_SECRETION": (
+        "Regulation of insulin secretion"
+    ),
+}
 
 
 def rgb(value: str) -> RGBColor:
@@ -559,7 +597,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     model.adjustments[0] = 0.04
     add_text(
         slide,
-        "Tissue expiMap reference",
+        "expiMap tissue model",
         x + 4.82,
         y + 1.42,
         4.40,
@@ -567,12 +605,15 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         size=17.5,
         color=INK,
         bold=True,
+        word_wrap=False,
     )
 
     input_x = x + 4.95
-    encoder_x = x + 5.35
-    encoder_w = 2.10
-    latent_x = x + 7.68
+    encoder_x = x + 5.48
+    encoder_w = 1.48
+    latent_x = x + 7.42
+    decoder_x = x + 10.58
+    decoder_w = 1.48
     output_x = x + 13.55
     gene_ys = [y + 2.05 + 0.42 * index for index in range(4)]
     for gene_y in gene_ys:
@@ -593,16 +634,17 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
         Inches(encoder_w),
         Inches(1.42),
     )
+    encoder.rotation = 90
     set_fill(encoder, "DCE6F2")
     set_line(encoder, BLUE, 1.4)
     add_text(
         slide,
-        "Dense encoder",
-        encoder_x + 0.12,
+        "Encoder",
+        encoder_x - 0.05,
         y + 2.42,
-        encoder_w - 0.24,
+        encoder_w + 0.10,
         0.38,
-        size=14.5,
+        size=14,
         color=INK,
         bold=True,
         align=PP_ALIGN.CENTER,
@@ -614,7 +656,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
             slide,
             input_x + 0.24,
             gene_y + 0.12,
-            encoder_x + 0.18,
+            encoder_x + 0.04,
             y + 2.63,
             color="A9BBD0",
             width=0.8,
@@ -628,7 +670,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     for label, color, node_y in latent_rows:
         add_connector(
             slide,
-            encoder_x + encoder_w - 0.18,
+            encoder_x + encoder_w - 0.04,
             y + 2.63,
             latent_x,
             node_y + 0.16,
@@ -671,45 +713,7 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
             word_wrap=False,
         )
 
-    add_rect(
-        slide,
-        x + 10.55,
-        y + 1.42,
-        3.55,
-        0.58,
-        "E9F4EE",
-        line=GREEN,
-        line_width=1.1,
-        rounded=True,
-    )
-    add_text(
-        slide,
-        "Reactome program mask",
-        x + 10.68,
-        y + 1.48,
-        3.29,
-        0.44,
-        size=14.5,
-        color=GREEN,
-        bold=True,
-        align=PP_ALIGN.CENTER,
-        valign=MSO_ANCHOR.MIDDLE,
-        word_wrap=False,
-    )
-    add_down_arrow(slide, x + 12.00, y + 2.03, GREEN)
-
     output_ys = [y + 2.03 + 0.38 * index for index in range(4)]
-    for out_y in output_ys:
-        node = slide.shapes.add_shape(
-            MSO_SHAPE.OVAL,
-            Inches(output_x),
-            Inches(out_y),
-            Inches(0.24),
-            Inches(0.24),
-        )
-        set_fill(node, "A9BBD0")
-        node.line.fill.background()
-
     connection_map = [(0, 0), (0, 2), (1, 1), (1, 3), (2, 2), (2, 3)]
     for latent_index, output_index in connection_map:
         _, color, node_y = latent_rows[latent_index]
@@ -722,6 +726,69 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
             color=color,
             width=1.2,
         )
+
+    decoder = slide.shapes.add_shape(
+        MSO_SHAPE.TRAPEZOID,
+        Inches(decoder_x),
+        Inches(y + 1.92),
+        Inches(decoder_w),
+        Inches(1.42),
+    )
+    decoder.rotation = 270
+    set_fill(decoder, "E5F1EC")
+    set_line(decoder, GREEN, 1.4)
+    add_text(
+        slide,
+        "Decoder",
+        decoder_x - 0.12,
+        y + 2.42,
+        decoder_w + 0.24,
+        0.38,
+        size=13.5,
+        color=INK,
+        bold=True,
+        align=PP_ALIGN.CENTER,
+        valign=MSO_ANCHOR.MIDDLE,
+        word_wrap=False,
+    )
+
+    for out_y in output_ys:
+        node = slide.shapes.add_shape(
+            MSO_SHAPE.OVAL,
+            Inches(output_x),
+            Inches(out_y),
+            Inches(0.24),
+            Inches(0.24),
+        )
+        set_fill(node, "A9BBD0")
+        node.line.fill.background()
+
+    add_rect(
+        slide,
+        x + 10.12,
+        y + 1.42,
+        3.78,
+        0.58,
+        "E9F4EE",
+        line=GREEN,
+        line_width=1.1,
+        rounded=True,
+    )
+    add_text(
+        slide,
+        "Reactome mask selects pathway-gene edges",
+        x + 10.25,
+        y + 1.48,
+        3.52,
+        0.44,
+        size=13.2,
+        color=GREEN,
+        bold=True,
+        align=PP_ALIGN.CENTER,
+        valign=MSO_ANCHOR.MIDDLE,
+        word_wrap=False,
+    )
+    add_down_arrow(slide, decoder_x + decoder_w / 2, y + 2.03, GREEN)
 
     add_text(
         slide,
@@ -737,10 +804,10 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     )
     add_text(
         slide,
-        "annotated program scores",
-        latent_x - 0.30,
+        "program scores",
+        latent_x - 0.05,
         y + 3.48,
-        3.10,
+        2.65,
         0.35,
         size=14,
         color=MUTED,
@@ -750,9 +817,9 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     add_text(
         slide,
         "masked decoder",
-        x + 10.65,
+        decoder_x - 0.18,
         y + 3.48,
-        2.45,
+        decoder_w + 0.36,
         0.35,
         size=14,
         color=MUTED,
@@ -762,9 +829,9 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     add_text(
         slide,
         "output genes",
-        x + 12.70,
+        x + 12.85,
         y + 3.48,
-        1.85,
+        1.65,
         0.35,
         size=14,
         color=MUTED,
@@ -868,8 +935,48 @@ def add_architecture(slide, x: float, y: float, w: float, h: float) -> None:
     )
 
 
+def load_poster_evidence() -> pd.DataFrame:
+    """Combine the retained core with explicitly qualified literature anchors."""
+    retained = load_retained_evidence().copy()
+    retained["poster_tier"] = "retained"
+    retained.loc[
+        retained["term"].eq("R-MMU-421270_CELL_CELL_JUNCTION_ORGANIZATION"),
+        "evidence_role",
+    ] = "aligned"
+
+    context = pd.read_csv(
+        PAPER_DIR / "source_data/table_s24_pathway_robustness_evidence.tsv",
+        sep="\t",
+    )
+    context = context.loc[
+        [
+            row.term in ALIGNED_CONTEXT_TERMS.get(row.tissue, ())
+            for row in context.itertuples(index=False)
+        ]
+    ].copy()
+    context["display_label"] = context["term"].map(CONTEXT_DISPLAY_LABELS)
+    context["evidence_role"] = "aligned"
+    context["analysis_role"] = "context_only"
+    context["poster_tier"] = "literature_anchor"
+    context["seed_effect_median"] = context[
+        ["effect_seed2020", "effect_seed2021", "effect_seed2022"]
+    ].median(axis=1)
+    context["seed_effect_minimum"] = context[
+        ["effect_seed2020", "effect_seed2021", "effect_seed2022"]
+    ].min(axis=1)
+    context["seed_effect_maximum"] = context[
+        ["effect_seed2020", "effect_seed2021", "effect_seed2022"]
+    ].max(axis=1)
+
+    columns = sorted(set(retained.columns).union(context.columns))
+    return pd.concat(
+        [retained.reindex(columns=columns), context.reindex(columns=columns)],
+        ignore_index=True,
+    )
+
+
 def render_poster_pathway_asset(output: Path) -> None:
-    """Render the retained pathways at a poster-readable aspect and type scale."""
+    """Render retained pathways and qualified aligned anchors for the poster."""
     role_colors = {
         "aligned": "#009E73",
         "complementary": "#0072B2",
@@ -880,7 +987,7 @@ def render_poster_pathway_asset(output: Path) -> None:
         "complementary": "s",
         "context_sensitive": "^",
     }
-    evidence = load_retained_evidence()
+    evidence = load_poster_evidence()
     style = {
         "font.family": "DejaVu Sans",
         "font.size": 14,
@@ -900,7 +1007,7 @@ def render_poster_pathway_asset(output: Path) -> None:
             layout="constrained",
         )
         for panel, ax, tissue in zip("abcd", axes.flat, MAIN_TISSUES):
-            terms = RETAINED_TERMS[tissue]
+            terms = POSTER_TERMS[tissue]
             subset = (
                 evidence.loc[evidence["tissue"].eq(tissue)]
                 .set_index("term")
@@ -923,22 +1030,24 @@ def render_poster_pathway_asset(output: Path) -> None:
                     zorder=2,
                 )
                 role = str(row.evidence_role)
+                is_anchor = row.poster_tier == "literature_anchor"
                 ax.hlines(
                     position,
                     float(row.seed_effect_minimum),
                     float(row.seed_effect_maximum),
                     color=role_colors[role],
-                    linewidth=2.4,
+                    linewidth=2.0 if is_anchor else 2.4,
+                    linestyle="--" if is_anchor else "-",
                     zorder=3,
                 )
                 ax.scatter(
                     float(row.seed_effect_median),
                     position,
-                    marker=role_markers[role],
+                    marker="D" if is_anchor else role_markers[role],
                     s=132,
-                    color=role_colors[role],
-                    edgecolor="white",
-                    linewidth=1.1,
+                    facecolor="white" if is_anchor else role_colors[role],
+                    edgecolor=role_colors[role] if is_anchor else "white",
+                    linewidth=1.8 if is_anchor else 1.1,
                     zorder=4,
                 )
 
@@ -955,6 +1064,10 @@ def render_poster_pathway_asset(output: Path) -> None:
                     for label in subset["display_label"]
                 ]
             )
+            for tick, row in zip(ax.get_yticklabels(), subset.itertuples(index=False)):
+                tick.set_color(role_colors[str(row.evidence_role)])
+                if row.poster_tier == "literature_anchor":
+                    tick.set_fontstyle("italic")
             project_count = int(subset["expimap_n_projects"].max())
             ax.set_title(
                 f"{panel}  {tissue.title()} ({project_count} projects)",
@@ -1002,15 +1115,28 @@ def render_poster_pathway_asset(output: Path) -> None:
                     ("context_sensitive", "Context sensitive"),
                 )
             ],
+            Line2D(
+                [0],
+                [0],
+                marker="D",
+                color=role_colors["aligned"],
+                linestyle="--",
+                markerfacecolor="white",
+                markeredgecolor=role_colors["aligned"],
+                markeredgewidth=1.5,
+                linewidth=2.0,
+                markersize=7,
+                label="Aligned context; model sensitive",
+            ),
         ]
         fig.legend(
             handles=handles,
             loc="outside lower center",
-            ncol=4,
+            ncol=5,
             frameon=False,
-            fontsize=14,
-            handlelength=2.0,
-            columnspacing=2.0,
+            fontsize=12.5,
+            handlelength=1.8,
+            columnspacing=1.25,
         )
         fig.get_layout_engine().set(
             w_pad=0.12,
@@ -1023,7 +1149,9 @@ def render_poster_pathway_asset(output: Path) -> None:
             output,
             dpi=400,
             facecolor="white",
-            metadata={"Title": "All 13 primary retained expiMap pathway shifts"},
+            metadata={
+                "Title": "Aligned anchors and retained expiMap pathway shifts"
+            },
         )
         plt.close(fig)
 
@@ -1254,11 +1382,11 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     abstract = (
         "Mission differences can obscure spaceflight responses shared across studies. "
         "We mapped NASA OSDR mouse bulk RNA sequencing samples to ARCHS4 references "
-        "matched by tissue and analyzed about 2,000 highly variable genes with expiMap "
-        "models constrained by Reactome. Flight versus ground shifts were balanced "
+        "matched by tissue. We used expiMap models constrained by Reactome to analyze "
+        "about 2,000 highly variable genes. Flight versus ground shifts were balanced "
         "across projects and assessed with enrichment tests, project holdouts, three "
-        "training runs, composition proxies, review of member genes, and post-score "
-        "literature annotation. Retained programs were lower for thymic repair and "
+        "training runs, composition proxies, review of member genes, and literature "
+        "annotation after scoring. Retained programs were lower for thymic repair and "
         "cytoskeletal processes, skin maintenance and barrier processes, liver adaptive "
         "immunity, and spleen adaptive and innate immunity. Spleen showed the strongest "
         "result across multiple pathways."
@@ -1403,7 +1531,7 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
     add_panel(slide, center_x, 13.70, center_w, 10.98)
     add_section(
         slide,
-        "RESULTS: ALL 13 PRIMARY RETAINED PATHWAY SHIFTS",
+        "RESULTS: ALIGNED ANCHORS AND RETAINED PROGRAM SHIFTS",
         center_x + 0.28,
         13.90,
         center_w - 0.56,
@@ -1418,18 +1546,18 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         8.82,
         name="Retained pathway shifts",
         description=(
-            "Project-balanced expiMap pathway shifts for thymus, skin, liver, and "
-            "spleen, with project effects and three-training ranges."
+            "Literature-aligned anchors and retained expiMap pathway shifts for "
+            "thymus, skin, liver, and spleen, with project effects and "
+            "three-training ranges."
         ),
     )
     add_text(
         slide,
         (
-            "All 13 primary retained programs are shown; three exploratory kidney "
-            "programs remain in the paper. Open circles are OSDR projects; colored "
-            "ranges span three complete "
-            "reference-query trainings. All displayed shifts are lower in flight; "
-            "axes are tissue specific."
+            "Filled markers show the 13 primary retained programs. Four open green "
+            "diamonds show literature-aligned anchors that failed at least one "
+            "robustness gate and provide context rather than additional claims. "
+            "Colored ranges span three complete trainings; axes are tissue specific."
         ),
         center_x + 0.60,
         23.62,
@@ -1483,17 +1611,17 @@ def build() -> tuple[Path, Path | None, Path | None, Path | None, list[float]]:
         slide,
         [
             (
-                "\u2022 Spleen was strongest: T-cell receptor, neutrophil "
-                "degranulation, and C-type lectin receptor programs were lower "
+                "\u2022 Spleen was strongest: T cell receptor, neutrophil "
+                "degranulation, and C\u2011type lectin receptor programs were lower "
                 "across five projects and three trainings; all had GSEA FDR <0.05."
             ),
             (
-                "\u2022 Skin and thymus emphasized lower tissue-maintenance programs; "
-                "liver added a lower adaptive-immune axis to heterogeneous metabolism."
+                "\u2022 Skin and thymus emphasized lower tissue maintenance programs; "
+                "liver showed lower adaptive immune signaling amid heterogeneous metabolism."
             ),
             (
                 "\u2022 Bulk latent scores are testable hypotheses, not causal or "
-                "cell-type-resolved pathway activity."
+                "cell resolved measures of pathway activity."
             ),
         ],
         right_x + 0.55,
