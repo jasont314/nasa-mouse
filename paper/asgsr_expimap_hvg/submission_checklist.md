@@ -6,10 +6,11 @@ Verified against the official [ASGSR 2026 abstract instructions](https://asgsr.o
 - [x] Presenting author is identified.
 - [x] Submission content is a title, authors and affiliations, and one abstract paragraph.
 - [x] Abstract is no more than 300 words, including acknowledgment and funding language.
-- [x] Abstract paragraph is 240 words, including the acknowledgment sentence.
+- [x] Abstract paragraph is 236 words.
 - [x] Abstract contains no figure, graph, or table.
 - [x] Abstract avoids confidential or proprietary information because accepted abstracts are public.
-- [x] Affiliation confirmed as NASA Space Life Sciences Training Program, NASA Ames Research Center, Moffett Field, California, USA.
+- [x] Presenting-author affiliation is University of California, Berkeley, Berkeley, California, USA.
+- [ ] Confirm James A. Casaletto's final submission affiliation; the current draft uses Blue Marble Space Institute of Science, NASA Ames Research Center, Mountain View, California, USA.
 - [x] Corresponding email recorded as `jasontrinh@berkeley.edu`; confirm only whether the submission form displays it publicly.
 - [ ] Confirm whether an abstract was submitted by the June 14, 2026, 23:59 EDT regular deadline. If not, monitor the scheduled July late-breaking call and August deadline or contact `meetings@asgsr.org`; the public 2026 late-breaking submission page was not yet visible on July 13.
 - [ ] Confirm author clearance and any required NASA scientific-information review before public submission.
