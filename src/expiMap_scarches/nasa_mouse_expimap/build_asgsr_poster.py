@@ -42,15 +42,15 @@ TEMPLATE_PATH = (
 )
 
 TITLE = (
-    "Cross-mission expiMap analysis recovers established tissue responses "
-    "and identifies complementary pathway shifts in mouse spaceflight "
-    "transcriptomes"
+    "Cross-Mission expiMap Analysis Recovers Established Tissue Responses "
+    "and Identifies Complementary Pathway Shifts in Mouse Spaceflight "
+    "Transcriptomes"
 )
 TITLE_LINE_1 = (
-    "Cross-mission expiMap analysis recovers established tissue responses"
+    "Cross-Mission expiMap Analysis Recovers Established Tissue Responses"
 )
 TITLE_LINE_2 = (
-    "and identifies complementary pathway shifts in mouse spaceflight transcriptomes"
+    "and Identifies Complementary Pathway Shifts in Mouse Spaceflight Transcriptomes"
 )
 
 SLIDE_W = 48.0

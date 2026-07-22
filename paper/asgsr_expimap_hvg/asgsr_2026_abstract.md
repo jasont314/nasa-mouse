@@ -1,4 +1,4 @@
-# Cross-mission expiMap analysis recovers established tissue responses and identifies complementary pathway shifts in mouse spaceflight transcriptomes
+# Cross-Mission expiMap Analysis Recovers Established Tissue Responses and Identifies Complementary Pathway Shifts in Mouse Spaceflight Transcriptomes
 
 ## Authors and affiliations
 

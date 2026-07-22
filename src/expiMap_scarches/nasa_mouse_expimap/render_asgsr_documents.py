@@ -79,15 +79,15 @@ def run() -> None:
     outputs = [
         render(
             "asgsr_2026_abstract.md",
-            "Cross-mission expiMap analysis recovers established tissue responses "
-            "and identifies complementary pathway shifts in mouse spaceflight "
-            "transcriptomes",
+            "Cross-Mission expiMap Analysis Recovers Established Tissue Responses "
+            "and Identifies Complementary Pathway Shifts in Mouse Spaceflight "
+            "Transcriptomes",
         ),
         render(
             "manuscript.md",
-            "Cross-mission expiMap analysis recovers established tissue responses "
-            "and identifies complementary pathway shifts in mouse spaceflight "
-            "transcriptomes",
+            "Cross-Mission expiMap Analysis Recovers Established Tissue Responses "
+            "and Identifies Complementary Pathway Shifts in Mouse Spaceflight "
+            "Transcriptomes",
         ),
     ]
     try:
