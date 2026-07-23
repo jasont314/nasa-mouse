@@ -8,7 +8,7 @@
 
 <sup>2</sup> Blue Marble Space Institute of Science, NASA Ames Research Center, Mountain View, California, USA
 
-<sup>3</sup> Space Biosciences Research Branch, NASA Ames Research Center, Moffett Field, California, USA
+<sup>3</sup> NASA Ames Research Center, Moffett Field, California, USA
 
 ## Abstract
 
