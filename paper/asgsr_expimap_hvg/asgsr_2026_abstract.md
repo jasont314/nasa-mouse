@@ -2,11 +2,13 @@
 
 ## Authors and affiliations
 
-**Jason Trinh**<sup>1</sup> (presenting author); **James A. Casaletto**<sup>2</sup>
+**Jason Trinh**<sup>1</sup> (presenting author); **James A. Casaletto**<sup>2</sup>; **Walter Alvarado**<sup>3</sup>
 
 <sup>1</sup> University of California, Berkeley, Berkeley, California, USA
 
 <sup>2</sup> Blue Marble Space Institute of Science, NASA Ames Research Center, Mountain View, California, USA
+
+<sup>3</sup> Space Biosciences Research Branch, NASA Ames Research Center, Moffett Field, California, USA
 
 ## Abstract
 
