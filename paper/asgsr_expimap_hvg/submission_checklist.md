@@ -14,8 +14,8 @@ Verified against the official [ASGSR 2026 abstract instructions](https://asgsr.o
 - [x] Presenting-author affiliations are the Space Life Sciences Training Program at NASA Ames and the University of California, Berkeley.
 - [ ] Confirm James A. Casaletto's final submission affiliation; the current draft uses Blue Marble Space Institute of Science, NASA Ames Research Center, Mountain View, California, USA.
 - [ ] Replace the funding agency, grant number, and mentor initials placeholders with mentor-approved values.
-- [ ] Replace the AI tool version placeholder with the exact Agency-approved OpenAI Codex model/version used.
-- [ ] Confirm that OpenAI Codex was Agency-approved for every disclosed use and that all AI-assisted content, citations, analyses, code, and visualizations received human review.
+- [ ] Replace the AI tool version placeholder with the exact Agency-approved Microsoft Copilot model/version used.
+- [ ] Confirm that Microsoft Copilot was Agency-approved for every disclosed use and that all AI-assisted content, citations, analyses, code, and visualizations received human review.
 - [ ] Complete the STRIVES Third-Party Permissions section as "no permission" if LLM-generated content remains in the submitted publication.
 - [ ] Identify any AI-generated or AI-modified image in its caption; the current abstract contains no figures.
 - [x] Corresponding email recorded as `jasontrinh@berkeley.edu`; confirm only whether the submission form displays it publicly.

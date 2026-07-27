@@ -22,4 +22,4 @@ This work was supported by [funding agency] (grant #[grant number] to [mentor in
 
 ## AI usage disclosure
 
-OpenAI Codex ([model/version]) assisted with code generation, data processing and analysis, interpretation, visualization generation, and text editing. Jason Trinh reviewed and verified all included AI-assisted output.
+Microsoft Copilot ([model/version]) assisted with code generation, data processing and analysis, interpretation, visualization generation, and text editing. Jason Trinh reviewed and verified all included AI-assisted output.
