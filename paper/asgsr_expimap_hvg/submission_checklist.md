@@ -5,12 +5,19 @@ Verified against the official [ASGSR 2026 abstract instructions](https://asgsr.o
 - [x] Title is under the 100-word limit.
 - [x] Presenting author is identified.
 - [x] Submission content is a title, authors and affiliations, and one abstract paragraph.
-- [x] Abstract is no more than 300 words, including acknowledgment and funding language.
-- [x] Abstract paragraph is 236 words.
+- [x] Scientific abstract paragraph is 230 words; abstract, acknowledgment, and AI notice total 297 words.
+- [x] NASA SLSTP affiliation is listed for the presenting author alongside the institutional affiliation.
+- [x] Required SLSTP funding acknowledgment language is included.
+- [x] NASA STI AI-use notice is included on the first page and identifies the tool, uses, and reviewing author.
 - [x] Abstract contains no figure, graph, or table.
 - [x] Abstract avoids confidential or proprietary information because accepted abstracts are public.
-- [x] Presenting-author affiliation is University of California, Berkeley, Berkeley, California, USA.
+- [x] Presenting-author affiliations are the Space Life Sciences Training Program at NASA Ames and the University of California, Berkeley.
 - [ ] Confirm James A. Casaletto's final submission affiliation; the current draft uses Blue Marble Space Institute of Science, NASA Ames Research Center, Mountain View, California, USA.
+- [ ] Replace the funding agency, grant number, and mentor initials placeholders with mentor-approved values.
+- [ ] Replace the AI tool version placeholder with the exact Agency-approved OpenAI Codex model/version used.
+- [ ] Confirm that OpenAI Codex was Agency-approved for every disclosed use and that all AI-assisted content, citations, analyses, code, and visualizations received human review.
+- [ ] Complete the STRIVES Third-Party Permissions section as "no permission" if LLM-generated content remains in the submitted publication.
+- [ ] Identify any AI-generated or AI-modified image in its caption; the current abstract contains no figures.
 - [x] Corresponding email recorded as `jasontrinh@berkeley.edu`; confirm only whether the submission form displays it publicly.
 - [ ] Confirm whether an abstract was submitted by the June 14, 2026, 23:59 EDT regular deadline. If not, monitor the scheduled July late-breaking call and August deadline or contact `meetings@asgsr.org`; the public 2026 late-breaking submission page was not yet visible on July 13.
 - [ ] Confirm author clearance and any required NASA scientific-information review before public submission.

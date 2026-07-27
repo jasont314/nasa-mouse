@@ -52,9 +52,30 @@ h2 + .figure { break-before: avoid; }
 ul { margin-top: 4pt; }
 """
 
+ABSTRACT_STYLE = """
+body.abstract-document {
+  font-size: 9pt;
+  line-height: 1.28;
+}
+.abstract-document h1 {
+  font-size: 16pt;
+  line-height: 1.12;
+  margin-bottom: 7pt;
+}
+.abstract-document h2 {
+  font-size: 10.5pt;
+  margin: 9pt 0 4pt;
+  padding-bottom: 1pt;
+}
+.abstract-document p { margin-bottom: 4pt; }
+"""
+
 
 def render(source_name: str, title: str) -> Path:
     source = PAPER_DIR / source_name
+    is_abstract = source_name == "asgsr_2026_abstract.md"
+    body_attribute = ' class="abstract-document"' if is_abstract else ""
+    style = STYLE + ABSTRACT_STYLE if is_abstract else STYLE
     body = markdown.markdown(
         source.read_text(encoding="utf-8"),
         extensions=["extra", "md_in_html", "sane_lists", "smarty"],
@@ -65,9 +86,9 @@ def render(source_name: str, title: str) -> Path:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<style>{STYLE}</style>
+<style>{style}</style>
 </head>
-<body>{body}</body>
+<body{body_attribute}>{body}</body>
 </html>
 """
     output = source.with_suffix(".html")

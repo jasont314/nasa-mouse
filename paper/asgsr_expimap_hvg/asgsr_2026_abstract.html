@@ -44,14 +44,35 @@ h2 + .figure { break-before: avoid; }
 .figure-wide p:last-child { font-size: 8.1pt; grid-column: 2; line-height: 1.30; margin: 0; }
 .figure-wide img { max-height: 6.75in; width: 100%; }
 ul { margin-top: 4pt; }
+
+body.abstract-document {
+  font-size: 9pt;
+  line-height: 1.28;
+}
+.abstract-document h1 {
+  font-size: 16pt;
+  line-height: 1.12;
+  margin-bottom: 7pt;
+}
+.abstract-document h2 {
+  font-size: 10.5pt;
+  margin: 9pt 0 4pt;
+  padding-bottom: 1pt;
+}
+.abstract-document p { margin-bottom: 4pt; }
 </style>
 </head>
-<body><h1>Cross-Mission expiMap Analysis Recovers Established Tissue Responses and Identifies Complementary Pathway Shifts in Mouse Spaceflight Transcriptomes</h1>
+<body class="abstract-document"><h1>Cross-Mission expiMap Analysis Recovers Established Tissue Responses and Identifies Complementary Pathway Shifts in Mouse Spaceflight Transcriptomes</h1>
 <h2>Authors and affiliations</h2>
-<p><strong>Jason Trinh</strong><sup>1</sup> (presenting author); <strong>James A. Casaletto</strong><sup>2</sup>; <strong>Walter Alvarado</strong><sup>3</sup></p>
-<p><sup>1</sup> University of California, Berkeley, Berkeley, California, USA</p>
-<p><sup>2</sup> Blue Marble Space Institute of Science, NASA Ames Research Center, Mountain View, California, USA</p>
-<p><sup>3</sup> NASA Ames Research Center, Moffett Field, California, USA</p>
+<p><strong>Jason Trinh</strong><sup>1,2</sup> (presenting author); <strong>James A. Casaletto</strong><sup>3</sup>; <strong>Walter Alvarado</strong><sup>4</sup></p>
+<p><sup>1</sup> Space Life Sciences Training Program, NASA Ames Research Center, Moffett Field, California, USA</p>
+<p><sup>2</sup> University of California, Berkeley, Berkeley, California, USA</p>
+<p><sup>3</sup> Blue Marble Space Institute of Science, NASA Ames Research Center, Mountain View, California, USA</p>
+<p><sup>4</sup> NASA Ames Research Center, Moffett Field, California, USA</p>
 <h2>Abstract</h2>
-<p>Spaceflight affects multiple organs, but differences among missions can obscure biological responses that recur across studies. We asked whether expiMap, a pathway-constrained variational autoencoder, could identify reproducible biological programs in mouse spaceflight transcriptomes. NASA Open Science Data Repository bulk RNA-sequencing samples were mapped into tissue-matched expiMap models trained on non-spaceflight ARCHS4 data, with approximately 2,000 highly variable genes linked to current mouse Reactome pathways. Each accession or mission project received equal weight in the summary of flight-ground pathway shifts, which were evaluated using conventional gene-set enrichment, held-out-project prediction, three complete reference-query trainings, cell-composition sensitivity analyses, and member-gene review. Four tissues produced reproducible patterns. In skin, flight was associated with lower chromatin regulation, DNA repair, Hedgehog signaling, sphingolipid metabolism, and cell-junction programs, consistent with reduced tissue maintenance and barrier coordination. Thymus showed lower DNA-repair and cytoskeletal programs, together with a model-specific lower lymphoid-stromal interaction score. Liver showed lower MHC class II antigen-presentation and T-cell receptor scores despite heterogeneous metabolic responses. Spleen showed coordinated lower T-cell receptor signaling, neutrophil degranulation, and C-type lectin receptor signaling across five unconfounded projects and three trainings; all three programs had preranked GSEA false discovery rates below 0.05. These results recover established tissue responses and add testable hypotheses about skin and thymic tissue maintenance, hepatic immune communication, and splenic innate effector programs. Independent cell-resolved and functional studies are needed to identify which cells drive these pathway shifts and whether they affect biological function.</p></body>
+<p>Mission differences can obscure recurring organ responses to spaceflight. We asked whether expiMap, a pathway-constrained variational autoencoder, could identify reproducible biological programs in mouse spaceflight transcriptomes. NASA Open Science Data Repository bulk RNA-sequencing samples were mapped into tissue-matched expiMap models trained on non-spaceflight ARCHS4 data, with approximately 2,000 highly variable genes linked to current mouse Reactome pathways. Each accession or mission project received equal weight in the summary of flight-ground pathway shifts, which were evaluated using conventional gene-set enrichment, held-out-project prediction, three complete reference-query trainings, cell-composition sensitivity analyses, and member-gene review. Four tissues produced reproducible patterns. In skin, flight was associated with lower chromatin regulation, DNA repair, Hedgehog signaling, sphingolipid metabolism, and cell-junction programs, consistent with reduced tissue maintenance and barrier coordination. Thymus showed lower DNA-repair and cytoskeletal programs, together with a model-specific lower lymphoid-stromal interaction score. Liver showed lower MHC class II antigen-presentation and T-cell receptor scores despite heterogeneous metabolic responses. Spleen showed coordinated lower T-cell receptor signaling, neutrophil degranulation, and C-type lectin receptor signaling across five unconfounded projects and three trainings; all three programs had preranked GSEA false discovery rates below 0.05. These results recover established tissue responses and add testable hypotheses about skin and thymic tissue maintenance, hepatic immune communication, and splenic innate effector programs. Independent cell-resolved and functional studies are needed to identify which cells drive these pathway shifts and whether they affect biological function.</p>
+<h2>Acknowledgment</h2>
+<p>This work was supported by [funding agency] (grant #[grant number] to [mentor initials]). Funding for the Space Life Sciences Training Program was provided by the NASA Science Mission Directorate&rsquo;s Biological and Physical Sciences Division and NASA Ames Research Center.</p>
+<h2>AI usage disclosure</h2>
+<p>OpenAI Codex ([model/version]) assisted with code generation, data processing and analysis, interpretation, visualization generation, and text editing. Jason Trinh reviewed and verified all included AI-assisted output.</p></body>
 </html>
