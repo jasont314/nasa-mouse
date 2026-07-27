@@ -1,0 +1,55 @@
+material_type_original	tissue_api_original	tissue_canonical	samples
+adrenal gland	adrenal_gland	adrenal_gland	20
+Adrenal glands- both sides	adrenal_gland	adrenal_gland	11
+Adrenal gland	adrenal_gland	adrenal_gland	10
+Temporal Bone	bone	bone	24
+Mandible	bone	bone	12
+Bone Marrow	bone_marrow	bone_marrow	24
+Left cerebral hemisphere	brain	brain	27
+Cerebrum	brain	brain	24
+Brain	brain	brain	6
+brown adipose tissue	brown_adipose_tissue	brown_adipose_tissue	24
+Cecum	cecum	cecum	20
+Cells	cells	cells	18
+right hemisphere of cerebellum	cerebellum	cerebellum	36
+Cerebellum	cerebellum	cerebellum	20
+descending colon	colon	colon	36
+Colon	colon	colon	19
+Cells, Cultured	cultured_cells	cultured_cells	6
+left eye	eye	eye	12
+eye	eye	eye	10
+Heart	heart	heart	31
+heart right ventricle	heart	heart	20
+Right hippocampus	hippocampus	hippocampus	37
+Left kidney	kidney	kidney	83
+Right kidney	kidney	kidney	40
+Kidney	kidney	kidney	12
+Liver	liver	liver	151
+Left Lobe of the Liver	liver	liver	92
+Left Lung	lung	lung	58
+Right Lung	lung	lung	20
+mammary gland	mammary_gland	mammary_gland	25
+Right optic nerve	optic_nerve	optic_nerve	35
+Right retina	retina	retina	62
+Left retina	retina	retina	14
+Soleus	skeletal_muscle	skeletal_muscle	21
+Right extensor digitorum longus	skeletal_muscle	skeletal_muscle	20
+Right quadriceps femoris	skeletal_muscle	skeletal_muscle	20
+Right soleus	skeletal_muscle	skeletal_muscle	20
+Right tibialis anterior	skeletal_muscle	skeletal_muscle	18
+Quadriceps femoris	skeletal_muscle	skeletal_muscle	14
+Extensor digitorum longus- both sides	skeletal_muscle	skeletal_muscle	12
+Left gastrocnemius	skeletal_muscle	skeletal_muscle	12
+Left quadriceps femoris	skeletal_muscle	skeletal_muscle	12
+Left tibialis anterior	skeletal_muscle	skeletal_muscle	12
+Right gastrocnemius	skeletal_muscle	skeletal_muscle	12
+Soleus-both sides	skeletal_muscle	skeletal_muscle	12
+Gastrocnemius	skeletal_muscle	skeletal_muscle	6
+dorsal skin	skin	skin	115
+femoral lateral skin	skin	skin	19
+femoral skin	skin	skin	17
+Spleen	spleen	spleen	89
+Spleen-distal	spleen	spleen	20
+thymus	thymus	thymus	79
+Thymus	thymus	thymus	38
+white adipose tissue	white_adipose_tissue	white_adipose_tissue	24

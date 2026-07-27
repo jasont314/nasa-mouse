@@ -1,0 +1,32 @@
+{
+  "output": "data/diffusion/l974_mouse_paper_parity.tsv",
+  "dimensions": 974,
+  "unique_mouse_genes": 974,
+  "human_landmarks_covered": 964,
+  "human_landmarks_without_direct_dimension": 10,
+  "human_landmarks_without_direct_dimension_symbols": [
+    "AKR7A2",
+    "CD58",
+    "HIST2H2BE",
+    "CASP10",
+    "ZNF589",
+    "HIST1H2BK",
+    "CHMP4A",
+    "ENOSF1",
+    "ICAM3",
+    "TCEAL4"
+  ],
+  "selection_roles": {
+    "best_ensembl_ortholog": 954,
+    "exact_symbol_fallback": 10,
+    "additional_paralog_for_fixed_dimension": 10
+  },
+  "adaptation": "The fixed 974-dimensional input contains one best mouse mapping per recoverable human landmark, then additional mapped paralogs for human landmarks with no direct mouse counterpart.",
+  "sources": {
+    "human_landmarks": "assets/model_sources/rna-diffusion/data/gtex_description.csv",
+    "human_landmarks_sha256": "5e397071080080bc794fab6cb03c6ca1bddac991ae3fbeb1d8a495afe8595ce7",
+    "source_map": "data/diffusion/l1000_human_to_mouse_ensembl.tsv",
+    "source_map_sha256": "e302493d39bc3fff854a8f5e12444ab5ba3e421a408894a561060da4fb7ac477",
+    "archs4_h5": "assets/archs4/mouse_gene_v2.5.h5"
+  }
+}

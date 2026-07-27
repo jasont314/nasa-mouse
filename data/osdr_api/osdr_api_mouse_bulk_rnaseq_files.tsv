@@ -12,9 +12,9 @@ OSD-163	OSD-163_transcription-profiling_rna-sequencing-(rna-seq)_Illumina HiSeq 
 OSD-164	OSD-164_transcription-profiling_rna-sequencing-(rna-seq)_MiSeq	GLDS-164_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	12
 OSD-168	OSD-168_transcription-profiling_rna-sequencing-(rna-seq)_Illumina HiSeq 4000	GLDS-168_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	28
 OSD-173	OSD-173_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-173_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	4
-OSD-194	OSD-194_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-194_rna_seq_Unnormalized_Counts.csv	9
-OSD-238	OSD-238_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-238_rna_seq_Unnormalized_Counts.csv	18
-OSD-239	OSD-239_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-239_rna_seq_Unnormalized_Counts.csv	17
+OSD-194	OSD-194_transcription-profiling_rna-sequencing-(rna-seq)_Illumina	GLDS-194_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	9
+OSD-238	OSD-238_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-238_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	18
+OSD-239	OSD-239_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-239_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	17
 OSD-240	OSD-240_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-240_rna_seq_Unnormalized_Counts.csv	20
 OSD-241	OSD-241_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-241_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv	19
 OSD-242	OSD-242_transcription-profiling_rna-sequencing-(rna-seq)_Illumina NovaSeq 6000	GLDS-242_rna_seq_Unnormalized_Counts.csv	9

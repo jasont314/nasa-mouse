@@ -1,0 +1,7 @@
+tissue	seed	reference_samples	reference_series	reference_epochs_completed	reference_best_epoch	reference_training_seconds	query_samples	query_epochs	gpu	hvg_method	hvg_excluded_samples
+kidney	2020	2464	154	287	235	43.98282742500305	135	250	NVIDIA A100-SXM4-40GB	scanpy_highly_variable_genes_batch	2
+kidney	2021	2464	154	173	121	25.223153829574585	135	250	NVIDIA A100-SXM4-40GB	scanpy_highly_variable_genes_batch	2
+kidney	2022	2464	154	200	148	30.31649112701416	135	250	NVIDIA A100-SXM4-40GB	scanpy_highly_variable_genes_batch	2
+spleen	2020	6289	470	205	153	69.84189987182617	109	250	NVIDIA A100-SXM4-40GB	scanpy_highly_variable_genes_batch	19
+spleen	2021	6289	470	165	113	60.58150315284729	109	250	NVIDIA A100-SXM4-40GB	scanpy_highly_variable_genes_batch	19
+spleen	2022	6289	470	307	255	102.14090538024902	109	250	NVIDIA A100-SXM4-40GB	scanpy_highly_variable_genes_batch	19

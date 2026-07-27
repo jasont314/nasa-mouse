@@ -1,0 +1,31 @@
+{
+  "source": "NASA OSDR Biological Data API",
+  "raw_integrated_osdr_h5_used": false,
+  "metadata": "outputs/generative_benchmark/data_audit/osdr/osdr_canonical_metadata.tsv",
+  "api_count_directory": "data/osdr_api/counts",
+  "technical_replicate_policy": "sum",
+  "count_semantics": "RSEM unnormalized expected counts; non-negative values may be fractional",
+  "api_download_fallbacks": [
+    {
+      "id.accession": "OSD-759",
+      "filename": "GLDS-665_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv",
+      "rest_listing_url": "https://visualization.osdr.nasa.gov/biodata/api/v2/dataset/OSD-759/files/",
+      "download_url": "https://osdr.nasa.gov/geode-py/ws/studies/OSD-759/download?source=datamanager&file=GLDS-665_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv",
+      "output": "data/osdr_api/counts/OSD-759_unnormalized_counts.csv",
+      "query_error": "HTTP 500 from /biodata/api/v2/query/data/ on two attempts; downloaded from the direct URL returned by the official REST file record"
+    }
+  ],
+  "counts": {
+    "api_metadata_profiles_selected": 1631,
+    "training_profiles": 1610,
+    "accessions": 75,
+    "tissues": 24,
+    "genes": 48694,
+    "missing_count_columns": 0
+  },
+  "outputs": {
+    "h5ad": "outputs/generative_benchmark/data/osdr/osdr_api_raw_counts.h5ad",
+    "missing_count_columns": "outputs/generative_benchmark/data/osdr/missing_api_count_columns.tsv",
+    "summary": "outputs/generative_benchmark/data/osdr/osdr_api_expression_summary.json"
+  }
+}

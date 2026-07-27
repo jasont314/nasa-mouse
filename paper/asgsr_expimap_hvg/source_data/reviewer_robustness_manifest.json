@@ -1,0 +1,27 @@
+{
+  "random_seed": 2026,
+  "ssgsea": {
+    "package": "gseapy",
+    "version": "1.3.0",
+    "sample_norm_method": "rank",
+    "correl_norm_type": "rank",
+    "weight": 0.25,
+    "minimum_gene_set_size": 5,
+    "maximum_gene_set_size": 500
+  },
+  "preranked_gsea": {
+    "ranking": "mean project-balanced log2-CPM flight-minus-ground effect",
+    "permutations": 1000,
+    "weight": 1.0
+  },
+  "heldout": {
+    "unit": "project identifier after averaging accession effects within project",
+    "selection": "top decile of absolute training-project effect"
+  },
+  "composition_proxy": {
+    "atlas": "/media/volume/mouse/nasa/nasa-mouse/assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad",
+    "atlas_citation": "Publication: https://doi.org/10.1038/s41586-020-2496-1 Dataset Version: https://datasets.cellxgene.cziscience.com/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad curated and distributed by CZ CELLxGENE Discover in Collection: https://cellxgene.cziscience.com/collections/0b9d8a04-bb9d-44da-aa27-705bb65b54eb",
+    "markers_per_compartment": 30,
+    "adjustment": "within-accession condition coefficient plus up to three marker-score PCs explaining at least 90% of marker-score variance"
+  }
+}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from nasa_mouse_glare.io import require_import
+from nasa_mouse_generative.paper_metrics import paper_distribution_metrics
 
 
 def corrcoef_safe(x, y):
@@ -38,7 +39,18 @@ def generated_quality(real, fake, *, max_pr_samples: int = 2000):
         "real_global_std": float(real.std()),
         "fake_global_std": float(fake.std()),
     }
-    metrics.update(manifold_metrics(real, fake, max_samples=max_pr_samples))
+    metrics.update(
+        paper_distribution_metrics(
+            real,
+            fake,
+            max_samples=max_pr_samples,
+            seed=2026,
+        )
+    )
+    metrics["metric_protocol"] = (
+        "paper expression-space Corr/precision/recall/F1/AA; "
+        "mouse PCA-50 FD with a real-split reference"
+    )
     return metrics
 
 

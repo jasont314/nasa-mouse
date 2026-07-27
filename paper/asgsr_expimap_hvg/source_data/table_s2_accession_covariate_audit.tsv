@@ -1,0 +1,27 @@
+tissue	accession	n_samples	n_flight	n_ground_control	sex	strain	genotype	age_available_in_analysis_metadata	condition_sex_disjoint	condition_strain_disjoint	condition_genotype_disjoint	excluded_in_restricted_sensitivity	included_in_primary_analysis	primary_exclusion_reason
+thymus	OSD-244	38	19	19	Female	C57BL/6NTac	NaN	False	False	False	False	False	True	
+thymus	OSD-289	15	12	3	Male	C57BL/6J;C57BL/6NCrl	NaN	False	False	True	False	True	True	
+thymus	OSD-421	20	10	10	Male	C57BL/6J	NaN	False	False	False	False	False	True	
+thymus	OSD-457	24	12	12	Male	C57BL/6NCrl	NaN	False	False	False	False	False	True	
+thymus	OSD-515	20	10	10	Male	C57BL/6J	Wild Type	False	False	False	False	False	True	
+skin	OSD-238	18	12	6	Male	C57BL/6J	NaN	False	False	False	False	False	True	
+skin	OSD-239	17	11	6	Male	C57BL/6J	NaN	False	False	False	False	False	True	
+skin	OSD-240	20	10	10	Female	BALB/c	NaN	False	False	False	False	False	True	
+skin	OSD-241	19	9	10	Female	BALB/c	NaN	False	False	False	False	False	True	
+skin	OSD-243	37	18	19	Female	C57BL/6NTac	NaN	False	False	False	False	False	True	
+skin	OSD-254	40	20	20	Female	NaN	NaN	False	False	False	False	False	True	
+liver	OSD-137	11	5	6	Female	BALB/c	NaN	False	False	False	False	False	True	
+liver	OSD-164	6	3	3	Female	C57BL/6NTac	NaN	False	False	False	False	False	False	OSD-164 overlaps OSD-47 animals; OSD-168 repackages RR-1/RR-3 cohorts represented by OSD-48/OSD-137 and includes ERCC technical variants.
+liver	OSD-168	28	14	14	Female	BALB/c;C57BL/6J	NaN	False	False	False	False	False	False	OSD-164 overlaps OSD-47 animals; OSD-168 repackages RR-1/RR-3 cohorts represented by OSD-48/OSD-137 and includes ERCC technical variants.
+liver	OSD-173	4	2	2	Female	C57BL/6NCrl	NaN	False	False	False	False	False	True	
+liver	OSD-242	8	5	3	Male	C57BL/6J	NaN	False	False	False	False	False	True	
+liver	OSD-245	37	18	19	Female	C57BL/6NTac	NaN	False	False	False	False	False	True	
+liver	OSD-379	62	31	31	Female	BALB/cAnNTac	Wild Type	False	False	False	False	False	True	
+liver	OSD-457	24	12	12	Male	C57BL/6NCrl	NaN	False	False	False	False	False	True	
+liver	OSD-463	22	12	10	Male	C57BL/6J	Wild Type	False	False	False	False	False	True	
+liver	OSD-47	6	3	3	Female	C57BL/6NTac	NaN	False	False	False	False	False	True	
+liver	OSD-48	14	7	7	Female	C57BL/6J	NaN	False	False	False	False	False	True	
+liver	OSD-686	9	6	3	Male	C57BL/6J	Wild Type	False	False	False	False	False	True	
+soleus	OSD-104	12	6	6	Female	C57BL/6J	NaN	False	False	False	False	False	True	
+soleus	OSD-714	21	12	9	Male	C57BL/6J;C57BL/6NCrl	Wild Type	False	False	True	False	True	True	
+soleus	OSD-770	20	10	10	Male	C57BL/6J	Wild Type	False	False	False	False	False	True	

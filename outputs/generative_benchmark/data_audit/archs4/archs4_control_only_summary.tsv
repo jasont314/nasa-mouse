@@ -1,0 +1,25 @@
+cohort	canonical_tissue	candidate_samples	candidate_series	explicit_control_like	metadata_unknown	selected_samples	selected_series	sampling_weight_sum	archs4_reference_available	nonmatchable_reason
+control_only	liver	3969	446	3969	0	3961	446	0.043478260869565216	True	none
+control_only	skeletal_muscle	1071	145	1071	0	1044	145	0.043478260869565216	True	none
+control_only	skin	648	96	648	0	642	96	0.043478260869565216	True	none
+control_only	kidney	875	132	875	0	854	132	0.043478260869565216	True	none
+control_only	thymus	1075	123	1075	0	1074	123	0.04347826086956522	True	none
+control_only	spleen	2550	416	2550	0	2550	416	0.043478260869565216	True	none
+control_only	lung	890	166	890	0	890	166	0.04347826086956522	True	none
+control_only	retina	256	42	256	0	256	42	0.043478260869565216	True	none
+control_only	brain	3389	300	3389	0	2495	300	0.043478260869565216	True	none
+control_only	cerebellum	623	86	623	0	623	86	0.043478260869565216	True	none
+control_only	colon	1126	117	1126	0	838	117	0.043478260869565216	True	none
+control_only	heart	1118	217	1118	0	1118	217	0.043478260869565216	True	none
+control_only	adrenal_gland	82	7	82	0	82	7	0.043478260869565216	True	none
+control_only	hippocampus	1919	220	1919	0	1856	220	0.043478260869565216	True	none
+control_only	bone	130	25	130	0	130	25	0.043478260869565216	True	none
+control_only	optic_nerve	8	1	8	0	8	1	0.043478260869565216	True	none
+control_only	mammary_gland	264	64	264	0	264	64	0.043478260869565216	True	none
+control_only	bone_marrow	3753	475	3753	0	2904	475	0.043478260869565216	True	none
+control_only	brown_adipose_tissue	294	47	294	0	294	47	0.043478260869565216	True	none
+control_only	white_adipose_tissue	354	50	354	0	354	50	0.043478260869565216	True	none
+control_only	eye	17	5	17	0	17	5	0.043478260869565216	True	none
+control_only	cecum	23	5	23	0	23	5	0.043478260869565216	True	none
+control_only	cells	0	0	0	0	0	0	0.0	False	generic OSDR material label has no defensible ARCHS4 tissue match
+control_only	cultured_cells	1353	282	1353	0	1337	282	0.043478260869565216	True	none

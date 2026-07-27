@@ -15,6 +15,8 @@ class TrainConfig:
     learning_rate: float = 1e-4
     critic_steps: int = 5
     gradient_penalty: float = 10.0
+    augmentation_probability: float = 0.0
+    augmentation_noise_scale: float = 0.5
     seed: int = 2020
 
 
@@ -64,6 +66,34 @@ def gradient_penalty(model, real, fake, categories, device):
     return ((gradients.norm(2, dim=1) - 1.0) ** 2).mean()
 
 
+def augment_expression(expression, *, probability: float, noise_scale: float):
+    """Apply the released WGAN's per-profile Gaussian augmentation."""
+
+    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    probability = float(probability)
+    noise_scale = float(noise_scale)
+    if not 0.0 <= probability <= 1.0:
+        raise ValueError("augmentation_probability must be in [0, 1]")
+    if noise_scale < 0.0:
+        raise ValueError("augmentation_noise_scale cannot be negative")
+    if probability == 0.0 or noise_scale == 0.0:
+        return expression
+    selected = (
+        torch.rand((len(expression), 1), device=expression.device) < probability
+    ).to(expression.dtype)
+    return expression + selected * torch.randn_like(expression) * noise_scale
+
+
+def _gradient_norm(parameters):
+    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    squared = torch.zeros((), dtype=torch.float32)
+    for parameter in parameters:
+        if parameter.grad is not None:
+            squared = squared.to(parameter.grad.device)
+            squared = squared + parameter.grad.detach().float().square().sum()
+    return squared.sqrt()
+
+
 def train_epoch(model, loader, *, config: TrainConfig, optim_g, optim_d, device):
     torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
     model.train()
@@ -72,6 +102,8 @@ def train_epoch(model, loader, *, config: TrainConfig, optim_g, optim_d, device)
         "generator_loss": 0.0,
         "wasserstein_estimate": 0.0,
         "gradient_penalty": 0.0,
+        "critic_gradient_norm": 0.0,
+        "generator_gradient_norm": 0.0,
         "batches": 0,
     }
     for real, categories in loader:
@@ -85,29 +117,58 @@ def train_epoch(model, loader, *, config: TrainConfig, optim_g, optim_d, device)
             optim_d.zero_grad(set_to_none=True)
             noise = model.sample_noise(batch_size, device)
             fake = model.generator(noise, categories).detach()
-            real_score = model.critic(real, categories)
-            fake_score = model.critic(fake, categories)
-            gp_value = gradient_penalty(model, real, fake, categories, device)
+            augmented_real = augment_expression(
+                real,
+                probability=config.augmentation_probability,
+                noise_scale=config.augmentation_noise_scale,
+            )
+            augmented_fake = augment_expression(
+                fake,
+                probability=config.augmentation_probability,
+                noise_scale=config.augmentation_noise_scale,
+            )
+            real_score = model.critic(augmented_real, categories)
+            fake_score = model.critic(augmented_fake, categories)
+            gp_value = gradient_penalty(
+                model,
+                augmented_real,
+                augmented_fake,
+                categories,
+                device,
+            )
             critic_loss = (
                 fake_score.mean()
                 - real_score.mean()
                 + float(config.gradient_penalty) * gp_value
             )
             critic_loss.backward()
+            critic_gradient_norm = _gradient_norm(model.critic.parameters())
             optim_d.step()
             wasserstein = real_score.mean() - fake_score.mean()
 
         optim_g.zero_grad(set_to_none=True)
         noise = model.sample_noise(batch_size, device)
         fake = model.generator(noise, categories)
-        generator_loss = -model.critic(fake, categories).mean()
+        augmented_fake = augment_expression(
+            fake,
+            probability=config.augmentation_probability,
+            noise_scale=config.augmentation_noise_scale,
+        )
+        generator_loss = -model.critic(augmented_fake, categories).mean()
         generator_loss.backward()
+        generator_gradient_norm = _gradient_norm(model.generator.parameters())
         optim_g.step()
 
         totals["critic_loss"] += float(critic_loss.detach().cpu())
         totals["generator_loss"] += float(generator_loss.detach().cpu())
         totals["wasserstein_estimate"] += float(wasserstein.detach().cpu())
         totals["gradient_penalty"] += float(gp_value.detach().cpu())
+        totals["critic_gradient_norm"] += float(
+            critic_gradient_norm.detach().cpu()
+        )
+        totals["generator_gradient_norm"] += float(
+            generator_gradient_norm.detach().cpu()
+        )
         totals["batches"] += 1
 
     batches = max(1, totals.pop("batches"))

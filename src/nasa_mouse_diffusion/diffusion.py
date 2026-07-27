@@ -39,7 +39,23 @@ def noise_estimation_loss(model, x0, categories, betas):
     return (noise - predicted).square().sum(dim=1).mean(), (noise - predicted).abs().mean()
 
 
-def sample(model, categories, *, betas, sample_steps: int, eta: float, noise=None, device=None):
+def sample_trajectory(
+    model,
+    categories,
+    *,
+    betas,
+    sample_steps: int,
+    eta: float,
+    snapshot_timesteps=(1000, 200, 0),
+    noise=None,
+    device=None,
+):
+    """Run DDIM sampling and retain requested x_t states.
+
+    Labels follow the paper convention: ``t=T`` is the initial Gaussian noise
+    and ``t=0`` is the final generated expression.
+    """
+
     np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
     torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
     if device is None:
@@ -51,11 +67,20 @@ def sample(model, categories, *, betas, sample_steps: int, eta: float, noise=Non
     else:
         x = noise.to(device)
     timesteps = betas.shape[0]
+    requested = {int(value) for value in snapshot_timesteps}
+    if any(value < 0 or value > timesteps for value in requested):
+        raise ValueError(
+            f"Snapshot timesteps must lie between 0 and {timesteps}: "
+            f"{sorted(requested)}"
+        )
     if sample_steps >= timesteps:
         seq = list(range(timesteps))
     else:
         seq = [int(value) for value in np.linspace(0, timesteps - 1, int(sample_steps))]
     seq_next = [-1] + seq[:-1]
+    snapshots = {}
+    if timesteps in requested:
+        snapshots[timesteps] = x.detach().clone()
     with torch.no_grad():
         for i, j in zip(reversed(seq), reversed(seq_next)):
             t = torch.full((n,), i, device=device, dtype=torch.long)
@@ -66,5 +91,29 @@ def sample(model, categories, *, betas, sample_steps: int, eta: float, noise=Non
             x0 = (x - et * (1 - at).sqrt()) / at.sqrt()
             c1 = eta * ((1 - at / at_next) * (1 - at_next) / (1 - at)).clamp_min(0).sqrt()
             c2 = ((1 - at_next) - c1 ** 2).clamp_min(0).sqrt()
-            x = at_next.sqrt() * x0 + c1 * torch.randn_like(x) + c2 * et
-    return x
+            stochastic = c1 * torch.randn_like(x) if eta else 0.0
+            x = at_next.sqrt() * x0 + stochastic + c2 * et
+            label = int(j + 1)
+            if label in requested:
+                snapshots[label] = x.detach().clone()
+    missing = requested.difference(snapshots)
+    if missing:
+        raise ValueError(
+            "The requested DDIM snapshots are absent from the sampling grid: "
+            f"{sorted(missing)}. Use sample_steps={timesteps} for exact states."
+        )
+    return snapshots
+
+
+def sample(model, categories, *, betas, sample_steps: int, eta: float, noise=None, device=None):
+    snapshots = sample_trajectory(
+        model,
+        categories,
+        betas=betas,
+        sample_steps=sample_steps,
+        eta=eta,
+        snapshot_timesteps=(0,),
+        noise=noise,
+        device=device,
+    )
+    return snapshots[0]
