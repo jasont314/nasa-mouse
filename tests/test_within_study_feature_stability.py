@@ -4,14 +4,76 @@ import numpy as np
 import pandas as pd
 
 from nasa_mouse_rna_diffusion.within_study_feature_stability import (
+    WorkflowData,
     _choose_arms,
     _metric_set,
+    _muscle_group_analysis_data,
     _paired_repeat_support,
+    _safe_correlation,
     _within_stratum_split,
 )
 
 
 class WithinStudyFeatureStabilityTest(unittest.TestCase):
+    def test_muscle_group_mode_relabels_only_selected_skeletal_samples(self) -> None:
+        samples = pd.DataFrame(
+            {
+                "tissue": [
+                    "skeletal_muscle",
+                    "skeletal_muscle",
+                    "skeletal_muscle",
+                    "liver",
+                ],
+                "muscle_group": [
+                    "soleus",
+                    "soleus",
+                    "quadriceps",
+                    "not_applicable",
+                ],
+            }
+        )
+        data = WorkflowData(
+            genes=["gene"],
+            symbols={},
+            development_expression=np.zeros((4, 1)),
+            development_samples=samples.copy(),
+            test_expression=np.zeros((4, 1)),
+            test_samples=samples.copy(),
+            all_expression=np.zeros((4, 1)),
+            all_samples=samples.copy(),
+            synthetic_draws={"draw": np.zeros((4, 1))},
+        )
+
+        grouped, groups = _muscle_group_analysis_data(data, ["soleus"])
+
+        self.assertEqual(groups, ["soleus"])
+        self.assertEqual(
+            grouped.development_samples["tissue"].tolist(),
+            ["soleus", "soleus", "skeletal_muscle", "liver"],
+        )
+        self.assertEqual(
+            data.development_samples["tissue"].tolist(),
+            ["skeletal_muscle", "skeletal_muscle", "skeletal_muscle", "liver"],
+        )
+
+    def test_muscle_group_mode_rejects_unknown_group(self) -> None:
+        samples = pd.DataFrame(
+            {"tissue": ["skeletal_muscle"], "muscle_group": ["soleus"]}
+        )
+        data = WorkflowData(
+            genes=["gene"],
+            symbols={},
+            development_expression=np.zeros((1, 1)),
+            development_samples=samples,
+            test_expression=np.zeros((1, 1)),
+            test_samples=samples,
+            all_expression=np.zeros((1, 1)),
+            all_samples=samples,
+            synthetic_draws={},
+        )
+        with self.assertRaises(ValueError):
+            _muscle_group_analysis_data(data, ["quadriceps"])
+
     def test_split_retains_each_accession_condition_stratum(self) -> None:
         samples = pd.DataFrame(
             {
@@ -39,6 +101,15 @@ class WithinStudyFeatureStabilityTest(unittest.TestCase):
             "average_precision",
         })
         self.assertEqual(observed["balanced_accuracy"], 1.0)
+
+    def test_safe_correlation_handles_constant_vectors(self) -> None:
+        self.assertTrue(
+            np.isnan(_safe_correlation(np.ones(4), np.arange(4, dtype=float)))
+        )
+        self.assertAlmostEqual(
+            _safe_correlation(np.arange(4, dtype=float), np.arange(4, dtype=float)),
+            1.0,
+        )
 
     def test_arm_choice_requires_every_metric_to_tie_or_improve(self) -> None:
         table = pd.DataFrame(

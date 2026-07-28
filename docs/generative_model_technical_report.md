@@ -454,6 +454,17 @@ The 292 significant Reactome rows produced across all tissues and overlapping ge
 sets are not 292 independent pathway discoveries. Reactome hierarchy, pathway
 overlap, and nested feature sets create extensive dependence.
 
+### Skeletal-Muscle Group Follow-Up
+
+The synthetic-guided workflow was subsequently rerun separately for EDL,
+gastrocnemius, quadriceps, soleus, and tibialis anterior. Soleus was the strongest
+group: seven synthetic-selected genes passed real-data LOO FDR 0.05, and the
+selected set converged on lower flight expression of mitochondrial fatty-acid
+oxidation and related muscle-regulatory genes. Quadriceps retained one LOO-stable
+gene; the remaining groups were exploratory or limited to two accessions. This is
+within-study evidence, not unseen-accession validation. See the
+[muscle-group analysis](synthetic_skeletal_muscle_group_analysis.md).
+
 ## What The Generator Can And Cannot Do
 
 ### Supported
@@ -518,6 +529,7 @@ overlap, and nested feature sets create extensive dependence.
 - [DDIM versus WGAN tissue comparison](../outputs/generative_benchmark/comparisons/ddim_vs_wgan_study_conditioned_validation_seed3020/)
 - [Independent feature confirmation](../outputs/generative_benchmark/analyses/generated_feature_guidance_confirmation_v1/)
 - [Within-study feature stability](../outputs/generative_benchmark/analyses/within_study_generated_feature_stability_v1/)
+- [Synthetic-guided skeletal-muscle groups](synthetic_skeletal_muscle_group_analysis.md)
 - [Skeletal-muscle augmentation confirmation](../outputs/generative_benchmark/analyses/fresh_holdout_contrastive_ddim_augmentation_v1/)
 - [Matched liver harmonization results](../outputs/generative_benchmark/summary/liver_harmonization/)
 

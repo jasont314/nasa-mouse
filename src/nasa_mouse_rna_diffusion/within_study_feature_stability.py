@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import json
 from pathlib import Path
 import textwrap
@@ -67,6 +67,49 @@ class WorkflowData:
     synthetic_draws: dict[str, np.ndarray]
 
 
+def _muscle_group_analysis_data(
+    data: WorkflowData, requested_groups: Iterable[str] | None = None
+) -> tuple[WorkflowData, list[str]]:
+    """Relabel skeletal-muscle samples so the existing workflow runs per group."""
+
+    development = data.development_samples
+    skeletal = development["tissue"].astype(str).eq("skeletal_muscle")
+    available = sorted(
+        value
+        for value in development.loc[skeletal, "muscle_group"]
+        .dropna()
+        .astype(str)
+        .unique()
+        if value not in {"", "not_applicable", "unknown"}
+    )
+    requested = list(map(str, requested_groups or available))
+    missing = sorted(set(requested).difference(available))
+    if missing:
+        raise ValueError(
+            f"Requested muscle groups are unavailable: {missing}; available: {available}"
+        )
+    if not requested:
+        raise ValueError("No named skeletal-muscle groups are available")
+
+    def relabel(samples: pd.DataFrame) -> pd.DataFrame:
+        result = samples.copy()
+        mask = result["tissue"].astype(str).eq("skeletal_muscle")
+        groups = result["muscle_group"].astype(str)
+        selected = mask & groups.isin(requested)
+        result.loc[selected, "tissue"] = groups.loc[selected]
+        return result
+
+    return (
+        replace(
+            data,
+            development_samples=relabel(data.development_samples),
+            test_samples=relabel(data.test_samples),
+            all_samples=relabel(data.all_samples),
+        ),
+        requested,
+    )
+
+
 def _build_rankings_quiet(*args: Any, **kwargs: Any) -> tuple[dict[str, np.ndarray], pd.DataFrame]:
     """Build feature rankings without sklearn's expected constant-feature noise."""
     with warnings.catch_warnings():
@@ -96,6 +139,94 @@ def _metric_set(labels: np.ndarray, probability: np.ndarray) -> dict[str, float]
         "roc_auc": float(roc_auc_score(labels, probability)),
         "average_precision": float(average_precision_score(labels, probability)),
     }
+
+
+def _safe_correlation(left: np.ndarray, right: np.ndarray) -> float:
+    left_values = np.asarray(left, dtype=float)
+    right_values = np.asarray(right, dtype=float)
+    finite = np.isfinite(left_values) & np.isfinite(right_values)
+    if finite.sum() < 3:
+        return float("nan")
+    left_values = left_values[finite]
+    right_values = right_values[finite]
+    if np.std(left_values) == 0.0 or np.std(right_values) == 0.0:
+        return float("nan")
+    return float(np.corrcoef(left_values, right_values)[0, 1])
+
+
+def _synthetic_group_validation(
+    data: WorkflowData, groups: Iterable[str]
+) -> pd.DataFrame:
+    """Measure internal real-versus-synthetic fidelity for each muscle group."""
+
+    rows: list[dict[str, object]] = []
+    for group in map(str, groups):
+        mask = data.development_samples["tissue"].astype(str).eq(group)
+        positions = np.flatnonzero(mask.to_numpy())
+        samples = data.development_samples.loc[mask].reset_index(drop=True)
+        if len(samples) == 0:
+            continue
+        labels = _labels(samples).astype(bool)
+        if np.unique(labels).size != 2:
+            continue
+        real = data.development_expression[positions]
+        real_condition_effect = real[labels].mean(axis=0) - real[~labels].mean(axis=0)
+        real_accession_effects = accession_effects(real, samples, data.genes)[
+            ["accession", "feature", "flight_minus_ground"]
+        ]
+        for draw_name, draw in data.synthetic_draws.items():
+            synthetic = draw[positions]
+            synthetic_condition_effect = (
+                synthetic[labels].mean(axis=0) - synthetic[~labels].mean(axis=0)
+            )
+            synthetic_accession_effects = accession_effects(
+                synthetic, samples, data.genes
+            )[["accession", "feature", "flight_minus_ground"]]
+            paired_effects = real_accession_effects.merge(
+                synthetic_accession_effects,
+                on=["accession", "feature"],
+                how="inner",
+                suffixes=("_real", "_synthetic"),
+                validate="one_to_one",
+            )
+            rows.append(
+                {
+                    "muscle_group": group,
+                    "synthetic_draw": str(draw_name),
+                    "development_profiles": int(len(samples)),
+                    "accessions": int(samples["accession"].nunique()),
+                    "flight": int(labels.sum()),
+                    "ground_control": int((~labels).sum()),
+                    "gene_mean_correlation": _safe_correlation(
+                        real.mean(axis=0), synthetic.mean(axis=0)
+                    ),
+                    "gene_variance_correlation": _safe_correlation(
+                        real.var(axis=0), synthetic.var(axis=0)
+                    ),
+                    "pooled_condition_effect_correlation": _safe_correlation(
+                        real_condition_effect, synthetic_condition_effect
+                    ),
+                    "pooled_condition_direction_agreement": float(
+                        np.mean(
+                            np.sign(real_condition_effect)
+                            == np.sign(synthetic_condition_effect)
+                        )
+                    ),
+                    "accession_effect_correlation": _safe_correlation(
+                        paired_effects["flight_minus_ground_real"].to_numpy(),
+                        paired_effects["flight_minus_ground_synthetic"].to_numpy(),
+                    ),
+                    "accession_effect_direction_agreement": float(
+                        np.mean(
+                            np.sign(paired_effects["flight_minus_ground_real"])
+                            == np.sign(
+                                paired_effects["flight_minus_ground_synthetic"]
+                            )
+                        )
+                    ),
+                }
+            )
+    return pd.DataFrame(rows)
 
 
 def _within_stratum_split(
@@ -1227,19 +1358,26 @@ def _plot_tissue_pathways(enrichment: pd.DataFrame, output: Path) -> None:
 
 def _write_readme(output: Path, summary: dict[str, Any]) -> None:
     improved = summary["selected_generated_arms"]
+    analysis_scope = str(summary.get("analysis_scope", "tissue"))
+    scope_description = (
+        "skeletal-muscle anatomical group"
+        if analysis_scope == "skeletal_muscle_group"
+        else "tissue"
+    )
     text = f"""# Within-study generated-feature stability
 
 This analysis reuses the fixed ARCHS4-pretrained, OSDR-fine-tuned DDIM and does
 not perform additional neural-network training. The original train and validation
 roles are pooled for repeated nested development splits; the original test role is
 never used to select an arm or a feature. Because accessions are represented on
-both sides of each split, performance measures within-study interpolation.
+both sides of each split, performance measures within-study interpolation. The
+analysis unit is {scope_description}.
 
 The earlier best-use table is retained as a prior/sanity-check column. Arm choices
 are re-estimated from nested development folds using balanced accuracy, AUROC, and
 average precision independently. No composite score is used.
 
-Completed tissues: {summary['completed_tissues']}
+Completed analysis units: {summary['completed_tissues']}
 
 Tissues selecting a generated-informed arm: {', '.join(improved) if improved else 'none'}
 
@@ -1258,6 +1396,8 @@ Tissues selecting a generated-informed arm: {', '.join(improved) if improved els
 - `<tissue>/reactome_enrichment.png`: top pathway enrichments and FDR threshold.
 - `descriptive_original_test.tsv`: post-selection descriptive test metrics; not a
   fresh confirmatory result because this test role had been examined previously.
+- `synthetic_group_validation.tsv`: internal real-versus-synthetic fidelity by
+  muscle group and synthetic draw when muscle-group mode is used.
 
 Generated profiles are model outputs, not independent biological replicates.
 Gene claims therefore require support from real accession-level effects. LOO
@@ -1273,6 +1413,7 @@ def run(
     config_path: Path,
     *,
     tissues_override: list[str] | None = None,
+    muscle_groups_override: list[str] | None = None,
     repeats_override: int | None = None,
     output_override: Path | None = None,
 ) -> Path:
@@ -1280,10 +1421,31 @@ def run(
     output = output_override or Path(config["run"]["output_dir"])
     output.mkdir(parents=True, exist_ok=True)
     data = _load_data(config)
-    tissues = tissues_override or config["analysis"].get("tissues") or sorted(
-        data.development_samples["tissue"].astype(str).unique()
+    muscle_group_mode = (
+        muscle_groups_override is not None
+        or "muscle_groups" in config["analysis"]
     )
+    if muscle_group_mode:
+        requested_groups = (
+            muscle_groups_override
+            if muscle_groups_override is not None
+            else config["analysis"].get("muscle_groups")
+        )
+        data, tissues = _muscle_group_analysis_data(data, requested_groups)
+    else:
+        tissues = tissues_override or config["analysis"].get("tissues") or sorted(
+            data.development_samples["tissue"].astype(str).unique()
+        )
     tissues = list(map(str, tissues))
+    group_validation = (
+        _synthetic_group_validation(data, tissues)
+        if muscle_group_mode
+        else pd.DataFrame()
+    )
+    if not group_validation.empty:
+        group_validation.to_csv(
+            output / "synthetic_group_validation.tsv", sep="\t", index=False
+        )
     repeats = int(repeats_override or config["analysis"]["repeats"])
     seed = int(config["run"]["seed"])
 
@@ -1400,6 +1562,9 @@ def run(
     summary = {
         "status": "complete",
         "design": "repeated_nested_within_accession_feature_stability",
+        "analysis_scope": (
+            "skeletal_muscle_group" if muscle_group_mode else "tissue"
+        ),
         "config": str(config_path.resolve()),
         "fixed_ddim": config["data"].get("model", ""),
         "neural_network_retrained": False,
@@ -1428,6 +1593,11 @@ def run(
             if not all_enrichment.empty
             else 0
         ),
+        "synthetic_group_validation_draws": (
+            int(group_validation["synthetic_draw"].nunique())
+            if not group_validation.empty
+            else 0
+        ),
         "limitations": [
             "Splits retain accessions on both sides and measure within-study interpolation.",
             "The fixed DDIM saw the original training role before the nested splits.",
@@ -1449,6 +1619,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", required=True, type=Path)
     parser.add_argument("--tissues", nargs="+")
+    parser.add_argument("--muscle-groups", nargs="+")
     parser.add_argument("--repeats", type=int)
     parser.add_argument("--output", type=Path)
     return parser
@@ -1459,6 +1630,7 @@ def main() -> None:
     run(
         arguments.config,
         tissues_override=arguments.tissues,
+        muscle_groups_override=arguments.muscle_groups,
         repeats_override=arguments.repeats,
         output_override=arguments.output,
     )
