@@ -1,0 +1,5 @@
+tissue	genotype	profiles	flight	ground_control	baseline_balanced_accuracy	generated_balanced_accuracy	delta_balanced_accuracy	baseline_roc_auc	generated_roc_auc	delta_roc_auc	baseline_average_precision	generated_average_precision	delta_average_precision
+lung	KO	10	5	5	0.4	0.6	0.2	0.56	0.52	-0.04	0.683333	0.708889	0.025556
+lung	WT	10	5	5	0.4	0.5	0.1	0.36	0.56	0.2	0.485714	0.594444	0.10873
+thymus	Nrf2KO	12	6	6	0.5	1.0	0.5	0.944444	1.0	0.055556	0.948413	1.0	0.051587
+thymus	WT	12	6	6	0.5	0.666667	0.166667	0.777778	0.972222	0.194444	0.821465	0.97619	0.154726

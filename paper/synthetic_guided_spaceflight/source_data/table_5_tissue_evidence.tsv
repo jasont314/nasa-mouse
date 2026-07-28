@@ -1,0 +1,9 @@
+tissue	tier	tier_score	predictive_result	real_gene_support	pathway_support	interpretation
+thymus	independent held-out confirmation	3	BA 0.500 to 0.833; AUROC 0.840 to 0.972	8 core FLT-down genes; genotype effect r=0.975	G2/M, APC/C, DNA replication; Reactome FDR < 0.05	confirmed feature-guidance result; one held-out accession
+soleus	cross-accession development	2	generated-only delta BA/AUROC/AP +0.025/+0.020/+0.020	7 synthetic-selected genes pass real LOO FDR	mitochondrial lipid oxidation/protein turnover; FDR < 0.05	coherent hypothesis; requires unseen-accession confirmation
+lung	mixed held-out exploratory	1	BA/AUROC/AP improved overall; KO AUROC decreased	no directionally confirmed core gene set	no Reactome term at FDR < 0.05	predictive transfer without stable biological direction
+spleen	developmental exploratory	1	nested delta BA/AUROC/AP +0.170/+0.208/+0.204	1 selected LOO-stable gene (Igfbp3)	no coherent stable-set Reactome enrichment	classifier signal, not a synthetic biological claim
+skin	developmental exploratory	1	nested gains; only 4/8 repeats nonworse on all metrics	0 selected genes pass real LOO FDR	developmental pathway hypotheses only	does not independently reproduce the expiMap skin result
+kidney	developmental exploratory	1	nested delta BA/AUROC/AP +0.029/+0.093/+0.097	0 selected genes pass real LOO FDR	Hmox1/Alas1 porphyrin enrichment is unstable	does not independently reproduce the expiMap kidney result
+liver	negative	0	small nested gains; 5/8 repeats nonworse	0 selected genes pass real LOO FDR	no retained coherent synthetic-guided pathway	no convincing synthetic-guided biological result
+retina	negative	0	nested gains but no real LOO-stable selected genes	0 selected genes pass real LOO FDR	exploratory enrichment only	prediction result did not support a robust biological claim
