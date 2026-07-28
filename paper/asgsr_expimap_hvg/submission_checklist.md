@@ -14,7 +14,7 @@ Verified against the official [ASGSR 2026 abstract instructions](https://asgsr.o
 - [x] Presenting-author affiliations are the Space Life Sciences Training Program at NASA Ames and the University of California, Berkeley.
 - [ ] Confirm James A. Casaletto's final submission affiliation; the current draft uses Blue Marble Space Institute of Science, NASA Ames Research Center, Mountain View, California, USA.
 - [x] Funding agency and number are listed as WBS `182939.05.02.01.37`.
-- [x] Mentor initials are listed as `JC`.
+- [x] Mentor initials are listed as `WA`.
 - [x] AI tool is identified as GitHub Copilot; no model/version applies.
 - [ ] Confirm that GitHub Copilot was Agency-approved for every disclosed use and that all AI-assisted content, citations, analyses, code, and visualizations received human review.
 - [ ] Complete the STRIVES Third-Party Permissions section as "no permission" if LLM-generated content remains in the submitted publication.

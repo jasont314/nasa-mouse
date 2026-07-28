@@ -18,7 +18,7 @@ Mission differences can obscure recurring organ responses to spaceflight. We ask
 
 ## Acknowledgment
 
-This work was supported by WBS (grant #182939.05.02.01.37 to JC). Funding for the Space Life Sciences Training Program was provided by the NASA Science Mission Directorate's Biological and Physical Sciences Division and NASA Ames Research Center.
+This work was supported by WBS (grant #182939.05.02.01.37 to WA). Funding for the Space Life Sciences Training Program was provided by the NASA Science Mission Directorate's Biological and Physical Sciences Division and NASA Ames Research Center.
 
 ## AI usage disclosure
 
