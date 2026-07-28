@@ -35,8 +35,13 @@ spaceflight-conditioned generator:
    negative.
 6. Generated data were more useful as a low-weight feature-selection view than as
    replacement biological samples. Independent held-out-study confirmation was
-   strong in thymus and mixed in lung. The thymus result recovered a coherent
-   FLT-down cell-cycle module with Reactome FDR below 0.05.
+   strong in thymus. Lung improved numerically but failed the stricter deployment
+   and biological-interpretation checks.
+7. A later fixed-model skeletal-muscle subgroup analysis identified soleus as the
+   strongest exploratory biological result outside thymus. Seven
+   synthetic-selected genes passed real-data LOO FDR and localized the response to
+   reduced oxidative fuel handling, mitochondrial quality control, and contractile
+   remodeling.
 
 The practical conclusion is that DDIM is the best model in this benchmark. It is
 approved for controlled simulation within represented OSDR studies and for
@@ -60,6 +65,76 @@ pretraining followed by OSDR adaptation. It tested pooled tissue-conditioned mod
 study conditioning, material conditioning, per-tissue behavior, multiple
 normalization and harmonization methods, direct synthetic augmentation, and
 generated-informed feature selection.
+
+## Biological Findings And Tissue Ranking
+
+### Did Synthetic Data Add Biological Information?
+
+Yes, but narrowly. Synthetic profiles did not add independent statistical evidence
+or effective animal count. Their useful role was to provide a second expression
+view for feature ranking. Candidate genes and pathways were retained only when they
+were subsequently supported by real OSDR profiles, accession-aware effects, and
+LOO checks.
+
+Two findings currently meet that standard well enough to emphasize:
+
+1. **Thymus:** synthetic guidance independently prioritized a flight-lower
+   proliferation and cell-cycle program. `Birc5`, `Ccne2`, `Gmnn`, `Ube2c`, `Cdk1`,
+   `Nusap1`, `Ccnb1`, and `Ccnb2` were lower in flight across both genotypes in
+   OSD-457. G2/M checkpoints, DNA replication, mitotic protein degradation, and
+   broader cell-cycle control passed Reactome FDR 0.05. This is primarily
+   confirmation and refinement of expiMap and prior thymic-involution biology, not
+   a wholly new pathway.
+2. **Soleus:** within-study synthetic guidance reduced a broad oxidative-metabolism
+   signal to seven real-data LOO-stable genes. `Bdh1`, `Bnip3`, `Mef2c`, `Ech1`,
+   `Pxmp2`, and `Gmnn` were lower in flight, while `Tpm1` was higher. The selected
+   sets implicated mitochondrial fatty-acid beta oxidation, lipid metabolism,
+   mitochondrial protein turnover, muscle transcription, and contractile
+   structure. The process is literature-aligned; the useful addition is
+   cross-accession prioritization, especially the less-studied `Pxmp2` candidate.
+
+The tissue ranking depends on whether "strong" means realistic synthetic
+generation or validated biological information. The ranking below uses the latter,
+stricter definition.
+
+| Tissue, ranked strongest first | Synthetic-guided result | Real-data validation | Assessment |
+|---|---|---|---|
+| Thymus | FLT-down cell cycle, mitosis, DNA replication, and proliferation | Eight selected genes LOO-stable; strong OSD-457 improvement after excluding it from generator fitting; both genotypes support the direction | Strongest and independently supported |
+| Soleus | Reduced oxidative fuel handling and mitochondrial/lipid metabolism with contractile remodeling | Seven synthetic-selected genes pass real LOO FDR across three accessions | Strong exploratory result; needs a completely unseen soleus accession |
+| Lung | Held-out classifier metrics improved on OSD-248 and OSD-900 | Direction was unstable by genotype/training study; no Reactome term passed FDR in the independent confirmation | Predictive hypothesis only |
+| Skin | Strong real/synthetic FLT/GC effect recovery; cell-cycle and DNA-repair enrichment in development | No synthetic-selected gene passed real LOO FDR; two-accession fresh transfer did not improve BA and reduced AUC/AP | Generator preserves a signal, but added biology is unvalidated |
+| Spleen | Largest within-study classifier gain among the principal tissues | Only `Igfbp3` remained LOO-stable; no coherent selected pathway family survived | Weak biological added value |
+| Kidney | One two-gene porphyrin-metabolism enrichment (`Hmox1`, `Alas1`) | Synthetic effect recovery failed; no selected gene was LOO-stable; fresh transfer reduced AUC/AP | Exploratory single enrichment, not a tissue claim |
+| Liver | Moderate accession-aware synthetic effect recovery and higher fresh-transfer BA | Fresh-transfer AUC fell; no selected gene passed real LOO FDR | No convincing added biology |
+| Retina | Strong tissue-pooled effect recovery in development | Accession recovery was weaker, fresh transfer worsened all three classifier metrics, and no selected gene was LOO-stable | Not supported downstream |
+
+### Comparison With expiMap
+
+The overlap with the proposed expiMap shortlist of thymus, skin, spleen, and kidney
+is therefore partial:
+
+- **Thymus agrees strongly across methods.** expiMap supplies broad
+  pathway-program evidence, while synthetic guidance independently sharpens the
+  cell-cycle component to a compact real-data-supported gene set.
+- **Skin agrees at the hypothesis/model level, not at strict validation.** The DDIM
+  preserves the FLT/GC contrast and highlights cell-cycle/DNA-repair families, but
+  synthetic guidance did not improve fresh held-out prediction or produce
+  LOO-stable selected genes.
+- **Spleen does not yet agree biologically.** Synthetic guidance improved
+  within-study prediction but reduced to one stable gene and no coherent pathway
+  family.
+- **Kidney is not reproduced by the generative analysis.** Neither conditional
+  effect recovery nor fresh-transfer utility passed.
+- **Soleus is the main additional tissue-specific result.** It complements the
+  weaker split-muscle expiMap module result by localizing oxidative-metabolism
+  biology to a smaller LOO-stable gene set.
+
+There is also a threshold issue in the expiMap comparison. The current strict
+accession-aware expiMap literature table reports many LOO-stable terms for thymus
+and a small stable core for spleen, but zero LOO-stable terms for skin and kidney.
+Calling all four "strongest" mixes broad/HVG candidate signals with strict LOO
+evidence. Under the same strict standard, thymus is the clear cross-method
+consensus; soleus is the strongest synthetic-guided complementary result.
 
 ## Evidence Policy
 
@@ -421,7 +496,9 @@ is not a study-level significance test.
 
 The genotype audit strengthened thymus: metrics improved in both Nrf2KO and WT
 subgroups. Lung was mixed because KO AUROC fell from 0.56 to 0.52 even though its BA
-and AP improved.
+and AP improved. Lung's guided candidate also missed the conservative inner
+deployment gate, so its numeric held-out gain is exploratory rather than a validated
+synthetic-guided discovery.
 
 The thymus signature contained `Birc5`, `Ccne2`, `Gmnn`, `Ube2c`, `Cdk1`, `Nusap1`,
 `Ccnb1`, and `Ccnb2`, consistently FLT-down in both genotypes. Reactome terms for
@@ -477,7 +554,8 @@ within-study evidence, not unseen-accession validation. See the
 - Recover a moderate pooled FLT/GC effect and a locked skeletal-muscle
   accession-aware effect.
 - Provide a useful secondary feature-ranking view, with the strongest independent
-  evidence currently in thymus.
+  evidence currently in thymus and the strongest within-study subgroup evidence in
+  soleus.
 
 ### Not Supported
 
@@ -502,15 +580,17 @@ within-study evidence, not unseen-accession validation. See the
 4. Keep OSD-900 and OSD-457 untouched for further tuning. Replicate the thymus
    feature policy in a newly obtained thymus accession and treat lung as
    exploratory until its direction is stable across genotype and study.
-5. Extend API metadata ingestion to capture genotype, sex, material, and muscle
+5. Confirm the soleus gene set in a new accession excluded from DDIM adaptation and
+   every feature-selection step.
+6. Extend API metadata ingestion to capture genotype, sex, material, and muscle
    group directly. Avoid reconstructing these fields from profile names where the
    source API or repository metadata can provide them.
-6. Declare the nonnegative export policy for DDIM outputs. Store both the native
+7. Declare the nonnegative export policy for DDIM outputs. Store both the native
    scaled output and the clipped inverse-scaled expression with provenance.
-7. For true unseen-study generation, design a new accession-held-out adaptation
+8. For true unseen-study generation, design a new accession-held-out adaptation
    benchmark. Study conditioning should include an explicit unknown-study or
    hierarchical study representation rather than reusing a known accession label.
-8. Do not spend full-scale GeneJEPA compute unless a representation task first
+9. Do not spend full-scale GeneJEPA compute unless a representation task first
    demonstrates value over direct expression on a fresh benchmark.
 
 ## Reproducibility And Artifact Index
@@ -519,6 +599,7 @@ within-study evidence, not unseen-accession validation. See the
 - [Paper and code audit](generative_model_code_audit.md)
 - [Data audit](generative_data_audit.md)
 - [Canonical benchmark results](generative_benchmark_results.md)
+- [expiMap pipeline results](expimap_results.md)
 - [Machine-readable model scoreboard](../outputs/generative_benchmark/summary/model_scoreboard.tsv)
 - [DDIM paper-parity implementation](rna_diffusion_paper_parity.md)
 - [Accepted OSDR conditional DDIM](osdr_conditional_diffusion_finalist.md)
@@ -530,6 +611,7 @@ within-study evidence, not unseen-accession validation. See the
 - [Independent feature confirmation](../outputs/generative_benchmark/analyses/generated_feature_guidance_confirmation_v1/)
 - [Within-study feature stability](../outputs/generative_benchmark/analyses/within_study_generated_feature_stability_v1/)
 - [Synthetic-guided skeletal-muscle groups](synthetic_skeletal_muscle_group_analysis.md)
+- [Muscle-group machine-readable outputs](../outputs/generative_benchmark/analyses/within_study_generated_feature_stability_muscle_groups_v1/)
 - [Skeletal-muscle augmentation confirmation](../outputs/generative_benchmark/analyses/fresh_holdout_contrastive_ddim_augmentation_v1/)
 - [Matched liver harmonization results](../outputs/generative_benchmark/summary/liver_harmonization/)
 
