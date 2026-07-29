@@ -15,7 +15,8 @@ random-effects meta-analysis, FDR, and leave-one-accession-out sensitivity.
 - `manuscript.md`, `manuscript.html`, and `manuscript.pdf`: full paper draft.
 - `supplementary_methods.md`, `.html`, and `.pdf`: exact implementation,
   evaluation gates, output provenance, and limitations.
-- `figures/`: six main figures and three supplementary figures in PNG/PDF.
+- `figures/`: four biology-focused main figures and five supplementary figures
+  in PNG/PDF. The performance panels are retained as Figures S4-S5.
 - `source_data/`: manuscript tables, figure source tables, and SHA-256 manifests
   for every frozen analysis input.
 
@@ -43,4 +44,3 @@ Markdown manuscripts with WeasyPrint.
   accession-aware gene set.
 - **Negative:** no coherent synthetic-guided biological result under the declared
   rules.
-

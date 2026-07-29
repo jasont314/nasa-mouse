@@ -372,6 +372,16 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     if len(soleus_genes) != 7:
         raise ValueError(f"Expected 7 generated-supported soleus LOO genes, found {len(soleus_genes)}")
 
+    supported_gene_counts = (
+        muscle_genes.loc[
+            muscle_genes["real_loo_fdr_stable_0_05"].astype(bool)
+            & muscle_genes["real_effect_supports_generated"].astype(bool)
+        ]
+        .groupby("tissue")
+        .size()
+        .rename("cross_study_supported_genes")
+        .reset_index()
+    )
     muscle_summary = muscle_choices.merge(
         muscle_repeats,
         on=["tissue", "selected_arm"],
@@ -382,6 +392,14 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         on="tissue",
         how="left",
         validate="one_to_one",
+    ).merge(
+        supported_gene_counts,
+        on="tissue",
+        how="left",
+        validate="one_to_one",
+    )
+    muscle_summary["cross_study_supported_genes"] = (
+        muscle_summary["cross_study_supported_genes"].fillna(0).astype(int)
     )
 
     tissue_summary = tissue_choices.merge(
@@ -558,14 +576,14 @@ def figure_1_workflow() -> None:
         )
 
     ax.text(0, 8.55, "A", weight="bold", fontsize=13)
-    ax.text(0.45, 8.55, "Training and conditional adaptation", weight="bold", fontsize=11)
+    ax.text(0.45, 8.55, "Data and synthetic-guided discovery", weight="bold", fontsize=11)
     box(
         0.2,
         5.25,
         2.55,
         2.55,
         "ARCHS4 mouse",
-        "997,515 profiles audited\n17,244 healthy-preferred\n20 tissue classes\n974 landmark genes",
+        "17,244 reference profiles\n20 tissue classes\nLearns baseline tissue\nexpression",
         COLORS["blue"],
     )
     box(
@@ -573,8 +591,8 @@ def figure_1_workflow() -> None:
         5.25,
         2.55,
         2.55,
-        "Paper-parity DDIM",
-        "227.1 M parameters\n15,000 epochs\n1,000 diffusion steps\nA100 GPU",
+        "Conditional\ndiffusion",
+        "Generates tissue-aware\nmouse expression\nAdapts to spaceflight\ncohorts",
         COLORS["teal"],
     )
     box(
@@ -583,7 +601,7 @@ def figure_1_workflow() -> None:
         2.55,
         2.55,
         "NASA OSDR API",
-        "1,610 biological profiles\n75 accessions\nFLT and ground control\n24 material classes",
+        "1,610 flight/control\nprofiles\n75 studies\n24 material classes",
         COLORS["coral"],
     )
     box(
@@ -591,8 +609,8 @@ def figure_1_workflow() -> None:
         5.25,
         2.55,
         2.55,
-        "Factorized adapter",
-        "Tissue + condition\nStudy + material type\nLoRA rank 512\n5,000 total steps",
+        "Biological\nanalysis",
+        "Synthetic profiles\nprioritize genes\nEffects measured in\nreal samples",
         COLORS["gold"],
     )
     arrow(2.75, 6.5, 3.15, 6.5)
@@ -600,26 +618,26 @@ def figure_1_workflow() -> None:
     arrow(8.65, 6.5, 9.05, 6.5)
 
     ax.text(0, 4.45, "B", weight="bold", fontsize=13)
-    ax.text(0.45, 4.45, "Evidence ladder and claim boundary", weight="bold", fontsize=11)
+    ax.text(0.45, 4.45, "Biological questions and findings", weight="bold", fontsize=11)
     levels = [
         (
-            "1. Distribution\nvalidity",
-            "293-profile locked test\n4 declared\ngeneration seeds",
+            "1. Tissue\nresponse",
+            "Which organs show\nflight-associated\nexpression changes?",
             COLORS["blue"],
         ),
         (
-            "2. Predictive\nutility",
-            "Nested real-only\nbaseline\nNo composite score",
+            "2. Thymus",
+            "Cell division and\nproliferative renewal",
             COLORS["teal"],
         ),
         (
-            "3. Real-data\nbiology",
-            "Accession random effects\nFDR + leave-one-\naccession-out",
+            "3. Skeletal\nmuscle",
+            "Soleus metabolism,\nmitochondrial turnover,\nand contractile identity",
             COLORS["gold"],
         ),
         (
-            "4. Independent\ntransfer",
-            "Generator excludes\ntest study\nFixed feature policy",
+            "4. Other\ntissues",
+            "Lung, spleen, skin,\nand kidney hypotheses",
             COLORS["coral"],
         ),
     ]
@@ -631,7 +649,7 @@ def figure_1_workflow() -> None:
     ax.text(
         0.2,
         0.55,
-        "Generated profiles guide feature ranking or controlled simulation; they are never counted as additional animals.",
+        "Generated expression prioritizes hypotheses; real flight and ground-control samples determine the biology.",
         fontsize=8.5,
         weight="bold",
         color=COLORS["dark"],
@@ -832,15 +850,20 @@ def figure_4_thymus(tables: dict[str, pd.DataFrame]) -> None:
 
     ax = axes[1]
     y = np.arange(len(pathways))
-    scores = -np.log10(pathways["fdr"].clip(lower=np.finfo(float).tiny))
+    scores = pathways["overlap"] / pathways["pathway_genes_in_background"]
     ax.barh(y, scores, color=COLORS["gold"])
-    ax.axvline(-math.log10(0.05), color=COLORS["coral"], ls="--", lw=1)
     labels = [_clean_term(term) for term in pathways["term"]]
     ax.set_yticks(y, labels)
-    ax.set_xlabel("-log10 Reactome FDR")
-    ax.set_title("B  Cell-cycle and DNA-process enrichment", loc="left")
-    for yi, score, fdr in zip(y, scores, pathways["fdr"]):
-        ax.text(score + 0.04, yi, f"q={fdr:.3g}", va="center", fontsize=7)
+    ax.set_xlim(0, max(scores) * 1.28)
+    ax.set_xlabel("Fraction of pathway genes represented")
+    ax.set_title("B  Shared cell-cycle processes", loc="left")
+    for yi, score, overlap, total in zip(
+        y,
+        scores,
+        pathways["overlap"],
+        pathways["pathway_genes_in_background"],
+    ):
+        ax.text(score + 0.015, yi, f"{overlap}/{total} genes", va="center", fontsize=7)
 
     fig.suptitle(
         "Independent thymus confirmation prioritizes a flight-lower mitotic program in both genotypes",
@@ -866,22 +889,25 @@ def figure_5_soleus(tables: dict[str, pd.DataFrame]) -> None:
     fig, axes = plt.subplots(
         1,
         3,
-        figsize=(8.15, 4.15),
+        figsize=(9.0, 4.15),
         constrained_layout=True,
-        gridspec_kw={"width_ratios": [1.0, 0.96, 1.24]},
+        gridspec_kw={"width_ratios": [0.9, 0.9, 1.3]},
     )
     ax = axes[0]
     y = np.arange(len(summary))
-    ax.scatter(summary["mean_delta_balanced_accuracy"], y - 0.16, label="BA", color=COLORS["teal"], s=28)
-    ax.scatter(summary["mean_delta_roc_auc"], y, label="AUROC", color=COLORS["blue"], s=28)
-    ax.scatter(summary["mean_delta_average_precision"], y + 0.16, label="AP", color=COLORS["gold"], s=28)
-    ax.axvline(0, color=COLORS["gray"], lw=0.9)
+    counts = summary["cross_study_supported_genes"]
+    bar_colors = [
+        COLORS["gold"] if tissue == "soleus" else COLORS["blue"]
+        for tissue in summary["tissue"]
+    ]
+    ax.barh(y, counts, color=bar_colors)
     ax.set_yticks(y, [name.replace("_", " ").title() for name in summary["tissue"]])
     ax.invert_yaxis()
-    ax.set_xlim(-0.01, 0.075)
-    ax.set_xlabel("Mean metric change")
-    ax.set_title("A  Muscle groups", loc="left")
-    ax.legend(frameon=False, fontsize=7, ncol=3, loc="upper right")
+    ax.set_xlim(0, max(counts.max() + 1.5, 2))
+    ax.set_xlabel("Consistent genes")
+    ax.set_title("A  Muscle groups", loc="left", fontsize=9)
+    for yi, value in zip(y, counts):
+        ax.text(value + 0.18, yi, f"{int(value)}", va="center", fontsize=7)
 
     ax = axes[1]
     y = np.arange(len(genes))
@@ -889,12 +915,22 @@ def figure_5_soleus(tables: dict[str, pd.DataFrame]) -> None:
     ax.barh(y, genes["real_meta_effect"], color=colors)
     ax.axvline(0, color=COLORS["gray"], lw=0.9)
     ax.set_yticks(y, genes["symbol"])
-    ax.set_xlabel("Real FLT - GC effect")
-    ax.set_title("B  Soleus real LOO genes", loc="left")
+    ax.set_xlabel("Flight - ground")
+    ax.set_title("B  Soleus genes", loc="left", fontsize=9)
     for yi, effect in zip(y, genes["real_meta_effect"]):
-        if effect < 0:
+        if effect < -0.01:
             ax.text(
-                effect - 0.0015,
+                effect / 2,
+                yi,
+                f"{effect:.3f}",
+                va="center",
+                ha="center",
+                color="white",
+                fontsize=6.8,
+            )
+        elif effect < 0:
+            ax.text(
+                effect - 0.002,
                 yi,
                 f"{effect:.3f}",
                 va="center",
@@ -915,9 +951,8 @@ def figure_5_soleus(tables: dict[str, pd.DataFrame]) -> None:
 
     ax = axes[2]
     y = np.arange(len(pathways))
-    scores = -np.log10(pathways["fdr"])
+    scores = pathways["overlap"] / pathways["pathway_genes_in_background"]
     ax.barh(y, scores, color=COLORS["purple"])
-    ax.axvline(-math.log10(0.05), color=COLORS["coral"], ls="--", lw=1)
     pathway_labels = {
         "R-MMU-9837999_MITOCHONDRIAL_PROTEIN_DEGRADATION": "Mitochondrial protein turnover",
         "R-MMU-556833_METABOLISM_OF_LIPIDS": "Lipid metabolism",
@@ -925,10 +960,16 @@ def figure_5_soleus(tables: dict[str, pd.DataFrame]) -> None:
         "R-MMU-8978868_FATTY_ACID_METABOLISM": "Fatty acid metabolism",
     }
     ax.set_yticks(y, [pathway_labels.get(term, _clean_term(term)) for term in pathways["term"]])
-    ax.set_xlabel("-log10 Reactome FDR")
-    ax.set_title("C  Soleus pathways", loc="left")
-    for yi, score, fdr in zip(y, scores, pathways["fdr"]):
-        ax.text(score + 0.04, yi, f"q={fdr:.3g}", va="center", fontsize=7)
+    ax.set_xlim(0, max(scores) * 1.35)
+    ax.set_xlabel("Pathway genes represented")
+    ax.set_title("C  Biological processes", loc="left", fontsize=9)
+    for yi, score, overlap, total in zip(
+        y,
+        scores,
+        pathways["overlap"],
+        pathways["pathway_genes_in_background"],
+    ):
+        ax.text(score + 0.015, yi, f"{overlap}/{total} genes", va="center", fontsize=7)
 
     fig.suptitle(
         "Anatomical separation reveals a soleus-specific oxidative-metabolism hypothesis",
@@ -943,41 +984,46 @@ def figure_5_soleus(tables: dict[str, pd.DataFrame]) -> None:
 
 def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
     evidence = tables["evidence"].copy()
-    columns = ["Predictive\ntransfer", "Real gene\nsupport", "Pathway\nsupport", "Independent\naccession"]
-    values = np.array(
-        [
-            [3, 3, 3, 3],
-            [2, 2, 2, 0],
-            [2, 0, 0, 1],
-            [2, 1, 0, 0],
-            [1, 0, 1, 0],
-            [1, 0, 1, 0],
-            [1, 0, 0, 0],
-            [1, 0, 1, 0],
-        ]
-    )
-    cmap = matplotlib.colors.ListedColormap(
-        ["#F1F3F4", "#E6C96F", "#73B3AE", "#D96552"]
-    )
+    scores = evidence["tier_score"].to_numpy()
+    themes = [
+        "Lower cell division and proliferative renewal",
+        "Oxidative metabolism and contractile remodeling",
+        "Cell cycle, senescence, and PI3K/AKT (mixed)",
+        "IGFBP3 candidate",
+        "Cell cycle and DNA repair candidates",
+        "Porphyrin metabolism candidates",
+        "No coherent retained pattern",
+        "No coherent retained pattern",
+    ]
+    palette = {
+        0: "#B8C0C5",
+        1: COLORS["gold"],
+        2: COLORS["teal"],
+        3: COLORS["coral"],
+    }
     fig, ax = plt.subplots(figsize=(7.4, 4.7))
-    ax.imshow(values, cmap=cmap, vmin=0, vmax=3, aspect="auto")
-    ax.set_xticks(range(len(columns)), columns)
-    ax.set_yticks(range(len(evidence)), [name.title() for name in evidence["tissue"]])
-    ax.tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
-    for i in range(values.shape[0]):
-        for j in range(values.shape[1]):
-            labels = {0: "none", 1: "exploratory", 2: "development", 3: "confirmed"}
-            ax.text(j, i, labels[values[i, j]], ha="center", va="center", fontsize=7, color=COLORS["dark"])
+    y = np.arange(len(evidence))
+    ax.scatter(scores, y, s=135, color=[palette[int(score)] for score in scores], zorder=3)
+    for yi, score, theme in zip(y, scores, themes):
+        ax.plot([score, 3.25], [yi, yi], color="#D9DEE1", lw=0.8, zorder=1)
+        ax.text(3.35, yi, theme, va="center", fontsize=7.4, color=COLORS["dark"])
+    ax.set_yticks(y, [name.title() for name in evidence["tissue"]])
+    ax.invert_yaxis()
+    ax.set_xlim(-0.25, 6.6)
+    ax.set_xticks(
+        [0, 1, 2, 3],
+        ["No clear\nsignal", "Candidate", "Promising", "Strongest"],
+    )
+    ax.tick_params(axis="x", top=True, labeltop=True, bottom=False, labelbottom=False)
+    ax.grid(axis="x", color="#E5E9EB", linewidth=0.8)
+    ax.spines[["top", "right", "bottom"]].set_visible(False)
+    ax.spines["left"].set_color("#D9DEE1")
     ax.set_title(
-        "Synthetic-guided evidence is strongest in thymus and complementary in soleus",
+        "Biological interpretation is strongest in thymus and complementary in soleus",
         loc="left",
         pad=16,
         fontsize=11,
     )
-    ax.set_xticks(np.arange(-0.5, values.shape[1], 1), minor=True)
-    ax.set_yticks(np.arange(-0.5, values.shape[0], 1), minor=True)
-    ax.grid(which="minor", color="white", linewidth=2)
-    ax.tick_params(which="minor", bottom=False, left=False)
     _save_figure(fig, "figure_6_tissue_evidence")
 
 
