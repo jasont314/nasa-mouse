@@ -28,11 +28,12 @@ ROOT = Path(__file__).resolve().parents[2]
 PAPER_DIR = ROOT / "paper" / "synthetic_guided_spaceflight"
 FIGURE_DIR = PAPER_DIR / "figures"
 SOURCE_DIR = PAPER_DIR / "source_data"
+LANDMARK_PANEL = ROOT / "data/diffusion/l974_mouse_paper_parity.tsv"
 
 ARCHS4_RUN = (
     ROOT
     / "outputs/generative_benchmark/runs/lacan_diffusion/"
-    "archs4_mouse_paper_parity_seed1234"
+    "archs4_mouse_paper_parity_osdr_disjoint_seed1234"
 )
 OSDR_RUN = (
     ROOT
@@ -43,7 +44,7 @@ LOCKED_DIR = OSDR_RUN / "evaluation/final_locked_test"
 CONFIRM_DIR = (
     ROOT
     / "outputs/generative_benchmark/analyses/"
-    "generated_feature_guidance_confirmation_v1"
+    "generated_feature_guidance_confirmation_disjoint_v1"
 )
 MUSCLE_DIR = (
     ROOT
@@ -97,7 +98,7 @@ def _read_tsv(path: Path) -> pd.DataFrame:
 
 def _write_tsv(frame: pd.DataFrame, name: str) -> Path:
     path = SOURCE_DIR / name
-    frame.to_csv(path, sep="\t", index=False)
+    frame.to_csv(path, sep="\t", index=False, na_rep="NA")
     return path
 
 
@@ -154,6 +155,294 @@ def _assert_close(value: float, expected: float, label: str, tolerance: float = 
         raise ValueError(f"{label} changed: observed {value}, expected {expected}")
 
 
+def _ordinary_fdr_gene_inventory(
+    stable_genes: pd.DataFrame,
+    random_effects: pd.DataFrame,
+    analysis_scope: str,
+) -> pd.DataFrame:
+    effect_supported = (
+        stable_genes["real_effect_supports_generated"]
+        .astype(str)
+        .str.lower()
+        .eq("true")
+    )
+    retained = stable_genes.loc[
+        stable_genes["gene_set"].isin(["core_intersection", "generated_supported"])
+        & stable_genes["real_meta_fdr"].lt(0.05)
+        & effect_supported
+    ].copy()
+    retained["selection_interpretation"] = retained["gene_set"].map(
+        {
+            "core_intersection": "reinforced_real_and_synthetic",
+            "generated_supported": "synthetic_promoted",
+        }
+    )
+    retained["flt_gc_direction"] = np.where(
+        retained["real_meta_effect"].gt(0),
+        "FLT_higher",
+        "FLT_lower",
+    )
+    retained["all_accessions_same_direction"] = np.isclose(
+        retained["real_accession_direction_fraction"],
+        1.0,
+    )
+    retained["loo_fdr_stable_0_05"] = (
+        retained["real_loo_fdr_stable_0_05"]
+        .astype(str)
+        .str.lower()
+        .eq("true")
+    )
+
+    random_effect_columns = random_effects[
+        [
+            "tissue",
+            "gene",
+            "n_accessions",
+            "minimum_leave_one_out_fdr",
+            "maximum_leave_one_out_fdr",
+        ]
+    ].copy()
+    retained = retained.merge(
+        random_effect_columns,
+        on=["tissue", "gene"],
+        how="left",
+        validate="one_to_one",
+    )
+    retained.insert(0, "analysis_scope", analysis_scope)
+    return retained[
+        [
+            "analysis_scope",
+            "tissue",
+            "gene",
+            "symbol",
+            "selection_interpretation",
+            "n_accessions",
+            "flt_gc_direction",
+            "real_selection_frequency",
+            "generated_selection_frequency",
+            "real_meta_effect",
+            "real_meta_fdr",
+            "real_accession_direction_fraction",
+            "all_accessions_same_direction",
+            "loo_fdr_stable_0_05",
+            "minimum_leave_one_out_fdr",
+            "maximum_leave_one_out_fdr",
+        ]
+    ]
+
+
+def _all_bh_fdr_gene_inventory(
+    stable_genes: pd.DataFrame,
+    random_effects: pd.DataFrame,
+    landmark_panel: pd.DataFrame,
+    analysis_scope: str,
+) -> pd.DataFrame:
+    family_sizes = random_effects.groupby("tissue", observed=True).size()
+    invalid_families = family_sizes.loc[family_sizes.ne(974)]
+    if not invalid_families.empty:
+        raise ValueError(
+            "Expected BH correction over 974 genes within every tissue; observed "
+            f"{invalid_families.to_dict()}"
+        )
+
+    symbols = landmark_panel[
+        ["mouse_ensembl_gene", "mouse_symbol"]
+    ].drop_duplicates("mouse_ensembl_gene")
+    if len(symbols) != 974:
+        raise ValueError(
+            f"Expected 974 unique mouse landmark symbols, found {len(symbols)}"
+        )
+
+    selection_columns = stable_genes[
+        [
+            "tissue",
+            "gene",
+            "gene_set",
+            "stable_real",
+            "stable_generated",
+            "real_selection_frequency",
+            "generated_selection_frequency",
+            "real_effect_supports_generated",
+        ]
+    ].copy()
+    retained = random_effects.loc[random_effects["meta_fdr"].lt(0.05)].copy()
+    retained = retained.merge(
+        symbols,
+        left_on="gene",
+        right_on="mouse_ensembl_gene",
+        how="left",
+        validate="many_to_one",
+    ).drop(columns="mouse_ensembl_gene")
+    retained = retained.rename(columns={"mouse_symbol": "symbol"})
+    if retained["symbol"].isna().any():
+        missing = retained.loc[retained["symbol"].isna(), "gene"].unique().tolist()
+        raise ValueError(f"Missing landmark symbols for BH-FDR genes: {missing[:5]}")
+
+    retained = retained.merge(
+        selection_columns,
+        on=["tissue", "gene"],
+        how="left",
+        validate="one_to_one",
+    )
+    retained["gene_set"] = retained["gene_set"].fillna(
+        "not_in_stable_selection_union"
+    )
+    for column in ["stable_real", "stable_generated"]:
+        retained[column] = retained[column].fillna(False).astype(bool)
+    for column in ["real_selection_frequency", "generated_selection_frequency"]:
+        retained[column] = retained[column].fillna(0.0)
+    retained["real_effect_supports_generated"] = (
+        retained["real_effect_supports_generated"].fillna(False).astype(bool)
+    )
+
+    retained["selection_interpretation"] = "not_stably_selected"
+    retained.loc[
+        retained["stable_real"] & ~retained["stable_generated"],
+        "selection_interpretation",
+    ] = "real_only_selected"
+    retained.loc[
+        ~retained["stable_real"]
+        & retained["stable_generated"]
+        & ~retained["real_effect_supports_generated"],
+        "selection_interpretation",
+    ] = "synthetic_selected_without_real_direction_support"
+    retained.loc[
+        retained["stable_real"]
+        & retained["stable_generated"]
+        & ~retained["real_effect_supports_generated"],
+        "selection_interpretation",
+    ] = "selected_both_direction_discordant"
+    retained.loc[
+        retained["gene_set"].eq("generated_supported"),
+        "selection_interpretation",
+    ] = "synthetic_promoted"
+    retained.loc[
+        retained["gene_set"].eq("core_intersection"),
+        "selection_interpretation",
+    ] = "reinforced_real_and_synthetic"
+
+    retained["flt_gc_direction"] = np.where(
+        retained["meta_effect"].gt(0),
+        "FLT_higher",
+        "FLT_lower",
+    )
+    retained["all_accessions_same_direction"] = np.isclose(
+        retained["accession_direction_fraction"],
+        1.0,
+    )
+    retained["directionally_heterogeneous"] = (
+        ~retained["all_accessions_same_direction"]
+    )
+    retained["direction_consistency"] = np.where(
+        retained["all_accessions_same_direction"],
+        "unanimous",
+        "non_unanimous",
+    )
+    retained.insert(0, "analysis_scope", analysis_scope)
+    retained.insert(4, "bh_family_size", 974)
+    retained.insert(5, "bh_scope", "within_tissue_974_gene_panel")
+    retained.insert(6, "bh_fdr_threshold", 0.05)
+    return retained[
+        [
+            "analysis_scope",
+            "tissue",
+            "gene",
+            "symbol",
+            "bh_family_size",
+            "bh_scope",
+            "bh_fdr_threshold",
+            "n_accessions",
+            "flt_gc_direction",
+            "meta_effect",
+            "meta_se",
+            "meta_p",
+            "meta_fdr",
+            "tau2",
+            "i2",
+            "n_accession_same_direction",
+            "n_accession_opposite_direction",
+            "accession_direction_fraction",
+            "direction_consistency",
+            "all_accessions_same_direction",
+            "directionally_heterogeneous",
+            "selection_interpretation",
+            "gene_set",
+            "stable_real",
+            "stable_generated",
+            "real_selection_frequency",
+            "generated_selection_frequency",
+            "real_effect_supports_generated",
+            "n_leave_one_out",
+            "n_same_direction",
+            "minimum_leave_one_out_fdr",
+            "maximum_leave_one_out_fdr",
+            "loo_direction_stable",
+            "loo_fdr_stable_0_05",
+        ]
+    ]
+
+
+def _bh_fdr_tissue_summary(
+    inventory: pd.DataFrame,
+    tested_families: pd.DataFrame,
+) -> pd.DataFrame:
+    rows: list[dict[str, Any]] = []
+    for family in tested_families.itertuples(index=False):
+        analysis_scope = str(family.analysis_scope)
+        tissue = str(family.tissue)
+        frame = inventory.loc[
+            inventory["analysis_scope"].eq(analysis_scope)
+            & inventory["tissue"].eq(tissue)
+        ]
+        interpretation = frame["selection_interpretation"]
+        rows.append(
+            {
+                "analysis_scope": analysis_scope,
+                "tissue": tissue,
+                "bh_family_size": int(family.bh_family_size),
+                "n_bh_fdr_genes": len(frame),
+                "n_flt_higher": int(frame["flt_gc_direction"].eq("FLT_higher").sum()),
+                "n_flt_lower": int(frame["flt_gc_direction"].eq("FLT_lower").sum()),
+                "n_unanimous_direction": int(
+                    frame["all_accessions_same_direction"].sum()
+                ),
+                "n_directionally_heterogeneous": int(
+                    frame["directionally_heterogeneous"].sum()
+                ),
+                "n_reinforced_real_and_synthetic": int(
+                    interpretation.eq("reinforced_real_and_synthetic").sum()
+                ),
+                "n_synthetic_promoted": int(
+                    interpretation.eq("synthetic_promoted").sum()
+                ),
+                "n_real_only_selected": int(
+                    interpretation.eq("real_only_selected").sum()
+                ),
+                "n_synthetic_selected_direction_discordant": int(
+                    interpretation.isin(
+                        [
+                            "synthetic_selected_without_real_direction_support",
+                            "selected_both_direction_discordant",
+                        ]
+                    ).sum()
+                ),
+                "n_not_stably_selected": int(
+                    interpretation.eq("not_stably_selected").sum()
+                ),
+                "n_loo_fdr_stable_0_05": int(
+                    frame["loo_fdr_stable_0_05"].astype(bool).sum()
+                ),
+                "minimum_bh_fdr": (
+                    float(frame["meta_fdr"].min()) if len(frame) else float("nan")
+                ),
+                "median_i2": (
+                    float(frame["i2"].median()) if len(frame) else float("nan")
+                ),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def build_source_tables() -> dict[str, pd.DataFrame]:
     arch_eval = _read_json(ARCHS4_RUN / "evaluation/summary.json")
     arch_run = _read_json(ARCHS4_RUN / "run_summary.json")
@@ -167,18 +456,24 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     muscle_genes = _read_tsv(MUSCLE_DIR / "stable_gene_sets.tsv.gz")
     muscle_reactome = _read_tsv(MUSCLE_DIR / "reactome_enrichment.tsv.gz")
     muscle_inventory = _read_tsv(MUSCLE_DIR / "tissue_inventory.tsv")
+    muscle_accession_effects = _read_tsv(MUSCLE_DIR / "real_accession_effects.tsv.gz")
+    muscle_random_effects = _read_tsv(MUSCLE_DIR / "real_random_effects.tsv.gz")
     tissue_choices = _read_tsv(TISSUE_DIR / "tissue_arm_choices.tsv")
     tissue_repeats = _read_tsv(TISSUE_DIR / "paired_repeat_support.tsv")
     tissue_biology = _read_tsv(TISSUE_DIR / "biological_support_summary.tsv")
+    tissue_genes = _read_tsv(TISSUE_DIR / "stable_gene_sets.tsv.gz")
+    tissue_accession_effects = _read_tsv(TISSUE_DIR / "real_accession_effects.tsv.gz")
+    tissue_random_effects = _read_tsv(TISSUE_DIR / "real_random_effects.tsv.gz")
+    landmark_panel = _read_tsv(LANDMARK_PANEL)
 
     _assert_close(
         arch_eval["synthetic_to_real_test_tissue_classifier"]["balanced_accuracy"],
-        0.8686724084569832,
+        0.7810085910974481,
         "ARCHS4 reverse-validation balanced accuracy",
     )
     _assert_close(
         confirmation.loc[confirmation["tissue"] == "thymus", "generated_roc_auc"].iloc[0],
-        0.9722222222222222,
+        0.9791666666666666,
         "held-out thymus guided AUROC",
     )
 
@@ -188,7 +483,11 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                 "source": "ARCHS4 mouse v2.5",
                 "available_profiles": 997_515,
                 "analysis_profiles": sum(arch_run["profiles"].values()),
-                "analysis_split": "9796 train / 2448 validation / 5000 test",
+                "analysis_split": (
+                    f"{arch_run['profiles']['train']} train / "
+                    f"{arch_run['profiles']['validation']} validation / "
+                    f"{arch_run['profiles']['test']} test"
+                ),
                 "classes_or_accessions": 20,
                 "genes": 974,
                 "role": "healthy-preferred tissue pretraining",
@@ -312,7 +611,10 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                 "adversarial_accuracy": arch_eval[
                     "nearest_neighbor_adversarial_accuracy_in_scaled_l974"
                 ],
-                "decision": "retained as broad tissue generator",
+                "decision": (
+                    "retained for tissue-conditioned initialization; strict "
+                    "correlation-matrix gate failed"
+                ),
             },
             {
                 "model": "OSDR-adapted factorized DDIM",
@@ -372,6 +674,35 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     if len(soleus_genes) != 7:
         raise ValueError(f"Expected 7 generated-supported soleus LOO genes, found {len(soleus_genes)}")
 
+    rbm6_gene = "ENSMUSG00000032582"
+    quadriceps_rbm6_effects = muscle_accession_effects.loc[
+        muscle_accession_effects["analysis_tissue"].eq("quadriceps")
+        & muscle_accession_effects["feature"].eq(rbm6_gene)
+    ].copy()
+    quadriceps_rbm6_effects = quadriceps_rbm6_effects.sort_values("accession")
+    if len(quadriceps_rbm6_effects) != 4:
+        raise ValueError(
+            "Expected four quadriceps Rbm6 accession effects, "
+            f"found {len(quadriceps_rbm6_effects)}"
+        )
+    if not quadriceps_rbm6_effects["flight_minus_ground"].gt(0).all():
+        raise ValueError("Expected every quadriceps Rbm6 accession effect to be positive")
+
+    quadriceps_rbm6_meta = muscle_random_effects.loc[
+        muscle_random_effects["tissue"].eq("quadriceps")
+        & muscle_random_effects["gene"].eq(rbm6_gene)
+    ].copy()
+    if len(quadriceps_rbm6_meta) != 1:
+        raise ValueError(
+            "Expected one quadriceps Rbm6 random-effects row, "
+            f"found {len(quadriceps_rbm6_meta)}"
+        )
+    _assert_close(
+        quadriceps_rbm6_meta["meta_fdr"].iloc[0],
+        0.0007503147625256085,
+        "quadriceps Rbm6 random-effects FDR",
+    )
+
     supported_gene_counts = (
         muscle_genes.loc[
             muscle_genes["real_loo_fdr_stable_0_05"].astype(bool)
@@ -402,6 +733,157 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         muscle_summary["cross_study_supported_genes"].fillna(0).astype(int)
     )
 
+    ordinary_fdr_genes = pd.concat(
+        [
+            _ordinary_fdr_gene_inventory(
+                tissue_genes,
+                tissue_random_effects,
+                "canonical_tissue",
+            ),
+            _ordinary_fdr_gene_inventory(
+                muscle_genes,
+                muscle_random_effects,
+                "skeletal_muscle_group",
+            ),
+        ],
+        ignore_index=True,
+    ).sort_values(
+        ["analysis_scope", "tissue", "real_meta_fdr", "symbol"],
+        ignore_index=True,
+    )
+
+    all_bh_fdr_genes = pd.concat(
+        [
+            _all_bh_fdr_gene_inventory(
+                tissue_genes,
+                tissue_random_effects,
+                landmark_panel,
+                "canonical_tissue",
+            ),
+            _all_bh_fdr_gene_inventory(
+                muscle_genes,
+                muscle_random_effects,
+                landmark_panel,
+                "skeletal_muscle_group",
+            ),
+        ],
+        ignore_index=True,
+    ).sort_values(
+        ["analysis_scope", "tissue", "meta_fdr", "symbol"],
+        ignore_index=True,
+    )
+    tested_bh_families = pd.concat(
+        [
+            tissue_random_effects.groupby("tissue", observed=True)
+            .size()
+            .rename("bh_family_size")
+            .reset_index()
+            .assign(analysis_scope="canonical_tissue"),
+            muscle_random_effects.groupby("tissue", observed=True)
+            .size()
+            .rename("bh_family_size")
+            .reset_index()
+            .assign(analysis_scope="skeletal_muscle_group"),
+        ],
+        ignore_index=True,
+    )[["analysis_scope", "tissue", "bh_family_size"]].sort_values(
+        ["analysis_scope", "tissue"],
+        ignore_index=True,
+    )
+    bh_fdr_tissue_summary = _bh_fdr_tissue_summary(
+        all_bh_fdr_genes,
+        tested_bh_families,
+    )
+    scope_counts = all_bh_fdr_genes.groupby("analysis_scope").size().to_dict()
+    if scope_counts != {
+        "canonical_tissue": 202,
+        "skeletal_muscle_group": 257,
+    }:
+        raise ValueError(f"Unexpected BH-FDR inventory counts: {scope_counts}")
+    selection_counts = all_bh_fdr_genes["selection_interpretation"].value_counts()
+    if (
+        int(selection_counts.get("synthetic_promoted", 0)) != 28
+        or int(selection_counts.get("reinforced_real_and_synthetic", 0)) != 24
+    ):
+        raise ValueError(
+            "Unexpected synthetic-informed BH-FDR counts: "
+            f"{selection_counts.to_dict()}"
+        )
+    if len(bh_fdr_tissue_summary) != 27:
+        raise ValueError(
+            "Expected BH-FDR summaries for 22 canonical tissues and five "
+            f"muscle groups, found {len(bh_fdr_tissue_summary)}"
+        )
+
+    thymus_development = all_bh_fdr_genes.loc[
+        all_bh_fdr_genes["analysis_scope"].eq("canonical_tissue")
+        & all_bh_fdr_genes["tissue"].eq("thymus")
+        & all_bh_fdr_genes["symbol"].isin(core_symbols),
+        [
+            "gene",
+            "symbol",
+            "selection_interpretation",
+            "stable_real",
+            "stable_generated",
+            "real_selection_frequency",
+            "generated_selection_frequency",
+            "meta_effect",
+            "meta_fdr",
+            "accession_direction_fraction",
+            "all_accessions_same_direction",
+        ],
+    ].copy()
+    thymus_evidence_mapping = thymus_core[
+        [
+            "gene",
+            "symbol",
+            "mean_classifier_coefficient",
+            "mean_real_effect",
+            "mean_synthetic_effect",
+        ]
+    ].merge(
+        thymus_development,
+        on=["gene", "symbol"],
+        how="left",
+        validate="one_to_one",
+    )
+    if len(thymus_evidence_mapping) != 8 or thymus_evidence_mapping[
+        "selection_interpretation"
+    ].isna().any():
+        raise ValueError(
+            "Expected all eight held-out thymus core genes to map to the "
+            "cross-study BH-FDR inventory"
+        )
+    thymus_evidence_mapping.insert(0, "evidence_tier", 1)
+    thymus_evidence_mapping.insert(1, "heldout_accession", "OSD-457")
+    thymus_evidence_mapping.insert(
+        4,
+        "heldout_direction_in_wt_and_nrf2ko",
+        "FLT_lower",
+    )
+    thymus_evidence_mapping = thymus_evidence_mapping.rename(
+        columns={
+            "mean_classifier_coefficient": "heldout_classifier_coefficient",
+            "mean_real_effect": "heldout_mean_real_effect",
+            "mean_synthetic_effect": "development_mean_synthetic_effect",
+            "selection_interpretation": "tier_2_selection_interpretation",
+            "stable_real": "tier_2_stable_real",
+            "stable_generated": "tier_2_stable_generated",
+            "real_selection_frequency": "tier_2_real_selection_frequency",
+            "generated_selection_frequency": (
+                "tier_2_generated_selection_frequency"
+            ),
+            "meta_effect": "real_cross_study_meta_effect",
+            "meta_fdr": "real_cross_study_bh_fdr",
+            "accession_direction_fraction": (
+                "real_cross_study_direction_fraction"
+            ),
+            "all_accessions_same_direction": (
+                "real_cross_study_unanimous_direction"
+            ),
+        }
+    )
+
     tissue_summary = tissue_choices.merge(
         tissue_repeats,
         on=["tissue", "selected_arm"],
@@ -414,61 +896,136 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         validate="one_to_one",
     )
 
+    igfbp3_gene = "ENSMUSG00000020427"
+    spleen_igfbp3_effects = tissue_accession_effects.loc[
+        tissue_accession_effects["analysis_tissue"].eq("spleen")
+        & tissue_accession_effects["feature"].eq(igfbp3_gene)
+    ].copy()
+    spleen_igfbp3_effects["standard_error"] = np.sqrt(
+        spleen_igfbp3_effects["effect_variance"]
+    )
+    spleen_igfbp3_effects["ci_low"] = (
+        spleen_igfbp3_effects["flight_minus_ground"]
+        - 1.96 * spleen_igfbp3_effects["standard_error"]
+    )
+    spleen_igfbp3_effects["ci_high"] = (
+        spleen_igfbp3_effects["flight_minus_ground"]
+        + 1.96 * spleen_igfbp3_effects["standard_error"]
+    )
+    spleen_igfbp3_effects = spleen_igfbp3_effects[
+        [
+            "accession",
+            "n_flight",
+            "n_ground_control",
+            "flight_minus_ground",
+            "standard_error",
+            "ci_low",
+            "ci_high",
+        ]
+    ].sort_values("accession")
+    if len(spleen_igfbp3_effects) != 6:
+        raise ValueError(
+            "Expected six spleen Igfbp3 accession effects, "
+            f"found {len(spleen_igfbp3_effects)}"
+        )
+    if not spleen_igfbp3_effects["flight_minus_ground"].gt(0).all():
+        raise ValueError("Expected every spleen Igfbp3 accession effect to be positive")
+
+    spleen_igfbp3_meta = tissue_random_effects.loc[
+        tissue_random_effects["tissue"].eq("spleen")
+        & tissue_random_effects["gene"].eq(igfbp3_gene)
+    ].copy()
+    if len(spleen_igfbp3_meta) != 1:
+        raise ValueError(
+            "Expected one spleen Igfbp3 random-effects row, "
+            f"found {len(spleen_igfbp3_meta)}"
+        )
+    _assert_close(
+        spleen_igfbp3_meta["meta_fdr"].iloc[0],
+        1.7592185680837808e-09,
+        "spleen Igfbp3 random-effects FDR",
+    )
+
+    spleen_reference_expression = pd.DataFrame(
+        [
+            ("White-pulp mesenchymal", 1476.95),
+            ("Red-pulp mesenchymal", 414.99),
+            ("Endothelial", 8.01),
+            ("Red-pulp macrophage", 2.37),
+        ],
+        columns=["population", "mean_igfbp3_rpkm"],
+    )
+    spleen_reference_expression.insert(0, "dataset", "GSE156162")
+
     evidence = pd.DataFrame(
         [
             {
                 "tissue": "thymus",
-                "tier": "independent held-out confirmation",
+                "tier": "leakage-corrected held-out confirmation",
                 "tier_score": 3,
-                "predictive_result": "BA 0.500 to 0.833; AUROC 0.840 to 0.972",
+                "predictive_result": "BA 0.500 to 0.833; AUROC 0.840 to 0.979",
                 "real_gene_support": "8 core FLT-down genes; genotype effect r=0.975",
                 "pathway_support": "G2/M, APC/C, DNA replication; Reactome FDR < 0.05",
-                "interpretation": "confirmed feature-guidance result; one held-out accession",
+                "interpretation": (
+                    "leakage-corrected feature-guidance result; outcomes were "
+                    "known before retraining"
+                ),
             },
             {
                 "tissue": "soleus",
                 "tier": "cross-accession development",
                 "tier_score": 2,
                 "predictive_result": "generated-only delta BA/AUROC/AP +0.025/+0.020/+0.020",
-                "real_gene_support": "7 synthetic-selected genes pass real LOO FDR",
+                "real_gene_support": "8 unanimous ordinary-FDR genes; 7 pass LOO FDR",
                 "pathway_support": "mitochondrial lipid oxidation/protein turnover; FDR < 0.05",
                 "interpretation": "coherent hypothesis; requires unseen-accession confirmation",
+            },
+            {
+                "tissue": "quadriceps",
+                "tier": "cross-accession gene-level evidence",
+                "tier_score": 2,
+                "predictive_result": "guided delta BA/AUROC/AP +0.050/+0.040/+0.026",
+                "real_gene_support": "4 unanimous ordinary-FDR genes; Rbm6 passes LOO FDR",
+                "pathway_support": "G1/S and TP53 terms were suggestive; minimum FDR 0.0598",
+                "interpretation": "secondary four-gene association; mechanism unconfirmed",
             },
             {
                 "tissue": "lung",
                 "tier": "mixed held-out exploratory",
                 "tier_score": 1,
-                "predictive_result": "BA/AUROC/AP improved overall; KO AUROC decreased",
+                "predictive_result": (
+                    "BA decreased; modest AUROC/AP gains; validation gate rejected"
+                ),
                 "real_gene_support": "no directionally confirmed core gene set",
                 "pathway_support": "no Reactome term at FDR < 0.05",
-                "interpretation": "predictive transfer without stable biological direction",
+                "interpretation": "no retained synthetic-guided classifier result",
             },
             {
                 "tissue": "spleen",
-                "tier": "developmental exploratory",
-                "tier_score": 1,
+                "tier": "cross-accession gene-level evidence",
+                "tier_score": 2,
                 "predictive_result": "nested delta BA/AUROC/AP +0.170/+0.208/+0.204",
-                "real_gene_support": "1 selected LOO-stable gene (Igfbp3)",
+                "real_gene_support": "5 unanimous ordinary-FDR genes; Igfbp3 passes LOO FDR",
                 "pathway_support": "no coherent stable-set Reactome enrichment",
-                "interpretation": "classifier signal, not a synthetic biological claim",
+                "interpretation": "strong single-gene association; stromal mechanism unconfirmed",
             },
             {
                 "tissue": "skin",
                 "tier": "developmental exploratory",
                 "tier_score": 1,
-                "predictive_result": "nested gains; only 4/8 repeats nonworse on all metrics",
-                "real_gene_support": "0 selected genes pass real LOO FDR",
-                "pathway_support": "developmental pathway hypotheses only",
-                "interpretation": "does not independently reproduce the expiMap skin result",
+                "predictive_result": "nested gains did not reproduce on the reserved profiles",
+                "real_gene_support": "Plscr1 is FLT-up in 6/6 studies but is not synthetic-selected",
+                "pathway_support": "cell-cycle/DNA-repair theme matches published skin analyses",
+                "interpretation": "literature-aligned heterogeneous response; not a new synthetic claim",
             },
             {
                 "tissue": "kidney",
                 "tier": "developmental exploratory",
                 "tier_score": 1,
                 "predictive_result": "nested delta BA/AUROC/AP +0.029/+0.093/+0.097",
-                "real_gene_support": "0 selected genes pass real LOO FDR",
-                "pathway_support": "Hmox1/Alas1 porphyrin enrichment is unstable",
-                "interpretation": "does not independently reproduce the expiMap kidney result",
+                "real_gene_support": "Slc37a4 is reinforced and FLT-up in 6/6 studies",
+                "pathway_support": "renal glucose metabolism; lipid/ECM context from expiMap",
+                "interpretation": "credible secondary hypothesis; requires unseen-study confirmation",
             },
             {
                 "tissue": "liver",
@@ -481,15 +1038,30 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             },
             {
                 "tissue": "retina",
-                "tier": "negative",
-                "tier_score": 0,
+                "tier": "developmental exploratory",
+                "tier_score": 1,
                 "predictive_result": "nested gains but no real LOO-stable selected genes",
-                "real_gene_support": "0 selected genes pass real LOO FDR",
-                "pathway_support": "exploratory enrichment only",
-                "interpretation": "prediction result did not support a robust biological claim",
+                "real_gene_support": "Slc37a4 is FLT-up in 4/4 studies; ordinary FDR 0.0238",
+                "pathway_support": "shear-stress enrichment involves a different gene set",
+                "interpretation": "exploratory gene/pathway mismatch; no integrated claim",
             },
         ]
     )
+    evidence_order = [
+        "thymus",
+        "soleus",
+        "quadriceps",
+        "spleen",
+        "kidney",
+        "lung",
+        "skin",
+        "liver",
+        "retina",
+    ]
+    evidence["_order"] = evidence["tissue"].map(
+        {tissue: index for index, tissue in enumerate(evidence_order)}
+    )
+    evidence = evidence.sort_values("_order").drop(columns="_order").reset_index(drop=True)
 
     tables = {
         "inventory": inventory,
@@ -504,8 +1076,17 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "thymus_reactome": thymus_reactome,
         "muscle_summary": muscle_summary,
         "soleus_genes": soleus_genes,
+        "quadriceps_rbm6_effects": quadriceps_rbm6_effects,
+        "quadriceps_rbm6_meta": quadriceps_rbm6_meta,
         "muscle_reactome": muscle_reactome,
         "tissue_summary": tissue_summary,
+        "ordinary_fdr_genes": ordinary_fdr_genes,
+        "all_bh_fdr_genes": all_bh_fdr_genes,
+        "bh_fdr_tissue_summary": bh_fdr_tissue_summary,
+        "thymus_evidence_mapping": thymus_evidence_mapping,
+        "spleen_igfbp3_effects": spleen_igfbp3_effects,
+        "spleen_igfbp3_meta": spleen_igfbp3_meta,
+        "spleen_reference_expression": spleen_reference_expression,
         "evidence": evidence,
     }
 
@@ -513,7 +1094,7 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "inventory": "table_1_data_inventory.tsv",
         "model_screen": "table_2_model_screen.tsv",
         "locked_summary": "table_3_locked_ddim_metrics.tsv",
-        "confirmation": "table_4_independent_confirmation.tsv",
+        "confirmation": "table_4_leakage_corrected_confirmation.tsv",
         "evidence": "table_5_tissue_evidence.tsv",
         "arch_summary": "table_s1_archs4_ddim_metrics.tsv",
         "locked_repeats": "table_s2_locked_ddim_repeats.tsv",
@@ -525,6 +1106,15 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "soleus_genes": "table_s8_soleus_genes.tsv",
         "muscle_reactome": "table_s9_muscle_reactome.tsv",
         "tissue_summary": "table_s10_all_tissue_development_screen.tsv",
+        "spleen_igfbp3_effects": "table_s11_spleen_igfbp3_accession_effects.tsv",
+        "spleen_igfbp3_meta": "table_s12_spleen_igfbp3_random_effects.tsv",
+        "spleen_reference_expression": "table_s13_spleen_reference_expression.tsv",
+        "quadriceps_rbm6_effects": "table_s14_quadriceps_rbm6_accession_effects.tsv",
+        "quadriceps_rbm6_meta": "table_s15_quadriceps_rbm6_random_effects.tsv",
+        "ordinary_fdr_genes": "table_s16_ordinary_fdr_directional_genes.tsv",
+        "all_bh_fdr_genes": "table_s17_all_random_effects_bh_fdr_genes.tsv",
+        "bh_fdr_tissue_summary": "table_s18_bh_fdr_tissue_summary.tsv",
+        "thymus_evidence_mapping": "table_s19_thymus_evidence_level_mapping.tsv",
     }
     for key, name in names.items():
         _write_tsv(tables[key], name)
@@ -637,7 +1227,7 @@ def figure_1_workflow() -> None:
         ),
         (
             "4. Other\ntissues",
-            "Lung, spleen, skin,\nand kidney hypotheses",
+            "Splenic IGFBP3,\nrenal metabolism,\nand heterogeneous\norgan responses",
             COLORS["coral"],
         ),
     ]
@@ -780,7 +1370,7 @@ def figure_3_utility(tables: dict[str, pd.DataFrame]) -> None:
     ax.set_yticks(y, labels)
     ax.invert_yaxis()
     ax.set_xlim(0.3, 1.01)
-    ax.set_title("B  Held-out studies", loc="left")
+    ax.set_title("B  Leakage-corrected held-out studies", loc="left")
     ax.legend(frameon=False, fontsize=7, loc="lower right")
 
     ax = axes[2]
@@ -988,12 +1578,13 @@ def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
     themes = [
         "Lower cell division and proliferative renewal",
         "Oxidative metabolism and contractile remodeling",
+        "FLT-higher four-gene set; G1/S and TP53 suggestive",
+        "FLT-higher IGFBP3; stromal-niche hypothesis",
+        "Renal glucose metabolism; lipid/ECM context",
         "Cell cycle, senescence, and PI3K/AKT (mixed)",
-        "IGFBP3 candidate",
         "Cell cycle and DNA repair candidates",
-        "Porphyrin metabolism candidates",
         "No coherent retained pattern",
-        "No coherent retained pattern",
+        "FLT-higher SLC37A4; pathway context differs",
     ]
     palette = {
         0: "#B8C0C5",
@@ -1001,7 +1592,90 @@ def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
         2: COLORS["teal"],
         3: COLORS["coral"],
     }
-    fig, ax = plt.subplots(figsize=(7.4, 4.7))
+
+    fig = plt.figure(figsize=(7.4, 7.6))
+    grid = fig.add_gridspec(
+        2,
+        2,
+        height_ratios=[0.92, 1.2],
+        width_ratios=[1.12, 0.88],
+        hspace=0.58,
+        wspace=0.42,
+    )
+
+    ax = fig.add_subplot(grid[0, 0])
+    effects = tables["spleen_igfbp3_effects"].copy()
+    meta = tables["spleen_igfbp3_meta"].iloc[0]
+    scale = 1_000.0
+    y_effects = np.arange(len(effects))
+    ax.errorbar(
+        effects["flight_minus_ground"] * scale,
+        y_effects,
+        xerr=1.96 * effects["standard_error"] * scale,
+        fmt="o",
+        color=COLORS["teal"],
+        ecolor="#86AAA8",
+        elinewidth=1.1,
+        capsize=2.5,
+        markersize=5,
+        zorder=3,
+    )
+    meta_y = len(effects) + 0.35
+    ax.errorbar(
+        float(meta["meta_effect"]) * scale,
+        meta_y,
+        xerr=1.96 * float(meta["meta_se"]) * scale,
+        fmt="D",
+        color=COLORS["coral"],
+        ecolor=COLORS["coral"],
+        elinewidth=1.4,
+        capsize=3,
+        markersize=5.5,
+        zorder=4,
+    )
+    effect_labels = [
+        f"{row.accession}  ({int(row.n_flight)}/{int(row.n_ground_control)})"
+        for row in effects.itertuples()
+    ]
+    ax.set_yticks(
+        [*y_effects, meta_y],
+        [*effect_labels, "Random-effects estimate"],
+    )
+    ax.invert_yaxis()
+    ax.axvline(0, color=COLORS["gray"], linewidth=0.9, linestyle="--")
+    ax.grid(axis="x", color="#E5E9EB", linewidth=0.8)
+    ax.set_xlabel(r"FLT - GC ($\times 10^{-3}$, model scale)")
+    ax.set_title("A  Cross-study spleen $Igfbp3$ effect", loc="left", fontsize=9)
+
+    ax = fig.add_subplot(grid[0, 1])
+    reference = tables["spleen_reference_expression"].iloc[::-1].copy()
+    y_reference = np.arange(len(reference))
+    ax.barh(
+        y_reference,
+        reference["mean_igfbp3_rpkm"],
+        color=[COLORS["coral"], COLORS["gold"], COLORS["teal"], COLORS["blue"]],
+    )
+    ax.set_xscale("log")
+    ax.set_xlim(1, 2_500)
+    ax.set_yticks(y_reference, reference["population"])
+    ax.set_xlabel("Mean $Igfbp3$ (RPKM, log scale)")
+    ax.set_title(
+        "B  Healthy spleen source (GSE156162)",
+        loc="left",
+        fontsize=9,
+    )
+    ax.grid(axis="x", color="#E5E9EB", linewidth=0.8)
+    for yi, value in zip(y_reference, reference["mean_igfbp3_rpkm"]):
+        ax.text(
+            float(value) * 1.12,
+            yi,
+            f"{float(value):,.1f}",
+            va="center",
+            fontsize=6.8,
+            color=COLORS["dark"],
+        )
+
+    ax = fig.add_subplot(grid[1, :])
     y = np.arange(len(evidence))
     ax.scatter(scores, y, s=135, color=[palette[int(score)] for score in scores], zorder=3)
     for yi, score, theme in zip(y, scores, themes):
@@ -1019,11 +1693,19 @@ def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
     ax.spines[["top", "right", "bottom"]].set_visible(False)
     ax.spines["left"].set_color("#D9DEE1")
     ax.set_title(
-        "Biological interpretation is strongest in thymus and complementary in soleus",
+        "C  Tissue-level biological interpretation",
         loc="left",
-        pad=16,
-        fontsize=11,
+        pad=14,
+        fontsize=9,
     )
+    fig.suptitle(
+        "Spleen $Igfbp3$ adds a focused cross-study result to the tissue response hierarchy",
+        x=0.02,
+        ha="left",
+        fontsize=11,
+        weight="bold",
+    )
+    fig.subplots_adjust(top=0.92, bottom=0.06, left=0.16, right=0.98)
     _save_figure(fig, "figure_6_tissue_evidence")
 
 
@@ -1053,9 +1735,15 @@ def build_manifest() -> None:
         MUSCLE_DIR / "paired_repeat_support.tsv",
         MUSCLE_DIR / "stable_gene_sets.tsv.gz",
         MUSCLE_DIR / "reactome_enrichment.tsv.gz",
+        MUSCLE_DIR / "real_accession_effects.tsv.gz",
+        MUSCLE_DIR / "real_random_effects.tsv.gz",
         TISSUE_DIR / "tissue_arm_choices.tsv",
         TISSUE_DIR / "paired_repeat_support.tsv",
         TISSUE_DIR / "biological_support_summary.tsv",
+        TISSUE_DIR / "stable_gene_sets.tsv.gz",
+        TISSUE_DIR / "real_accession_effects.tsv.gz",
+        TISSUE_DIR / "real_random_effects.tsv.gz",
+        LANDMARK_PANEL,
         WGAN_DIR / "summary.json",
         GENEJEPA_DIR / "figures/archs4_tissues_validation/summary.json",
     ]
@@ -1170,7 +1858,7 @@ def main() -> None:
     if not args.skip_render:
         render_document(
             _required(PAPER_DIR / "manuscript.md"),
-            "Synthetic-guided feature discovery in mouse spaceflight transcriptomics",
+            "Cross-study synthetic-guided transcriptomics of spaceflown mice",
         )
         render_document(
             _required(PAPER_DIR / "supplementary_methods.md"),

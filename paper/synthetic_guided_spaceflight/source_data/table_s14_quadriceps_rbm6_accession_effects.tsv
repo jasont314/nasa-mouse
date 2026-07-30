@@ -1,0 +1,5 @@
+analysis_tissue	accession	tissue	feature	n_flight	n_ground_control	flight_minus_ground	effect_variance
+quadriceps	OSD-103	quadriceps	ENSMUSG00000032582	6	6	0.0063631754989425	3.598578779295909e-06
+quadriceps	OSD-326	quadriceps	ENSMUSG00000032582	4	4	0.0032664681784808	1.6208175410890506e-05
+quadriceps	OSD-401	quadriceps	ENSMUSG00000032582	3	3	0.0051064180831114	1.3046430950265794e-05
+quadriceps	OSD-666	quadriceps	ENSMUSG00000032582	9	9	0.0039999513990349	1.8605728761254857e-06

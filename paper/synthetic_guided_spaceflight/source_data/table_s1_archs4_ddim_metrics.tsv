@@ -1,12 +1,12 @@
 metric	value
-Real train to real test tissue BA	0.8953689038980691
-Synthetic train to real test tissue BA	0.8686724084569832
-Gene mean correlation	0.9965401462441245
-Gene SD correlation	0.9436766732273396
-Gene correlation agreement	0.8791280661139725
-Precision, scaled L974	0.9655
-Recall, scaled L974	0.8645
-Adversarial accuracy	0.512
-Precision, PCA50	0.9855
-Recall, PCA50	0.943
-Frechet distance, PCA50	0.03846988168439952
+Real train to real test tissue BA	0.7809733409796491
+Synthetic train to real test tissue BA	0.7810085910974481
+Gene mean correlation	0.993096717371153
+Gene SD correlation	0.9270563447928302
+Gene correlation agreement	0.8782760869794711
+Precision, scaled L974	0.951
+Recall, scaled L974	0.89
+Adversarial accuracy	0.51475
+Precision, PCA50	0.977
+Recall, PCA50	0.9655
+Frechet distance, PCA50	0.10647339521312346

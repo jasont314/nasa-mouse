@@ -1,5 +1,5 @@
 model	evaluation	correlation	precision	recall	adversarial_accuracy	decision
-ARCHS4-pretrained DDIM	held-out ARCHS4 series	0.8791280661139725	0.9655	0.8645	0.512	retained as broad tissue generator
+ARCHS4-pretrained DDIM	held-out ARCHS4 series	0.8782760869794711	0.951	0.89	0.51475	retained for tissue-conditioned initialization; strict correlation-matrix gate failed
 OSDR-adapted factorized DDIM	293-profile locked within-study test	0.977047184540816	0.9982935153583619	0.9965870307167236	0.45819112627986347	accepted for represented-study conditional simulation
 OSDR study-conditioned WGAN-GP	validation only; locked test unopened	0.9759	0.9764	0.9938	0.6362	rejected; externally separable and no accession-aware effect recovery
-GeneJEPA exact-architecture duration screen	held-out ARCHS4 series					representation only; no expression decoder; not advanced
+GeneJEPA exact-architecture duration screen	held-out ARCHS4 series	NA	NA	NA	NA	representation only; no expression decoder; not advanced

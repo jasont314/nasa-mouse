@@ -1,0 +1,2 @@
+tissue	gene	n_accessions	meta_effect	meta_se	meta_p	tau2	i2	n_accession_same_direction	n_accession_opposite_direction	meta_fdr	n_leave_one_out	n_same_direction	minimum_leave_one_out_fdr	maximum_leave_one_out_fdr	accession_direction_fraction	loo_direction_stable	loo_fdr_stable_0_05
+spleen	ENSMUSG00000020427	6	0.0028379819665238	0.0004026257957492	1.8061792280120952e-12	0.0	0.0	6	0	1.7592185680837806e-09	6.0	6.0	6.662221294244396e-09	0.003849301814192	1.0	True	True

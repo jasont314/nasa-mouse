@@ -1,0 +1,2 @@
+tissue	gene	n_accessions	meta_effect	meta_se	meta_p	tau2	i2	n_accession_same_direction	n_accession_opposite_direction	meta_fdr	n_leave_one_out	n_same_direction	minimum_leave_one_out_fdr	maximum_leave_one_out_fdr	accession_direction_fraction	loo_direction_stable	loo_fdr_stable_0_05
+quadriceps	ENSMUSG00000032582	4	0.0047300177403833	0.001023984640116	3.851718493457949e-06	0.0	0.0	4	0	0.0007503147625256	4	4	0.0006141869945333	0.0375751149043096	1.0	True	True
