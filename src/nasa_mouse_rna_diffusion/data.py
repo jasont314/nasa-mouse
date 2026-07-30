@@ -194,6 +194,54 @@ def _series_group(value: object, fallback: str) -> str:
     return str(value).split(",", maxsplit=1)[0].strip()
 
 
+def _series_ids(value: object) -> set[str]:
+    if pd.isna(value) or not str(value).strip():
+        return set()
+    return {
+        token.strip()
+        for token in str(value).replace(";", ",").split(",")
+        if token.strip()
+    }
+
+
+def _load_excluded_series_ids(data: dict[str, Any]) -> set[str]:
+    excluded = {
+        str(value).strip()
+        for value in data.get("exclude_series_ids", [])
+        if str(value).strip()
+    }
+    source = data.get("exclude_series_ids_file")
+    if source:
+        table = pd.read_csv(source, sep="\t", dtype=str)
+        column = str(data.get("exclude_series_ids_column", "series_id"))
+        if column not in table:
+            raise ValueError(f"Series exclusion file lacks column {column!r}")
+        excluded.update(
+            value.strip()
+            for value in table[column].dropna().astype(str)
+            if value.strip()
+        )
+    return excluded
+
+
+def _filter_excluded_series(
+    metadata: pd.DataFrame,
+    *,
+    excluded: set[str],
+    group_column: str = "series_id",
+) -> tuple[pd.DataFrame, int]:
+    if not excluded:
+        return metadata.copy(), 0
+    if group_column not in metadata:
+        raise ValueError(
+            f"ARCHS4 metadata lacks series exclusion column {group_column!r}"
+        )
+    mask = metadata[group_column].map(
+        lambda value: bool(_series_ids(value) & excluded)
+    )
+    return metadata.loc[~mask].copy(), int(mask.sum())
+
+
 def _group_split_indices(
     metadata: pd.DataFrame,
     *,
@@ -284,6 +332,12 @@ def prepare(config_path: str | Path, *, force: bool = False) -> Path:
     panel = pd.read_csv(panel_path, sep="\t")
     landmark_genes = panel["mouse_ensembl_gene"].astype(str).tolist()
     metadata = pd.read_csv(data["cohort_metadata"], sep="\t", low_memory=False)
+    excluded_series_ids = _load_excluded_series_ids(data)
+    metadata, excluded_series_profile_count = _filter_excluded_series(
+        metadata,
+        excluded=excluded_series_ids,
+        group_column=str(data.get("exclude_series_group_column", "series_id")),
+    )
     excluded_sample_indices = {
         int(value) for value in data.get("exclude_archs4_sample_indices", [])
     }
@@ -433,6 +487,9 @@ def prepare(config_path: str | Path, *, force: bool = False) -> Path:
             "archs4_h5": str(data["archs4_h5"]),
             "cohort_metadata": str(data["cohort_metadata"]),
             "gene_lengths": str(data["gene_lengths"]),
+            "excluded_series_ids_file": data.get("exclude_series_ids_file"),
+            "excluded_series_ids": sorted(excluded_series_ids),
+            "excluded_series_profile_count": excluded_series_profile_count,
             "excluded_unreadable_archs4_sample_indices": sorted(
                 excluded_sample_indices
             ),

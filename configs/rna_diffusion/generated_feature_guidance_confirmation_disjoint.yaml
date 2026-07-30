@@ -1,0 +1,18 @@
+version: 1
+output_root: outputs/generative_benchmark/analyses/generated_feature_guidance_confirmation_disjoint_v1
+tissues: [lung, thymus]
+annotations:
+  archs4_h5: assets/archs4/mouse_gene_v2.5.h5
+  reactome_gmt: data/pathways/reactome_current_mouse_ensembl.gmt
+grid:
+  feature_counts: [10, 25, 50, 100, 250]
+  regularization_c: [0.01, 0.1, 1.0]
+  synthetic_weights: [0.01, 0.025, 0.05]
+  minimum_validation_ba_gain: 0.02
+  maximum_validation_auc_loss: 0.01
+fold:
+  label: leak_free_confirmation
+  prepared_h5: outputs/generative_benchmark/data/lacan_diffusion/osdr_generated_feature_confirmation_disjoint_l974.h5
+  samples_tsv: outputs/generative_benchmark/data/lacan_diffusion/osdr_generated_feature_confirmation_disjoint_l974.samples.tsv.gz
+  generated_dir: outputs/generative_benchmark/runs/lacan_diffusion/osdr_generated_feature_confirmation_disjoint_5000_seed3036/evaluation/contrastive_training
+  seeds: [10030, 10031, 10032]

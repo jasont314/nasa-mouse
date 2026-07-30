@@ -28,6 +28,7 @@ from nasa_mouse_rna_diffusion.conditional_train import (
 )
 from nasa_mouse_rna_diffusion.config import load_config
 from nasa_mouse_rna_diffusion.data import (
+    _filter_excluded_series,
     _group_split_indices,
     _targeted_candidates,
 )
@@ -336,6 +337,25 @@ class ConditionalDataTests(unittest.TestCase):
             self.assertEqual(
                 set(metadata.loc[indices, "canonical_tissue"]), {"liver", "kidney"}
             )
+
+    def test_reference_series_exclusion_removes_every_matching_profile(self):
+        metadata = pd.DataFrame(
+            {
+                "series_id": [
+                    "GSE-clean",
+                    "GSE-held-out",
+                    "GSE-other,GSE-held-out",
+                    np.nan,
+                ],
+                "archs4_sample_index": [1, 2, 3, 4],
+            }
+        )
+        retained, removed = _filter_excluded_series(
+            metadata,
+            excluded={"GSE-held-out"},
+        )
+        self.assertEqual(removed, 2)
+        self.assertEqual(retained["archs4_sample_index"].tolist(), [1, 4])
 
     def test_within_study_split_retains_each_stratum_in_training(self):
         rows = pd.DataFrame(

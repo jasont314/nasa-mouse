@@ -10,6 +10,7 @@ import yaml
 
 REQUIRED_SPLIT = {"train": 9796, "validation": 2448, "test": 5000}
 CUSTOM_REFERENCE_CONTRACT = "lacan_modelddim_reference_v1"
+DISJOINT_REFERENCE_CONTRACT = "lacan_modelddim_osdr_disjoint_reference_v1"
 EXPECTED_MODEL = {
     "hidden_dims": [8192, 8192],
     "dropout": 0.1,
@@ -58,33 +59,46 @@ def load_config(path: str | Path) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError("RNA diffusion configuration must be a mapping")
     data = payload.get("data", {})
-    if payload.get("contract") == CUSTOM_REFERENCE_CONTRACT:
+    contract = payload.get("contract")
+    if contract in {CUSTOM_REFERENCE_CONTRACT, DISJOINT_REFERENCE_CONTRACT}:
         profiles = int(data.get("profiles", 0))
-        quotas = {
-            str(tissue): int(count)
-            for tissue, count in data.get("profiles_per_tissue", {}).items()
-        }
-        if profiles <= 0 or sum(quotas.values()) != profiles:
+        if contract == CUSTOM_REFERENCE_CONTRACT:
+            quotas = {
+                str(tissue): int(count)
+                for tissue, count in data.get("profiles_per_tissue", {}).items()
+            }
+            if profiles <= 0 or sum(quotas.values()) != profiles:
+                raise ValueError(
+                    "Custom reference profiles_per_tissue must contain positive quotas "
+                    "that sum to data.profiles"
+                )
+            if len(quotas) < 2 or any(count <= 0 for count in quotas.values()):
+                raise ValueError(
+                    "The released one-hot embedding requires at least two populated "
+                    "reference classes"
+                )
+        elif profiles != sum(REQUIRED_SPLIT.values()):
             raise ValueError(
-                "Custom reference profiles_per_tissue must contain positive quotas "
-                "that sum to data.profiles"
+                "OSDR-disjoint paper-parity data must contain exactly 17,244 profiles"
             )
-        if len(quotas) < 2 or any(count <= 0 for count in quotas.values()):
+        elif not (
+            data.get("exclude_series_ids")
+            or data.get("exclude_series_ids_file")
+        ):
             raise ValueError(
-                "The released one-hot embedding requires at least two populated "
-                "reference classes"
+                "OSDR-disjoint reference requires excluded GEO series"
             )
         if data.get("split_strategy") != "series_holdout":
-            raise ValueError("Custom reference split_strategy must be series_holdout")
+            raise ValueError("Reference split_strategy must be series_holdout")
         fractions = data.get("split_fractions", {})
         if set(fractions) != {"train", "validation", "test"}:
             raise ValueError(
-                "Custom reference split_fractions must define train, validation, and test"
+                "Reference split_fractions must define train, validation, and test"
             )
         if any(float(value) <= 0 for value in fractions.values()) or abs(
             sum(map(float, fractions.values())) - 1.0
         ) > 1e-8:
-            raise ValueError("Custom reference split_fractions must be positive and sum to 1")
+            raise ValueError("Reference split_fractions must be positive and sum to 1")
     else:
         split = data.get("split", {})
         if split != REQUIRED_SPLIT:
