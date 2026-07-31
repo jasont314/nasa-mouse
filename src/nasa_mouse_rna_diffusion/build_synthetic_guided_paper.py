@@ -32,6 +32,14 @@ UTILITY_TABLES_BEGIN = "<!-- BEGIN GENERATED TISSUE UTILITY TABLES -->"
 UTILITY_TABLES_END = "<!-- END GENERATED TISSUE UTILITY TABLES -->"
 LANDMARK_PANEL = ROOT / "data/diffusion/l974_mouse_paper_parity.tsv"
 OBSOLETE_PAPER_ARTIFACTS = (
+    "figures/figure_3_downstream_utility.png",
+    "figures/figure_3_downstream_utility.pdf",
+    "figures/figure_s1_archs4_denoising_trajectory.png",
+    "figures/figure_s1_archs4_denoising_trajectory.pdf",
+    "figures/figure_s2_locked_real_vs_synthetic_pca.png",
+    "figures/figure_s2_locked_real_vs_synthetic_pca.pdf",
+    "figures/figure_s3_muscle_arm_heatmap.png",
+    "figures/figure_s3_muscle_arm_heatmap.pdf",
     "figures/figure_s5_whole_study_transfer.png",
     "figures/figure_s5_whole_study_transfer.pdf",
     "figures/figure_s6_effect_recovery_levels.png",
@@ -39,7 +47,26 @@ OBSOLETE_PAPER_ARTIFACTS = (
     "source_data/table_6_whole_study_transfer_context.tsv",
     "source_data/table_7_tissue_evidence.tsv",
     "source_data/table_s4_confirmation_genotypes.tsv",
+    "source_data/table_s5_thymus_core_genes.tsv",
+    "source_data/table_s6_thymus_reactome.tsv",
+    "source_data/table_s7_muscle_group_summary.tsv",
+    "source_data/table_s8_soleus_genes.tsv",
+    "source_data/table_s9_muscle_reactome.tsv",
+    "source_data/table_s10_all_tissue_development_screen.tsv",
+    "source_data/table_s11_spleen_igfbp3_accession_effects.tsv",
+    "source_data/table_s12_spleen_igfbp3_random_effects.tsv",
+    "source_data/table_s13_spleen_reference_expression.tsv",
+    "source_data/table_s14_quadriceps_rbm6_accession_effects.tsv",
+    "source_data/table_s15_quadriceps_rbm6_random_effects.tsv",
+    "source_data/table_s16_ordinary_fdr_directional_genes.tsv",
+    "source_data/table_s17_all_random_effects_bh_fdr_genes.tsv",
+    "source_data/table_s18_bh_fdr_tissue_summary.tsv",
     "source_data/table_s19_thymus_evidence_level_mapping.tsv",
+    "source_data/table_s20_tissue_utility_highlights.tsv",
+    "source_data/table_s21_liver_harmonization_benchmark.tsv",
+    "source_data/table_s22_liver_harmonization_full_metrics.tsv",
+    "source_data/table_s23_wgan_validation_repeats.tsv",
+    "source_data/table_s24_locked_ddim_metric_summary.tsv",
     "source_data/table_s25_heldout_study_confirmation.tsv",
     "source_data/table_s26_prior_transfer_experiments.tsv",
     "source_data/table_s27_whole_study_tissue_effect_recovery.tsv",
@@ -498,7 +525,6 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     )
     muscle_reactome = _read_tsv(MUSCLE_DIR / "reactome_enrichment.tsv.gz")
     muscle_inventory = _read_tsv(MUSCLE_DIR / "tissue_inventory.tsv")
-    muscle_accession_effects = _read_tsv(MUSCLE_DIR / "real_accession_effects.tsv.gz")
     muscle_random_effects = _read_tsv(MUSCLE_DIR / "real_random_effects.tsv.gz")
     tissue_choices = _read_tsv(TISSUE_DIR / "tissue_arm_choices.tsv")
     tissue_repeats = _read_tsv(TISSUE_DIR / "paired_repeat_support.tsv")
@@ -509,7 +535,6 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         tissue_choices,
     )
     tissue_reactome = _read_tsv(TISSUE_DIR / "reactome_enrichment.tsv.gz")
-    tissue_accession_effects = _read_tsv(TISSUE_DIR / "real_accession_effects.tsv.gz")
     tissue_random_effects = _read_tsv(TISSUE_DIR / "real_random_effects.tsv.gz")
     landmark_panel = _read_tsv(LANDMARK_PANEL)
 
@@ -948,35 +973,6 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             f"found {len(soleus_genes)}"
         )
 
-    rbm6_gene = "ENSMUSG00000032582"
-    quadriceps_rbm6_effects = muscle_accession_effects.loc[
-        muscle_accession_effects["analysis_tissue"].eq("quadriceps")
-        & muscle_accession_effects["feature"].eq(rbm6_gene)
-    ].copy()
-    quadriceps_rbm6_effects = quadriceps_rbm6_effects.sort_values("accession")
-    if len(quadriceps_rbm6_effects) != 4:
-        raise ValueError(
-            "Expected four quadriceps Rbm6 accession effects, "
-            f"found {len(quadriceps_rbm6_effects)}"
-        )
-    if not quadriceps_rbm6_effects["flight_minus_ground"].gt(0).all():
-        raise ValueError("Expected every quadriceps Rbm6 accession effect to be positive")
-
-    quadriceps_rbm6_meta = muscle_random_effects.loc[
-        muscle_random_effects["tissue"].eq("quadriceps")
-        & muscle_random_effects["gene"].eq(rbm6_gene)
-    ].copy()
-    if len(quadriceps_rbm6_meta) != 1:
-        raise ValueError(
-            "Expected one quadriceps Rbm6 random-effects row, "
-            f"found {len(quadriceps_rbm6_meta)}"
-        )
-    _assert_close(
-        quadriceps_rbm6_meta["meta_fdr"].iloc[0],
-        0.0007503147625256085,
-        "quadriceps Rbm6 random-effects FDR",
-    )
-
     supported_gene_counts = (
         muscle_genes.loc[
             muscle_genes["real_loo_fdr_stable_0_05"].astype(bool)
@@ -1159,67 +1155,6 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             "Every tissue-specific utility highlight must pass the arm gate"
         )
 
-    igfbp3_gene = "ENSMUSG00000020427"
-    spleen_igfbp3_effects = tissue_accession_effects.loc[
-        tissue_accession_effects["analysis_tissue"].eq("spleen")
-        & tissue_accession_effects["feature"].eq(igfbp3_gene)
-    ].copy()
-    spleen_igfbp3_effects["standard_error"] = np.sqrt(
-        spleen_igfbp3_effects["effect_variance"]
-    )
-    spleen_igfbp3_effects["ci_low"] = (
-        spleen_igfbp3_effects["flight_minus_ground"]
-        - 1.96 * spleen_igfbp3_effects["standard_error"]
-    )
-    spleen_igfbp3_effects["ci_high"] = (
-        spleen_igfbp3_effects["flight_minus_ground"]
-        + 1.96 * spleen_igfbp3_effects["standard_error"]
-    )
-    spleen_igfbp3_effects = spleen_igfbp3_effects[
-        [
-            "accession",
-            "n_flight",
-            "n_ground_control",
-            "flight_minus_ground",
-            "standard_error",
-            "ci_low",
-            "ci_high",
-        ]
-    ].sort_values("accession")
-    if len(spleen_igfbp3_effects) != 6:
-        raise ValueError(
-            "Expected six spleen Igfbp3 accession effects, "
-            f"found {len(spleen_igfbp3_effects)}"
-        )
-    if not spleen_igfbp3_effects["flight_minus_ground"].gt(0).all():
-        raise ValueError("Expected every spleen Igfbp3 accession effect to be positive")
-
-    spleen_igfbp3_meta = tissue_random_effects.loc[
-        tissue_random_effects["tissue"].eq("spleen")
-        & tissue_random_effects["gene"].eq(igfbp3_gene)
-    ].copy()
-    if len(spleen_igfbp3_meta) != 1:
-        raise ValueError(
-            "Expected one spleen Igfbp3 random-effects row, "
-            f"found {len(spleen_igfbp3_meta)}"
-        )
-    _assert_close(
-        spleen_igfbp3_meta["meta_fdr"].iloc[0],
-        1.7592185680837808e-09,
-        "spleen Igfbp3 random-effects FDR",
-    )
-
-    spleen_reference_expression = pd.DataFrame(
-        [
-            ("White-pulp mesenchymal", 1476.95),
-            ("Red-pulp mesenchymal", 414.99),
-            ("Endothelial", 8.01),
-            ("Red-pulp macrophage", 2.37),
-        ],
-        columns=["population", "mean_igfbp3_rpkm"],
-    )
-    spleen_reference_expression.insert(0, "dataset", "GSE156162")
-
     evidence = pd.DataFrame(
         [
             {
@@ -1274,7 +1209,7 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                 "predictive_result": "real-plus-generated delta BA/AUROC/AP +0.131/+0.163/+0.160",
                 "real_gene_support": "Rai14, Ptprk, Myl9 promoted; Loxl1 reinforced; none pass LOO",
                 "pathway_support": "no coherent stable-set Reactome enrichment",
-                "interpretation": "adhesion/cytoskeletal hypothesis; Igfbp3 is real-data-only",
+                "interpretation": "adhesion/cytoskeletal hypothesis",
             },
             {
                 "tissue": "skin",
@@ -1336,17 +1271,12 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "thymus_reactome": thymus_reactome,
         "muscle_summary": muscle_summary,
         "soleus_genes": soleus_genes,
-        "quadriceps_rbm6_effects": quadriceps_rbm6_effects,
-        "quadriceps_rbm6_meta": quadriceps_rbm6_meta,
         "muscle_reactome": muscle_reactome,
         "tissue_summary": tissue_summary,
         "development_highlights": development_highlights,
         "ordinary_fdr_genes": ordinary_fdr_genes,
         "all_bh_fdr_genes": all_bh_fdr_genes,
         "bh_fdr_tissue_summary": bh_fdr_tissue_summary,
-        "spleen_igfbp3_effects": spleen_igfbp3_effects,
-        "spleen_igfbp3_meta": spleen_igfbp3_meta,
-        "spleen_reference_expression": spleen_reference_expression,
         "evidence": evidence,
     }
 
@@ -1354,29 +1284,22 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "inventory": "table_1_data_inventory.tsv",
         "pipeline_design": "table_2_pipeline_design_space.tsv",
         "model_screen": "table_4_generator_model_selection.tsv",
-        "locked_summary": "table_s24_locked_ddim_metric_summary.tsv",
         "evidence": "table_6_tissue_evidence.tsv",
         "arch_summary": "table_s1_archs4_ddim_metrics.tsv",
         "locked_repeats": "table_s2_locked_ddim_repeats.tsv",
         "naive_utility": "table_s3_naive_augmentation.tsv",
-        "thymus_core": "table_s5_thymus_core_genes.tsv",
-        "thymus_reactome": "table_s6_thymus_reactome.tsv",
-        "muscle_summary": "table_s7_muscle_group_summary.tsv",
-        "soleus_genes": "table_s8_soleus_genes.tsv",
-        "muscle_reactome": "table_s9_muscle_reactome.tsv",
-        "tissue_summary": "table_s10_all_tissue_development_screen.tsv",
-        "spleen_igfbp3_effects": "table_s11_spleen_igfbp3_accession_effects.tsv",
-        "spleen_igfbp3_meta": "table_s12_spleen_igfbp3_random_effects.tsv",
-        "spleen_reference_expression": "table_s13_spleen_reference_expression.tsv",
-        "quadriceps_rbm6_effects": "table_s14_quadriceps_rbm6_accession_effects.tsv",
-        "quadriceps_rbm6_meta": "table_s15_quadriceps_rbm6_random_effects.tsv",
-        "ordinary_fdr_genes": "table_s16_ordinary_fdr_directional_genes.tsv",
-        "all_bh_fdr_genes": "table_s17_all_random_effects_bh_fdr_genes.tsv",
-        "bh_fdr_tissue_summary": "table_s18_bh_fdr_tissue_summary.tsv",
-        "development_highlights": "table_s20_tissue_utility_highlights.tsv",
-        "harmonization_summary": "table_s21_liver_harmonization_benchmark.tsv",
-        "harmonization_full": "table_s22_liver_harmonization_full_metrics.tsv",
-        "wgan_repeats": "table_s23_wgan_validation_repeats.tsv",
+        "thymus_core": "table_s4_thymus_core_genes.tsv",
+        "thymus_reactome": "table_s5_thymus_reactome.tsv",
+        "muscle_summary": "table_s6_muscle_group_summary.tsv",
+        "soleus_genes": "table_s7_soleus_genes.tsv",
+        "muscle_reactome": "table_s8_muscle_reactome.tsv",
+        "tissue_summary": "table_s9_all_tissue_development_screen.tsv",
+        "ordinary_fdr_genes": "table_s10_synthetic_informed_bh_fdr_genes.tsv",
+        "all_bh_fdr_genes": "table_s11_all_random_effects_bh_fdr_genes.tsv",
+        "bh_fdr_tissue_summary": "table_s12_bh_fdr_tissue_summary.tsv",
+        "harmonization_summary": "table_s13_liver_harmonization_benchmark.tsv",
+        "harmonization_full": "table_s14_liver_harmonization_full_metrics.tsv",
+        "wgan_repeats": "table_s15_wgan_validation_repeats.tsv",
     }
     for key, name in names.items():
         _write_tsv(tables[key], name)
@@ -1497,10 +1420,10 @@ def update_supplementary_utility_tables(tables: dict[str, pd.DataFrame]) -> None
                 "metric. These development results use profiles from represented "
                 "accessions."
             ),
-            "**Supplementary Table S10. Complete canonical-tissue utility screen.**",
+            "**Supplementary Table S9. Complete canonical-tissue utility screen.**",
             _markdown_table(headers, _compact_utility_rows(canonical)),
             (
-                "**Supplementary Table S7. Complete anatomical muscle-group "
+                "**Supplementary Table S6. Complete anatomical muscle-group "
                 "utility screen.**"
             ),
             _markdown_table(headers, _compact_utility_rows(muscle)),
@@ -1988,7 +1911,7 @@ def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
     _save_figure(fig, "figure_2_generator_validation")
 
 
-def figure_3_utility(tables: dict[str, pd.DataFrame]) -> None:
+def figure_s2_utility(tables: dict[str, pd.DataFrame]) -> None:
     naive = tables["naive_utility"]
     development = tables["development_highlights"].copy()
     fig, axes = plt.subplots(
@@ -2039,7 +1962,7 @@ def figure_3_utility(tables: dict[str, pd.DataFrame]) -> None:
         weight="bold",
     )
     fig.tight_layout(rect=(0, 0, 1, 0.91))
-    _save_figure(fig, "figure_3_downstream_utility")
+    _save_figure(fig, "figure_s2_downstream_utility")
 
 
 def figure_4_thymus(tables: dict[str, pd.DataFrame]) -> None:
@@ -2362,14 +2285,14 @@ def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
     _save_figure(fig, "figure_6_tissue_evidence")
 
 
-def copy_supplementary_figures() -> None:
+def copy_publication_figures() -> None:
     copies = {
-        ARCHS4_RUN / "evaluation/archs4_mouse_ddim_trajectory_pca.png": "figure_s1_archs4_denoising_trajectory.png",
-        ARCHS4_RUN / "evaluation/archs4_mouse_ddim_trajectory_pca.pdf": "figure_s1_archs4_denoising_trajectory.pdf",
-        LOCKED_DIR / "seed5020/real_vs_synthetic_pca.png": "figure_s2_locked_real_vs_synthetic_pca.png",
-        LOCKED_DIR / "seed5020/real_vs_synthetic_pca.pdf": "figure_s2_locked_real_vs_synthetic_pca.pdf",
-        MUSCLE_DIR / "arm_balanced_accuracy_heatmap.png": "figure_s3_muscle_arm_heatmap.png",
-        MUSCLE_DIR / "arm_balanced_accuracy_heatmap.pdf": "figure_s3_muscle_arm_heatmap.pdf",
+        ARCHS4_RUN / "evaluation/archs4_mouse_ddim_trajectory_pca.png": "figure_3a_archs4_denoising_trajectory.png",
+        ARCHS4_RUN / "evaluation/archs4_mouse_ddim_trajectory_pca.pdf": "figure_3a_archs4_denoising_trajectory.pdf",
+        LOCKED_DIR / "seed5020/real_vs_synthetic_pca.png": "figure_3b_locked_real_vs_synthetic_pca.png",
+        LOCKED_DIR / "seed5020/real_vs_synthetic_pca.pdf": "figure_3b_locked_real_vs_synthetic_pca.pdf",
+        MUSCLE_DIR / "arm_balanced_accuracy_heatmap.png": "figure_s1_muscle_arm_heatmap.png",
+        MUSCLE_DIR / "arm_balanced_accuracy_heatmap.pdf": "figure_s1_muscle_arm_heatmap.pdf",
     }
     for source, target in copies.items():
         shutil.copy2(_required(source), FIGURE_DIR / target)
@@ -2510,11 +2433,11 @@ def main() -> None:
     update_supplementary_utility_tables(tables)
     figure_1_workflow()
     figure_2_validation(tables)
-    figure_3_utility(tables)
+    figure_s2_utility(tables)
     figure_4_thymus(tables)
     figure_5_soleus(tables)
     figure_6_evidence(tables)
-    copy_supplementary_figures()
+    copy_publication_figures()
     build_manifest()
 
     if not args.skip_render:

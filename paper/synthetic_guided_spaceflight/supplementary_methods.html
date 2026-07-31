@@ -49,28 +49,13 @@
 
 <p class="authors">Jason Trinh</p>
 
-<p class="draft-note"><strong>Frozen analysis supplement.</strong> This document records exact data roles, architecture, evaluation gates, statistical safeguards, output locations, and rebuild commands. It does not rerun training.</p>
+<p class="draft-note"><strong>Supplementary methods.</strong> This document records the data roles, model architecture, evaluation gates, statistical safeguards, and complete supporting results.</p>
 
 </div>
 
-<h2>S1. Reproducibility contract</h2>
-<p>The manuscript builder consumes completed outputs and fails when a required file
-or a key expected result is missing. It does not:</p>
-<ul>
-<li>query the OSDR API;</li>
-<li>preprocess expression;</li>
-<li>train or fine-tune a neural network;</li>
-<li>sample a new synthetic cohort;</li>
-<li>rerun feature selection;</li>
-<li>recalculate random-effects statistics from raw profiles.</li>
-</ul>
-<p>The exact frozen inputs and SHA-256 hashes are in
-<code>source_data/frozen_input_manifest.tsv</code>. Figure hashes are in
-<code>source_data/figure_build_manifest.tsv</code>.</p>
-<h2>S2. OSDR discovery and expression ingestion</h2>
+<h2>S1. OSDR discovery and expression ingestion</h2>
 <p>OSDR data were obtained through the Biological Data API documented at
-<a href="https://visualization.osdr.nasa.gov/biodata/api/">https://visualization.osdr.nasa.gov/biodata/api/</a>. The repository implementation
-and endpoint notes are in <code>docs/osdr_api.md</code>.</p>
+<a href="https://visualization.osdr.nasa.gov/biodata/api/">https://visualization.osdr.nasa.gov/biodata/api/</a>.</p>
 <p>Eligibility required:</p>
 <ul>
 <li><code>Mus musculus</code>;</li>
@@ -79,23 +64,12 @@ and endpoint notes are in <code>docs/osdr_api.md</code>.</p>
 <li>processed RSEM expected-count output;</li>
 <li>sample-level tissue or material metadata sufficient for canonicalization.</li>
 </ul>
-<p>No raw combined OSDR HDF5 file was used. The API audit outputs are:</p>
-<pre><code class="language-text">outputs/generative_benchmark/data_audit/osdr/osdr_canonical_metadata.tsv
-outputs/generative_benchmark/data_audit/osdr/osdr_inventory_summary.json
-outputs/generative_benchmark/data_audit/osdr/osdr_tissue_alias_audit.tsv
-outputs/generative_benchmark/data_audit/osdr/osdr_tissue_inventory.tsv
-</code></pre>
-<p>The API returned 1,631 profile rows. Twenty-one technical replicates were
+<p>No raw combined OSDR HDF5 file was used. The API returned 1,631 profile rows. Twenty-one technical replicates were
 aggregated, leaving 1,610 biological profiles, 835 flight and 775 ground control,
 from 75 accessions and 24 canonical material classes.</p>
-<h2>S3. ARCHS4 cohort audit</h2>
+<h2>S2. ARCHS4 cohort audit</h2>
 <p>The source file was <code>assets/archs4/mouse_gene_v2.5.h5</code>, containing 997,515
-profiles and 53,511 genes. The complete audit files are:</p>
-<pre><code class="language-text">outputs/generative_benchmark/data_audit/archs4/archs4_full_profile_audit.tsv.gz
-outputs/generative_benchmark/data_audit/archs4/archs4_control_only_balanced.tsv.gz
-outputs/generative_benchmark/data_audit/archs4/archs4_healthy_preferred_balanced.tsv.gz
-outputs/generative_benchmark/data_audit/archs4/archs4_broad_balanced.tsv.gz
-</code></pre>
+profiles and 53,511 genes.</p>
 <p>The three eligible reference cohorts contained:</p>
 <table>
 <thead>
@@ -133,27 +107,12 @@ profiles, including all 53 selected profiles from GSE152382 (OSD-457). The
 paper-parity run then selected 17,244 healthy-preferred profiles across 20 tissue
 classes. Complete GEO-series grouping assigned 10,150 profiles to training,
 2,466 to validation, and 4,628 to test, with no series shared across splits.</p>
-<p>The exclusion list and overlap audit are:</p>
-<pre><code class="language-text">data/diffusion/osdr_archs4_overlap_exclusions.tsv
-docs/diffusion_leak_free_confirmation.md
-</code></pre>
-<h2>S4. Landmark panel and normalization</h2>
-<p>Full-transcriptome TPM was calculated with
-<code>data/reference/gencode_vM39_mouse_gene_lengths.tsv</code>. Landmark selection occurred
-after TPM calculation. The deterministic 974-gene panel and the human-to-mouse
-mapping audit are:</p>
-<pre><code class="language-text">data/diffusion/l974_mouse_paper_parity.tsv
-data/diffusion/l1000_human_to_mouse_ensembl.tsv
-</code></pre>
-<p>Training-set MaxAbs scaling was applied after landmark selection. The ARCHS4
-prepared matrix is:</p>
-<pre><code class="language-text">outputs/generative_benchmark/data/lacan_diffusion/archs4_mouse_paper_parity_osdr_disjoint_l974.h5
-</code></pre>
-<p>The OSDR factorized matrix and profile metadata are:</p>
-<pre><code class="language-text">outputs/generative_benchmark/data/lacan_diffusion/osdr_factorized_within_study_replicated_validation_l974.h5
-outputs/generative_benchmark/data/lacan_diffusion/osdr_factorized_within_study_replicated_validation_l974.samples.tsv.gz
-</code></pre>
-<h2>S5. ARCHS4 DDIM configuration</h2>
+<h2>S3. Landmark panel and normalization</h2>
+<p>Full-transcriptome TPM was calculated with GENCODE vM39 mouse gene lengths.
+Landmark selection occurred after TPM calculation and used a deterministic
+974-gene mouse mapping of the human L1000 panel. Training-set MaxAbs scaling was
+applied after landmark selection.</p>
+<h2>S4. ARCHS4 DDIM configuration</h2>
 <p>The full configuration is
 <code>configs/rna_diffusion/archs4_mouse_paper_parity_osdr_disjoint.yaml</code>. The neural
 architecture and optimizer settings match the paper-parity implementation; only
@@ -236,13 +195,10 @@ the reference exclusion and grouped split contract changed.</p>
 </tr>
 </tbody>
 </table>
-<p>Run directory:</p>
-<pre><code class="language-text">outputs/generative_benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_osdr_disjoint_seed1234/
-</code></pre>
-<h2>S6. Factorized OSDR adaptation</h2>
+<h2>S5. Factorized OSDR adaptation</h2>
 <p>The accepted configuration is
 <code>configs/rna_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint.yaml</code>.
-It uses the ARCHS4 backbone described in Section S5. A base adapter was trained for 12,000 domain and 4,000 condition steps,
+It uses the ARCHS4 backbone described in Section S4. A base adapter was trained for 12,000 domain and 4,000 condition steps,
 followed by the 4,000-domain-step and 1,000-condition-step correlation-refinement stage
 reported here. The all-tissue and muscle-group development screens were then
 regenerated from this adapter.</p>
@@ -303,10 +259,7 @@ measure within-study interpolation.</p>
 <li>no condition-specific fit of calibrator means or covariance;</li>
 <li>explicit clipping at zero for accepted downstream expression.</li>
 </ol>
-<p>Run directory:</p>
-<pre><code class="language-text">outputs/generative_benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/
-</code></pre>
-<h2>S7. Distribution and condition gates</h2>
+<h2>S6. Distribution and condition gates</h2>
 <p>Four generation seeds, 5020-5023, were declared before the locked test was
 opened. Every metric was gated independently.</p>
 <table>
@@ -369,14 +322,7 @@ developmental.</p>
 real-versus-synthetic classifier, not the WGAN training critic. A result near 0.5
 indicates that this external discriminator cannot reliably separate the two
 cohorts.</p>
-<h2>S8. Configurable benchmark and comparator models</h2>
-<p>The common benchmark implementation is under <code>src/nasa_mouse_generative/</code> and
-the selected diffusion lineage is under <code>src/nasa_mouse_rna_diffusion/</code>. Three
-configuration registries define the search space:</p>
-<pre><code class="language-text">configs/generative/preprocessing_profiles.yaml
-configs/generative/model_profiles.yaml
-configs/generative/experiment_matrix.yaml
-</code></pre>
+<h2>S7. Configurable benchmark and comparator models</h2>
 <p>The resolved planner contains 463 gated experiment rows. This is a staged plan,
 not evidence that all 463 rows received paper-duration training. Smoke tests,
 paper-architecture feasibility runs, preprocessing screens, accession-scope
@@ -511,7 +457,7 @@ all independent fidelity, pooled-condition, and accession-effect gates.</p>
 anchors but remain transductive sensitivity analyses for a new batch. MOBER
 was the inductive complex harmonizer. Its high correlation did not compensate
 for low precision and F1, external separability, or excessive distributional
-distance. Exact values and preprocessing labels are in Tables S21-S22.</p>
+distance. Exact values and preprocessing labels are in Tables S13-S14.</p>
 <h3>WGAN-GP and GeneJEPA screens</h3>
 <p>The WGAN used the Viñas et al. topology: 64-dimensional noise, two 256-unit
 generator and critic layers, five critic updates, gradient-penalty weight 10,
@@ -522,16 +468,12 @@ adversarial accuracy was 0.6362 and FD/real-P95 ratio was 0.1439. Pooled FLT/GC
 effect recovery passed in six of six repeats, but accession-aware skeletal-muscle
 recovery passed in zero of six. Because no repeat passed the full fidelity gate
 and accession-aware recovery was unstable, its locked test remained unopened.
-Exact repeat rows are in Table S23.</p>
-<pre><code class="language-text">outputs/generative_benchmark/runs/vinas_wgan_gp/osdr_matched_study_conditioned_seed2020/
-</code></pre>
+Exact repeat rows are in Table S15.</p>
 <p>The exact-architecture GeneJEPA duration screen used 4,096 genes and 43,744
 replacement-sampled training exposures. It reached 0.703 held-out tissue balanced
 accuracy versus 0.839 from expression. It is representation-only and has no
 expression decoder.</p>
-<pre><code class="language-text">outputs/generative_benchmark/runs/genejepa/matrix_phase_0_genejepa_exact_mouse_one_epoch_f2e01cf1f130d5cb/
-</code></pre>
-<h2>S9. Generated-feature workflow</h2>
+<h2>S8. Generated-feature workflow</h2>
 <p>The evaluation funnel had three stages: pooled utility, tissue-specific
 development, and real-data association testing. The pooled utility benchmark compared real-only, generated-only, and
 real-plus-generated training. Tissue-specific development then compared five
@@ -562,13 +504,10 @@ stability threshold, with a supporting real meta-effect. Thus
 <code>synthetic-promoted</code> is a feature-selection classification, not a claim that the
 gene was absent from real expression, statistically nonsignificant in real data,
 or biologically novel.</p>
-<p>Primary workflow documentation:</p>
-<pre><code class="language-text">docs/generated_feature_guidance_workflow.md
-</code></pre>
 <!-- BEGIN GENERATED TISSUE UTILITY TABLES -->
 
 <p>All five arms were fitted for every analysis unit below. Values are means across eight repeated outer splits, and every outer evaluation used real profiles. An eligible arm was nonworse than real-only training in balanced accuracy, AUROC, and average precision. An eligible tie met that rule without improving a mean metric. These development results use profiles from represented accessions.</p>
-<p><strong>Supplementary Table S10. Complete canonical-tissue utility screen.</strong></p>
+<p><strong>Supplementary Table S9. Complete canonical-tissue utility screen.</strong></p>
 <table>
 <thead>
 <tr>
@@ -782,7 +721,7 @@ or biologically novel.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Supplementary Table S7. Complete anatomical muscle-group utility screen.</strong></p>
+<p><strong>Supplementary Table S6. Complete anatomical muscle-group utility screen.</strong></p>
 <table>
 <thead>
 <tr>
@@ -846,7 +785,7 @@ or biologically novel.</p>
 <p>Sample counts are shown as total development profiles followed by flight/ground-control counts. Small cohorts and ceiling-level scores remain exploratory even when a synthetic arm is eligible.</p>
 <!-- END GENERATED TISSUE UTILITY TABLES -->
 
-<h2>S10. Random-effects reporting and LOO sensitivity</h2>
+<h2>S9. Random-effects reporting and LOO sensitivity</h2>
 <p>For gene (g) in accession (a), the real flight effect was:</p>
 <pre><code class="language-text">delta[g,a] = mean(real expression[g] | FLT,a)
            - mean(real expression[g] | GC,a)
@@ -875,18 +814,15 @@ label rather than an inclusion requirement. A LOO-stable gene additionally
 required maximum LOO FDR &lt; 0.05 and no LOO sign reversal. Failure of this label
 does not remove a gene from the primary BH-FDR table.</p>
 <p>Generated profiles were never included in the random-effects model.</p>
-<h2>S11. Reactome analysis</h2>
-<p>The official mouse GMT is:</p>
-<pre><code class="language-text">data/pathways/reactome_current_mouse_ensembl.gmt
-</code></pre>
-<p>It was generated from official <code>ReactomePathways.txt</code> and
+<h2>S10. Reactome analysis</h2>
+<p>The official mouse GMT was generated from <code>ReactomePathways.txt</code> and
 <code>Ensembl2Reactome_All_Levels.txt</code>, restricted to <em>Mus musculus</em>, <code>R-MMU-*</code>
 pathways, and <code>ENSMUSG*</code> genes.</p>
 <p>Hypergeometric enrichment used the 974-gene landmark panel as background.
 Benjamini-Hochberg FDR was applied separately by tissue and selected-gene set.
 Reactome parent and child terms overlap. Counts of significant rows are therefore
 not counts of independent biological discoveries.</p>
-<h2>S12. Skeletal-muscle group analysis</h2>
+<h2>S11. Skeletal-muscle group analysis</h2>
 <p>The factorized DDIM and three frozen synthetic development views were
 reused. No additional neural network was trained for the muscle-group screen.</p>
 <table>
@@ -937,10 +873,6 @@ reused. No additional neural network was trained for the muscle-group screen.</p
 </tr>
 </tbody>
 </table>
-<p>The full report is <code>docs/synthetic_skeletal_muscle_group_analysis.md</code>. Key frozen
-outputs are:</p>
-<pre><code class="language-text">outputs/generative_benchmark/analyses/within_study_generated_feature_stability_muscle_groups_osdr_disjoint_v1/
-</code></pre>
 <p>The selected soleus arm was real plus generated expression. It improved mean
 balanced accuracy from 0.9250 to 0.9625, left AUROC at 0.9800, and increased
 average precision from 0.9804 to 0.9865. Five BH-FDR genes were reinforced by
@@ -958,39 +890,11 @@ synthetic guidance.</p>
 <p>LOO here is a real-data meta-analysis sensitivity test. It does not remove the
 accession from the already completed generator adaptation. Soleus remains
 developmental until a new accession is excluded from adaptation and selection.</p>
-<h2>S13. Spleen <code>Igfbp3</code> follow-up</h2>
-<p>The all-tissue screen did not stably select <code>Igfbp3</code>
-(<code>ENSMUSG00000020427</code>) in either the real-only or selected synthetic-guided
-arm. It therefore does not demonstrate a synthetic contribution. The separate
-real-data follow-up remains a secondary biological result: flight-minus-ground
-effects were positive in OSD-164, OSD-246, OSD-288, OSD-420, OSD-457, and
-OSD-506; random-effects FDR was <code>1.76e-09</code>; and the maximum FDR across the six
-leave-one-accession-out analyses was <code>0.00385</code>.</p>
-<p>A separate TPM calculation from the API-derived full-transcriptome count matrix
-found flight/ground-control mean ratios of 1.09 to 1.63 across the six studies.
-These ratios are descriptive; the accession-aware random-effects analysis is the
-formal statistical result.</p>
-<p>Normal spleen source localization was performed after gene discovery:</p>
-<ul>
-<li>GSE156162 sorted-cell data placed the highest baseline <code>Igfbp3</code> expression in
-  white-pulp mesenchymal cells, followed by red-pulp mesenchymal cells.</li>
-<li>E-MTAB-7703 enriched stromal single-cell data localized expression to
-  fibroblastic reticular, collagen-producing, and perivascular populations.</li>
-<li>Flight splenocyte, PBMC, and marrow single-cell datasets lacked sufficient
-  signal to test those populations because their preparation excludes or
-  strongly depletes nonhematopoietic spleen stroma.</li>
-</ul>
-<p>These source-localization analyses are post hoc and do not constitute an
-independent flight replication. The defensible hypothesis is that whole-spleen
-<code>Igfbp3</code> elevation reflects altered stromal expression, altered stromal abundance
-or architecture, or both. It is presented as real-data context, not as a
-synthetic-guided discovery. The full audit and reproduction notes are in
-<code>docs/spleen_igfbp3_handoff.md</code>.</p>
-<h2>S14. Random-effects BH-FDR gene inventories</h2>
-<p>Supplementary Table S17 is the primary statistical inventory. It contains every
+<h2>S12. Random-effects BH-FDR gene inventories</h2>
+<p>Supplementary Table S11 is the primary statistical inventory. It contains every
 real-data random-effects association with BH FDR &lt; 0.05, without requiring
 synthetic selection, unanimous study direction, or LOO stability. Supplementary
-Table S18 reports the corresponding counts for every tested analysis unit,
+Table S12 reports the corresponding counts for every tested analysis unit,
 including tissues with zero BH-FDR genes.</p>
 <p>The 459 retained tissue-gene results comprise 202 associations across 10 of 22
 canonical tissues and 257 across all five anatomical muscle groups. This is an
@@ -1149,7 +1053,7 @@ exclusion rule.</p>
 </tr>
 </tbody>
 </table>
-<p>Supplementary Table S16 is the 49-row synthetic-informed subset of the primary
+<p>Supplementary Table S10 is the 49-row synthetic-informed subset of the primary
 inventory: 26 synthetic-promoted and 23 reinforced tissue-gene results with
 supporting real effects. Synthetic attribution is suppressed when the candidate
 generated arm failed the three-metric eligibility gate. The table is retained to
@@ -1269,59 +1173,34 @@ accession.</p>
 synthetic-informed gene. Bone, bone marrow, brain, brown adipose
 tissue, cecum, cerebellum, colon, hippocampus, lung, mammary gland, optic nerve,
 and white adipose tissue had no BH-FDR gene in the 974-gene panel.</p>
-<p>The pooled skeletal-muscle results remain auditable in Tables S17-S18 and are
+<p>The pooled skeletal-muscle results remain auditable in Tables S11-S12 and are
 interpreted separately from anatomical groups because those groups have
 different responses. Liver has 19 real-data BH-FDR associations but selected a
 real-only arm. Skin has three real-data BH-FDR associations and one
 synthetic-promoted gene, <code>Plscr1</code>. Lung has no BH-FDR gene in the 974-gene
 panel.</p>
-<h2>S15. Supplementary figures</h2>
-<p><img alt="ARCHS4 denoising trajectory." src="figures/figure_s1_archs4_denoising_trajectory.png" /></p>
-<p class="caption"><strong>Figure S1. ARCHS4 DDIM denoising trajectory.</strong> The same generated profiles are shown at diffusion timesteps 1,000, 200, and 0 in a PCA space fitted to real ARCHS4 expression. Colors identify tissue classes. The two-dimensional view is descriptive; held-out tissue classification uses the full 974-gene representation.</p>
+<h2>S13. Supplementary figures</h2>
+<p><img alt="Muscle arm heatmap." src="figures/figure_s1_muscle_arm_heatmap.png" /></p>
+<p class="caption"><strong>Figure S1. Repeated nested muscle-group balanced accuracy.</strong> Each row is a muscle group and each column is a downstream use of real or generated profiles. Arm selection also required nonworse AUROC and average precision.</p>
 
-<p><img alt="Locked real-versus-synthetic PCA." src="figures/figure_s2_locked_real_vs_synthetic_pca.png" /></p>
-<p class="caption"><strong>Figure S2. Real and generated profiles in the locked OSDR test.</strong> Seed 5020 is shown. Tissue and condition views are descriptive; formal fidelity and effect metrics use all declared seeds and higher-dimensional data.</p>
+<p><img alt="Downstream utility." src="figures/figure_s2_downstream_utility.png" /></p>
+<p class="caption"><strong>Figure S2. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real-profile test. (B) Selected-arm changes in balanced accuracy, AUROC, and average precision across repeated tissue-specific development splits. All evaluations used real profiles.</p>
 
-<p><img alt="Muscle arm heatmap." src="figures/figure_s3_muscle_arm_heatmap.png" /></p>
-<p class="caption"><strong>Figure S3. Repeated nested muscle-group balanced accuracy.</strong> Each row is a muscle group and each column is a downstream use of real or generated profiles. Arm selection also required nonworse AUROC and average precision.</p>
-
-<p><img alt="Downstream utility." src="figures/figure_3_downstream_utility.png" /></p>
-<p class="caption"><strong>Figure S4. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real-profile test. (B) Selected-arm changes in balanced accuracy, AUROC, and average precision across repeated tissue-specific development splits. All evaluations used real profiles.</p>
-
-<h2>S16. Source tables</h2>
+<h2>S14. Supplementary data tables</h2>
 <ul>
-<li><code>table_1_data_inventory.tsv</code></li>
-<li><code>table_2_pipeline_design_space.tsv</code></li>
-<li><code>table_4_generator_model_selection.tsv</code></li>
-<li><code>table_6_tissue_evidence.tsv</code></li>
 <li><code>table_s1_archs4_ddim_metrics.tsv</code></li>
 <li><code>table_s2_locked_ddim_repeats.tsv</code></li>
 <li><code>table_s3_naive_augmentation.tsv</code></li>
-<li><code>table_s5_thymus_core_genes.tsv</code></li>
-<li><code>table_s6_thymus_reactome.tsv</code></li>
-<li><code>table_s7_muscle_group_summary.tsv</code></li>
-<li><code>table_s8_soleus_genes.tsv</code></li>
-<li><code>table_s9_muscle_reactome.tsv</code></li>
-<li><code>table_s10_all_tissue_development_screen.tsv</code></li>
-<li><code>table_s11_spleen_igfbp3_accession_effects.tsv</code></li>
-<li><code>table_s12_spleen_igfbp3_random_effects.tsv</code></li>
-<li><code>table_s13_spleen_reference_expression.tsv</code></li>
-<li><code>table_s14_quadriceps_rbm6_accession_effects.tsv</code></li>
-<li><code>table_s15_quadriceps_rbm6_random_effects.tsv</code></li>
-<li><code>table_s16_ordinary_fdr_directional_genes.tsv</code></li>
-<li><code>table_s17_all_random_effects_bh_fdr_genes.tsv</code></li>
-<li><code>table_s18_bh_fdr_tissue_summary.tsv</code></li>
-<li><code>table_s20_tissue_utility_highlights.tsv</code></li>
-<li><code>table_s21_liver_harmonization_benchmark.tsv</code></li>
-<li><code>table_s22_liver_harmonization_full_metrics.tsv</code></li>
-<li><code>table_s23_wgan_validation_repeats.tsv</code></li>
-<li><code>table_s24_locked_ddim_metric_summary.tsv</code></li>
-</ul>
-<h2>S17. Rebuild command</h2>
-<pre><code class="language-bash">PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m nasa_mouse_rna_diffusion.build_synthetic_guided_paper
-</code></pre>
-<p>To regenerate source tables and figures without rendering PDFs:</p>
-<pre><code class="language-bash">PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m nasa_mouse_rna_diffusion.build_synthetic_guided_paper --skip-render
-</code></pre></body></html>
+<li><code>table_s4_thymus_core_genes.tsv</code></li>
+<li><code>table_s5_thymus_reactome.tsv</code></li>
+<li><code>table_s6_muscle_group_summary.tsv</code></li>
+<li><code>table_s7_soleus_genes.tsv</code></li>
+<li><code>table_s8_muscle_reactome.tsv</code></li>
+<li><code>table_s9_all_tissue_development_screen.tsv</code></li>
+<li><code>table_s10_synthetic_informed_bh_fdr_genes.tsv</code></li>
+<li><code>table_s11_all_random_effects_bh_fdr_genes.tsv</code></li>
+<li><code>table_s12_bh_fdr_tissue_summary.tsv</code></li>
+<li><code>table_s13_liver_harmonization_benchmark.tsv</code></li>
+<li><code>table_s14_liver_harmonization_full_metrics.tsv</code></li>
+<li><code>table_s15_wgan_validation_repeats.tsv</code></li>
+</ul></body></html>
