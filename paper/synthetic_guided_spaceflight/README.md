@@ -1,14 +1,26 @@
 # Synthetic-guided spaceflight paper package
 
-This package contains a research manuscript on organ-specific mouse spaceflight
-responses identified with synthetic-guided transcriptomics. The central result is
-a held-out thymus test. The OSD-457 accession was excluded
-from OSDR adaptation, and all OSDR-linked GEO series were excluded from ARCHS4
-pretraining. Soleus provides
-cross-accession metabolic evidence, while kidney provides a focused promoted
-`Inpp4b` and reinforced `Slc37a4` result.
+This package contains a research manuscript on a configurable bulk RNA-seq
+generation framework and its use in organ-specific mouse spaceflight analysis.
+The paper first describes the expression, feature, harmonization, cohort,
+conditioning, training, and model choices represented by the framework. It then
+reports the WGAN-GP, DDIM, GeneJEPA representation, and nine-arm liver
+harmonization screens before introducing the selected diffusion model and the
+downstream biology.
 
-The paper follows a four-stage evaluation funnel:
+The factorized DDIM was selected because it was the only generator to pass the
+final joint locked fidelity and effect-recovery gates. The WGAN-GP retained
+strong validation correlation and neighborhood metrics but failed external
+indistinguishability and accession-aware effect recovery, so its locked test was
+not opened. These rows are consecutive selection stages, not a paired test-set
+comparison.
+
+The central biological result is the study-excluded thymus test. OSD-457 was
+excluded from OSDR adaptation, and all OSDR-linked GEO series were excluded from
+ARCHS4 pretraining. Soleus provides cross-accession metabolic evidence, while
+kidney provides a focused promoted `Inpp4b` and reinforced `Slc37a4` result.
+
+After generator selection, the paper follows a four-stage downstream funnel:
 
 1. a pooled benchmark tests whether one synthetic-data policy works across
    tissues;
@@ -40,8 +52,9 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
 - `manuscript.md`, `manuscript.html`, and `manuscript.pdf`: full paper draft.
 - `supplementary_methods.md`, `.html`, and `.pdf`: exact implementation,
   evaluation gates, output provenance, and limitations.
-- `figures/`: four biology-focused main figures and five supplementary figures
-  in PNG/PDF. Model-performance panels are retained as Figures S4-S5.
+- `figures/`: five main figures and four supplementary figures in PNG/PDF.
+  Figures 1-2 describe the configurable pipeline and generator selection;
+  Figures 3-5 report the tissue biology.
 - `source_data/`: manuscript tables, figure source tables, and SHA-256 manifests
   for every frozen analysis input.
 
@@ -57,6 +70,16 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
 
 The builder checks key frozen values before writing figures, then renders the
 Markdown manuscripts with WeasyPrint.
+
+## Editorial provenance
+
+The final manuscript prose was audited with `blader/humanizer` version 2.9.1 at
+repository commit `523374dee72d67c7b2b5f858ea0094ffda49c3ac`. The skill was
+applied in file mode under its no-fabrication rule. The pass removed formulaic
+transitions and repetitive sentence structures while preserving the scientific
+register. It did not alter frozen analysis outputs, source-table values, gene
+names, citations, or statistical interpretations. Humanizer was an editorial
+check, not part of the scientific method.
 
 ## Evidence interpretation
 

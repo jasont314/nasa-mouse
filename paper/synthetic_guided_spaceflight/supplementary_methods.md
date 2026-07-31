@@ -2,7 +2,7 @@
 
 <h1>Supplementary methods</h1>
 
-<p class="subtitle">Cross-study synthetic-guided transcriptomics in spaceflown mice</p>
+<p class="subtitle">A configurable generative transcriptomics framework for spaceflown mice</p>
 
 <p class="authors">Jason Trinh</p>
 
@@ -150,7 +150,7 @@ outputs/generative_benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_osdr
 
 The accepted configuration is
 `configs/rna_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint.yaml`.
-It uses the OSDR-disjoint ARCHS4 backbone described in Section S5. A base adapter was trained for 12,000 domain and 4,000 condition steps,
+It uses the ARCHS4 backbone described in Section S5. A base adapter was trained for 12,000 domain and 4,000 condition steps,
 followed by the 4,000-domain-step and 1,000-condition-step correlation-refinement stage
 reported here. The all-tissue and muscle-group development screens were then
 regenerated from this adapter. Section S10 describes the separate
@@ -219,14 +219,65 @@ real-versus-synthetic classifier, not the WGAN training critic. A result near 0.
 indicates that this external discriminator cannot reliably separate the two
 cohorts.
 
-## S8. WGAN-GP and GeneJEPA screens
+## S8. Configurable benchmark and comparator models
+
+The common benchmark implementation is under `src/nasa_mouse_generative/` and
+the selected diffusion lineage is under `src/nasa_mouse_rna_diffusion/`. Three
+configuration registries define the search space:
+
+```text
+configs/generative/preprocessing_profiles.yaml
+configs/generative/model_profiles.yaml
+configs/generative/experiment_matrix.yaml
+```
+
+The resolved planner contains 463 gated experiment rows. This is a staged plan,
+not evidence that all 463 rows received paper-duration training. Smoke tests,
+paper-architecture feasibility runs, preprocessing screens, accession-scope
+tests, harmonization comparisons, study-conditioning experiments, and tissue
+expansion were advanced only when the preceding gates supported the next cost.
+The framework separates input units, library normalization, transformation,
+scaling, feature space, harmonization, training regime, accession scope, tissue
+mode, FLT/GC conditioning, study policy, balancing, seed, and synthetic-to-real
+ratio.
+
+### Liver harmonization benchmark
+
+Nine arms used the same 974-gene conditional DDIM architecture, seed, and split:
+119 training profiles, 50 validation profiles, and a 70-profile locked test that
+was not opened for this screen. Every arm ran on an NVIDIA A100. No arm passed
+all independent fidelity, pooled-condition, and accession-effect gates.
+
+| Method | Corr. | Precision | Recall | F1 | AA | FD/real P95 | Fidelity gate | Accession gate |
+|---|---:|---:|---:|---:|---:|---:|---|---|
+| No harmonization, TPM | 0.283 | 0.200 | 0.960 | 0.331 | 0.850 | 2.052 | Fail | Fail |
+| Ilangovan study z-score | 0.278 | 0.160 | 1.000 | 0.276 | 0.770 | 0.716 | Fail | Fail |
+| Mentor two-stage z-score | 0.348 | 0.440 | 1.000 | 0.611 | 0.690 | 0.977 | Fail | Fail |
+| ComBat | 0.004 | 0.040 | 1.000 | 0.077 | 0.810 | 63.185 | Fail | Fail |
+| ComBat-seq | 0.067 | 0.020 | 1.000 | 0.039 | 0.850 | 156.647 | Fail | Fail |
+| MBatch Median Polish | 0.009 | 0.020 | 1.000 | 0.039 | 0.930 | 205.470 | Fail | Fail |
+| MBatch Empirical Bayes | 0.001 | 0.000 | 1.000 | 0.000 | 0.850 | 60.625 | Fail | Fail |
+| MBatch ANOVA | -0.003 | 0.020 | 1.000 | 0.039 | 0.870 | 44.716 | Fail | Fail |
+| MOBER | 0.808 | 0.260 | 1.000 | 0.413 | 0.770 | 33.311 | Fail | Fail |
+
+ComBat, ComBat-seq, and the three MBatch held-out transformations used training
+anchors but remain transductive sensitivity analyses for an unseen study. MOBER
+was the inductive complex harmonizer. Its high correlation did not compensate
+for low precision and F1, external separability, or excessive distributional
+distance. Exact values and preprocessing labels are in Tables S21-S22.
+
+### WGAN-GP and GeneJEPA screens
 
 The WGAN used the Viñas et al. topology: 64-dimensional noise, two 256-unit
 generator and critic layers, five critic updates, gradient-penalty weight 10,
 RMSProp learning rate 0.0005, and batch size 32. The strongest study-conditioned
-validation result had external adversarial accuracy 0.6362. Because no calibration
-variant jointly fixed adversarial accuracy and retained the correlation floor, and
-because accession-aware FLT/GC recovery failed, its locked test remained unopened.
+validation result was evaluated across six sampling seeds. Mean correlation,
+precision, recall, and F1 were 0.9759, 0.9764, 0.9938, and 0.9850. Mean external
+adversarial accuracy was 0.6362 and FD/real-P95 ratio was 0.1439. Pooled FLT/GC
+effect recovery passed in six of six repeats, but accession-aware skeletal-muscle
+recovery passed in zero of six. Because no repeat passed the full fidelity gate
+and accession-aware recovery was unstable, its locked test remained unopened.
+Exact repeat rows are in Table S23.
 
 ```text
 outputs/generative_benchmark/runs/vinas_wgan_gp/osdr_matched_study_conditioned_seed2020/
@@ -588,27 +639,27 @@ accession.
 
 | Analysis unit | FLT higher | FLT lower |
 |---|---|---|
-| Adrenal gland | — | `Psmb8` |
-| Kidney | `Inpp4b`\* | — |
-| Skeletal muscle, pooled | — | `Klhl21`\*, `Mapkapk5`\*, `Reep5`\*, `Itgb5`\* |
-| Skin | `Plscr1` | — |
-| Spleen | `Rai14`, `Myl9`\*, `Ptprk` | — |
+| Adrenal gland | None | `Psmb8` |
+| Kidney | `Inpp4b`\* | None |
+| Skeletal muscle, pooled | None | `Klhl21`\*, `Mapkapk5`\*, `Reep5`\*, `Itgb5`\* |
+| Skin | `Plscr1` | None |
+| Spleen | `Rai14`, `Myl9`\*, `Ptprk` | None |
 | Thymus | `Hsd17b11`\*, `Etv1` | `Nusap1`, `Stmn1`, `Birc5`, `Cdk1`, `Top2a`, `Ccnb2`, `Aurka`, `Ccne2`, `Kif20a`, `Pcna`, `Ccnf` |
 | Gastrocnemius | `Nfkbia` | `Fhl2` |
-| Tibialis anterior | `Cebpd` | — |
+| Tibialis anterior | `Cebpd` | None |
 
 **Reinforced genes**
 
 | Analysis unit | FLT higher | FLT lower |
 |---|---|---|
-| Adrenal gland | — | `Tspan4` |
-| Eye | — | `Klhl21` |
-| Kidney | `Slc37a4` | — |
+| Adrenal gland | None | `Tspan4` |
+| Eye | None | `Klhl21` |
+| Kidney | `Slc37a4` | None |
 | Skeletal muscle, pooled | `Sox4`, `Cebpd`\*, `Sh3bp5`, `Prkcd`, `Arid5b`\*, `Sesn1`\*, `Tle1`\* | `Bphl`\* |
-| Spleen | `Loxl1` | — |
+| Spleen | `Loxl1` | None |
 | Thymus | `Snx7` | `Ube2c`, `Gmnn` |
 | Soleus | `Tpm1` | `Bdh1`, `Ech1`, `Bnip3`, `Decr1` |
-| Tibialis anterior | `Cdkn1a`, `St3gal5`, `Bnip3` | — |
+| Tibialis anterior | `Cdkn1a`, `St3gal5`, `Bnip3` | None |
 
 Heart, liver, retina, EDL, and quadriceps had real-data BH-FDR genes but no
 synthetic-informed gene. Bone, bone marrow, brain, brown adipose
@@ -636,22 +687,17 @@ panel.
 
 <p class="caption"><strong>Figure S3. Repeated nested muscle-group balanced accuracy.</strong> Each row is a muscle group and each column is a downstream use of real or generated profiles. Arm selection also required nonworse AUROC and average precision.</p>
 
-![Generator validation.](figures/figure_2_generator_validation.png)
-
-<p class="caption"><strong>Figure S4. Generator validation.</strong> (A) Tissue balanced accuracy when a classifier was trained on held-out ARCHS4 real or synthetic profiles. (B) Broad-reference distribution metrics. The dashed line marks the strict correlation target. (C) Four OSDR locked-test generations; vertical marks show metric gates. (D) External adversarial accuracy and pooled or accession-aware flight-effect recovery. The shaded interval is the accepted adversarial-accuracy range.</p>
-
 ![Downstream utility.](figures/figure_3_downstream_utility.png)
 
-<p class="caption"><strong>Figure S5. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real test. (B) Fixed synthetic-guided policies in OSDR-held-out lung and thymus accessions. (C) Guided-minus-baseline metric changes after post-hoc genotype stratification. Thymus improved uniformly; lung knockout AUROC declined.</p>
+<p class="caption"><strong>Figure S4. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real test. (B) Fixed synthetic-guided policies in OSDR-held-out lung and thymus accessions. (C) Guided-minus-baseline metric changes after post-hoc genotype stratification. Thymus improved uniformly; lung knockout AUROC declined.</p>
 
 ## S17. Source tables
 
 - `table_1_data_inventory.tsv`
-- `table_2_model_screen.tsv`
-- `table_3_locked_ddim_metrics.tsv`
-- `table_4_heldout_study_confirmation.tsv`
-- `table_5_tissue_evidence.tsv`
+- `table_2_pipeline_design_space.tsv`
+- `table_4_generator_model_selection.tsv`
 - `table_6_whole_study_transfer_context.tsv`
+- `table_7_tissue_evidence.tsv`
 - `table_s1_archs4_ddim_metrics.tsv`
 - `table_s2_locked_ddim_repeats.tsv`
 - `table_s3_naive_augmentation.tsv`
@@ -672,6 +718,11 @@ panel.
 - `table_s18_bh_fdr_tissue_summary.tsv`
 - `table_s19_thymus_evidence_level_mapping.tsv`
 - `table_s20_tissue_utility_highlights.tsv`
+- `table_s21_liver_harmonization_benchmark.tsv`
+- `table_s22_liver_harmonization_full_metrics.tsv`
+- `table_s23_wgan_validation_repeats.tsv`
+- `table_s24_locked_ddim_metric_summary.tsv`
+- `table_s25_heldout_study_confirmation.tsv`
 
 ## S18. Rebuild command
 

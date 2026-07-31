@@ -1580,10 +1580,10 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     names = {
         "inventory": "table_1_data_inventory.tsv",
         "pipeline_design": "table_2_pipeline_design_space.tsv",
-        "model_screen": "table_3_generator_model_selection.tsv",
+        "model_screen": "table_4_generator_model_selection.tsv",
         "locked_summary": "table_s24_locked_ddim_metric_summary.tsv",
-        "confirmation": "table_4_heldout_study_confirmation.tsv",
-        "evidence": "table_5_tissue_evidence.tsv",
+        "confirmation": "table_s25_heldout_study_confirmation.tsv",
+        "evidence": "table_7_tissue_evidence.tsv",
         "study_holdout_context": "table_6_whole_study_transfer_context.tsv",
         "arch_summary": "table_s1_archs4_ddim_metrics.tsv",
         "locked_repeats": "table_s2_locked_ddim_repeats.tsv",
@@ -2463,14 +2463,17 @@ def main() -> None:
         render_document(
             _required(PAPER_DIR / "manuscript.md"),
             (
-                "Cross-study synthetic-guided transcriptomics identifies thymic "
-                "proliferative suppression and soleus metabolic remodeling in "
-                "spaceflown mice"
+                "A configurable generative transcriptomics framework reveals "
+                "thymic proliferative suppression and soleus metabolic "
+                "remodeling in spaceflown mice"
             ),
         )
         render_document(
             _required(PAPER_DIR / "supplementary_methods.md"),
-            "Supplementary methods: synthetic-guided spaceflight transcriptomics",
+            (
+                "Supplementary methods: configurable generative transcriptomics "
+                "in spaceflown mice"
+            ),
         )
 
     print(f"Built paper package: {PAPER_DIR}")

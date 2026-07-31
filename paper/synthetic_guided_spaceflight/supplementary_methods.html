@@ -1,5 +1,5 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Supplementary methods: synthetic-guided spaceflight transcriptomics</title>
+<html><head><meta charset="utf-8"><title>Supplementary methods: configurable generative transcriptomics in spaceflown mice</title>
 <style>
     @page {
       size: A4;
@@ -42,7 +42,7 @@
 
 <h1>Supplementary methods</h1>
 
-<p class="subtitle">Cross-study synthetic-guided transcriptomics in spaceflown mice</p>
+<p class="subtitle">A configurable generative transcriptomics framework for spaceflown mice</p>
 
 <p class="authors">Jason Trinh</p>
 
@@ -239,7 +239,7 @@ the reference exclusion and grouped split contract changed.</p>
 <h2>S6. Factorized OSDR adaptation</h2>
 <p>The accepted configuration is
 <code>configs/rna_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint.yaml</code>.
-It uses the OSDR-disjoint ARCHS4 backbone described in Section S5. A base adapter was trained for 12,000 domain and 4,000 condition steps,
+It uses the ARCHS4 backbone described in Section S5. A base adapter was trained for 12,000 domain and 4,000 condition steps,
 followed by the 4,000-domain-step and 1,000-condition-step correlation-refinement stage
 reported here. The all-tissue and muscle-group development screens were then
 regenerated from this adapter. Section S10 describes the separate
@@ -367,13 +367,160 @@ developmental rather than study-held-out confirmation.</p>
 real-versus-synthetic classifier, not the WGAN training critic. A result near 0.5
 indicates that this external discriminator cannot reliably separate the two
 cohorts.</p>
-<h2>S8. WGAN-GP and GeneJEPA screens</h2>
+<h2>S8. Configurable benchmark and comparator models</h2>
+<p>The common benchmark implementation is under <code>src/nasa_mouse_generative/</code> and
+the selected diffusion lineage is under <code>src/nasa_mouse_rna_diffusion/</code>. Three
+configuration registries define the search space:</p>
+<pre><code class="language-text">configs/generative/preprocessing_profiles.yaml
+configs/generative/model_profiles.yaml
+configs/generative/experiment_matrix.yaml
+</code></pre>
+<p>The resolved planner contains 463 gated experiment rows. This is a staged plan,
+not evidence that all 463 rows received paper-duration training. Smoke tests,
+paper-architecture feasibility runs, preprocessing screens, accession-scope
+tests, harmonization comparisons, study-conditioning experiments, and tissue
+expansion were advanced only when the preceding gates supported the next cost.
+The framework separates input units, library normalization, transformation,
+scaling, feature space, harmonization, training regime, accession scope, tissue
+mode, FLT/GC conditioning, study policy, balancing, seed, and synthetic-to-real
+ratio.</p>
+<h3>Liver harmonization benchmark</h3>
+<p>Nine arms used the same 974-gene conditional DDIM architecture, seed, and split:
+119 training profiles, 50 validation profiles, and a 70-profile locked test that
+was not opened for this screen. Every arm ran on an NVIDIA A100. No arm passed
+all independent fidelity, pooled-condition, and accession-effect gates.</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th style="text-align: right;">Corr.</th>
+<th style="text-align: right;">Precision</th>
+<th style="text-align: right;">Recall</th>
+<th style="text-align: right;">F1</th>
+<th style="text-align: right;">AA</th>
+<th style="text-align: right;">FD/real P95</th>
+<th>Fidelity gate</th>
+<th>Accession gate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No harmonization, TPM</td>
+<td style="text-align: right;">0.283</td>
+<td style="text-align: right;">0.200</td>
+<td style="text-align: right;">0.960</td>
+<td style="text-align: right;">0.331</td>
+<td style="text-align: right;">0.850</td>
+<td style="text-align: right;">2.052</td>
+<td>Fail</td>
+<td>Fail</td>
+</tr>
+<tr>
+<td>Ilangovan study z-score</td>
+<td style="text-align: right;">0.278</td>
+<td style="text-align: right;">0.160</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.276</td>
+<td style="text-align: right;">0.770</td>
+<td style="text-align: right;">0.716</td>
+<td>Fail</td>
+<td>Fail</td>
+</tr>
+<tr>
+<td>Mentor two-stage z-score</td>
+<td style="text-align: right;">0.348</td>
+<td style="text-align: right;">0.440</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.611</td>
+<td style="text-align: right;">0.690</td>
+<td style="text-align: right;">0.977</td>
+<td>Fail</td>
+<td>Fail</td>
+</tr>
+<tr>
+<td>ComBat</td>
+<td style="text-align: right;">0.004</td>
+<td style="text-align: right;">0.040</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.077</td>
+<td style="text-align: right;">0.810</td>
+<td style="text-align: right;">63.185</td>
+<td>Fail</td>
+<td>Fail</td>
+</tr>
+<tr>
+<td>ComBat-seq</td>
+<td style="text-align: right;">0.067</td>
+<td style="text-align: right;">0.020</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.039</td>
+<td style="text-align: right;">0.850</td>
+<td style="text-align: right;">156.647</td>
+<td>Fail</td>
+<td>Fail</td>
+</tr>
+<tr>
+<td>MBatch Median Polish</td>
+<td style="text-align: right;">0.009</td>
+<td style="text-align: right;">0.020</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.039</td>
+<td style="text-align: right;">0.930</td>
+<td style="text-align: right;">205.470</td>
+<td>Fail</td>
+<td>Fail</td>
+</tr>
+<tr>
+<td>MBatch Empirical Bayes</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.850</td>
+<td style="text-align: right;">60.625</td>
+<td>Fail</td>
+<td>Fail</td>
+</tr>
+<tr>
+<td>MBatch ANOVA</td>
+<td style="text-align: right;">-0.003</td>
+<td style="text-align: right;">0.020</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.039</td>
+<td style="text-align: right;">0.870</td>
+<td style="text-align: right;">44.716</td>
+<td>Fail</td>
+<td>Fail</td>
+</tr>
+<tr>
+<td>MOBER</td>
+<td style="text-align: right;">0.808</td>
+<td style="text-align: right;">0.260</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.413</td>
+<td style="text-align: right;">0.770</td>
+<td style="text-align: right;">33.311</td>
+<td>Fail</td>
+<td>Fail</td>
+</tr>
+</tbody>
+</table>
+<p>ComBat, ComBat-seq, and the three MBatch held-out transformations used training
+anchors but remain transductive sensitivity analyses for an unseen study. MOBER
+was the inductive complex harmonizer. Its high correlation did not compensate
+for low precision and F1, external separability, or excessive distributional
+distance. Exact values and preprocessing labels are in Tables S21-S22.</p>
+<h3>WGAN-GP and GeneJEPA screens</h3>
 <p>The WGAN used the Viñas et al. topology: 64-dimensional noise, two 256-unit
 generator and critic layers, five critic updates, gradient-penalty weight 10,
 RMSProp learning rate 0.0005, and batch size 32. The strongest study-conditioned
-validation result had external adversarial accuracy 0.6362. Because no calibration
-variant jointly fixed adversarial accuracy and retained the correlation floor, and
-because accession-aware FLT/GC recovery failed, its locked test remained unopened.</p>
+validation result was evaluated across six sampling seeds. Mean correlation,
+precision, recall, and F1 were 0.9759, 0.9764, 0.9938, and 0.9850. Mean external
+adversarial accuracy was 0.6362 and FD/real-P95 ratio was 0.1439. Pooled FLT/GC
+effect recovery passed in six of six repeats, but accession-aware skeletal-muscle
+recovery passed in zero of six. Because no repeat passed the full fidelity gate
+and accession-aware recovery was unstable, its locked test remained unopened.
+Exact repeat rows are in Table S23.</p>
 <pre><code class="language-text">outputs/generative_benchmark/runs/vinas_wgan_gp/osdr_matched_study_conditioned_seed2020/
 </code></pre>
 <p>The exact-architecture GeneJEPA duration screen used 4,096 genes and 43,744
@@ -1118,28 +1265,28 @@ accession.</p>
 <tbody>
 <tr>
 <td>Adrenal gland</td>
-<td>—</td>
+<td>None</td>
 <td><code>Psmb8</code></td>
 </tr>
 <tr>
 <td>Kidney</td>
 <td><code>Inpp4b</code>*</td>
-<td>—</td>
+<td>None</td>
 </tr>
 <tr>
 <td>Skeletal muscle, pooled</td>
-<td>—</td>
+<td>None</td>
 <td><code>Klhl21</code>*, <code>Mapkapk5</code>*, <code>Reep5</code>*, <code>Itgb5</code>*</td>
 </tr>
 <tr>
 <td>Skin</td>
 <td><code>Plscr1</code></td>
-<td>—</td>
+<td>None</td>
 </tr>
 <tr>
 <td>Spleen</td>
 <td><code>Rai14</code>, <code>Myl9</code>*, <code>Ptprk</code></td>
-<td>—</td>
+<td>None</td>
 </tr>
 <tr>
 <td>Thymus</td>
@@ -1154,7 +1301,7 @@ accession.</p>
 <tr>
 <td>Tibialis anterior</td>
 <td><code>Cebpd</code></td>
-<td>—</td>
+<td>None</td>
 </tr>
 </tbody>
 </table>
@@ -1170,18 +1317,18 @@ accession.</p>
 <tbody>
 <tr>
 <td>Adrenal gland</td>
-<td>—</td>
+<td>None</td>
 <td><code>Tspan4</code></td>
 </tr>
 <tr>
 <td>Eye</td>
-<td>—</td>
+<td>None</td>
 <td><code>Klhl21</code></td>
 </tr>
 <tr>
 <td>Kidney</td>
 <td><code>Slc37a4</code></td>
-<td>—</td>
+<td>None</td>
 </tr>
 <tr>
 <td>Skeletal muscle, pooled</td>
@@ -1191,7 +1338,7 @@ accession.</p>
 <tr>
 <td>Spleen</td>
 <td><code>Loxl1</code></td>
-<td>—</td>
+<td>None</td>
 </tr>
 <tr>
 <td>Thymus</td>
@@ -1206,7 +1353,7 @@ accession.</p>
 <tr>
 <td>Tibialis anterior</td>
 <td><code>Cdkn1a</code>, <code>St3gal5</code>, <code>Bnip3</code></td>
-<td>—</td>
+<td>None</td>
 </tr>
 </tbody>
 </table>
@@ -1230,20 +1377,16 @@ panel.</p>
 <p><img alt="Muscle arm heatmap." src="figures/figure_s3_muscle_arm_heatmap.png" /></p>
 <p class="caption"><strong>Figure S3. Repeated nested muscle-group balanced accuracy.</strong> Each row is a muscle group and each column is a downstream use of real or generated profiles. Arm selection also required nonworse AUROC and average precision.</p>
 
-<p><img alt="Generator validation." src="figures/figure_2_generator_validation.png" /></p>
-<p class="caption"><strong>Figure S4. Generator validation.</strong> (A) Tissue balanced accuracy when a classifier was trained on held-out ARCHS4 real or synthetic profiles. (B) Broad-reference distribution metrics. The dashed line marks the strict correlation target. (C) Four OSDR locked-test generations; vertical marks show metric gates. (D) External adversarial accuracy and pooled or accession-aware flight-effect recovery. The shaded interval is the accepted adversarial-accuracy range.</p>
-
 <p><img alt="Downstream utility." src="figures/figure_3_downstream_utility.png" /></p>
-<p class="caption"><strong>Figure S5. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real test. (B) Fixed synthetic-guided policies in OSDR-held-out lung and thymus accessions. (C) Guided-minus-baseline metric changes after post-hoc genotype stratification. Thymus improved uniformly; lung knockout AUROC declined.</p>
+<p class="caption"><strong>Figure S4. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real test. (B) Fixed synthetic-guided policies in OSDR-held-out lung and thymus accessions. (C) Guided-minus-baseline metric changes after post-hoc genotype stratification. Thymus improved uniformly; lung knockout AUROC declined.</p>
 
 <h2>S17. Source tables</h2>
 <ul>
 <li><code>table_1_data_inventory.tsv</code></li>
-<li><code>table_2_model_screen.tsv</code></li>
-<li><code>table_3_locked_ddim_metrics.tsv</code></li>
-<li><code>table_4_heldout_study_confirmation.tsv</code></li>
-<li><code>table_5_tissue_evidence.tsv</code></li>
+<li><code>table_2_pipeline_design_space.tsv</code></li>
+<li><code>table_4_generator_model_selection.tsv</code></li>
 <li><code>table_6_whole_study_transfer_context.tsv</code></li>
+<li><code>table_7_tissue_evidence.tsv</code></li>
 <li><code>table_s1_archs4_ddim_metrics.tsv</code></li>
 <li><code>table_s2_locked_ddim_repeats.tsv</code></li>
 <li><code>table_s3_naive_augmentation.tsv</code></li>
@@ -1264,6 +1407,11 @@ panel.</p>
 <li><code>table_s18_bh_fdr_tissue_summary.tsv</code></li>
 <li><code>table_s19_thymus_evidence_level_mapping.tsv</code></li>
 <li><code>table_s20_tissue_utility_highlights.tsv</code></li>
+<li><code>table_s21_liver_harmonization_benchmark.tsv</code></li>
+<li><code>table_s22_liver_harmonization_full_metrics.tsv</code></li>
+<li><code>table_s23_wgan_validation_repeats.tsv</code></li>
+<li><code>table_s24_locked_ddim_metric_summary.tsv</code></li>
+<li><code>table_s25_heldout_study_confirmation.tsv</code></li>
 </ul>
 <h2>S18. Rebuild command</h2>
 <pre><code class="language-bash">PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
