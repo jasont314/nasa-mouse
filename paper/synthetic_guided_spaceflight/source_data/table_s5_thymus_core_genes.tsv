@@ -1,9 +1,11 @@
-gene	symbol	selected_folds	gated_folds	mean_classifier_coefficient	mean_absolute_classifier_coefficient	coefficient_sign_agreement	mean_real_effect	mean_synthetic_effect	effect_direction_match_rate	mean_real_effect_sign_stability	mean_synthetic_effect_sign_stability
-ENSMUSG00000017716	Birc5	1	1	-0.15193811	0.15193811	1.0	-1.3731337	-3.0016122	1.0	1.0	1.0
-ENSMUSG00000019942	Cdk1	1	1	-0.11363761	0.11363761	1.0	-1.2369255	-2.239246	1.0	1.0	1.0
-ENSMUSG00000032218	Ccnb2	1	1	-0.07908683	0.07908683	1.0	-1.2356275	-2.389782	1.0	1.0	1.0
-ENSMUSG00000027306	Nusap1	1	1	-0.11078968	0.11078968	1.0	-1.1690028	-2.4770057	1.0	1.0	1.0
-ENSMUSG00000041431	Ccnb1	1	1	-0.096684575	0.096684575	1.0	-1.1243068	-1.9800079	1.0	1.0	1.0
-ENSMUSG00000006715	Gmnn	1	1	-0.15230916	0.15230916	1.0	-1.0611079	-2.9066777	1.0	1.0	1.0
-ENSMUSG00000028212	Ccne2	1	1	-0.20320298	0.20320298	1.0	-0.83561665	-2.8423998	1.0	1.0	1.0
-ENSMUSG00000001403	Ube2c	1	1	-0.1210052	0.1210052	1.0	-0.7868755	-2.7830071	1.0	1.0	1.0
+tissue	gene	symbol	gene_set	best_generated_arm	stable_real	stable_generated	real_selection_frequency	generated_selection_frequency	real_coefficient	generated_coefficient	coefficient_direction_match	real_meta_effect	real_meta_fdr	real_accession_direction_fraction	real_loo_fdr_stable_0_05	real_effect_supports_generated
+thymus	ENSMUSG00000020914	Top2a	generated_supported	guided_low_weight	False	True	0.0	0.75	NA	-0.1368959099054336	False	-0.08097393883702	5.573323030415243e-07	1.0	True	True
+thymus	ENSMUSG00000027306	Nusap1	generated_supported	guided_low_weight	False	True	0.0	1.0	NA	-0.2773217558860779	False	-0.0310693843087508	1.1595716103290356e-09	1.0	True	True
+thymus	ENSMUSG00000019942	Cdk1	generated_supported	guided_low_weight	False	True	0.0	1.0	NA	-0.2490572482347488	False	-0.0186189492557566	4.834064923206809e-07	1.0	True	True
+thymus	ENSMUSG00000017716	Birc5	generated_supported	guided_low_weight	False	True	0.0	1.0	NA	-0.1927396357059478	False	-0.0133379360163701	1.2621664694113914e-07	1.0	True	True
+thymus	ENSMUSG00000027496	Aurka	generated_supported	guided_low_weight	False	True	0.0	0.5	NA	-0.2268251478672027	False	-0.0122257596483196	0.0016162743725706	1.0	False	True
+thymus	ENSMUSG00000028832	Stmn1	generated_supported	guided_low_weight	False	True	0.0	1.0	NA	-0.5147041082382202	False	-0.0111499861421321	2.9600357613667867e-09	1.0	True	True
+thymus	ENSMUSG00000028212	Ccne2	generated_supported	guided_low_weight	False	True	0.0	1.0	NA	-0.2600146532058716	False	-0.010656625053089	0.0017185061144963	1.0	True	True
+thymus	ENSMUSG00000032218	Ccnb2	generated_supported	guided_low_weight	False	True	0.0	0.75	NA	-0.1785920709371566	False	-0.0102311976129221	0.0002376244088253	1.0	True	True
+thymus	ENSMUSG00000006715	Gmnn	core_intersection	guided_low_weight	True	True	0.625	1.0	-0.4039526581764221	-0.1980220526456833	True	-0.0050733709559632	0.0227227092537027	1.0	False	True
+thymus	ENSMUSG00000001403	Ube2c	core_intersection	guided_low_weight	True	True	0.5	0.75	-0.6188631057739258	-0.4326749145984649	True	-0.0018349696076913	0.0102071219596878	1.0	False	True

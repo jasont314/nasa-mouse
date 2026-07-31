@@ -245,8 +245,7 @@ the reference exclusion and grouped split contract changed.</p>
 It uses the ARCHS4 backbone described in Section S5. A base adapter was trained for 12,000 domain and 4,000 condition steps,
 followed by the 4,000-domain-step and 1,000-condition-step correlation-refinement stage
 reported here. The all-tissue and muscle-group development screens were then
-regenerated from this adapter. Section S10 describes the separate
-lung/thymus accession-held-out experiment.</p>
+regenerated from this adapter.</p>
 <table>
 <thead>
 <tr>
@@ -365,7 +364,7 @@ paper target of 0.98. Pooled FLT/GC effect recovery passed in three of four
 repeats and muscle accession-effect recovery passed in all four. The preceding
 validation screen missed its stricter sample-specific correlation floor and
 muscle accession-effect gate; the broad biological screens therefore remain
-developmental rather than study-held-out confirmation.</p>
+developmental.</p>
 <p>The term "adversarial accuracy" refers to an external nearest-neighbor
 real-versus-synthetic classifier, not the WGAN training critic. A result near 0.5
 indicates that this external discriminator cannot reliably separate the two
@@ -508,8 +507,8 @@ all independent fidelity, pooled-condition, and accession-effect gates.</p>
 </tr>
 </tbody>
 </table>
-<p>ComBat, ComBat-seq, and the three MBatch held-out transformations used training
-anchors but remain transductive sensitivity analyses for an unseen study. MOBER
+<p>ComBat, ComBat-seq, and the three MBatch validation transformations used training
+anchors but remain transductive sensitivity analyses for a new batch. MOBER
 was the inductive complex harmonizer. Its high correlation did not compensate
 for low precision and F1, external separability, or excessive distributional
 distance. Exact values and preprocessing labels are in Tables S21-S22.</p>
@@ -533,9 +532,8 @@ expression decoder.</p>
 <pre><code class="language-text">outputs/generative_benchmark/runs/genejepa/matrix_phase_0_genejepa_exact_mouse_one_epoch_f2e01cf1f130d5cb/
 </code></pre>
 <h2>S9. Generated-feature workflow</h2>
-<p>The full evaluation funnel had four stages: pooled utility, tissue-specific
-development, real-data association testing, and complete-accession transfer. The
-pooled utility benchmark compared real-only, generated-only, and
+<p>The evaluation funnel had three stages: pooled utility, tissue-specific
+development, and real-data association testing. The pooled utility benchmark compared real-only, generated-only, and
 real-plus-generated training. Tissue-specific development then compared five
 arms:</p>
 <ol>
@@ -569,7 +567,7 @@ or biologically novel.</p>
 </code></pre>
 <!-- BEGIN GENERATED TISSUE UTILITY TABLES -->
 
-<p>All five arms were fitted for every analysis unit below. Values are means across eight repeated outer splits, and every outer evaluation used real profiles. An eligible arm was nonworse than real-only training in balanced accuracy, AUROC, and average precision. An eligible tie met that rule without improving a mean metric. These development results are not complete-study transfer tests.</p>
+<p>All five arms were fitted for every analysis unit below. Values are means across eight repeated outer splits, and every outer evaluation used real profiles. An eligible arm was nonworse than real-only training in balanced accuracy, AUROC, and average precision. An eligible tie met that rule without improving a mean metric. These development results use profiles from represented accessions.</p>
 <p><strong>Supplementary Table S10. Complete canonical-tissue utility screen.</strong></p>
 <table>
 <thead>
@@ -848,409 +846,7 @@ or biologically novel.</p>
 <p>Sample counts are shown as total development profiles followed by flight/ground-control counts. Small cohorts and ceiling-level scores remain exploratory even when a synthetic arm is eligible.</p>
 <!-- END GENERATED TISSUE UTILITY TABLES -->
 
-<h2>S10. Whole-study transfer experiments</h2>
-<h3>Uniform twelve-tissue analysis</h3>
-<p>Every canonical tissue with at least three eligible FLT/GC accessions entered a
-three-fold global split: adrenal gland, brain, cerebellum, heart, kidney, liver,
-lung, retina, skeletal muscle, skin, spleen, and thymus. An accession had one
-role per fold even when it contributed several tissues. Every tissue retained
-FLT and GC profiles in the training, validation, and test roles. Across the
-folds, all 68 tissue-accession pairs from 63 unique accessions and 1,284 profiles
-entered the test role once.</p>
-<p>Each fold started from the 15,000-epoch OSDR-disjoint ARCHS4 checkpoint and
-trained a 5,000-epoch OSDR adapter on its training accessions. Conditioning was
-limited to tissue and FLT/GC because a truly unseen accession has no learned
-study embedding. Validation and test accessions were disjoint. The inner search
-selected feature count, regularization, real/synthetic ranking, and training
-weight. A generated candidate was deployed only when validation balanced
-accuracy improved by at least 0.02 and AUROC fell by no more than 0.01;
-otherwise the fold used its real-only baseline.</p>
-<p>The accession-macro real-only results were 0.581 balanced accuracy, 0.620 AUROC,
-and 0.694 average precision. Deployed values were 0.583, 0.631, and 0.708. Skin,
-pooled skeletal muscle, and lung passed the tissue rule. Full tissue rows are in
-Table 6.</p>
-<p>Effect recovery was calculated at three levels. Pooled fold-level correlation
-averaged 0.232 with mean direction agreement 0.575. Per-tissue random-effects
-correlation averaged 0.489 with direction agreement 0.682. Direct
-tissue-by-accession correlation averaged 0.033 with direction agreement 0.468.
-Tables S27-S29 contain the tissue, accession, and pooled rows. Figures S5-S6 show
-the predictive changes and the three effect-recovery levels.</p>
-<p>This is a cross-fitted retrospective analysis, not a prospective test. The
-project had inspected related OSDR outcomes before these folds were fixed.</p>
-<h3>Earlier feature-guidance transfer screen</h3>
-<p>An initial transfer screen evaluated liver, kidney, lung, retina, skin, and
-thymus using complete held-out accessions. Liver and kidney gained balanced
-accuracy but lost AUROC; retina and skin did not improve. Lung and thymus met the
-advancement rule and entered the fixed follow-up.</p>
-<table>
-<thead>
-<tr>
-<th>Tissue</th>
-<th style="text-align: right;">Test accessions</th>
-<th style="text-align: right;">Profiles</th>
-<th style="text-align: right;">Real BA</th>
-<th style="text-align: right;">Guided BA</th>
-<th style="text-align: right;">Real AUROC</th>
-<th style="text-align: right;">Guided AUROC</th>
-<th>Advanced</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Liver</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">51</td>
-<td style="text-align: right;">0.458</td>
-<td style="text-align: right;">0.604</td>
-<td style="text-align: right;">0.684</td>
-<td style="text-align: right;">0.656</td>
-<td>No</td>
-</tr>
-<tr>
-<td>Kidney</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">0.500</td>
-<td style="text-align: right;">0.528</td>
-<td style="text-align: right;">0.488</td>
-<td style="text-align: right;">0.475</td>
-<td>No</td>
-</tr>
-<tr>
-<td>Lung</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">39</td>
-<td style="text-align: right;">0.500</td>
-<td style="text-align: right;">0.555</td>
-<td style="text-align: right;">0.371</td>
-<td style="text-align: right;">0.497</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td>Retina</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">16</td>
-<td style="text-align: right;">0.619</td>
-<td style="text-align: right;">0.500</td>
-<td style="text-align: right;">0.762</td>
-<td style="text-align: right;">0.563</td>
-<td>No</td>
-</tr>
-<tr>
-<td>Skin</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">35</td>
-<td style="text-align: right;">0.447</td>
-<td style="text-align: right;">0.447</td>
-<td style="text-align: right;">0.484</td>
-<td style="text-align: right;">0.469</td>
-<td>No</td>
-</tr>
-<tr>
-<td>Thymus</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">18</td>
-<td style="text-align: right;">0.556</td>
-<td style="text-align: right;">0.667</td>
-<td style="text-align: right;">0.840</td>
-<td style="text-align: right;">0.926</td>
-<td>Yes</td>
-</tr>
-</tbody>
-</table>
-<h3>Fixed lung and thymus test</h3>
-<p>The confirmation protocol is frozen at:</p>
-<pre><code class="language-text">outputs/generative_benchmark/analyses/generated_feature_guidance_confirmation_disjoint_v1/protocol.md
-</code></pre>
-<p>Test accessions:</p>
-<table>
-<thead>
-<tr>
-<th>Tissue</th>
-<th>Accession</th>
-<th style="text-align: right;">Profiles</th>
-<th style="text-align: right;">FLT</th>
-<th style="text-align: right;">GC</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Lung</td>
-<td>OSD-900</td>
-<td style="text-align: right;">20</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td>Thymus</td>
-<td>OSD-457</td>
-<td style="text-align: right;">24</td>
-<td style="text-align: right;">12</td>
-<td style="text-align: right;">12</td>
-</tr>
-</tbody>
-</table>
-<p>Both accessions were removed from all OSDR generator-adaptation roles. A
-post-analysis audit found that the original ARCHS4 reference included GEO series
-linked to OSDR, including GSE152382 from OSD-457. Three exact OSD-457 thymus
-profiles had been assigned to the original ARCHS4 training split. That overlap
-invalidated the original fully unseen wording.</p>
-<p>For the final analysis, all nine OSDR-linked GEO series were excluded before
-reference selection, the 15,000-epoch ARCHS4 backbone was trained from scratch,
-and the 5,000-epoch OSDR adaptation and fixed feature-guidance protocol were
-rerun. OSD-464 lung and OSD-244 thymus remained fixed validation studies. Because the original outcomes had already been observed before the final run,
-this is not a pristine prospective confirmation.</p>
-<p>The deployed thymus classifier used real profiles only. Synthetic data changed
-feature ranking. The deployed lung classifier used a recentered synthetic view at
-0.05 total sample weight during policy evaluation, but failed the prespecified
-inner gate; the deployed lung result therefore reverted to the real-only
-baseline.</p>
-<table>
-<thead>
-<tr>
-<th>Tissue</th>
-<th style="text-align: right;">Baseline BA</th>
-<th style="text-align: right;">Guided BA</th>
-<th style="text-align: right;">Baseline AUROC</th>
-<th style="text-align: right;">Guided AUROC</th>
-<th style="text-align: right;">Baseline AP</th>
-<th style="text-align: right;">Guided AP</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Lung, OSD-900</td>
-<td style="text-align: right;">0.400</td>
-<td style="text-align: right;">0.350</td>
-<td style="text-align: right;">0.450</td>
-<td style="text-align: right;">0.470</td>
-<td style="text-align: right;">0.523</td>
-<td style="text-align: right;">0.578</td>
-</tr>
-<tr>
-<td>Thymus, OSD-457</td>
-<td style="text-align: right;">0.500</td>
-<td style="text-align: right;">0.833</td>
-<td style="text-align: right;">0.840</td>
-<td style="text-align: right;">0.979</td>
-<td style="text-align: right;">0.876</td>
-<td style="text-align: right;">0.983</td>
-</tr>
-</tbody>
-</table>
-<p>Genotype assignment was audited after the primary result:</p>
-<table>
-<thead>
-<tr>
-<th>Tissue</th>
-<th>Stratum</th>
-<th style="text-align: right;">Profiles</th>
-<th style="text-align: right;">FLT</th>
-<th style="text-align: right;">GC</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Lung</td>
-<td>KO</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">5</td>
-</tr>
-<tr>
-<td>Lung</td>
-<td>WT</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">5</td>
-</tr>
-<tr>
-<td>Thymus</td>
-<td>Nrf2KO</td>
-<td style="text-align: right;">12</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">6</td>
-</tr>
-<tr>
-<td>Thymus</td>
-<td>WT</td>
-<td style="text-align: right;">12</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">6</td>
-</tr>
-</tbody>
-</table>
-<h3>Relationship between evaluation stages</h3>
-<p>The uniform complete-study stage asks whether validation-gated synthetic use
-applies across all eligible held-out OSDR accessions. The targeted thymus study
-asks whether one separately specified feature panel works in OSD-457. Both are
-retrospective because related outcomes had already been inspected. The
-development stage asks which BH-significant real effects also cross repeated
-synthetic-informed selection thresholds within represented studies. The
-complete real-data screen reports random-effects BH-FDR associations regardless
-of feature-selection status. These stages answer different questions and are not
-alternative statistical filters on one gene list.</p>
-<p>All eight study-held-out thymus genes were FLT-lower in both OSD-457 genotype
-strata and had FLT-lower cross-study meta-effects with BH FDR &lt; 0.05. Their
-separate development-screen labels were:</p>
-<table>
-<thead>
-<tr>
-<th>Gene</th>
-<th>OSD-457 result</th>
-<th>Development selection label</th>
-<th style="text-align: right;">Cross-study BH FDR</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Birc5</code></td>
-<td>FLT lower in WT and Nrf2KO</td>
-<td>Synthetic-promoted</td>
-<td style="text-align: right;"><code>1.26e-7</code></td>
-</tr>
-<tr>
-<td><code>Cdk1</code></td>
-<td>FLT lower in WT and Nrf2KO</td>
-<td>Synthetic-promoted</td>
-<td style="text-align: right;"><code>4.83e-7</code></td>
-</tr>
-<tr>
-<td><code>Ccnb2</code></td>
-<td>FLT lower in WT and Nrf2KO</td>
-<td>Synthetic-promoted</td>
-<td style="text-align: right;"><code>2.38e-4</code></td>
-</tr>
-<tr>
-<td><code>Nusap1</code></td>
-<td>FLT lower in WT and Nrf2KO</td>
-<td>Synthetic-promoted</td>
-<td style="text-align: right;"><code>1.16e-9</code></td>
-</tr>
-<tr>
-<td><code>Ccnb1</code></td>
-<td>FLT lower in WT and Nrf2KO</td>
-<td>Not selection-stable</td>
-<td style="text-align: right;"><code>3.40e-10</code></td>
-</tr>
-<tr>
-<td><code>Gmnn</code></td>
-<td>FLT lower in WT and Nrf2KO</td>
-<td>Reinforced</td>
-<td style="text-align: right;"><code>0.0227</code></td>
-</tr>
-<tr>
-<td><code>Ccne2</code></td>
-<td>FLT lower in WT and Nrf2KO</td>
-<td>Synthetic-promoted</td>
-<td style="text-align: right;"><code>0.00172</code></td>
-</tr>
-<tr>
-<td><code>Ube2c</code></td>
-<td>FLT lower in WT and Nrf2KO</td>
-<td>Reinforced</td>
-<td style="text-align: right;"><code>0.0102</code></td>
-</tr>
-</tbody>
-</table>
-<p>This mapping is frozen in Supplementary Table S19. The transfer conclusion is
-that synthetic guidance assembled a coherent cell-cycle panel from real-supported
-genes that classified OSD-457 more effectively. The development labels describe
-thresholded selection behavior and should not be interpreted as eight independent
-novelty claims.</p>
-<p>The all-tissue and muscle-group development screens were rerun with the same
-backbone. Synthetic attribution was retained only when the selected generated
-arm was nonworse than real-only balanced accuracy, AUROC, and average precision
-under the frozen selection rule. Random-effects BH-FDR values were calculated
-only from real OSDR profiles.</p>
-<h3>Earlier accession-held-out augmentation context</h3>
-<p>Separate frozen experiments tested whether generated profiles improved
-classification when complete accessions were absent from generator and classifier
-training. These experiments used different frozen policies and are not pooled
-with the fixed lung/thymus result.</p>
-<table>
-<thead>
-<tr>
-<th>Tissue and experiment</th>
-<th style="text-align: right;">Accessions</th>
-<th style="text-align: right;">Profiles</th>
-<th style="text-align: right;">Real BA</th>
-<th style="text-align: right;">Augmented BA</th>
-<th style="text-align: right;">Real AUROC</th>
-<th style="text-align: right;">Augmented AUROC</th>
-<th>Result</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Heart, adaptive screen</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">0.333</td>
-<td style="text-align: right;">0.583</td>
-<td style="text-align: right;">0.667</td>
-<td style="text-align: right;">0.667</td>
-<td>Small exploratory gain</td>
-</tr>
-<tr>
-<td>Retina, adaptive screen</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">0.500</td>
-<td style="text-align: right;">0.500</td>
-<td style="text-align: right;">0.500</td>
-<td style="text-align: right;">0.400</td>
-<td>Failed</td>
-</tr>
-<tr>
-<td>Skeletal muscle, adaptive screen</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">18</td>
-<td style="text-align: right;">1.000</td>
-<td style="text-align: right;">1.000</td>
-<td style="text-align: right;">1.000</td>
-<td style="text-align: right;">1.000</td>
-<td>Ceiling tie</td>
-</tr>
-<tr>
-<td>Skeletal muscle, initial frozen test</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">24</td>
-<td style="text-align: right;">0.875</td>
-<td style="text-align: right;">0.917</td>
-<td style="text-align: right;">0.958</td>
-<td style="text-align: right;">0.972</td>
-<td>Initial pass</td>
-</tr>
-<tr>
-<td>Spleen, initial frozen test</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">0.750</td>
-<td style="text-align: right;">0.725</td>
-<td style="text-align: right;">0.766</td>
-<td style="text-align: right;">0.794</td>
-<td>Failed BA rule</td>
-</tr>
-<tr>
-<td>Skeletal muscle, full extension</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">159</td>
-<td style="text-align: right;">0.655</td>
-<td style="text-align: right;">0.658</td>
-<td style="text-align: right;">0.718</td>
-<td style="text-align: right;">0.690</td>
-<td>Did not generalize</td>
-</tr>
-</tbody>
-</table>
-<p>The expanded skeletal-muscle test exhausted all 11 eligible non-development
-accessions. The paired accession bootstrap interval for the balanced-accuracy
-difference was [-0.022, 0.030], while AUROC and average precision both declined.
-The initial two-accession gain was therefore not treated as a generalizable
-augmentation result. Exact rows for these earlier experiments are in
-<code>source_data/table_s26_prior_transfer_experiments.tsv</code>.</p>
-<h2>S11. Random-effects reporting and LOO sensitivity</h2>
+<h2>S10. Random-effects reporting and LOO sensitivity</h2>
 <p>For gene (g) in accession (a), the real flight effect was:</p>
 <pre><code class="language-text">delta[g,a] = mean(real expression[g] | FLT,a)
            - mean(real expression[g] | GC,a)
@@ -1279,7 +875,7 @@ label rather than an inclusion requirement. A LOO-stable gene additionally
 required maximum LOO FDR &lt; 0.05 and no LOO sign reversal. Failure of this label
 does not remove a gene from the primary BH-FDR table.</p>
 <p>Generated profiles were never included in the random-effects model.</p>
-<h2>S12. Reactome analysis</h2>
+<h2>S11. Reactome analysis</h2>
 <p>The official mouse GMT is:</p>
 <pre><code class="language-text">data/pathways/reactome_current_mouse_ensembl.gmt
 </code></pre>
@@ -1290,7 +886,7 @@ pathways, and <code>ENSMUSG*</code> genes.</p>
 Benjamini-Hochberg FDR was applied separately by tissue and selected-gene set.
 Reactome parent and child terms overlap. Counts of significant rows are therefore
 not counts of independent biological discoveries.</p>
-<h2>S13. Skeletal-muscle group analysis</h2>
+<h2>S12. Skeletal-muscle group analysis</h2>
 <p>The factorized DDIM and three frozen synthetic development views were
 reused. No additional neural network was trained for the muscle-group screen.</p>
 <table>
@@ -1362,7 +958,7 @@ synthetic guidance.</p>
 <p>LOO here is a real-data meta-analysis sensitivity test. It does not remove the
 accession from the already completed generator adaptation. Soleus remains
 developmental until a new accession is excluded from adaptation and selection.</p>
-<h2>S14. Spleen <code>Igfbp3</code> follow-up</h2>
+<h2>S13. Spleen <code>Igfbp3</code> follow-up</h2>
 <p>The all-tissue screen did not stably select <code>Igfbp3</code>
 (<code>ENSMUSG00000020427</code>) in either the real-only or selected synthetic-guided
 arm. It therefore does not demonstrate a synthetic contribution. The separate
@@ -1390,7 +986,7 @@ independent flight replication. The defensible hypothesis is that whole-spleen
 or architecture, or both. It is presented as real-data context, not as a
 synthetic-guided discovery. The full audit and reproduction notes are in
 <code>docs/spleen_igfbp3_handoff.md</code>.</p>
-<h2>S15. Random-effects BH-FDR gene inventories</h2>
+<h2>S14. Random-effects BH-FDR gene inventories</h2>
 <p>Supplementary Table S17 is the primary statistical inventory. It contains every
 real-data random-effects association with BH FDR &lt; 0.05, without requiring
 synthetic selection, unanimous study direction, or LOO stability. Supplementary
@@ -1679,7 +1275,7 @@ different responses. Liver has 19 real-data BH-FDR associations but selected a
 real-only arm. Skin has three real-data BH-FDR associations and one
 synthetic-promoted gene, <code>Plscr1</code>. Lung has no BH-FDR gene in the 974-gene
 panel.</p>
-<h2>S16. Supplementary figures</h2>
+<h2>S15. Supplementary figures</h2>
 <p><img alt="ARCHS4 denoising trajectory." src="figures/figure_s1_archs4_denoising_trajectory.png" /></p>
 <p class="caption"><strong>Figure S1. ARCHS4 DDIM denoising trajectory.</strong> The same generated profiles are shown at diffusion timesteps 1,000, 200, and 0 in a PCA space fitted to real ARCHS4 expression. Colors identify tissue classes. The two-dimensional view is descriptive; held-out tissue classification uses the full 974-gene representation.</p>
 
@@ -1690,25 +1286,17 @@ panel.</p>
 <p class="caption"><strong>Figure S3. Repeated nested muscle-group balanced accuracy.</strong> Each row is a muscle group and each column is a downstream use of real or generated profiles. Arm selection also required nonworse AUROC and average precision.</p>
 
 <p><img alt="Downstream utility." src="figures/figure_3_downstream_utility.png" /></p>
-<p class="caption"><strong>Figure S4. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real test. (B) Fixed synthetic-guided policies in OSDR-held-out lung and thymus accessions. (C) Guided-minus-baseline metric changes after post-hoc genotype stratification. The targeted thymus metrics improved in both genotype strata.</p>
+<p class="caption"><strong>Figure S4. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real-profile test. (B) Selected-arm changes in balanced accuracy, AUROC, and average precision across repeated tissue-specific development splits. All evaluations used real profiles.</p>
 
-<p><img alt="Uniform whole-study transfer." src="figures/figure_s5_whole_study_transfer.png" /></p>
-<p class="caption"><strong>Figure S5. Uniform whole-study predictive transfer.</strong> Deployed-minus-real-only changes in balanced accuracy, AUROC, and average precision for every tissue with at least three eligible accessions. Metrics are accession-macro averages on real held-out profiles. Deployment reverted to the real-only baseline when the inner validation gate did not pass.</p>
-
-<p><img alt="Effect recovery at three aggregation levels." src="figures/figure_s6_effect_recovery_levels.png" /></p>
-<p class="caption"><strong>Figure S6. FLT/GC effect recovery at three aggregation levels.</strong> Left: one real and synthetic 974-gene effect vector per outer fold after pooling tissues. Center: cross-fitted random-effects vectors calculated separately by tissue. Right: direct gene-effect correlations within each held-out tissue-accession pair. Tissue-level averaging recovers more shared structure than direct unseen-study comparison.</p>
-
-<h2>S17. Source tables</h2>
+<h2>S16. Source tables</h2>
 <ul>
 <li><code>table_1_data_inventory.tsv</code></li>
 <li><code>table_2_pipeline_design_space.tsv</code></li>
 <li><code>table_4_generator_model_selection.tsv</code></li>
-<li><code>table_6_whole_study_transfer_context.tsv</code></li>
-<li><code>table_7_tissue_evidence.tsv</code></li>
+<li><code>table_6_tissue_evidence.tsv</code></li>
 <li><code>table_s1_archs4_ddim_metrics.tsv</code></li>
 <li><code>table_s2_locked_ddim_repeats.tsv</code></li>
 <li><code>table_s3_naive_augmentation.tsv</code></li>
-<li><code>table_s4_confirmation_genotypes.tsv</code></li>
 <li><code>table_s5_thymus_core_genes.tsv</code></li>
 <li><code>table_s6_thymus_reactome.tsv</code></li>
 <li><code>table_s7_muscle_group_summary.tsv</code></li>
@@ -1723,19 +1311,13 @@ panel.</p>
 <li><code>table_s16_ordinary_fdr_directional_genes.tsv</code></li>
 <li><code>table_s17_all_random_effects_bh_fdr_genes.tsv</code></li>
 <li><code>table_s18_bh_fdr_tissue_summary.tsv</code></li>
-<li><code>table_s19_thymus_evidence_level_mapping.tsv</code></li>
 <li><code>table_s20_tissue_utility_highlights.tsv</code></li>
 <li><code>table_s21_liver_harmonization_benchmark.tsv</code></li>
 <li><code>table_s22_liver_harmonization_full_metrics.tsv</code></li>
 <li><code>table_s23_wgan_validation_repeats.tsv</code></li>
 <li><code>table_s24_locked_ddim_metric_summary.tsv</code></li>
-<li><code>table_s25_heldout_study_confirmation.tsv</code></li>
-<li><code>table_s26_prior_transfer_experiments.tsv</code></li>
-<li><code>table_s27_whole_study_tissue_effect_recovery.tsv</code></li>
-<li><code>table_s28_whole_study_accession_effect_recovery.tsv</code></li>
-<li><code>table_s29_whole_study_pooled_effect_recovery.tsv</code></li>
 </ul>
-<h2>S18. Rebuild command</h2>
+<h2>S17. Rebuild command</h2>
 <pre><code class="language-bash">PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
   -m nasa_mouse_rna_diffusion.build_synthetic_guided_paper
 </code></pre>

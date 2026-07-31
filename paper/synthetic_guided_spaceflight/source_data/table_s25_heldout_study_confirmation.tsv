@@ -1,3 +1,0 @@
-tissue	test_accessions	test_profiles	baseline_balanced_accuracy	generated_balanced_accuracy	delta_balanced_accuracy	baseline_roc_auc	generated_roc_auc	delta_roc_auc	baseline_average_precision	generated_average_precision	delta_average_precision	improved_ba_without_auc_loss
-lung	1	20	0.4	0.35	-0.05	0.4499999999999999	0.47	0.02	0.5231177207725195	0.5777850877192983	0.0546673669467787	False
-thymus	1	24	0.5	0.8333333333333333	0.3333333333333332	0.8402777777777777	0.9791666666666666	0.1388888888888889	0.8764570875983919	0.9833333333333332	0.1068762457349412	True

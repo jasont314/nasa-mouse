@@ -15,33 +15,22 @@ indistinguishability and accession-aware effect recovery, so its locked test was
 not opened. These rows are consecutive selection stages, not a paired test-set
 comparison.
 
-The main transfer analysis is a uniform three-fold screen across all 12 tissues
-with at least three eligible accessions. It covers 63 unique accessions and 1,284
-real test profiles. Skin, pooled skeletal muscle, and lung meet its predeclared
-predictive rule. A separate targeted OSD-457 thymus analysis provides a
-real-supported cell-cycle panel, while soleus provides cross-accession metabolic
-evidence and kidney provides a focused promoted `Inpp4b` and reinforced
-`Slc37a4` result.
+The downstream analysis compares pooled and tissue-specific uses of generated
+expression. Thymus provides a real-supported cell-cycle panel, soleus provides a
+cross-accession metabolic program, and kidney provides a focused promoted
+`Inpp4b` and reinforced `Slc37a4` result.
 
-After generator selection, the paper follows a four-stage downstream funnel:
+After generator selection, the paper follows a three-stage downstream funnel:
 
 1. a pooled benchmark tests whether one synthetic-data policy works across
    tissues;
 2. tissue-specific development compares five synthetic-data uses;
-3. real-only random-effects testing evaluates prioritized genes;
-4. complete-accession tests evaluate transfer outside the development studies.
+3. real-only random-effects testing evaluates prioritized genes.
 
-The pooled augmentation benchmark was negative. Several tissues improved during
-tissue-specific development. In the uniform whole-study analysis, the overall
-accession-macro gain was small, while skin, pooled skeletal muscle, and lung
-improved all three predictive metrics. Tissue-level effect recovery was moderate,
-but direct recovery within individual held-out accessions was weak.
-
-The same pretrained backbone was used for the lung/thymus held-out experiment
-and for regenerated all-tissue and muscle-group development screens. All BH-FDR
-effects use real OSDR samples only. Synthetic attribution is retained only where
-the selected generated arm passed the balanced-accuracy, AUROC, and
-average-precision eligibility gate.
+The pooled augmentation benchmark was negative, while several tissues improved
+during tissue-specific development. All BH-FDR effects use real OSDR samples
+only. Synthetic attribution is retained only where the selected generated arm
+passed the balanced-accuracy, AUROC, and average-precision eligibility gate.
 
 Generated profiles are not treated as additional animals. Biological support is
 calculated from real NASA OSDR profiles using within-accession effects,
@@ -55,7 +44,7 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
 - `manuscript.md`, `manuscript.html`, and `manuscript.pdf`: full paper draft.
 - `supplementary_methods.md`, `.html`, and `.pdf`: exact implementation,
   evaluation gates, output provenance, and limitations.
-- `figures/`: six main figures and six supplementary figures in PNG/PDF.
+- `figures/`: six main figures and four supplementary figures in PNG/PDF.
   Figures 1-3 describe the configurable pipeline, generator selection, and
   diffusion trajectories; Figures 4-6 report the tissue biology.
 - `source_data/`: manuscript tables, figure source tables, and SHA-256 manifests
@@ -76,27 +65,18 @@ Markdown manuscripts with WeasyPrint.
 
 ## Editorial provenance
 
-The final manuscript prose was audited with `blader/humanizer` version 2.9.1 at
-repository commit `523374dee72d67c7b2b5f858ea0094ffda49c3ac`. The skill was
-applied in file mode under its no-fabrication rule. The pass removed formulaic
-transitions and repetitive sentence structures while preserving the scientific
-register. It did not alter frozen analysis outputs, source-table values, gene
-names, citations, or statistical interpretations. Humanizer was an editorial
-check, not part of the scientific method.
+The manuscript prose was audited with `blader/humanizer` version 2.9.1 under its
+no-fabrication rule. The pass removed formulaic transitions and repetitive
+sentence structures while preserving the scientific register. It did not alter
+frozen analysis outputs, source-table values, gene names, citations, or
+statistical interpretations. Humanizer was an editorial check, not part of the
+scientific method.
 
 ## Evidence interpretation
 
-- **Whole-study transfer:** three globally disjoint folds test every eligible
-  tissue-accession pair once after removing test studies from OSDR adaptation,
-  policy selection, and classifier fitting. The analysis remains retrospective,
-  and a new study is still required for prospective replication.
-- **Targeted thymus analysis:** a separately frozen feature panel was tested in
-  OSD-457 after accession and linked-GEO exclusion. Its cell-cycle result is a
-  biological follow-up; uniform transfer did not improve average thymus
-  classification.
 - **Synthetic-informed development:** real-data BH-FDR genes were also repeatedly
   synthetic-promoted or reinforced. This contains 49 tissue-gene results and
-  supports developmental hypotheses rather than independent transfer.
+  supports developmental hypotheses rather than independent biological evidence.
 - **Complete real-data screen:** all 459 random-effects BH-FDR tissue-gene
   results, regardless of synthetic feature-selection status.
 
@@ -107,8 +87,8 @@ check, not part of the scientific method.
   development domain. This applies most clearly to soleus, pooled skeletal
   muscle, and kidney.
 - **Exploratory:** predictive or enrichment signals without a stable real
-  accession-aware gene set or without unseen-study transfer. This applies to
+  accession-aware gene set. This applies to
   spleen, skin, adrenal gland, gastrocnemius, and tibialis anterior.
 - **Negative:** no coherent synthetic-guided biological result under the declared
-  rules. Quadriceps, EDL, and liver retained real-only arms. Lung improved
-  predictive transfer but had no BH-FDR gene in the 974-gene panel.
+  rules. Quadriceps, EDL, and liver retained real-only arms. Lung improved during
+  development but had no BH-FDR gene in the 974-gene panel.
