@@ -7,11 +7,18 @@ import yaml
 
 from nasa_mouse_rna_diffusion.whole_study_transfer import (
     _effect_recovery,
+    _markdown_table,
     _safe_correlation,
 )
 
 
 class WholeStudyTransferTests(unittest.TestCase):
+    def test_markdown_table_has_no_optional_dependency(self):
+        frame = pd.DataFrame({"label": ["a|b"], "score": [0.1236], "missing": [np.nan]})
+        rendered = _markdown_table(frame)
+        self.assertIn("| label | score | missing |", rendered)
+        self.assertIn(r"| a\|b | 0.124 | NA |", rendered)
+
     def test_safe_correlation(self):
         self.assertAlmostEqual(_safe_correlation([1, 2, 3], [2, 4, 6]), 1.0)
         self.assertTrue(np.isnan(_safe_correlation([1, 1], [2, 3])))

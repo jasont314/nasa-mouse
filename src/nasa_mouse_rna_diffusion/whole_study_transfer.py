@@ -325,7 +325,7 @@ comparison and replaces the earlier mixture of tissue-specific holdout recipes.
 
 ## Classification transfer
 
-{table.to_markdown(index=False, floatfmt='.3f')}
+{_markdown_table(table)}
 
 Global accession-macro deployed-minus-real-only changes were:
 
@@ -346,12 +346,34 @@ Global accession-macro deployed-minus-real-only changes were:
 
 Pooled fold results:
 
-{pooled_effects.to_markdown(index=False, floatfmt='.3f')}
+{_markdown_table(pooled_effects)}
 
 Generated profiles are never counted as biological replicates. Biological
 association P values and BH-FDR remain calculated from real OSDR samples only.
 """
     (output / "README.md").write_text(readme, encoding="utf-8")
+
+
+def _markdown_table(frame: pd.DataFrame) -> str:
+    """Render a small result table without pandas' optional tabulate dependency."""
+
+    def format_cell(value: object) -> str:
+        if pd.isna(value):
+            rendered = "NA"
+        elif isinstance(value, (float, np.floating)):
+            rendered = f"{float(value):.3f}"
+        else:
+            rendered = str(value)
+        return rendered.replace("|", "\\|").replace("\n", " ")
+
+    columns = [str(column) for column in frame.columns]
+    header = "| " + " | ".join(columns) + " |"
+    divider = "| " + " | ".join("---" for _ in columns) + " |"
+    rows = [
+        "| " + " | ".join(format_cell(value) for value in row) + " |"
+        for row in frame.itertuples(index=False, name=None)
+    ]
+    return "\n".join([header, divider, *rows])
 
 
 def run(config_path: Path, *, seed: int = 6200) -> dict[str, object]:
