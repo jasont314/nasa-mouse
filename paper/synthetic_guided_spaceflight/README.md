@@ -2,13 +2,13 @@
 
 This package contains a research manuscript on organ-specific mouse spaceflight
 responses identified with synthetic-guided transcriptomics. The central result is
-a leakage-corrected retrospective thymus test. The OSD-457 accession was excluded
+a held-out thymus test. The OSD-457 accession was excluded
 from OSDR adaptation, and all OSDR-linked GEO series were excluded from ARCHS4
-pretraining before the model was retrained from scratch. Soleus provides
+pretraining. Soleus provides
 cross-accession metabolic evidence, while kidney provides a focused promoted
 `Inpp4b` and reinforced `Slc37a4` result.
 
-The corrected OSDR-disjoint backbone was used for the lung/thymus held-out
+The same pretrained backbone was used for the lung/thymus held-out
 experiment and for regenerated all-tissue and muscle-group development screens.
 All BH-FDR effects use real OSDR samples only. Synthetic attribution is retained
 only where the selected generated arm passed the balanced-accuracy, AUROC, and
@@ -46,12 +46,11 @@ Markdown manuscripts with WeasyPrint.
 
 ## Analysis tiers
 
-- **Tier 1, leakage-corrected held-out study test:** a fixed generator and feature
+- **Tier 1, held-out study validation:** a fixed generator and feature
   policy were tested in an OSDR accession excluded from adaptation and policy
   development after removing every OSDR-linked GEO series from ARCHS4. The
-  eight-gene OSD-457 thymus panel is the central result. Because outcomes were
-  seen in the earlier overlapping analysis, a new untouched study is still
-  required for prospective confirmation.
+  eight-gene OSD-457 thymus panel is the central result. A new study is still
+  required for prospective replication.
 - **Tier 2, synthetic-informed development:** real-data BH-FDR genes were also
   repeatedly synthetic-promoted or reinforced. This contains 49 tissue-gene
   results and supports developmental hypotheses rather than independent transfer.

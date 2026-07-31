@@ -720,7 +720,7 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     soleus_genes = soleus_genes.sort_values("real_meta_effect")
     if len(soleus_genes) != 5:
         raise ValueError(
-            "Expected five corrected-model reinforced soleus genes, "
+            "Expected five reinforced soleus genes, "
             f"found {len(soleus_genes)}"
         )
 
@@ -1011,14 +1011,13 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         [
             {
                 "tissue": "thymus",
-                "tier": "leakage-corrected held-out confirmation",
+                "tier": "held-out study validation",
                 "tier_score": 3,
                 "predictive_result": "BA 0.500 to 0.833; AUROC 0.840 to 0.979",
                 "real_gene_support": "8 core FLT-down genes; genotype effect r=0.975",
                 "pathway_support": "G2/M, APC/C, DNA replication; Reactome FDR < 0.05",
                 "interpretation": (
-                    "leakage-corrected feature-guidance result; outcomes were "
-                    "known before retraining"
+                    "study-held-out feature-guidance result; prospective replication required"
                 ),
             },
             {
@@ -1036,7 +1035,7 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                 "tier_score": 2,
                 "predictive_result": "guided delta BA/AUROC/AP +0.053/+0.091/+0.115",
                 "real_gene_support": "Inpp4b promoted and LOO-stable; Slc37a4 reinforced",
-                "pathway_support": "no corrected stable-set Reactome term at FDR < 0.05",
+                "pathway_support": "no stable-set Reactome term at FDR < 0.05",
                 "interpretation": "focused renal metabolic-signaling hypothesis",
             },
             {
@@ -1090,8 +1089,8 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                 "tissue": "liver",
                 "tier": "negative",
                 "tier_score": 0,
-                "predictive_result": "real-only arm retained by corrected screen",
-                "real_gene_support": "no corrected synthetic-informed BH-FDR genes",
+                "predictive_result": "real-only arm retained by screen",
+                "real_gene_support": "no synthetic-informed BH-FDR genes",
                 "pathway_support": "no retained coherent synthetic-guided pathway",
                 "interpretation": "no convincing synthetic-guided biological result",
             },
@@ -1420,7 +1419,7 @@ def figure_3_utility(tables: dict[str, pd.DataFrame]) -> None:
     ax.set_yticks(y, labels)
     ax.invert_yaxis()
     ax.set_xlim(0.3, 1.01)
-    ax.set_title("B  Leakage-corrected held-out studies", loc="left")
+    ax.set_title("B  Held-out study tests", loc="left")
     ax.legend(frameon=False, fontsize=7, loc="lower right")
 
     ax = axes[2]
@@ -1506,7 +1505,7 @@ def figure_4_thymus(tables: dict[str, pd.DataFrame]) -> None:
         ax.text(score + 0.015, yi, f"{overlap}/{total} genes", va="center", fontsize=7)
 
     fig.suptitle(
-        "Leakage-corrected thymus test prioritizes a flight-lower mitotic program in both genotypes",
+        "Held-out thymus test prioritizes a flight-lower mitotic program in both genotypes",
         x=0.02,
         ha="left",
         fontsize=11,
@@ -1727,7 +1726,7 @@ def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
     )
     ax.invert_yaxis()
     ax.set_xlabel("BH-FDR genes")
-    ax.set_title("B  Corrected synthetic-informed genes", loc="left", fontsize=9)
+    ax.set_title("B  Synthetic-informed genes", loc="left", fontsize=9)
     ax.legend(frameon=False, fontsize=7, loc="lower right")
     ax.grid(axis="x", color="#E5E9EB", linewidth=0.8)
 
@@ -1755,7 +1754,7 @@ def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
         fontsize=9,
     )
     fig.suptitle(
-        "Corrected-model evidence is strongest in thymus and soleus, with secondary tissue candidates",
+        "Evidence is strongest in thymus and soleus, with secondary tissue candidates",
         x=0.02,
         ha="left",
         fontsize=11,

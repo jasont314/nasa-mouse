@@ -239,11 +239,10 @@ the reference exclusion and grouped split contract changed.</p>
 <h2>S6. Factorized OSDR adaptation</h2>
 <p>The accepted configuration is
 <code>configs/rna_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint.yaml</code>.
-It uses the OSDR-disjoint ARCHS4 backbone described in Section S5. A corrected
-base adapter was trained for 12,000 domain and 4,000 condition steps, followed
-by the 4,000-domain-step and 1,000-condition-step correlation-refinement stage
+It uses the OSDR-disjoint ARCHS4 backbone described in Section S5. A base adapter was trained for 12,000 domain and 4,000 condition steps,
+followed by the 4,000-domain-step and 1,000-condition-step correlation-refinement stage
 reported here. The all-tissue and muscle-group development screens were then
-regenerated from this corrected adapter. Section S10 describes the separate
+regenerated from this adapter. Section S10 describes the separate
 lung/thymus accession-held-out experiment.</p>
 <table>
 <thead>
@@ -355,7 +354,7 @@ opened. Every metric was gated independently.</p>
 </tbody>
 </table>
 <p>The exact repeat rows are in <code>source_data/table_s2_locked_ddim_repeats.tsv</code>.
-On the corrected locked within-study test, mean gene-correlation agreement was
+On the locked within-study test, mean gene-correlation agreement was
 0.9744, precision 0.9974, recall 0.9957, F1 0.9966, adversarial accuracy
 0.4753, and FD/real-split-P95 ratio 0.0740. All four repeats passed the
 finite-sample correlation floor of 0.9497, although the mean remained below the
@@ -411,7 +410,7 @@ or biologically novel.</p>
 <p>Primary workflow documentation:</p>
 <pre><code class="language-text">docs/generated_feature_guidance_workflow.md
 </code></pre>
-<h2>S10. Leakage-corrected held-out study test</h2>
+<h2>S10. Held-out study test</h2>
 <p>The confirmation protocol is frozen at:</p>
 <pre><code class="language-text">outputs/generative_benchmark/analyses/generated_feature_guidance_confirmation_disjoint_v1/protocol.md
 </code></pre>
@@ -448,13 +447,11 @@ post-analysis audit found that the original ARCHS4 reference included GEO series
 linked to OSDR, including GSE152382 from OSD-457. Three exact OSD-457 thymus
 profiles had been assigned to the original ARCHS4 training split. That overlap
 invalidated the original fully unseen wording.</p>
-<p>For the corrected analysis, all nine OSDR-linked GEO series were excluded before
+<p>For the final analysis, all nine OSDR-linked GEO series were excluded before
 reference selection, the 15,000-epoch ARCHS4 backbone was trained from scratch,
 and the 5,000-epoch OSDR adaptation and fixed feature-guidance protocol were
-rerun. OSD-464 lung and OSD-244 thymus remained fixed validation studies. Because
-the original outcomes had already been observed before this correction, this is
-a leakage-corrected retrospective sensitivity analysis, not a pristine
-prospective confirmation.</p>
+rerun. OSD-464 lung and OSD-244 thymus remained fixed validation studies. Because the original outcomes had already been observed before the final run,
+this is not a pristine prospective confirmation.</p>
 <p>The deployed thymus classifier used real profiles only. Synthetic data changed
 feature ranking. The deployed lung classifier used a recentered synthetic view at
 0.05 total sample weight during policy evaluation, but failed the prespecified
@@ -538,9 +535,8 @@ baseline.</p>
 <h3>Relationship between evidence tiers</h3>
 <p>Tier 1 asks whether a frozen synthetic-guided policy transfers to an OSDR
 accession excluded from adaptation and feature-policy development after
-OSDR-linked GEO series are also removed from ARCHS4. It is leakage-corrected but
-retrospective because the earlier overlapping run exposed the outcomes. Tier 2 asks which
-BH-significant real effects also cross repeated synthetic-informed selection
+OSDR-linked GEO series are also removed from ARCHS4. It remains retrospective because an earlier run exposed the outcomes. Tier 2
+asks which BH-significant real effects also cross repeated synthetic-informed selection
 thresholds within the development domain. Tier 3 is the complete real-data
 random-effects BH-FDR screen, regardless of feature-selection status. These tiers
 answer different questions and are not alternative statistical filters on one
@@ -612,7 +608,7 @@ labels were:</p>
 synthetic guidance assembled a coherent, transferable cell-cycle panel from
 real-supported genes. The Tier 2 labels describe thresholded selection behavior
 and should not be interpreted as eight independent novelty claims.</p>
-<p>The all-tissue and muscle-group development screens were rerun with the corrected
+<p>The all-tissue and muscle-group development screens were rerun with the same
 backbone. Synthetic attribution was retained only when the selected generated
 arm was nonworse than real-only balanced accuracy, AUROC, and average precision
 under the frozen selection rule. Random-effects BH-FDR values were calculated
@@ -658,7 +654,7 @@ Benjamini-Hochberg FDR was applied separately by tissue and selected-gene set.
 Reactome parent and child terms overlap. Counts of significant rows are therefore
 not counts of independent biological discoveries.</p>
 <h2>S13. Skeletal-muscle group analysis</h2>
-<p>The corrected factorized DDIM and three frozen synthetic development views were
+<p>The factorized DDIM and three frozen synthetic development views were
 reused. No additional neural network was trained for the muscle-group screen.</p>
 <table>
 <thead>
@@ -718,7 +714,7 @@ average precision from 0.9804 to 0.9865. Five BH-FDR genes were reinforced by
 both stable real-only and selected-arm feature ranking and had the same real
 effect direction in all three accessions: FLT-lower <code>Bdh1</code>, <code>Ech1</code>, <code>Bnip3</code>,
 and <code>Decr1</code>, and FLT-higher <code>Tpm1</code>. <code>Bdh1</code>, <code>Ech1</code>, <code>Bnip3</code>, and <code>Tpm1</code> also
-passed the LOO sensitivity criterion; <code>Decr1</code> did not. The corrected screen did
+passed the LOO sensitivity criterion; <code>Decr1</code> did not. The screen did
 not promote <code>Mef2c</code> or <code>Pxmp2</code>.</p>
 <p>Gastrocnemius selected a guided low-weight arm and promoted <code>Fhl2</code> and <code>Nfkbia</code>.
 Tibialis anterior selected real plus generated expression and reinforced
@@ -730,7 +726,7 @@ synthetic guidance.</p>
 accession from the already completed generator adaptation. Soleus remains
 developmental until a new accession is excluded from adaptation and selection.</p>
 <h2>S14. Spleen <code>Igfbp3</code> follow-up</h2>
-<p>The corrected all-tissue screen did not stably select <code>Igfbp3</code>
+<p>The all-tissue screen did not stably select <code>Igfbp3</code>
 (<code>ENSMUSG00000020427</code>) in either the real-only or selected synthetic-guided
 arm. It therefore does not demonstrate a synthetic contribution. The separate
 real-data follow-up remains a secondary biological result: flight-minus-ground
@@ -1037,13 +1033,13 @@ accession.</p>
 </tbody>
 </table>
 <p>Heart, liver, retina, EDL, and quadriceps had Tier 3 BH-FDR genes but no
-corrected Tier 2 synthetic-informed gene. Bone, bone marrow, brain, brown adipose
+Tier 2 synthetic-informed gene. Bone, bone marrow, brain, brown adipose
 tissue, cecum, cerebellum, colon, hippocampus, lung, mammary gland, optic nerve,
 and white adipose tissue had no Tier 3 BH-FDR gene in the 974-gene panel.</p>
 <p>The pooled skeletal-muscle results remain auditable in Tables S17-S18 and are
 interpreted separately from anatomical groups because those groups have
 different responses. Liver has 19 real-data BH-FDR associations but selected a
-real-only arm. Skin has three real-data BH-FDR associations and one corrected
+real-only arm. Skin has three real-data BH-FDR associations and one
 synthetic-promoted gene, <code>Plscr1</code>. Lung has no BH-FDR gene in the 974-gene
 panel.</p>
 <h2>S16. Supplementary figures</h2>
@@ -1051,16 +1047,16 @@ panel.</p>
 <p class="caption"><strong>Figure S1. ARCHS4 DDIM denoising trajectory.</strong> The same generated profiles are shown at diffusion timesteps 1,000, 200, and 0 in a PCA space fitted to real ARCHS4 expression. Colors identify tissue classes. The two-dimensional view is descriptive; held-out tissue classification uses the full 974-gene representation.</p>
 
 <p><img alt="Locked real-versus-synthetic PCA." src="figures/figure_s2_locked_real_vs_synthetic_pca.png" /></p>
-<p class="caption"><strong>Figure S2. Real and generated profiles in the corrected locked OSDR test.</strong> Seed 5020 is shown. Tissue and condition views are descriptive; formal fidelity and effect metrics use all declared seeds and higher-dimensional data.</p>
+<p class="caption"><strong>Figure S2. Real and generated profiles in the locked OSDR test.</strong> Seed 5020 is shown. Tissue and condition views are descriptive; formal fidelity and effect metrics use all declared seeds and higher-dimensional data.</p>
 
 <p><img alt="Muscle arm heatmap." src="figures/figure_s3_muscle_arm_heatmap.png" /></p>
-<p class="caption"><strong>Figure S3. Corrected repeated nested muscle-group balanced accuracy.</strong> Each row is a muscle group and each column is a downstream use of real or generated profiles. Arm selection also required nonworse AUROC and average precision.</p>
+<p class="caption"><strong>Figure S3. Repeated nested muscle-group balanced accuracy.</strong> Each row is a muscle group and each column is a downstream use of real or generated profiles. Arm selection also required nonworse AUROC and average precision.</p>
 
 <p><img alt="Generator validation." src="figures/figure_2_generator_validation.png" /></p>
-<p class="caption"><strong>Figure S4. Generator validation.</strong> (A) Tissue balanced accuracy when a classifier was trained on held-out ARCHS4 real or synthetic profiles. (B) Broad-reference distribution metrics. The dashed line marks the strict correlation target. (C) Four corrected OSDR locked-test generations; vertical marks show metric gates. (D) External adversarial accuracy and pooled or accession-aware flight-effect recovery. The shaded interval is the accepted adversarial-accuracy range.</p>
+<p class="caption"><strong>Figure S4. Generator validation.</strong> (A) Tissue balanced accuracy when a classifier was trained on held-out ARCHS4 real or synthetic profiles. (B) Broad-reference distribution metrics. The dashed line marks the strict correlation target. (C) Four OSDR locked-test generations; vertical marks show metric gates. (D) External adversarial accuracy and pooled or accession-aware flight-effect recovery. The shaded interval is the accepted adversarial-accuracy range.</p>
 
 <p><img alt="Downstream utility." src="figures/figure_3_downstream_utility.png" /></p>
-<p class="caption"><strong>Figure S5. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real test. (B) Fixed synthetic-guided policies in leakage-corrected, OSDR-held-out lung and thymus accessions. (C) Guided-minus-baseline metric changes after post-hoc genotype stratification. Thymus improved uniformly; lung knockout AUROC declined.</p>
+<p class="caption"><strong>Figure S5. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real test. (B) Fixed synthetic-guided policies in OSDR-held-out lung and thymus accessions. (C) Guided-minus-baseline metric changes after post-hoc genotype stratification. Thymus improved uniformly; lung knockout AUROC declined.</p>
 
 <h2>S17. Source tables</h2>
 <ul>
