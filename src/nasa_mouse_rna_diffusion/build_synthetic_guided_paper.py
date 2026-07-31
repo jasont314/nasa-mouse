@@ -1769,10 +1769,11 @@ def update_supplementary_utility_tables(tables: dict[str, pd.DataFrame]) -> None
 
 
 def figure_1_workflow() -> None:
-    fig, ax = plt.subplots(figsize=(8.1, 6.5))
+    fig, ax = plt.subplots(figsize=(8.1, 9.1))
     ax.set_xlim(0, 12)
-    ax.set_ylim(0, 10.5)
+    ax.set_ylim(0, 14.5)
     ax.axis("off")
+    top = 3.9
 
     def box(
         x: float,
@@ -1782,6 +1783,8 @@ def figure_1_workflow() -> None:
         title: str,
         body: str,
         color: str,
+        title_fontsize: float = 8.4,
+        body_fontsize: float = 6.8,
     ) -> None:
         patch = FancyBboxPatch(
             (x, y),
@@ -1800,7 +1803,7 @@ def figure_1_workflow() -> None:
             color=color,
             weight="bold",
             va="top",
-            fontsize=8.4,
+            fontsize=title_fontsize,
         )
         ax.text(
             x + 0.18,
@@ -1808,7 +1811,7 @@ def figure_1_workflow() -> None:
             body,
             color=COLORS["dark"],
             va="top",
-            fontsize=6.8,
+            fontsize=body_fontsize,
             linespacing=1.2,
         )
 
@@ -1820,11 +1823,11 @@ def figure_1_workflow() -> None:
             arrowprops={"arrowstyle": "-|>", "lw": 1.25, "color": COLORS["gray"]},
         )
 
-    ax.text(0, 10.1, "A", weight="bold", fontsize=13)
-    ax.text(0.45, 10.1, "Data sources", weight="bold", fontsize=11)
+    ax.text(0, 10.1 + top, "A", weight="bold", fontsize=13)
+    ax.text(0.45, 10.1 + top, "Data sources", weight="bold", fontsize=11)
     box(
         0.2,
-        7.8,
+        7.8 + top,
         3.35,
         1.65,
         "ARCHS4 mouse",
@@ -1833,7 +1836,7 @@ def figure_1_workflow() -> None:
     )
     box(
         4.0,
-        7.8,
+        7.8 + top,
         3.35,
         1.65,
         "NASA OSDR API",
@@ -1842,7 +1845,7 @@ def figure_1_workflow() -> None:
     )
     box(
         7.8,
-        7.8,
+        7.8 + top,
         4.0,
         1.65,
         "Biological scope",
@@ -1850,8 +1853,14 @@ def figure_1_workflow() -> None:
         COLORS["green"],
     )
 
-    ax.text(0, 7.25, "B", weight="bold", fontsize=13)
-    ax.text(0.45, 7.25, "Configurable generative benchmark", weight="bold", fontsize=11)
+    ax.text(0, 7.25 + top, "B", weight="bold", fontsize=13)
+    ax.text(
+        0.45,
+        7.25 + top,
+        "Configurable generative benchmark",
+        weight="bold",
+        fontsize=11,
+    )
     axes = [
         (
             "Expression",
@@ -1884,12 +1893,25 @@ def figure_1_workflow() -> None:
             COLORS["green"],
         ),
     ]
-    positions = [(0.2, 5.25), (4.0, 5.25), (7.8, 5.25), (0.2, 3.15), (4.0, 3.15), (7.8, 3.15)]
+    positions = [
+        (0.2, 5.25 + top),
+        (4.0, 5.25 + top),
+        (7.8, 5.25 + top),
+        (0.2, 3.15 + top),
+        (4.0, 3.15 + top),
+        (7.8, 3.15 + top),
+    ]
     for (x, y), (title, body, color) in zip(positions, axes):
         box(x, y, 3.35, 1.65, title, body, color)
 
-    ax.text(0, 2.45, "C", weight="bold", fontsize=13)
-    ax.text(0.45, 2.45, "Staged selection and biological use", weight="bold", fontsize=11)
+    ax.text(0, 2.45 + top, "C", weight="bold", fontsize=13)
+    ax.text(
+        0.45,
+        2.45 + top,
+        "Staged generator selection",
+        weight="bold",
+        fontsize=11,
+    )
     stages = [
         (
             "Grouped splits",
@@ -1907,22 +1929,149 @@ def figure_1_workflow() -> None:
             COLORS["teal"],
         ),
         (
-            "Synthetic-guided\nanalysis",
-            "Per-tissue use selected;\nreal OSDR defines effects",
+            "Downstream\ncomparison",
+            "Five candidate uses\nevaluated per tissue",
             COLORS["coral"],
         ),
     ]
     x_positions = [0.2, 3.15, 6.1, 9.05]
     for x, (title, body, color) in zip(x_positions, stages):
-        box(x, 0.55, 2.55, 1.45, title, body, color)
+        box(x, 0.55 + top, 2.55, 1.45, title, body, color)
     for left, right in zip(x_positions[:-1], x_positions[1:]):
-        arrow(left + 2.55, 1.28, right, 1.28)
+        arrow(left + 2.55, 1.28 + top, right, 1.28 + top)
     ax.text(
         0.2,
-        0.12,
+        0.12 + top,
         "The matrix defined a gated search, not an exhaustive Cartesian sweep. Synthetic profiles were never counted as additional animals.",
         fontsize=7.6,
         color=COLORS["gray"],
+    )
+
+    ax.text(0, 3.52, "D", weight="bold", fontsize=13)
+    ax.text(
+        0.45,
+        3.52,
+        "Five tissue-specific uses of generated expression",
+        weight="bold",
+        fontsize=11,
+    )
+    ax.text(0.2, 3.15, "Training views", weight="bold", fontsize=7.2)
+    box(
+        0.2,
+        2.05,
+        2.0,
+        0.9,
+        "Real OSDR",
+        "Observed FLT/GC profiles",
+        COLORS["blue"],
+        title_fontsize=7.2,
+        body_fontsize=5.7,
+    )
+    box(
+        0.2,
+        0.95,
+        2.0,
+        0.9,
+        "DDIM generated",
+        "Matched conditional profiles",
+        COLORS["coral"],
+        title_fontsize=7.2,
+        body_fontsize=5.7,
+    )
+
+    ax.text(2.75, 3.15, "Candidate arm fitted within each tissue", weight="bold", fontsize=7.2)
+    arms = [
+        (
+            2.75,
+            2.0,
+            "Real only",
+            "Rank: real\nFit: real",
+            COLORS["blue"],
+        ),
+        (
+            4.62,
+            2.0,
+            "Generated only",
+            "Rank: generated\nFit: generated",
+            COLORS["coral"],
+        ),
+        (
+            6.49,
+            2.0,
+            "Real + synth.",
+            "Rank: consensus\nFit: equal real/synth.",
+            COLORS["teal"],
+        ),
+        (
+            3.69,
+            0.83,
+            "Guided; real fit",
+            "Rank: consensus\nFit: real",
+            COLORS["purple"],
+        ),
+        (
+            5.56,
+            0.83,
+            "Guided; 5% synth.",
+            "Rank: consensus\nFit: real + 5% synth.",
+            COLORS["gold"],
+        ),
+    ]
+    for x, y, title, body, color in arms:
+        box(
+            x,
+            y,
+            1.68,
+            0.95,
+            title,
+            body,
+            color,
+            title_fontsize=6.4,
+            body_fontsize=5.2,
+        )
+
+    arrow(2.2, 2.5, 2.56, 1.97)
+    arrow(2.2, 1.4, 2.56, 1.83)
+    arrow(2.58, 1.9, 2.68, 1.9)
+    arrow(8.2, 1.9, 8.75, 1.9)
+    box(
+        8.8,
+        0.85,
+        3.0,
+        2.15,
+        "Held-out real evaluation",
+        (
+            "Balanced accuracy, AUROC, AP\n"
+            "Nonworse on all three metrics\n"
+            "Eligible arm selected per tissue"
+        ),
+        COLORS["green"],
+        title_fontsize=7.4,
+        body_fontsize=5.8,
+    )
+    arrow(10.3, 0.83, 10.3, 0.61)
+    endpoint = FancyBboxPatch(
+        (2.75, 0.06),
+        9.05,
+        0.5,
+        boxstyle="round,pad=0.02,rounding_size=0.06",
+        linewidth=1.1,
+        edgecolor=COLORS["coral"],
+        facecolor="white",
+    )
+    ax.add_patch(endpoint)
+    ax.text(
+        7.275,
+        0.31,
+        (
+            "Selected arm -> repeated stable genes; FLT/GC effects and BH-FDR "
+            "are calculated from real OSDR only"
+        ),
+        ha="center",
+        va="center",
+        fontsize=5.9,
+        color=COLORS["dark"],
+        weight="bold",
     )
     _save_figure(fig, "figure_1_study_design")
 
