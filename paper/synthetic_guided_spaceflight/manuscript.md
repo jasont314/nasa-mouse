@@ -18,9 +18,9 @@
 
 **Background:** Mouse spaceflight studies provide access to tissues that cannot be sampled extensively from astronauts, but individual experiments are small and differ in design. We asked whether synthetic gene-expression models could help identify reproducible, organ-specific flight responses without treating generated profiles as new animals.
 
-**Methods:** We assembled 1,610 mouse flight and ground-control bulk RNA-seq profiles through the NASA Open Science Data Repository API. A conditional diffusion model was pretrained on 17,244 tissue-diverse ARCHS4 mouse profiles after excluding every GEO series linked to OSDR, with complete GEO series assigned to separate reference roles. The pretrained model was adapted to OSDR with tissue, flight status, study, and material-type conditioning. Generated profiles guided gene selection, while flight effects were estimated exclusively from real samples within each study and then compared across studies.
+**Methods:** We assembled 1,610 mouse flight and ground-control bulk RNA-seq profiles through the NASA Open Science Data Repository API. A conditional diffusion model was pretrained on 17,244 tissue-diverse ARCHS4 mouse profiles after excluding every GEO series linked to OSDR, then adapted with tissue, flight status, study, and material-type conditioning. Evaluation proceeded from a pooled synthetic-data benchmark to tissue-specific selection among five downstream uses, real-only cross-study association testing, and complete-study transfer. Generated profiles could affect prediction or feature selection, but flight effects and false-discovery rates were estimated exclusively from real samples.
 
-**Results:** The strongest result was a study-held-out thymus test. Flight samples showed lower expression of eight mitotic genes, including *Cdk1*, *Ccnb1*, *Ccnb2*, *Birc5*, and *Ube2c*, together with lower APC/C, G2/M-checkpoint, and DNA-replication programs. Synthetic-guided balanced accuracy increased from 0.500 to 0.833 and AUROC from 0.840 to 0.979. The pattern was shared by wild-type and Nrf2-knockout mice and is consistent with reduced thymic proliferative renewal. Anatomical separation of skeletal muscle exposed a soleus response involving lower *Bdh1*, *Ech1*, *Bnip3*, and *Decr1* with higher *Tpm1*. All five genes were reinforced by real-only and synthetic-guided selection and converged on mitochondrial protein turnover, fatty-acid oxidation, and lipid metabolism. Kidney provided a secondary result: synthetic guidance promoted flight-higher *Inpp4b*, which passed leave-one-accession-out sensitivity, and reinforced flight-higher *Slc37a4*. The spleen screen promoted *Rai14*, *Ptprk*, and *Myl9* and reinforced *Loxl1*; none passed leave-one-accession-out FDR, and *Igfbp3* remained a strong real-data association but was not selected by the synthetic workflow. Across tissues, 49 BH-FDR associations also entered stable synthetic-informed selection: 26 promoted and 23 reinforced.
+**Results:** One pooled augmentation policy was not useful: balanced accuracy was 0.754 with real-only training and 0.737 with real-plus-synthetic training. Tissue-specific selection nevertheless improved balanced accuracy and AUROC during development in thymus, spleen, skin, kidney, pooled skeletal muscle, soleus, and other tissues. Across canonical tissues and anatomical muscle groups, 49 real-data BH-FDR associations also entered stable synthetic-informed selection: 26 promoted and 23 reinforced. Whole-study transfer sharply narrowed this evidence. In OSD-457 thymus, synthetic-guided balanced accuracy increased from 0.500 to 0.833 and AUROC from 0.840 to 0.979; lung failed fixed confirmation, and an initial pooled-muscle augmentation gain did not generalize across 11 held-out accessions. Flight thymus showed lower expression of eight mitotic genes, including *Cdk1*, *Ccnb1*, *Ccnb2*, *Birc5*, and *Ube2c*, together with lower APC/C, G2/M-checkpoint, and DNA-replication programs. Anatomical separation of skeletal muscle exposed a soleus response involving lower *Bdh1*, *Ech1*, *Bnip3*, and *Decr1* with higher *Tpm1*. Kidney supplied a secondary promoted *Inpp4b* and reinforced *Slc37a4* result; spleen supplied a developmental adhesion and cytoskeletal hypothesis.
 
 **Conclusions:** Synthetic-guided analysis added the most information when it prioritized genes for testing in real samples rather than increasing the apparent sample size. The findings support reduced thymic proliferative renewal, reinforce a soleus mitochondrial and contractile response, and nominate focused renal and spleen candidates for prospective testing.
 
@@ -34,7 +34,7 @@ The NASA Open Science Data Repository (OSDR) now exposes sample metadata and pro
 
 Deep generative models can learn high-dimensional expression distributions. Conditional WGAN-GP models have reproduced tissue and cancer properties in GTEx and TCGA [3]. More recently, Lacan and colleagues adapted denoising diffusion probabilistic and implicit models to bulk transcriptomics and reported strong gene-correlation, neighborhood, adversarial, and downstream classification metrics [4]. GeneJEPA instead learns masked-gene representations without reconstructing expression [5]. These approaches solve different problems: a generator can sample expression, whereas a representation learner needs an additional decoder or generative objective before it can do so.
 
-Synthetic expression is commonly presented as a remedy for small sample size. Generated profiles, however, are not new biological replicates. We instead used synthetic expression as a model-derived view of the data that could prioritize genes and pathways for testing in real flight samples.
+Synthetic expression is commonly presented as a remedy for small sample size. Generated profiles, however, are not new biological replicates. We therefore separated four questions: whether one pooled augmentation strategy helped at all, whether different tissues benefited from different synthetic-data uses, whether prioritized genes were associated with flight in real samples, and whether a frozen policy transferred to an entirely excluded study.
 
 Our primary biological questions were whether this approach could clarify the tissue response to spaceflight, whether anatomical separation would expose muscle-specific responses hidden by pooling, and whether the resulting signals complemented pathway-level findings from expiMap.
 
@@ -42,7 +42,7 @@ The clearest findings arose in thymus and soleus. Thymus supplied a held-out tes
 
 ![Study design and evidence ladder.](figures/figure_1_study_design.png)
 
-<p class="caption"><strong>Figure 1. Synthetic-guided biological analysis.</strong> (A) A mouse tissue reference model was trained with ARCHS4 and adapted to API-derived OSDR flight and ground-control profiles. Generated expression prioritized genes, while biological effects were measured in real samples. (B) The analysis focused on organ-specific responses in thymus, anatomically separated skeletal muscle, spleen, and the remaining tissue cohort.</p>
+<p class="caption"><strong>Figure 1. Evaluation funnel.</strong> (A) A tissue-conditioned mouse expression model was pretrained with ARCHS4 and adapted to API-derived OSDR flight and ground-control profiles. (B) Evaluation moved from a pooled benchmark to tissue-specific synthetic-use selection, real-only association testing, and complete-study transfer. Biological effects and false-discovery rates always came from real OSDR samples.</p>
 
 ## Materials and methods
 
@@ -65,41 +65,76 @@ We reproduced the bulk-expression diffusion architecture of Lacan et al. [4], ba
 
 Generated profiles were checked for preservation of tissue identity, expression structure, diversity, and flight-related differences on withheld real profiles. The evaluation included correlation, neighborhood overlap, adversarial separability, and distributional distance [15,16]. The exact architecture, transformations, split construction, calibration, thresholds, and comparator-model results are reported in the supplementary methods.
 
-### Synthetic-guided biological analysis
+### Evaluation funnel and synthetic-guided analysis
 
-We first tested generated profiles as additional training rows and then as a guide for gene selection. Direct augmentation was not beneficial. The retained workflow instead used synthetic expression to rank candidate features and fitted the final predictive models using real profiles.
+Evaluation used four stages. First, a pooled locked benchmark compared real-only, generated-only, and real-plus-generated training. This asked whether one synthetic-data policy generalized across tissues. Second, each tissue was evaluated separately with five candidate uses: real-only training, generated-only training, real-plus-generated training, synthetic-guided feature ranking with a real-only classifier, and guided training with generated profiles assigned 0.05 total weight. Nested development splits withheld profiles but retained representation from the same accessions. These are within-study development results, not evidence of transfer to a new study. Synthetic attribution was retained only when the selected arm was nonworse than real-only training across balanced accuracy, AUROC, and average precision under the frozen eligibility rule.
 
-To distinguish reinforcement from synthetic-specific prioritization, we compared repeated feature selection with and without the synthetic ranking. Genes selected by both approaches were interpreted as reinforced real-data signals. Genes selected only with synthetic guidance were treated as model-nominated candidates. Throughout this report, "synthetic-promoted" is shorthand for promoted across the repeated feature-selection threshold; it does not mean that a gene was absent from the real data or biologically novel. Generated profiles were never counted as biological replicates.
+Third, stable features from the selected tissue arm were compared with stable real-only features. Genes stable under both approaches were interpreted as reinforced. Genes stable only under the eligible synthetic-informed arm were interpreted as synthetic-promoted. "Synthetic-promoted" describes repeated feature selection; it does not mean that a gene was absent from real expression or biologically novel.
+
+Fourth, whole-study transfer was tested by excluding complete OSDR accessions from generator adaptation and classifier development. This is stricter than holding out profiles from represented studies because the test study contributes no training context. An earlier accession-held-out augmentation screen and its expanded skeletal-muscle evaluation were retained as context, while the fixed lung and thymus experiment supplied the primary transfer test.
 
 Flight-minus-ground effects were estimated within each OSDR study and then summarized with a random-effects model [17]. Within each tissue, the 974 gene-level meta-analysis P values were adjusted with the Benjamini-Hochberg procedure, and BH FDR below 0.05 defined the primary statistical inclusion rule [6]. Benjamini-Hochberg correction controls the expected proportion of false discoveries among the reported genes while retaining more power than family-wise error correction. Synthetic selection status was then recorded separately as reinforced, synthetic-promoted, real-only, or not stably selected. Accession-direction agreement, between-study heterogeneity, and leave-one-accession-out results were retained as interpretation and sensitivity measures rather than inclusion requirements. The complete BH-FDR inventory is provided in Supplementary Table S17, its synthetic-guided subset in Table S16, and tissue-level counts in Table S18. Reactome was used to group selected genes into biological processes [7].
 
-### Evidence hierarchy
+### Interpretation of the four stages
 
-The analyses answer three different questions and were interpreted in that order. The highest evidence level required an OSDR study to be excluded from ARCHS4 pretraining, OSDR adaptation, and feature-policy development. Direction agreement and LOO stability refine confidence within a tier but do not move a result between tiers.
+The stages answer different questions and should not be collapsed into one performance claim. Development screens identify where and how synthetic data may be useful. Real-only random-effects tests establish association in the observed studies. Complete-study transfer asks whether a frozen policy applies outside its development studies and therefore provides the strongest validation.
 
-**Table 2. Analysis and evidence levels.**
+**Table 2. Evaluation stages and permitted interpretation.**
 
-| Tier | Analysis | Question answered | Gene-level output | Permitted interpretation |
+| Stage | Analysis | Data separation | Question answered | Permitted interpretation |
 |---|---|---|---|---|
-| 1 | Held-out study validation | Does the synthetic-guided policy transfer to an OSDR study excluded from model adaptation and feature development? | Eight directional thymus core genes in OSD-457 | Strongest evidence of transferable feature selection; prospective replication still required |
-| 2 | Repeated development screen plus real-data BH FDR | Which BH-significant genes were repeatedly promoted or reinforced by synthetic guidance? | 49 tissue-gene results: 26 promoted and 23 reinforced | Cross-study developmental hypotheses; not independent synthetic generalization |
-| 3 | Complete real-data random-effects screen | Which panel genes show a pooled FLT-GC association? | 459 tissue-gene results across canonical and muscle-group analyses | Conventional panel-level association; does not show that synthetic data added information |
+| 1 | Pooled utility benchmark | Locked profiles from represented studies | Does one synthetic-data policy help across tissues? | Method-level positive or negative result; no biological claim |
+| 2 | Tissue-specific five-arm screen | Held-out profiles within represented accessions | Which synthetic use, if any, helps each tissue? | Developmental utility and stable feature nomination |
+| 3 | Real-data random-effects BH FDR | FLT-GC effects estimated separately within each accession | Are nominated genes associated with flight in observed studies? | Real biological association; synthetic status reported separately |
+| 4 | Whole-study transfer | Complete OSDR accessions absent from adaptation and policy development | Does a frozen synthetic-informed policy transfer to a new study context? | Strongest synthetic-utility evidence; still requires prospective replication |
 
-Signals observed across represented studies but lacking a Tier 1 test are described as developmental or exploratory. Generative findings were also compared with the separate expiMap pathway analysis [12] to identify convergent and complementary tissue responses.
+Signals supported by Stages 2 and 3 but lacking Stage 4 evidence are described as developmental or exploratory. Generative findings were also compared with the separate expiMap pathway analysis [12] to identify convergent and complementary tissue responses.
 
 For a secondary spleen comparison, study-level *Igfbp3* effects were checked against full-transcriptome TPM values. Healthy sorted-cell and single-cell references, GSE156162 and E-MTAB-7703, were then examined to identify the normal spleen populations expressing *Igfbp3* [18,19]. The model did not select *Igfbp3*, so this analysis is reported as real-data context rather than a synthetic-guided finding.
 
 ## Results
 
-### Synthetic expression preserved tissue structure and prioritized biological features
+### Pooled augmentation failed, but tissue-specific synthetic use helped during development
 
-The ARCHS4 model generated profiles that retained broad mouse tissue identity: classifiers trained on real and generated reference profiles both achieved tissue balanced accuracy 0.781 on the complete-series test split. Adversarial accuracy was 0.515, precision was 0.951, and recall was 0.890. However, reference gene-correlation-matrix agreement was 0.878 and did not pass the prespecified 0.952 gate.
+The generator preserved broad tissue structure well enough to support downstream testing. Real-trained and generated-trained classifiers both achieved tissue balanced accuracy 0.781 on the complete-series ARCHS4 test split, and the adapted OSDR model passed its locked finite-sample fidelity checks. The stricter ARCHS4 gene-correlation gate was not met, however, so downstream value was evaluated directly rather than inferred from generative similarity alone. Full fidelity metrics and comparator-model results are reported in Supplementary Figures S1-S4 and Supplementary Tables S1-S3.
 
-After broad OSDR adaptation, all four locked within-study repeats passed the finite-sample fidelity rule. Mean gene-correlation agreement was 0.974, precision 0.997, recall 0.996, F1 0.997, adversarial accuracy 0.475, and FD relative to the real-split P95 was 0.074. Pooled FLT-GC effect recovery passed three of four repeats and skeletal-muscle accession recovery passed all four. The preceding validation screen was less consistent: correlation narrowly missed its finite-sample floor and muscle accession-effect recovery failed. The generator is therefore suitable for the declared within-study feature-guidance analysis, not as a universal substitute for real expression or as evidence of unseen-study generation. Complete distributional results, denoising trajectories, and comparator-model screens are reported in Supplementary Figures S1-S4 and Supplementary Tables S1-S3.
+A single pooled augmentation policy was not useful. On the locked OSDR test, balanced accuracy was 0.754 with real-only training, 0.695 with generated-only training, and 0.737 with real-plus-generated training. This negative result did not imply that every tissue responded identically. When synthetic use was selected separately by tissue, several arms improved balanced accuracy, AUROC, and average precision within represented studies (Table 3). Different tissues selected different uses: spleen, skin, and soleus selected real-plus-generated training; pooled skeletal muscle selected feature guidance with a real-only classifier; kidney and thymus selected low-weight guided training; and lung and adrenal gland selected generated-only training. These are development-screen results because profiles, rather than complete studies, were withheld.
 
-Simply adding generated rows to the training data did not improve flight-versus-ground classification. On the locked test, real-only balanced accuracy was 0.754, compared with 0.695 for synthetic-only training and 0.737 for real-plus-synthetic training. The more useful strategy was to let the synthetic profiles influence which genes were considered, while fitting the final classifier and estimating biological effects only from real samples. This strategy transferred clearly to thymus and produced mixed results in lung. Detailed predictive comparisons are provided in Supplementary Figure S5 and Supplementary Table S4.
+**Table 3. Selected tissue-specific development results. Every displayed synthetic-informed arm met the balanced-accuracy, AUROC, and average-precision eligibility rule. Full results are in Supplementary Table S20.**
 
-The Tier 3 real-data screen yielded 202 BH-FDR tissue-gene associations across 10 of 22 canonical tissue analyses and 257 across the five anatomical muscle groups. These are tissue-gene results rather than 459 unique or independent discoveries: a gene can be significant in more than one tissue, and pooled skeletal muscle overlaps its anatomical subgroups. Forty-nine results also entered Tier 2 stable synthetic-informed selection: 26 were synthetic-promoted and 23 were reinforced by both real-only and synthetic-guided selection. Synthetic labels were assigned only where the selected generated arm passed the prespecified metric gate; quadriceps, EDL, and liver therefore contribute real-data associations but no synthetic-informed claims. The complete set, including associations with mixed study directions, remains available in Supplementary Tables S16-S18.
+| Tissue | Selected synthetic use | Balanced accuracy, real to selected | AUROC, real to selected |
+|---|---|---:|---:|
+| Thymus | Low-weight guided training | 0.733 to 0.844 | 0.818 to 0.887 |
+| Skeletal muscle, pooled | Feature-guided real-only classifier | 0.861 to 0.932 | 0.924 to 0.961 |
+| Soleus | Real plus generated | 0.925 to 0.963 | 0.980 to 0.980 |
+| Kidney | Low-weight guided training | 0.654 to 0.707 | 0.680 to 0.771 |
+| Spleen | Real plus generated | 0.517 to 0.648 | 0.540 to 0.704 |
+| Skin | Real plus generated | 0.671 to 0.756 | 0.691 to 0.768 |
+| Lung | Generated only | 0.664 to 0.742 | 0.680 to 0.830 |
+| Adrenal gland | Generated only | 0.781 to 0.922 | 0.906 to 0.984 |
+
+### Synthetic-informed selection identified real-data associations
+
+The real-data screen yielded 202 BH-FDR tissue-gene associations across 10 of 22 canonical tissue analyses and 257 across the five anatomical muscle groups. These are tissue-gene results rather than 459 unique or independent discoveries: a gene can be significant in more than one tissue, and pooled skeletal muscle overlaps its anatomical subgroups. Forty-nine associations also entered stable synthetic-informed selection: 26 were synthetic-promoted and 23 were reinforced by both real-only and synthetic-informed selection.
+
+All 459 P values and FDR values came from real profiles. Synthetic data affected only whether a gene was repeatedly prioritized and, for eligible augmentation arms, classifier fitting. Synthetic labels were suppressed where the selected arm failed its metric gate; quadriceps, EDL, and liver therefore contribute real-data associations but no synthetic-informed claims. The complete inventory, including associations with mixed study directions, is provided in Supplementary Tables S16-S18.
+
+### Whole-study transfer narrowed the evidence to thymus
+
+The development gains did not uniformly transfer to excluded studies. In an initial six-tissue feature-guidance transfer screen, only lung and thymus met the advancement rule. Liver and kidney gained balanced accuracy but lost AUROC, while retina and skin did not improve. In the fixed follow-up, thymus improved on all three metrics, whereas lung balanced accuracy declined from 0.400 to 0.350 and the result was rejected.
+
+Separate frozen augmentation experiments reached the same general conclusion. Heart balanced accuracy improved in a five-profile test, but AUROC and average precision were unchanged, making this a small exploratory result. Pooled skeletal muscle improved in the first two-accession test, but extension of the same recipe to all 11 eligible held-out accessions changed balanced accuracy only from 0.655 to 0.658 while AUROC fell from 0.718 to 0.690. Spleen also failed its initial held-out criterion. Thus tissue-specific development gains identify useful hypotheses, but only thymus supplied a strong retained whole-study result.
+
+**Table 4. Selected complete-accession tests. Experiments used separately frozen policies and are shown to distinguish initial gains from broader transfer.**
+
+| Tissue and experiment | Accessions / profiles | Synthetic use | Balanced accuracy, real to informed | AUROC, real to informed | Interpretation |
+|---|---:|---|---:|---:|---|
+| Thymus, fixed test | 1 / 24 | Feature guidance | 0.500 to 0.833 | 0.840 to 0.979 | Retained primary transfer result |
+| Lung, fixed test | 1 / 20 | Low-weight guidance | 0.400 to 0.350 | 0.450 to 0.470 | Failed confirmation |
+| Heart, early screen | 1 / 5 | Real plus generated | 0.333 to 0.583 | 0.667 to 0.667 | Exploratory because of test size |
+| Skeletal muscle, initial | 2 / 24 | Real plus generated | 0.875 to 0.917 | 0.958 to 0.972 | Initial gain |
+| Skeletal muscle, full extension | 11 / 159 | Real plus generated | 0.655 to 0.658 | 0.718 to 0.690 | Initial gain did not generalize |
+| Spleen, initial | 2 / 29 | Real plus generated | 0.750 to 0.725 | 0.766 to 0.794 | Failed criterion |
 
 ### Thymus shows lower proliferative renewal during spaceflight
 
@@ -107,7 +142,7 @@ OSD-457 provided the strongest result. Its GEO series and every other OSDR-linke
 
 The core genes *Birc5*, *Ccne2*, *Gmnn*, *Ube2c*, *Cdk1*, *Nusap1*, *Ccnb1*, and *Ccnb2* were lower in flight in both strata (Fig. 2A). These were not genes absent from the real-data analysis: all eight were among its 26 highest-ranked candidates, including four among the top ten. Synthetic guidance instead assembled a broader, coherent cell-cycle panel that transferred more effectively to the study-excluded test. Together, these genes regulate DNA replication, chromosome progression, mitotic entry, and completion of cell division. Reactome analysis connected them to APC/C-mediated cyclin degradation, G2/M checkpoints, DNA synthesis, and broader cell-cycle control (Fig. 2B).
 
-The Tier 1 result is therefore interpreted as panel-level reinforcement and organization, not de novo gene discovery. In the Tier 2 repeated screen, *Birc5*, *Cdk1*, *Nusap1*, *Ccne2*, and *Ccnb2* crossed the stable-selection threshold only with synthetic guidance; *Gmnn* and *Ube2c* were reinforced by both arms; and *Ccnb1* remained BH-significant but did not cross either stability threshold. These labels describe repeated selection behavior and do not override the stronger held-out result. The complete cross-analysis mapping is provided in Supplementary Table S19.
+The study-held-out result is therefore interpreted as panel-level reinforcement and organization, not de novo gene discovery. In the repeated development screen, *Birc5*, *Cdk1*, *Nusap1*, *Ccne2*, and *Ccnb2* crossed the stable-selection threshold only with synthetic guidance; *Gmnn* and *Ube2c* were reinforced by both arms; and *Ccnb1* remained BH-significant but did not cross either stability threshold. These labels describe repeated selection behavior and do not override the stronger held-out result. The complete cross-analysis mapping is provided in Supplementary Table S19.
 
 This result is aligned with, but more specific than, prior thymus studies. STS-135 mouse thymus showed changes in cell-cycle and DNA-damage programs, including lower checkpoint-related expression [8]. A later ISS experiment reported marked thymus mass loss and partial artificial-gravity rescue of cell-cycle expression [9]. The current signature emphasizes mitotic completion and replication rather than acute apoptosis alone. Agreement between genotype strata suggests that the predictive signature is not confined to one Nrf2 background, but it does not prove Nrf2 independence.
 
@@ -157,25 +192,27 @@ Kidney produced the clearest secondary gene-level result. *Slc37a4* was reinforc
 
 Adrenal gland produced flight-lower synthetic-promoted *Psmb8* and reinforced *Tspan4*, each with the same direction in all three studies but neither passing leave-one-accession-out FDR. Retina showed repeated predictive gains and selected-set enrichment but no synthetic-informed BH-FDR gene. Liver selected the real-only arm: its 19 real-data BH-FDR genes remain in the complete inventory, but none support a synthetic-guided claim. Quadriceps and EDL likewise selected real-only arms.
 
+### Comparison with expiMap shows convergence and complementarity
+
 The evidence distribution therefore differs from the separate expiMap analysis. Both approaches prioritize thymus. expiMap produced its broadest pathway evidence in thymus, skin, spleen, and kidney, whereas the generative workflow added its clearest complementary result in soleus and a focused kidney pair. The methods examine different biological representations: expiMap tests predefined pathway activity, while synthetic guidance helps prioritize individual genes and their shared processes.
 
 ![Tissue evidence hierarchy.](figures/figure_6_tissue_evidence.png)
 
 <p class="caption"><strong>Figure 4. Tissue evidence.</strong> (A) Repeated development-screen changes relative to real-only models for selected tissues. (B) BH-FDR genes promoted or reinforced by the synthetic workflow; synthetic labels are suppressed where the generated arm failed its metric gate. (C) Thymus remains the strongest result, soleus and pooled muscle provide the clearest process-level complement, kidney supplies a focused secondary pair, and spleen, skin, and adrenal gland remain developmental.</p>
 
-**Table 3. Selected synthetic-guided biological interpretations by tissue. Complete real-data BH-FDR results are in Supplementary Tables S17-S18.**
+**Table 5. Selected synthetic-guided biological interpretations by tissue. Complete real-data BH-FDR results are in Supplementary Tables S17-S18.**
 
 | Tissue | Main signal | Interpretation |
 |---|---|---|
 | Thymus | Lower mitotic genes; APC/C, G2/M, and DNA replication | Strongest result; supports reduced proliferative renewal |
 | Soleus | Reinforced FLT-lower *Bdh1*, *Ech1*, *Bnip3*, and *Decr1*; FLT-higher *Tpm1* | Coherent mitochondrial and lipid-metabolism program; no promoted gene |
 | Skeletal muscle, pooled | 12 synthetic-informed BH-FDR genes; interferon and sialic-acid terms | Developmental complement to the anatomically specific soleus result |
-| Kidney | Promoted *Inpp4b* and reinforced *Slc37a4*, both FLT-higher | Focused renal metabolic-signaling hypothesis; *Inpp4b* passes LOO FDR |
-| Spleen | Promoted *Rai14*, *Ptprk*, and *Myl9*; reinforced *Loxl1* | Adhesion/cytoskeletal hypothesis; no gene passes LOO FDR and no significant pathway |
-| Skin | Promoted FLT-higher *Plscr1* plus cell-cycle/DNA-repair enrichment | Literature-aligned developmental candidate; not LOO-stable |
-| Adrenal gland | Promoted *Psmb8* and reinforced *Tspan4*, both FLT-lower | Three-study developmental candidate; neither passes LOO FDR |
-| Tibialis anterior | Reinforced *Cdkn1a*, *St3gal5*, and *Bnip3*; promoted *Cebpd* | Exploratory stress and metabolic response; no LOO-stable selected gene |
-| Gastrocnemius | Promoted *Fhl2* and *Nfkbia* | Exploratory two-gene result without significant pathway or LOO stability |
+| Kidney | Promoted *Inpp4b* and reinforced *Slc37a4*, both FLT-higher | Focused renal metabolic-signaling hypothesis |
+| Spleen | Promoted *Rai14*, *Ptprk*, and *Myl9*; reinforced *Loxl1* | Developmental adhesion/cytoskeletal hypothesis |
+| Skin | Promoted FLT-higher *Plscr1* plus cell-cycle/DNA-repair enrichment | Literature-aligned developmental candidate |
+| Adrenal gland | Promoted *Psmb8* and reinforced *Tspan4*, both FLT-lower | Three-study developmental candidate |
+| Tibialis anterior | Reinforced *Cdkn1a*, *St3gal5*, and *Bnip3*; promoted *Cebpd* | Exploratory stress and metabolic response |
+| Gastrocnemius | Promoted *Fhl2* and *Nfkbia* | Exploratory two-gene result without a coherent pathway |
 | Lung | Within-study pathway candidates but failed OSD-900 transfer | No retained study-held-out synthetic-guided result |
 | Retina | Predictive and pathway gains without a synthetic-informed BH-FDR gene | Exploratory gene/pathway mismatch |
 | Quadriceps, EDL, liver | Screen retained real-only arms | Real-data BH-FDR associations are not synthetic-guided findings |
@@ -184,9 +221,11 @@ The evidence distribution therefore differs from the separate expiMap analysis. 
 
 ### What synthetic data added
 
-The generated profiles did not create stronger evidence simply by increasing the number of training rows. Their useful contribution was either to reinforce coherent combinations already present in the real data or to promote candidates that were not stable under real-only selection. The synthetic model therefore acted as a feature-prior: it influenced what to examine, while the biological conclusions remained based on real flight and ground-control samples.
+The pooled benchmark and tissue-specific screens answer different questions. Adding the same generated cohort across tissues did not improve classification. In tissue-specific development, however, direct augmentation, low-weight augmentation, generated-only training, and feature guidance each helped at least one tissue. There was therefore no universally best use of synthetic expression.
 
-Thymus demonstrates panel-level organization: its central genes already ranked strongly in real data, but the synthetic-guided panel transferred after the study was removed from both reference pretraining and OSDR adaptation and converged on one interpretable cell-cycle process. The Tier 2 labels describe which genes crossed repeated selection thresholds and are not claims of biological novelty.
+Whole-study transfer was much more selective. The initial pooled-muscle gain disappeared when the same frozen augmentation recipe was extended to 11 accessions, and lung failed fixed confirmation despite a strong development screen. Thymus was the exception: synthetic-guided feature selection transferred to OSD-457 and organized real-supported genes into a coherent cell-cycle panel. This pattern supports synthetic data as a tissue-specific regularizer or feature prior, not as independent biological sample size.
+
+Thymus demonstrates panel-level organization: its central genes already ranked strongly in real data, but the synthetic-guided panel transferred after the study was removed from both reference pretraining and OSDR adaptation and converged on one interpretable cell-cycle process. The development-screen labels describe which genes crossed repeated selection thresholds and are not claims of biological novelty.
 
 Soleus demonstrates reinforcement rather than discovery. The synthetic arm retained the same five BH-FDR genes as stable real-only selection and sharpened balanced accuracy without improving AUROC. The value is the convergence of independently selected genes on mitochondrial turnover and fatty-acid metabolism, not nomination of a new soleus gene.
 
@@ -214,9 +253,9 @@ Finally, the generator represents tissues and study contexts available during tr
 
 ## Conclusions
 
-Synthetic expression was most informative as a guide to biological feature selection, not as a replacement for real animals. The analysis supports a flight-lower thymus mitotic program and reinforces a soleus response centered on mitochondrial lipid metabolism and contractile remodeling. Kidney supplies the clearest secondary promoted gene, *Inpp4b*, together with reinforced *Slc37a4*.
+Synthetic expression was useful only when its role was selected for the tissue and evaluated against real-only training. A pooled augmentation policy failed, and most development gains did not establish whole-study transfer. The strongest retained use was thymus feature guidance; soleus supplied a coherent development-stage reinforcement result. The analysis supports a flight-lower thymus mitotic program, reinforces soleus mitochondrial lipid metabolism and contractile remodeling, and identifies kidney *Inpp4b* and *Slc37a4* as focused secondary candidates.
 
-Thymus remains the strongest result because it survived complete OSDR-series removal from reference pretraining and accession exclusion from adaptation. Soleus supplies the clearest complementary process-level result. Pooled skeletal muscle, kidney, spleen, skin, adrenal gland, gastrocnemius, and tibialis anterior provide developmental hypotheses requiring unseen-study validation. Quadriceps, EDL, and liver do not support synthetic-guided claims because their real-only arms were retained. The lung result did not transfer to OSD-900. Together, these results provide a reproducible framework for using synthetic expression as a feature prior.
+Thymus remains the strongest result because it survived complete OSDR-series removal from reference pretraining and accession exclusion from adaptation. Soleus supplies the clearest complementary process-level result. Pooled skeletal muscle, kidney, spleen, skin, adrenal gland, gastrocnemius, and tibialis anterior provide developmental hypotheses requiring unseen-study validation. Quadriceps, EDL, and liver do not support synthetic-guided claims because their real-only arms were retained. Lung failed transfer to OSD-900, and pooled-muscle augmentation did not improve the full 11-accession benchmark. Together, these results provide a reproducible framework for deciding when synthetic expression can guide biological analysis and when it should be rejected.
 
 ## Data and code availability
 

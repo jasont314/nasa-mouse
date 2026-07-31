@@ -46,6 +46,21 @@ CONFIRM_DIR = (
     / "outputs/generative_benchmark/analyses/"
     "generated_feature_guidance_confirmation_disjoint_v1"
 )
+TRANSFER_DIR = (
+    ROOT
+    / "outputs/generative_benchmark/analyses/"
+    "generated_feature_guidance_transfer_v1"
+)
+ADAPTIVE_HOLDOUT_DIR = (
+    ROOT
+    / "outputs/generative_benchmark/analyses/"
+    "adaptive_per_tissue_ddim_augmentation_v1"
+)
+FRESH_HOLDOUT_DIR = (
+    ROOT
+    / "outputs/generative_benchmark/analyses/"
+    "fresh_holdout_contrastive_ddim_augmentation_v1"
+)
 MUSCLE_DIR = (
     ROOT
     / "outputs/generative_benchmark/analyses/"
@@ -473,6 +488,12 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     locked = _read_tsv(LOCKED_DIR / "repeat_metrics.tsv")
     locked_run = _read_json(LOCKED_DIR / "summary.json")
     confirmation = _read_tsv(CONFIRM_DIR / "tissue_results.tsv")
+    transfer_screen = _read_tsv(TRANSFER_DIR / "tissue_results.tsv")
+    adaptive_holdout = _read_json(ADAPTIVE_HOLDOUT_DIR / "final_summary.json")
+    fresh_holdout = _read_json(FRESH_HOLDOUT_DIR / "final_summary.json")
+    muscle_holdout_extension = _read_json(
+        FRESH_HOLDOUT_DIR / "confirmatory_folds/aggregate_summary.json"
+    )
     genotype = _read_tsv(CONFIRM_DIR / "genotype_subgroup_results.tsv")
     thymus_features = _read_tsv(CONFIRM_DIR / "thymus/feature_stability.tsv")
     thymus_reactome = _read_tsv(CONFIRM_DIR / "thymus/reactome_enrichment.tsv")
@@ -946,6 +967,216 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         validate="one_to_one",
     )
 
+    development_tissues = [
+        "thymus",
+        "skeletal_muscle",
+        "kidney",
+        "spleen",
+        "skin",
+        "lung",
+        "retina",
+        "adrenal_gland",
+    ]
+    development_highlights = tissue_summary.loc[
+        tissue_summary["tissue"].isin(development_tissues),
+        [
+            "tissue",
+            "selected_arm",
+            "real_mean_balanced_accuracy",
+            "selected_mean_balanced_accuracy",
+            "real_mean_roc_auc",
+            "selected_mean_roc_auc",
+            "real_mean_average_precision",
+            "selected_mean_average_precision",
+            "generated_arm_eligible_all_metrics",
+        ],
+    ].copy()
+    development_highlights.insert(0, "analysis_scope", "canonical_tissue")
+    muscle_highlights = muscle_summary.loc[
+        muscle_summary["tissue"].isin(["soleus", "gastrocnemius"]),
+        development_highlights.columns.drop("analysis_scope").tolist(),
+    ].copy()
+    muscle_highlights.insert(0, "analysis_scope", "skeletal_muscle_group")
+    development_highlights = pd.concat(
+        [development_highlights, muscle_highlights],
+        ignore_index=True,
+    )
+    development_order = development_tissues + ["soleus", "gastrocnemius"]
+    development_highlights["_order"] = development_highlights["tissue"].map(
+        {tissue: index for index, tissue in enumerate(development_order)}
+    )
+    development_highlights = (
+        development_highlights.sort_values("_order")
+        .drop(columns="_order")
+        .reset_index(drop=True)
+    )
+    if len(development_highlights) != 10:
+        raise ValueError(
+            "Expected ten tissue-specific utility highlights, "
+            f"found {len(development_highlights)}"
+        )
+    if not development_highlights["generated_arm_eligible_all_metrics"].all():
+        raise ValueError(
+            "Every tissue-specific utility highlight must pass the arm gate"
+        )
+
+    transfer_rows: list[dict[str, Any]] = []
+    for row in transfer_screen.itertuples(index=False):
+        transfer_rows.append(
+            {
+                "experiment": "cross_tissue_feature_guidance_screen",
+                "tissue": row.tissue,
+                "test_accessions": int(row.test_accessions),
+                "test_profiles": int(row.test_profiles),
+                "synthetic_use": "feature_guidance",
+                "real_balanced_accuracy": row.baseline_balanced_accuracy,
+                "synthetic_informed_balanced_accuracy": (
+                    row.generated_balanced_accuracy
+                ),
+                "real_roc_auc": row.baseline_roc_auc,
+                "synthetic_informed_roc_auc": row.generated_roc_auc,
+                "real_average_precision": row.baseline_average_precision,
+                "synthetic_informed_average_precision": (
+                    row.generated_average_precision
+                ),
+                "passed_declared_rule": bool(row.improved_ba_without_auc_loss),
+                "interpretation": (
+                    "advanced to fixed confirmation"
+                    if row.improved_ba_without_auc_loss
+                    else "did not advance"
+                ),
+            }
+        )
+    for row in confirmation.itertuples(index=False):
+        passed = bool(row.improved_ba_without_auc_loss)
+        transfer_rows.append(
+            {
+                "experiment": "fixed_lung_thymus_confirmation",
+                "tissue": row.tissue,
+                "test_accessions": int(row.test_accessions),
+                "test_profiles": int(row.test_profiles),
+                "synthetic_use": (
+                    "guided_real_only"
+                    if row.tissue == "thymus"
+                    else "guided_low_weight"
+                ),
+                "real_balanced_accuracy": row.baseline_balanced_accuracy,
+                "synthetic_informed_balanced_accuracy": (
+                    row.generated_balanced_accuracy
+                ),
+                "real_roc_auc": row.baseline_roc_auc,
+                "synthetic_informed_roc_auc": row.generated_roc_auc,
+                "real_average_precision": row.baseline_average_precision,
+                "synthetic_informed_average_precision": (
+                    row.generated_average_precision
+                ),
+                "passed_declared_rule": passed,
+                "interpretation": (
+                    "retained study-held-out result"
+                    if passed
+                    else "failed fixed confirmation"
+                ),
+            }
+        )
+    for tissue, result in adaptive_holdout["tissues"].items():
+        real = result["selected_real_only"]
+        augmented = result["real_plus_synthetic"]
+        transfer_rows.append(
+            {
+                "experiment": "adaptive_augmentation_screen",
+                "tissue": tissue,
+                "test_accessions": result["test_accessions"],
+                "test_profiles": result["test_profiles"],
+                "synthetic_use": "real_plus_generated",
+                "real_balanced_accuracy": real["balanced_accuracy"],
+                "synthetic_informed_balanced_accuracy": augmented[
+                    "balanced_accuracy"
+                ],
+                "real_roc_auc": real["roc_auc"],
+                "synthetic_informed_roc_auc": augmented["roc_auc"],
+                "real_average_precision": real["average_precision"],
+                "synthetic_informed_average_precision": augmented[
+                    "average_precision"
+                ],
+                "passed_declared_rule": bool(result["success"]),
+                "interpretation": (
+                    "exploratory five-profile gain"
+                    if tissue == "heart" and result["success"]
+                    else "no improvement"
+                ),
+            }
+        )
+    for tissue, result in fresh_holdout["tissues"].items():
+        real = result["selected_real_only"]
+        augmented = result["real_plus_synthetic"]
+        transfer_rows.append(
+            {
+                "experiment": "frozen_augmentation_initial_test",
+                "tissue": tissue,
+                "test_accessions": result["test_accessions"],
+                "test_profiles": result["test_profiles"],
+                "synthetic_use": "real_plus_generated",
+                "real_balanced_accuracy": real["balanced_accuracy"],
+                "synthetic_informed_balanced_accuracy": augmented[
+                    "balanced_accuracy"
+                ],
+                "real_roc_auc": real["roc_auc"],
+                "synthetic_informed_roc_auc": augmented["roc_auc"],
+                "real_average_precision": real["average_precision"],
+                "synthetic_informed_average_precision": augmented[
+                    "average_precision"
+                ],
+                "passed_declared_rule": bool(result["success"]),
+                "interpretation": (
+                    "initial gain; expanded below"
+                    if result["success"]
+                    else "failed initial test"
+                ),
+            }
+        )
+    extension = muscle_holdout_extension["accession_macro"]
+    transfer_rows.append(
+        {
+            "experiment": "frozen_augmentation_full_extension",
+            "tissue": muscle_holdout_extension["tissue"],
+            "test_accessions": muscle_holdout_extension["test_accessions"],
+            "test_profiles": muscle_holdout_extension["test_profiles"],
+            "synthetic_use": "real_plus_generated",
+            "real_balanced_accuracy": extension["real_only"]["balanced_accuracy"],
+            "synthetic_informed_balanced_accuracy": extension[
+                "real_plus_synthetic"
+            ]["balanced_accuracy"],
+            "real_roc_auc": extension["real_only"]["roc_auc"],
+            "synthetic_informed_roc_auc": extension["real_plus_synthetic"][
+                "roc_auc"
+            ],
+            "real_average_precision": extension["real_only"][
+                "average_precision"
+            ],
+            "synthetic_informed_average_precision": extension[
+                "real_plus_synthetic"
+            ]["average_precision"],
+            "passed_declared_rule": False,
+            "interpretation": "initial gain did not generalize across all accessions",
+        }
+    )
+    study_holdout_context = pd.DataFrame(transfer_rows)
+    _assert_close(
+        study_holdout_context.loc[
+            study_holdout_context["experiment"].eq(
+                "frozen_augmentation_full_extension"
+            ),
+            "synthetic_informed_roc_auc",
+        ].iloc[0],
+        0.6897095959595959,
+        "extended held-out muscle augmented AUROC",
+    )
+    if len(study_holdout_context) != 14:
+        raise ValueError(
+            "Expected fourteen whole-study transfer context rows, "
+            f"found {len(study_holdout_context)}"
+        )
+
     igfbp3_gene = "ENSMUSG00000020427"
     spleen_igfbp3_effects = tissue_accession_effects.loc[
         tissue_accession_effects["analysis_tissue"].eq("spleen")
@@ -1129,6 +1360,8 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "quadriceps_rbm6_meta": quadriceps_rbm6_meta,
         "muscle_reactome": muscle_reactome,
         "tissue_summary": tissue_summary,
+        "development_highlights": development_highlights,
+        "study_holdout_context": study_holdout_context,
         "ordinary_fdr_genes": ordinary_fdr_genes,
         "all_bh_fdr_genes": all_bh_fdr_genes,
         "bh_fdr_tissue_summary": bh_fdr_tissue_summary,
@@ -1143,8 +1376,9 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "inventory": "table_1_data_inventory.tsv",
         "model_screen": "table_2_model_screen.tsv",
         "locked_summary": "table_3_locked_ddim_metrics.tsv",
-        "confirmation": "table_4_leakage_corrected_confirmation.tsv",
+        "confirmation": "table_4_heldout_study_confirmation.tsv",
         "evidence": "table_5_tissue_evidence.tsv",
+        "study_holdout_context": "table_6_whole_study_transfer_context.tsv",
         "arch_summary": "table_s1_archs4_ddim_metrics.tsv",
         "locked_repeats": "table_s2_locked_ddim_repeats.tsv",
         "naive_utility": "table_s3_naive_augmentation.tsv",
@@ -1164,6 +1398,7 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "all_bh_fdr_genes": "table_s17_all_random_effects_bh_fdr_genes.tsv",
         "bh_fdr_tissue_summary": "table_s18_bh_fdr_tissue_summary.tsv",
         "thymus_evidence_mapping": "table_s19_thymus_evidence_level_mapping.tsv",
+        "development_highlights": "table_s20_tissue_utility_highlights.tsv",
     }
     for key, name in names.items():
         _write_tsv(tables[key], name)
@@ -1171,9 +1406,9 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
 
 
 def figure_1_workflow() -> None:
-    fig, ax = plt.subplots(figsize=(8.1, 5.2))
+    fig, ax = plt.subplots(figsize=(8.1, 5.5))
     ax.set_xlim(0, 12)
-    ax.set_ylim(0, 9)
+    ax.set_ylim(0, 9.4)
     ax.axis("off")
 
     def box(
@@ -1214,81 +1449,81 @@ def figure_1_workflow() -> None:
             arrowprops={"arrowstyle": "-|>", "lw": 1.25, "color": COLORS["gray"]},
         )
 
-    ax.text(0, 8.55, "A", weight="bold", fontsize=13)
-    ax.text(0.45, 8.55, "Data and synthetic-guided discovery", weight="bold", fontsize=11)
+    ax.text(0, 9.0, "A", weight="bold", fontsize=13)
+    ax.text(0.45, 9.0, "Data and conditional expression model", weight="bold", fontsize=11)
     box(
         0.2,
-        5.25,
+        5.7,
         2.55,
         2.55,
         "ARCHS4 mouse",
-        "17,244 reference profiles\n20 tissue classes\nLearns baseline tissue\nexpression",
+        "17,244 reference profiles\n20 tissue classes\nComplete-series splits",
         COLORS["blue"],
     )
     box(
         3.15,
-        5.25,
+        5.7,
         2.55,
         2.55,
         "Conditional\ndiffusion",
-        "Generates tissue-aware\nmouse expression\nAdapts to spaceflight\ncohorts",
+        "Tissue-aware mouse\nexpression backbone\nOSDR adaptation",
         COLORS["teal"],
     )
     box(
         6.1,
-        5.25,
+        5.7,
         2.55,
         2.55,
         "NASA OSDR API",
-        "1,610 flight/control\nprofiles\n75 studies\n24 material classes",
+        "1,610 flight/control\nprofiles\n75 accessions\nStudy provenance retained",
         COLORS["coral"],
     )
     box(
         9.05,
-        5.25,
+        5.7,
         2.55,
         2.55,
-        "Biological\nanalysis",
-        "Synthetic profiles\nprioritize genes\nEffects measured in\nreal samples",
+        "Conditional\nprofiles",
+        "Tissue, FLT/GC,\nstudy, and material\ncontexts represented",
         COLORS["gold"],
     )
-    arrow(2.75, 6.5, 3.15, 6.5)
-    arrow(5.7, 6.5, 6.1, 6.5)
-    arrow(8.65, 6.5, 9.05, 6.5)
+    arrow(2.75, 6.95, 3.15, 6.95)
+    arrow(5.7, 6.95, 6.1, 6.95)
+    arrow(8.65, 6.95, 9.05, 6.95)
 
-    ax.text(0, 4.45, "B", weight="bold", fontsize=13)
-    ax.text(0.45, 4.45, "Biological questions and findings", weight="bold", fontsize=11)
+    ax.text(0, 4.85, "B", weight="bold", fontsize=13)
+    ax.text(0.45, 4.85, "Evaluation funnel", weight="bold", fontsize=11)
     levels = [
         (
-            "1. Tissue\nresponse",
-            "Which organs show\nflight-associated\nexpression changes?",
+            "1. Pooled\nbenchmark",
+            "Test one-size-fits-all\nsynthetic-only and\naugmented training",
             COLORS["blue"],
         ),
         (
-            "2. Thymus",
-            "Cell division and\nproliferative renewal",
+            "2. Tissue\nselection",
+            "Compare five uses\nwithin represented\nstudies",
             COLORS["teal"],
         ),
         (
-            "3. Skeletal\nmuscle",
-            "Soleus metabolism,\nmitochondrial turnover,\nand contractile identity",
+            "3. Real-data\ntesting",
+            "Estimate within-study\nFLT-GC effects and\nBH FDR",
             COLORS["gold"],
         ),
         (
-            "4. Other\ntissues",
-            "Splenic IGFBP3,\nrenal metabolism,\nand heterogeneous\norgan responses",
+            "4. Study\ntransfer",
+            "Exclude complete\naccessions; interpret\nretained biology",
             COLORS["coral"],
         ),
     ]
     x_positions = [0.2, 3.15, 6.1, 9.05]
     for x, (title, body, color) in zip(x_positions, levels):
-        box(x, 1.45, 2.55, 2.25, title, body, color)
+        box(x, 1.55, 2.55, 2.45, title, body, color)
     for left, right in zip(x_positions[:-1], x_positions[1:]):
-        arrow(left + 2.55, 2.55, right, 2.55)
+        arrow(left + 2.55, 2.78, right, 2.78)
     ax.text(
         0.2,
         0.55,
-        "Generated expression prioritizes hypotheses; real flight and ground-control samples determine the biology.",
+        "Synthetic use is selected per tissue; biological effects and FDR are always estimated from real OSDR samples.",
         fontsize=8.5,
         weight="bold",
         color=COLORS["dark"],
@@ -1787,6 +2022,10 @@ def build_manifest() -> None:
         CONFIRM_DIR / "genotype_subgroup_results.tsv",
         CONFIRM_DIR / "thymus/feature_stability.tsv",
         CONFIRM_DIR / "thymus/reactome_enrichment.tsv",
+        TRANSFER_DIR / "tissue_results.tsv",
+        ADAPTIVE_HOLDOUT_DIR / "final_summary.json",
+        FRESH_HOLDOUT_DIR / "final_summary.json",
+        FRESH_HOLDOUT_DIR / "confirmatory_folds/aggregate_summary.json",
         MUSCLE_DIR / "tissue_arm_choices.tsv",
         MUSCLE_DIR / "paired_repeat_support.tsv",
         MUSCLE_DIR / "stable_gene_sets.tsv.gz",
@@ -1863,7 +2102,7 @@ def render_document(markdown_path: Path, title: str) -> tuple[Path, Path]:
     a { color: #236a8e; text-decoration: none; }
     code { font-family: "DejaVu Sans Mono", monospace; font-size: 8pt; background: #f0f3f4; padding: 0.2mm 0.5mm; }
     pre { white-space: pre-wrap; background: #f0f3f4; padding: 3mm; border-left: 2pt solid #17807e; font-size: 7.6pt; }
-    table { width: 100%; border-collapse: collapse; margin: 3mm 0 5mm 0; font-size: 7.4pt; line-height: 1.25; break-inside: avoid; }
+    table { width: 100%; border-collapse: collapse; margin: 3mm 0 5mm 0; font-size: 7.4pt; line-height: 1.25; break-before: avoid; break-inside: avoid; }
     th { background: #e8eef0; color: #23445d; font-weight: bold; text-align: left; padding: 1.5mm; border-bottom: 1pt solid #7b858c; }
     td { padding: 1.35mm; border-bottom: 0.45pt solid #ced6d9; vertical-align: top; }
     img { max-width: 100%; max-height: 215mm; display: block; margin: 3mm auto 2mm auto; }

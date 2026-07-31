@@ -1,0 +1,15 @@
+experiment	tissue	test_accessions	test_profiles	synthetic_use	real_balanced_accuracy	synthetic_informed_balanced_accuracy	real_roc_auc	synthetic_informed_roc_auc	real_average_precision	synthetic_informed_average_precision	passed_declared_rule	interpretation
+cross_tissue_feature_guidance_screen	liver	2	51	feature_guidance	0.4583333333333332	0.6041666666666666	0.683625730994152	0.6555555555555556	0.721972479069666	0.729617384929885	False	did not advance
+cross_tissue_feature_guidance_screen	kidney	2	30	feature_guidance	0.5	0.5277777777777778	0.4876543209876542	0.4753086419753086	0.6404572551631376	0.6078387162945986	False	did not advance
+cross_tissue_feature_guidance_screen	lung	1	39	feature_guidance	0.5	0.5552631578947369	0.3710526315789473	0.4973684210526315	0.4384092756049278	0.5051828119774272	True	advanced to fixed confirmation
+cross_tissue_feature_guidance_screen	retina	1	16	feature_guidance	0.6190476190476191	0.5	0.7619047619047619	0.5634920634920635	0.8175805675805676	0.606547619047619	False	did not advance
+cross_tissue_feature_guidance_screen	skin	2	35	feature_guidance	0.446969696969697	0.446969696969697	0.4835858585858585	0.4690656565656566	0.698616195524618	0.6864724365058589	False	did not advance
+cross_tissue_feature_guidance_screen	thymus	1	18	feature_guidance	0.5555555555555556	0.6666666666666666	0.8395061728395061	0.925925925925926	0.9037698412698414	0.9555555555555556	True	advanced to fixed confirmation
+fixed_lung_thymus_confirmation	lung	1	20	guided_low_weight	0.4	0.35	0.4499999999999999	0.47	0.5231177207725195	0.5777850877192983	False	failed fixed confirmation
+fixed_lung_thymus_confirmation	thymus	1	24	guided_real_only	0.5	0.8333333333333333	0.8402777777777777	0.9791666666666666	0.8764570875983919	0.9833333333333332	True	retained study-held-out result
+adaptive_augmentation_screen	heart	1	5	real_plus_generated	0.3333333333333333	0.5833333333333333	0.6666666666666666	0.6666666666666666	0.8666666666666667	0.8666666666666667	True	exploratory five-profile gain
+adaptive_augmentation_screen	retina	1	9	real_plus_generated	0.5	0.5	0.5	0.4	0.5555555555555556	0.5111111111111111	False	no improvement
+adaptive_augmentation_screen	skeletal_muscle	1	18	real_plus_generated	1.0	1.0	1.0	1.0	1.0	1.0	False	no improvement
+frozen_augmentation_initial_test	skeletal_muscle	2	24	real_plus_generated	0.875	0.9166666666666667	0.9583333333333334	0.9722222222222223	0.9722222222222222	0.9791666666666666	True	initial gain; expanded below
+frozen_augmentation_initial_test	spleen	2	29	real_plus_generated	0.75	0.725	0.7661111111111112	0.793888888888889	0.8443574481074481	0.854278083028083	False	failed initial test
+frozen_augmentation_full_extension	skeletal_muscle	11	159	real_plus_generated	0.6546717171717172	0.6578282828282828	0.7175224466891134	0.6897095959595959	0.7683362247248986	0.7640361617127144	False	initial gain did not generalize across all accessions

@@ -8,10 +8,24 @@ pretraining. Soleus provides
 cross-accession metabolic evidence, while kidney provides a focused promoted
 `Inpp4b` and reinforced `Slc37a4` result.
 
-The same pretrained backbone was used for the lung/thymus held-out
-experiment and for regenerated all-tissue and muscle-group development screens.
-All BH-FDR effects use real OSDR samples only. Synthetic attribution is retained
-only where the selected generated arm passed the balanced-accuracy, AUROC, and
+The paper follows a four-stage evaluation funnel:
+
+1. a pooled benchmark tests whether one synthetic-data policy works across
+   tissues;
+2. tissue-specific development compares five synthetic-data uses;
+3. real-only random-effects testing evaluates prioritized genes;
+4. complete-accession tests evaluate transfer outside the development studies.
+
+The pooled augmentation benchmark was negative. Several tissues improved during
+tissue-specific development, but most gains did not establish whole-study
+transfer. Thymus supplied the strongest retained transfer result. An initial
+pooled-muscle augmentation gain did not generalize when the same frozen recipe
+was extended to 11 held-out accessions.
+
+The same pretrained backbone was used for the lung/thymus held-out experiment
+and for regenerated all-tissue and muscle-group development screens. All BH-FDR
+effects use real OSDR samples only. Synthetic attribution is retained only where
+the selected generated arm passed the balanced-accuracy, AUROC, and
 average-precision eligibility gate.
 
 Generated profiles are not treated as additional animals. Biological support is
@@ -44,18 +58,18 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
 The builder checks key frozen values before writing figures, then renders the
 Markdown manuscripts with WeasyPrint.
 
-## Analysis tiers
+## Evidence interpretation
 
-- **Tier 1, held-out study validation:** a fixed generator and feature
-  policy were tested in an OSDR accession excluded from adaptation and policy
-  development after removing every OSDR-linked GEO series from ARCHS4. The
-  eight-gene OSD-457 thymus panel is the central result. A new study is still
-  required for prospective replication.
-- **Tier 2, synthetic-informed development:** real-data BH-FDR genes were also
-  repeatedly synthetic-promoted or reinforced. This contains 49 tissue-gene
-  results and supports developmental hypotheses rather than independent transfer.
-- **Tier 3, complete real-data screen:** all 459 random-effects BH-FDR
-  tissue-gene results, regardless of synthetic feature-selection status.
+- **Whole-study transfer:** a fixed generator and feature policy were tested in
+  an OSDR accession excluded from adaptation and policy development after
+  removing every OSDR-linked GEO series from ARCHS4. The eight-gene OSD-457
+  thymus panel is the central result. A new study is still required for
+  prospective replication.
+- **Synthetic-informed development:** real-data BH-FDR genes were also repeatedly
+  synthetic-promoted or reinforced. This contains 49 tissue-gene results and
+  supports developmental hypotheses rather than independent transfer.
+- **Complete real-data screen:** all 459 random-effects BH-FDR tissue-gene
+  results, regardless of synthetic feature-selection status.
 
 ## Tissue evidence labels
 
