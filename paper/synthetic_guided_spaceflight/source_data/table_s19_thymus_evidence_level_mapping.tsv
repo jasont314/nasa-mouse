@@ -1,9 +1,9 @@
 evidence_tier	heldout_accession	gene	symbol	heldout_direction_in_wt_and_nrf2ko	heldout_classifier_coefficient	heldout_mean_real_effect	development_mean_synthetic_effect	tier_2_selection_interpretation	tier_2_stable_real	tier_2_stable_generated	tier_2_real_selection_frequency	tier_2_generated_selection_frequency	real_cross_study_meta_effect	real_cross_study_bh_fdr	real_cross_study_direction_fraction	real_cross_study_unanimous_direction
-1	OSD-457	ENSMUSG00000017716	Birc5	FLT_lower	-0.15193811	-1.3731337	-3.0016122	not_stably_selected	False	False	0.0	0.0	-0.0133379360163701	1.2621664694113914e-07	1.0	True
-1	OSD-457	ENSMUSG00000019942	Cdk1	FLT_lower	-0.11363761	-1.2369255	-2.239246	synthetic_promoted	False	True	0.0	0.875	-0.0186189492557566	4.834064923206809e-07	1.0	True
+1	OSD-457	ENSMUSG00000017716	Birc5	FLT_lower	-0.15193811	-1.3731337	-3.0016122	synthetic_promoted	False	True	0.0	1.0	-0.0133379360163701	1.2621664694113914e-07	1.0	True
+1	OSD-457	ENSMUSG00000019942	Cdk1	FLT_lower	-0.11363761	-1.2369255	-2.239246	synthetic_promoted	False	True	0.0	1.0	-0.0186189492557566	4.834064923206809e-07	1.0	True
 1	OSD-457	ENSMUSG00000032218	Ccnb2	FLT_lower	-0.07908683	-1.2356275	-2.389782	synthetic_promoted	False	True	0.0	0.75	-0.0102311976129221	0.0002376244088253	1.0	True
-1	OSD-457	ENSMUSG00000027306	Nusap1	FLT_lower	-0.11078968	-1.1690028	-2.4770057	synthetic_promoted	False	True	0.0	0.875	-0.0310693843087508	1.1595716103290356e-09	1.0	True
-1	OSD-457	ENSMUSG00000041431	Ccnb1	FLT_lower	-0.096684575	-1.1243068	-1.9800079	synthetic_promoted	False	True	0.0	0.875	-0.016650298391821	3.3977891199323907e-10	1.0	True
+1	OSD-457	ENSMUSG00000027306	Nusap1	FLT_lower	-0.11078968	-1.1690028	-2.4770057	synthetic_promoted	False	True	0.0	1.0	-0.0310693843087508	1.1595716103290356e-09	1.0	True
+1	OSD-457	ENSMUSG00000041431	Ccnb1	FLT_lower	-0.096684575	-1.1243068	-1.9800079	not_stably_selected	False	False	0.0	0.0	-0.016650298391821	3.3977891199323907e-10	1.0	True
 1	OSD-457	ENSMUSG00000006715	Gmnn	FLT_lower	-0.15230916	-1.0611079	-2.9066777	reinforced_real_and_synthetic	True	True	0.625	1.0	-0.0050733709559632	0.0227227092537027	1.0	True
 1	OSD-457	ENSMUSG00000028212	Ccne2	FLT_lower	-0.20320298	-0.83561665	-2.8423998	synthetic_promoted	False	True	0.0	1.0	-0.010656625053089	0.0017185061144963	1.0	True
-1	OSD-457	ENSMUSG00000001403	Ube2c	FLT_lower	-0.1210052	-0.7868755	-2.7830071	real_only_selected	True	False	0.5	0.0	-0.0018349696076913	0.0102071219596878	1.0	True
+1	OSD-457	ENSMUSG00000001403	Ube2c	FLT_lower	-0.1210052	-0.7868755	-2.7830071	reinforced_real_and_synthetic	True	True	0.5	0.75	-0.0018349696076913	0.0102071219596878	1.0	True

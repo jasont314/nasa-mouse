@@ -1,4 +1,4 @@
 training_data	balanced_accuracy	roc_auc
-Real OSDR	0.754	0.819
-Synthetic	0.7	0.751
-Real + synthetic	0.734	0.801
+Real OSDR	0.7544326241134751	0.819568868980963
+Synthetic	0.6947088465845465	0.7514464352370287
+Real + synthetic	0.7372153788727136	0.7913867114594998

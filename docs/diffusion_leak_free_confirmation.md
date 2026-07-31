@@ -2,10 +2,12 @@
 
 ## Purpose
 
-This rerun tests whether the lung and thymus generated-feature results persist
-after removing OSDR overlap from ARCHS4 pretraining. It preserves the original
-DDIM architecture, 15,000-epoch reference duration, 5,000-step OSDR adaptation,
-contrastive generation seeds, and validation-selected feature-policy grid.
+This work tests whether generated-feature results persist after removing OSDR
+overlap from ARCHS4 pretraining. The first phase repeated the frozen lung and
+thymus held-out experiment. A subsequent phase retrained the broad factorized
+OSDR adapter and regenerated the all-tissue and muscle-group development screens
+from the same OSDR-disjoint ARCHS4 backbone. Both phases preserve the original
+DDIM architecture and declared feature-policy rules.
 
 This is a leakage-corrected retest, not a new prospective confirmation, because
 the OSD-457 and OSD-900 outcomes had already been inspected before this rerun.
@@ -57,6 +59,44 @@ split. The strict correlation-matrix gate still fails (`0.878` versus `0.952`
 required), but the original model also scored `0.879`; this is an existing model
 limitation rather than an effect of leakage removal.
 
+## Corrected broad OSDR rerun
+
+The broad base adapter completed 12,000 domain and 4,000 condition steps. Its
+correlation-refinement continuation completed 4,000 domain and 1,000 condition
+steps. Both stages ran on an NVIDIA A100-SXM4-40GB. The corrected locked
+within-study test produced:
+
+| Metric | Mean | Repeat pass count |
+|---|---:|---:|
+| Gene-correlation agreement | 0.9744 | 4/4 against finite-sample floor |
+| Precision | 0.9974 | 4/4 |
+| Recall | 0.9957 | 4/4 |
+| F1 | 0.9966 | 4/4 |
+| Adversarial accuracy | 0.4753 | 4/4 |
+| FD / real-split P95 | 0.0740 | 4/4 |
+| Pooled FLT/GC effect correlation | 0.5408 | 3/4 |
+| Muscle accession-effect correlation | 0.5930 | 4/4 |
+
+The finite-sample correlation floor was 0.9497; the stricter paper target was
+0.98. A preceding validation calibration missed its sample-specific correlation
+floor and muscle accession-effect gate. The all-tissue findings are therefore
+developmental, even though the corrected locked output passed its implemented
+broad-finalist rule.
+
+Direct augmentation remained unhelpful: real-only balanced accuracy/AUROC was
+0.7544/0.8196, compared with 0.6947/0.7514 for synthetic-only and
+0.7372/0.7914 for real plus synthetic. The useful mode remained synthetic-guided
+feature ranking rather than treating generated profiles as extra animals.
+
+The corrected all-tissue and muscle-group screens changed several prior
+attributions. Across 459 real-data BH-FDR tissue-gene associations, 49 met the
+corrected synthetic-informed definition: 26 synthetic-promoted and 23
+reinforced. Soleus retained five reinforced genes (`Bdh1`, `Ech1`, `Bnip3`,
+`Decr1`, and `Tpm1`) but no promoted genes. Kidney promoted `Inpp4b` and
+reinforced `Slc37a4`. Spleen promoted `Rai14`, `Ptprk`, and `Myl9` and reinforced
+`Loxl1`; `Igfbp3` remained a strong real-data-only association. Quadriceps, EDL,
+and liver selected real-only arms and no longer support synthetic-guided claims.
+
 ## Confirmation results
 
 | Tissue | Test accession | Baseline BA | Guided BA | Baseline AUROC | Guided AUROC | Baseline AP | Guided AP | Result |
@@ -94,10 +134,12 @@ It does not restore prospective independence: OSD-457 had already been examined
 when this correction was designed. A newly reserved thymus accession or external
 dataset remains necessary for a genuinely untouched confirmation.
 
-This rerun covers the fixed lung/thymus confirmation experiment. The broader
-all-tissue synthetic-selection screens were not regenerated with this corrected
-backbone and remain hypothesis-generating. Their real-only random-effects BH-FDR
-results are unaffected by the generator overlap.
+The fixed lung/thymus experiment and broader development screens now both use
+the OSDR-disjoint reference backbone. Only the lung/thymus experiment excludes
+an entire OSDR test accession from adaptation and policy development. The
+all-tissue screens interpolate within represented studies and remain
+hypothesis-generating. Their random-effects BH-FDR values are based exclusively
+on real OSDR profiles.
 
 ## Outputs
 
@@ -107,6 +149,12 @@ results are unaffected by the generator overlap.
   `outputs/generative_benchmark/runs/lacan_diffusion/osdr_generated_feature_confirmation_disjoint_5000_seed3036/`
 - Confirmation:
   `outputs/generative_benchmark/analyses/generated_feature_guidance_confirmation_disjoint_v1/`
+- Corrected broad OSDR adaptation:
+  `outputs/generative_benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/`
+- Corrected broad tissue screen:
+  `outputs/generative_benchmark/analyses/within_study_generated_feature_stability_osdr_disjoint_v1/`
+- Corrected muscle-group screen:
+  `outputs/generative_benchmark/analyses/within_study_generated_feature_stability_muscle_groups_osdr_disjoint_v1/`
 - Reference config:
   `configs/rna_diffusion/archs4_mouse_paper_parity_osdr_disjoint.yaml`
 - OSDR config:

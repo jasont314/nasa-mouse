@@ -5,13 +5,14 @@ responses identified with synthetic-guided transcriptomics. The central result i
 a leakage-corrected retrospective thymus test. The OSD-457 accession was excluded
 from OSDR adaptation, and all OSDR-linked GEO series were excluded from ARCHS4
 pretraining before the model was retrained from scratch. Soleus provides
-cross-accession metabolic evidence, and spleen provides a focused cross-study
-`Igfbp3` association with a testable stromal-source hypothesis.
+cross-accession metabolic evidence, while kidney provides a focused promoted
+`Inpp4b` and reinforced `Slc37a4` result.
 
-The corrected retraining applies to the lung/thymus held-out experiment. The
-all-tissue synthetic-selection screen preceded the overlap audit and remains
-hypothesis-generating. Its BH-FDR effects use real OSDR samples only and are
-unaffected by the generator correction.
+The corrected OSDR-disjoint backbone was used for the lung/thymus held-out
+experiment and for regenerated all-tissue and muscle-group development screens.
+All BH-FDR effects use real OSDR samples only. Synthetic attribution is retained
+only where the selected generated arm passed the balanced-accuracy, AUROC, and
+average-precision eligibility gate.
 
 Generated profiles are not treated as additional animals. Biological support is
 calculated from real NASA OSDR profiles using within-accession effects,
@@ -52,7 +53,7 @@ Markdown manuscripts with WeasyPrint.
   seen in the earlier overlapping analysis, a new untouched study is still
   required for prospective confirmation.
 - **Tier 2, synthetic-informed development:** real-data BH-FDR genes were also
-  repeatedly synthetic-promoted or reinforced. This contains 52 tissue-gene
+  repeatedly synthetic-promoted or reinforced. This contains 49 tissue-gene
   results and supports developmental hypotheses rather than independent transfer.
 - **Tier 3, complete real-data screen:** all 459 random-effects BH-FDR
   tissue-gene results, regardless of synthetic feature-selection status.
@@ -61,11 +62,11 @@ Markdown manuscripts with WeasyPrint.
 
 - **Cross-accession development:** selected BH-FDR genes form a coherent pattern
   across represented studies, but the generator was adapted in the same
-  development domain. This applies to soleus and the anatomical muscle groups.
-- **Cross-accession gene-level evidence:** focused real-sample associations are
-  consistent across represented studies, but their mechanisms and unseen-study
-  transfer remain unconfirmed. This applies to spleen and quadriceps.
+  development domain. This applies most clearly to soleus, pooled skeletal
+  muscle, and kidney.
 - **Exploratory:** predictive or enrichment signals without a stable real
-  accession-aware gene set.
+  accession-aware gene set or without unseen-study transfer. This applies to
+  spleen, skin, adrenal gland, gastrocnemius, and tibialis anterior.
 - **Negative:** no coherent synthetic-guided biological result under the declared
-  rules.
+  rules. Quadriceps, EDL, and liver retained real-only arms; lung failed its
+  accession-held-out test.

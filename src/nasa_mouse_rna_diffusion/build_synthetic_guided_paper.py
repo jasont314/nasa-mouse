@@ -38,7 +38,7 @@ ARCHS4_RUN = (
 OSDR_RUN = (
     ROOT
     / "outputs/generative_benchmark/runs/lacan_diffusion/"
-    "osdr_factorized_study_lora512_correlation_refine_seed2020"
+    "osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020"
 )
 LOCKED_DIR = OSDR_RUN / "evaluation/final_locked_test"
 CONFIRM_DIR = (
@@ -49,12 +49,12 @@ CONFIRM_DIR = (
 MUSCLE_DIR = (
     ROOT
     / "outputs/generative_benchmark/analyses/"
-    "within_study_generated_feature_stability_muscle_groups_v1"
+    "within_study_generated_feature_stability_muscle_groups_osdr_disjoint_v1"
 )
 TISSUE_DIR = (
     ROOT
     / "outputs/generative_benchmark/analyses/"
-    "within_study_generated_feature_stability_v1"
+    "within_study_generated_feature_stability_osdr_disjoint_v1"
 )
 WGAN_DIR = (
     ROOT
@@ -153,6 +153,30 @@ def _clean_term(term: str) -> str:
 def _assert_close(value: float, expected: float, label: str, tolerance: float = 1e-5) -> None:
     if not math.isclose(float(value), expected, abs_tol=tolerance, rel_tol=tolerance):
         raise ValueError(f"{label} changed: observed {value}, expected {expected}")
+
+
+def _gate_synthetic_selection(
+    stable_genes: pd.DataFrame,
+    arm_choices: pd.DataFrame,
+) -> pd.DataFrame:
+    """Remove synthetic attribution where the generated arm failed its metric gate."""
+    eligible_tissues = set(
+        arm_choices.loc[
+            arm_choices["generated_arm_eligible_all_metrics"].astype(bool),
+            "tissue",
+        ].astype(str)
+    )
+    gated = stable_genes.copy()
+    ineligible = ~gated["tissue"].astype(str).isin(eligible_tissues)
+    gated.loc[ineligible, "stable_generated"] = False
+    gated.loc[ineligible, "generated_selection_frequency"] = 0.0
+    gated.loc[ineligible, "real_effect_supports_generated"] = False
+    gated.loc[
+        ineligible
+        & gated["gene_set"].isin(["core_intersection", "generated_supported"]),
+        "gene_set",
+    ] = "exploratory_union"
+    return gated
 
 
 def _ordinary_fdr_gene_inventory(
@@ -447,13 +471,17 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     arch_eval = _read_json(ARCHS4_RUN / "evaluation/summary.json")
     arch_run = _read_json(ARCHS4_RUN / "run_summary.json")
     locked = _read_tsv(LOCKED_DIR / "repeat_metrics.tsv")
+    locked_run = _read_json(LOCKED_DIR / "summary.json")
     confirmation = _read_tsv(CONFIRM_DIR / "tissue_results.tsv")
     genotype = _read_tsv(CONFIRM_DIR / "genotype_subgroup_results.tsv")
     thymus_features = _read_tsv(CONFIRM_DIR / "thymus/feature_stability.tsv")
     thymus_reactome = _read_tsv(CONFIRM_DIR / "thymus/reactome_enrichment.tsv")
     muscle_choices = _read_tsv(MUSCLE_DIR / "tissue_arm_choices.tsv")
     muscle_repeats = _read_tsv(MUSCLE_DIR / "paired_repeat_support.tsv")
-    muscle_genes = _read_tsv(MUSCLE_DIR / "stable_gene_sets.tsv.gz")
+    muscle_genes = _gate_synthetic_selection(
+        _read_tsv(MUSCLE_DIR / "stable_gene_sets.tsv.gz"),
+        muscle_choices,
+    )
     muscle_reactome = _read_tsv(MUSCLE_DIR / "reactome_enrichment.tsv.gz")
     muscle_inventory = _read_tsv(MUSCLE_DIR / "tissue_inventory.tsv")
     muscle_accession_effects = _read_tsv(MUSCLE_DIR / "real_accession_effects.tsv.gz")
@@ -461,7 +489,10 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     tissue_choices = _read_tsv(TISSUE_DIR / "tissue_arm_choices.tsv")
     tissue_repeats = _read_tsv(TISSUE_DIR / "paired_repeat_support.tsv")
     tissue_biology = _read_tsv(TISSUE_DIR / "biological_support_summary.tsv")
-    tissue_genes = _read_tsv(TISSUE_DIR / "stable_gene_sets.tsv.gz")
+    tissue_genes = _gate_synthetic_selection(
+        _read_tsv(TISSUE_DIR / "stable_gene_sets.tsv.gz"),
+        tissue_choices,
+    )
     tissue_accession_effects = _read_tsv(TISSUE_DIR / "real_accession_effects.tsv.gz")
     tissue_random_effects = _read_tsv(TISSUE_DIR / "real_random_effects.tsv.gz")
     landmark_panel = _read_tsv(LANDMARK_PANEL)
@@ -646,11 +677,26 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         ]
     )
 
+    utility = locked_run["classifier_utility"]
     naive_utility = pd.DataFrame(
         [
-            ("Real OSDR", 0.754, 0.819),
-            ("Synthetic", 0.700, 0.751),
-            ("Real + synthetic", 0.734, 0.801),
+            (
+                "Real OSDR",
+                utility["real_train_real_evaluation"]["balanced_accuracy"],
+                utility["real_train_real_evaluation"]["roc_auc"],
+            ),
+            (
+                "Synthetic",
+                utility["synthetic_train_real_evaluation"]["balanced_accuracy"],
+                utility["synthetic_train_real_evaluation"]["roc_auc"],
+            ),
+            (
+                "Real + synthetic",
+                utility["real_plus_synthetic_train_real_evaluation"][
+                    "balanced_accuracy"
+                ],
+                utility["real_plus_synthetic_train_real_evaluation"]["roc_auc"],
+            ),
         ],
         columns=["training_data", "balanced_accuracy", "roc_auc"],
     )
@@ -667,12 +713,16 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
 
     soleus_genes = muscle_genes.loc[
         (muscle_genes["tissue"] == "soleus")
-        & muscle_genes["real_loo_fdr_stable_0_05"].astype(bool)
+        & muscle_genes["gene_set"].eq("core_intersection")
+        & muscle_genes["real_meta_fdr"].lt(0.05)
         & muscle_genes["real_effect_supports_generated"].astype(bool)
     ].copy()
     soleus_genes = soleus_genes.sort_values("real_meta_effect")
-    if len(soleus_genes) != 7:
-        raise ValueError(f"Expected 7 generated-supported soleus LOO genes, found {len(soleus_genes)}")
+    if len(soleus_genes) != 5:
+        raise ValueError(
+            "Expected five corrected-model reinforced soleus genes, "
+            f"found {len(soleus_genes)}"
+        )
 
     rbm6_gene = "ENSMUSG00000032582"
     quadriceps_rbm6_effects = muscle_accession_effects.loc[
@@ -802,8 +852,8 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         raise ValueError(f"Unexpected BH-FDR inventory counts: {scope_counts}")
     selection_counts = all_bh_fdr_genes["selection_interpretation"].value_counts()
     if (
-        int(selection_counts.get("synthetic_promoted", 0)) != 28
-        or int(selection_counts.get("reinforced_real_and_synthetic", 0)) != 24
+        int(selection_counts.get("synthetic_promoted", 0)) != 26
+        or int(selection_counts.get("reinforced_real_and_synthetic", 0)) != 23
     ):
         raise ValueError(
             "Unexpected synthetic-informed BH-FDR counts: "
@@ -975,19 +1025,28 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                 "tissue": "soleus",
                 "tier": "cross-accession development",
                 "tier_score": 2,
-                "predictive_result": "generated-only delta BA/AUROC/AP +0.025/+0.020/+0.020",
-                "real_gene_support": "8 unanimous ordinary-FDR genes; 7 pass LOO FDR",
+                "predictive_result": "real-plus-generated delta BA/AUROC/AP +0.038/+0.000/+0.006",
+                "real_gene_support": "5 reinforced BH-FDR genes; 4 pass LOO FDR",
                 "pathway_support": "mitochondrial lipid oxidation/protein turnover; FDR < 0.05",
                 "interpretation": "coherent hypothesis; requires unseen-accession confirmation",
             },
             {
-                "tissue": "quadriceps",
-                "tier": "cross-accession gene-level evidence",
+                "tissue": "kidney",
+                "tier": "cross-accession development",
                 "tier_score": 2,
-                "predictive_result": "guided delta BA/AUROC/AP +0.050/+0.040/+0.026",
-                "real_gene_support": "4 unanimous ordinary-FDR genes; Rbm6 passes LOO FDR",
-                "pathway_support": "G1/S and TP53 terms were suggestive; minimum FDR 0.0598",
-                "interpretation": "secondary four-gene association; mechanism unconfirmed",
+                "predictive_result": "guided delta BA/AUROC/AP +0.053/+0.091/+0.115",
+                "real_gene_support": "Inpp4b promoted and LOO-stable; Slc37a4 reinforced",
+                "pathway_support": "no corrected stable-set Reactome term at FDR < 0.05",
+                "interpretation": "focused renal metabolic-signaling hypothesis",
+            },
+            {
+                "tissue": "skeletal_muscle",
+                "tier": "cross-accession development",
+                "tier_score": 2,
+                "predictive_result": "guided delta BA/AUROC/AP +0.071/+0.036/+0.037",
+                "real_gene_support": "12 synthetic-informed BH-FDR genes; 9 pass LOO FDR",
+                "pathway_support": "interferon signaling and sialic-acid metabolism; FDR < 0.05",
+                "interpretation": "pooled signal complements anatomical soleus result",
             },
             {
                 "tissue": "lung",
@@ -1002,61 +1061,52 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             },
             {
                 "tissue": "spleen",
-                "tier": "cross-accession gene-level evidence",
-                "tier_score": 2,
-                "predictive_result": "nested delta BA/AUROC/AP +0.170/+0.208/+0.204",
-                "real_gene_support": "5 unanimous ordinary-FDR genes; Igfbp3 passes LOO FDR",
+                "tier": "developmental exploratory",
+                "tier_score": 1,
+                "predictive_result": "real-plus-generated delta BA/AUROC/AP +0.131/+0.163/+0.160",
+                "real_gene_support": "Rai14, Ptprk, Myl9 promoted; Loxl1 reinforced; none pass LOO",
                 "pathway_support": "no coherent stable-set Reactome enrichment",
-                "interpretation": "strong single-gene association; stromal mechanism unconfirmed",
+                "interpretation": "adhesion/cytoskeletal hypothesis; Igfbp3 is real-data-only",
             },
             {
                 "tissue": "skin",
                 "tier": "developmental exploratory",
                 "tier_score": 1,
-                "predictive_result": "nested gains did not reproduce on the reserved profiles",
-                "real_gene_support": "Plscr1 is FLT-up in 6/6 studies but is not synthetic-selected",
+                "predictive_result": "real-plus-generated delta BA/AUROC/AP +0.085/+0.076/+0.062",
+                "real_gene_support": "Plscr1 is promoted and FLT-up in 6/6 studies; not LOO-stable",
                 "pathway_support": "cell-cycle/DNA-repair theme matches published skin analyses",
-                "interpretation": "literature-aligned heterogeneous response; not a new synthetic claim",
+                "interpretation": "literature-aligned developmental candidate",
             },
             {
-                "tissue": "kidney",
+                "tissue": "adrenal_gland",
                 "tier": "developmental exploratory",
                 "tier_score": 1,
-                "predictive_result": "nested delta BA/AUROC/AP +0.029/+0.093/+0.097",
-                "real_gene_support": "Slc37a4 is reinforced and FLT-up in 6/6 studies",
-                "pathway_support": "renal glucose metabolism; lipid/ECM context from expiMap",
-                "interpretation": "credible secondary hypothesis; requires unseen-study confirmation",
+                "predictive_result": "generated-only delta BA/AUROC/AP +0.141/+0.078/+0.070",
+                "real_gene_support": "Psmb8 promoted and Tspan4 reinforced; FLT-lower in 3/3 studies",
+                "pathway_support": "heat-shock/RNA-regulation enrichment; FDR < 0.05",
+                "interpretation": "small-study developmental candidate; neither gene passes LOO",
             },
             {
                 "tissue": "liver",
                 "tier": "negative",
                 "tier_score": 0,
-                "predictive_result": "small nested gains; 5/8 repeats nonworse",
-                "real_gene_support": "0 selected genes pass real LOO FDR",
+                "predictive_result": "real-only arm retained by corrected screen",
+                "real_gene_support": "no corrected synthetic-informed BH-FDR genes",
                 "pathway_support": "no retained coherent synthetic-guided pathway",
                 "interpretation": "no convincing synthetic-guided biological result",
-            },
-            {
-                "tissue": "retina",
-                "tier": "developmental exploratory",
-                "tier_score": 1,
-                "predictive_result": "nested gains but no real LOO-stable selected genes",
-                "real_gene_support": "Slc37a4 is FLT-up in 4/4 studies; ordinary FDR 0.0238",
-                "pathway_support": "shear-stress enrichment involves a different gene set",
-                "interpretation": "exploratory gene/pathway mismatch; no integrated claim",
             },
         ]
     )
     evidence_order = [
         "thymus",
         "soleus",
-        "quadriceps",
-        "spleen",
         "kidney",
-        "lung",
+        "skeletal_muscle",
+        "spleen",
         "skin",
+        "adrenal_gland",
+        "lung",
         "liver",
-        "retina",
     ]
     evidence["_order"] = evidence["tissue"].map(
         {tissue: index for index, tissue in enumerate(evidence_order)}
@@ -1456,7 +1506,7 @@ def figure_4_thymus(tables: dict[str, pd.DataFrame]) -> None:
         ax.text(score + 0.015, yi, f"{overlap}/{total} genes", va="center", fontsize=7)
 
     fig.suptitle(
-        "Independent thymus confirmation prioritizes a flight-lower mitotic program in both genotypes",
+        "Leakage-corrected thymus test prioritizes a flight-lower mitotic program in both genotypes",
         x=0.02,
         ha="left",
         fontsize=11,
@@ -1474,7 +1524,7 @@ def figure_5_soleus(tables: dict[str, pd.DataFrame]) -> None:
         (pathways["tissue"] == "soleus")
         & (pathways["gene_set"] == "core_intersection")
         & (pathways["fdr"] < 0.05)
-    ].sort_values("fdr", ascending=False)
+    ].nsmallest(4, "fdr").sort_values("fdr", ascending=False)
 
     fig, axes = plt.subplots(
         1,
@@ -1575,17 +1625,6 @@ def figure_5_soleus(tables: dict[str, pd.DataFrame]) -> None:
 def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
     evidence = tables["evidence"].copy()
     scores = evidence["tier_score"].to_numpy()
-    themes = [
-        "Lower cell division and proliferative renewal",
-        "Oxidative metabolism and contractile remodeling",
-        "FLT-higher four-gene set; G1/S and TP53 suggestive",
-        "FLT-higher IGFBP3; stromal-niche hypothesis",
-        "Renal glucose metabolism; lipid/ECM context",
-        "Cell cycle, senescence, and PI3K/AKT (mixed)",
-        "Cell cycle and DNA repair candidates",
-        "No coherent retained pattern",
-        "FLT-higher SLC37A4; pathway context differs",
-    ]
     palette = {
         0: "#B8C0C5",
         1: COLORS["gold"],
@@ -1604,81 +1643,98 @@ def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
     )
 
     ax = fig.add_subplot(grid[0, 0])
-    effects = tables["spleen_igfbp3_effects"].copy()
-    meta = tables["spleen_igfbp3_meta"].iloc[0]
-    scale = 1_000.0
-    y_effects = np.arange(len(effects))
-    ax.errorbar(
-        effects["flight_minus_ground"] * scale,
-        y_effects,
-        xerr=1.96 * effects["standard_error"] * scale,
-        fmt="o",
-        color=COLORS["teal"],
-        ecolor="#86AAA8",
-        elinewidth=1.1,
-        capsize=2.5,
-        markersize=5,
-        zorder=3,
-    )
-    meta_y = len(effects) + 0.35
-    ax.errorbar(
-        float(meta["meta_effect"]) * scale,
-        meta_y,
-        xerr=1.96 * float(meta["meta_se"]) * scale,
-        fmt="D",
-        color=COLORS["coral"],
-        ecolor=COLORS["coral"],
-        elinewidth=1.4,
-        capsize=3,
-        markersize=5.5,
-        zorder=4,
-    )
-    effect_labels = [
-        f"{row.accession}  ({int(row.n_flight)}/{int(row.n_ground_control)})"
-        for row in effects.itertuples()
+    performance = pd.concat(
+        [tables["tissue_summary"], tables["muscle_summary"]],
+        ignore_index=True,
+        sort=False,
+    ).drop_duplicates("tissue", keep="last")
+    performance_order = [
+        "soleus",
+        "kidney",
+        "skeletal_muscle",
+        "spleen",
+        "skin",
+        "adrenal_gland",
     ]
-    ax.set_yticks(
-        [*y_effects, meta_y],
-        [*effect_labels, "Random-effects estimate"],
+    performance = (
+        performance.set_index("tissue").loc[performance_order].reset_index()
     )
-    ax.invert_yaxis()
+    y_performance = np.arange(len(performance))
+    metric_columns = [
+        ("mean_delta_balanced_accuracy", "Balanced accuracy", COLORS["teal"]),
+        ("mean_delta_roc_auc", "AUROC", COLORS["blue"]),
+        ("mean_delta_average_precision", "Average precision", COLORS["gold"]),
+    ]
+    offsets = [-0.22, 0.0, 0.22]
+    for (column, label, color), offset in zip(metric_columns, offsets):
+        ax.scatter(
+            performance[column],
+            y_performance + offset,
+            color=color,
+            s=28,
+            label=label,
+            zorder=3,
+        )
     ax.axvline(0, color=COLORS["gray"], linewidth=0.9, linestyle="--")
     ax.grid(axis="x", color="#E5E9EB", linewidth=0.8)
-    ax.set_xlabel(r"FLT - GC ($\times 10^{-3}$, model scale)")
-    ax.set_title("A  Cross-study spleen $Igfbp3$ effect", loc="left", fontsize=9)
+    ax.set_yticks(
+        y_performance,
+        [name.replace("_", " ").title() for name in performance["tissue"]],
+    )
+    ax.invert_yaxis()
+    ax.set_xlabel("Selected arm - real-only")
+    ax.set_title("A  Repeated development-screen gains", loc="left", fontsize=9)
+    ax.legend(frameon=False, fontsize=6.8, ncol=1, loc="lower right")
 
     ax = fig.add_subplot(grid[0, 1])
-    reference = tables["spleen_reference_expression"].iloc[::-1].copy()
-    y_reference = np.arange(len(reference))
+    genes = tables["ordinary_fdr_genes"]
+    gene_order = [
+        "thymus",
+        "skeletal_muscle",
+        "soleus",
+        "kidney",
+        "spleen",
+        "skin",
+        "adrenal_gland",
+    ]
+    gene_counts = (
+        genes.loc[genes["tissue"].isin(gene_order)]
+        .groupby(["tissue", "selection_interpretation"], observed=True)
+        .size()
+        .unstack(fill_value=0)
+        .reindex(gene_order, fill_value=0)
+    )
+    promoted = gene_counts.get(
+        "synthetic_promoted",
+        pd.Series(0, index=gene_counts.index),
+    )
+    reinforced = gene_counts.get(
+        "reinforced_real_and_synthetic",
+        pd.Series(0, index=gene_counts.index),
+    )
+    y_genes = np.arange(len(gene_counts))
+    ax.barh(y_genes, reinforced, color=COLORS["teal"], label="Reinforced")
     ax.barh(
-        y_reference,
-        reference["mean_igfbp3_rpkm"],
-        color=[COLORS["coral"], COLORS["gold"], COLORS["teal"], COLORS["blue"]],
+        y_genes,
+        promoted,
+        left=reinforced,
+        color=COLORS["coral"],
+        label="Promoted",
     )
-    ax.set_xscale("log")
-    ax.set_xlim(1, 2_500)
-    ax.set_yticks(y_reference, reference["population"])
-    ax.set_xlabel("Mean $Igfbp3$ (RPKM, log scale)")
-    ax.set_title(
-        "B  Healthy spleen source (GSE156162)",
-        loc="left",
-        fontsize=9,
+    ax.set_yticks(
+        y_genes,
+        [name.replace("_", " ").title() for name in gene_counts.index],
     )
+    ax.invert_yaxis()
+    ax.set_xlabel("BH-FDR genes")
+    ax.set_title("B  Corrected synthetic-informed genes", loc="left", fontsize=9)
+    ax.legend(frameon=False, fontsize=7, loc="lower right")
     ax.grid(axis="x", color="#E5E9EB", linewidth=0.8)
-    for yi, value in zip(y_reference, reference["mean_igfbp3_rpkm"]):
-        ax.text(
-            float(value) * 1.12,
-            yi,
-            f"{float(value):,.1f}",
-            va="center",
-            fontsize=6.8,
-            color=COLORS["dark"],
-        )
 
     ax = fig.add_subplot(grid[1, :])
     y = np.arange(len(evidence))
     ax.scatter(scores, y, s=135, color=[palette[int(score)] for score in scores], zorder=3)
-    for yi, score, theme in zip(y, scores, themes):
+    for yi, score, theme in zip(y, scores, evidence["interpretation"]):
         ax.plot([score, 3.25], [yi, yi], color="#D9DEE1", lw=0.8, zorder=1)
         ax.text(3.35, yi, theme, va="center", fontsize=7.4, color=COLORS["dark"])
     ax.set_yticks(y, [name.title() for name in evidence["tissue"]])
@@ -1699,7 +1755,7 @@ def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
         fontsize=9,
     )
     fig.suptitle(
-        "Spleen $Igfbp3$ adds a focused cross-study result to the tissue response hierarchy",
+        "Corrected-model evidence is strongest in thymus and soleus, with secondary tissue candidates",
         x=0.02,
         ha="left",
         fontsize=11,
@@ -1727,6 +1783,7 @@ def build_manifest() -> None:
         ARCHS4_RUN / "evaluation/summary.json",
         ARCHS4_RUN / "run_summary.json",
         LOCKED_DIR / "repeat_metrics.tsv",
+        LOCKED_DIR / "summary.json",
         CONFIRM_DIR / "tissue_results.tsv",
         CONFIRM_DIR / "genotype_subgroup_results.tsv",
         CONFIRM_DIR / "thymus/feature_stability.tsv",
@@ -1858,7 +1915,11 @@ def main() -> None:
     if not args.skip_render:
         render_document(
             _required(PAPER_DIR / "manuscript.md"),
-            "Cross-study synthetic-guided transcriptomics of spaceflown mice",
+            (
+                "Cross-study synthetic-guided transcriptomics identifies thymic "
+                "proliferative suppression and soleus metabolic remodeling in "
+                "spaceflown mice"
+            ),
         )
         render_document(
             _required(PAPER_DIR / "supplementary_methods.md"),

@@ -238,11 +238,13 @@ the reference exclusion and grouped split contract changed.</p>
 </code></pre>
 <h2>S6. Factorized OSDR adaptation</h2>
 <p>The accepted configuration is
-<code>configs/rna_diffusion/osdr_factorized_study_lora512_correlation_refine.yaml</code>.
-This broad adaptation and the all-tissue development screens preceded the
-cross-resource overlap audit. They are retained for hypothesis generation and
-for the real-data BH-FDR analyses, but they do not supply Tier 1 evidence. The
-corrected lung/thymus adaptation is described in Section S10.</p>
+<code>configs/rna_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint.yaml</code>.
+It uses the OSDR-disjoint ARCHS4 backbone described in Section S5. A corrected
+base adapter was trained for 12,000 domain and 4,000 condition steps, followed
+by the 4,000-domain-step and 1,000-condition-step correlation-refinement stage
+reported here. The all-tissue and muscle-group development screens were then
+regenerated from this corrected adapter. Section S10 describes the separate
+lung/thymus accession-held-out experiment.</p>
 <table>
 <thead>
 <tr>
@@ -301,7 +303,7 @@ measure within-study interpolation.</p>
 <li>explicit clipping at zero for accepted downstream expression.</li>
 </ol>
 <p>Run directory:</p>
-<pre><code class="language-text">outputs/generative_benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_seed2020/
+<pre><code class="language-text">outputs/generative_benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/
 </code></pre>
 <h2>S7. Distribution and condition gates</h2>
 <p>Four generation seeds, 5020-5023, were declared before the locked test was
@@ -316,7 +318,7 @@ opened. Every metric was gated independently.</p>
 <tbody>
 <tr>
 <td>Gene-correlation agreement</td>
-<td>At least min(0.98, real-bootstrap P05)</td>
+<td>Paper target &gt;= 0.98; finite-sample real-bootstrap floor also reported</td>
 </tr>
 <tr>
 <td>Precision</td>
@@ -352,7 +354,16 @@ opened. Every metric was gated independently.</p>
 </tr>
 </tbody>
 </table>
-<p>The exact repeat rows are in <code>source_data/table_s2_locked_ddim_repeats.tsv</code>.</p>
+<p>The exact repeat rows are in <code>source_data/table_s2_locked_ddim_repeats.tsv</code>.
+On the corrected locked within-study test, mean gene-correlation agreement was
+0.9744, precision 0.9974, recall 0.9957, F1 0.9966, adversarial accuracy
+0.4753, and FD/real-split-P95 ratio 0.0740. All four repeats passed the
+finite-sample correlation floor of 0.9497, although the mean remained below the
+paper target of 0.98. Pooled FLT/GC effect recovery passed in three of four
+repeats and muscle accession-effect recovery passed in all four. The preceding
+validation screen missed its stricter sample-specific correlation floor and
+muscle accession-effect gate; the broad biological screens therefore remain
+developmental rather than study-held-out confirmation.</p>
 <p>The term "adversarial accuracy" refers to an external nearest-neighbor
 real-versus-synthetic classifier, not the WGAN training critic. A result near 0.5
 indicates that this external discriminator cannot reliably separate the two
@@ -550,7 +561,7 @@ labels were:</p>
 <tr>
 <td><code>Birc5</code></td>
 <td>FLT lower in WT and Nrf2KO</td>
-<td>Not selection-stable</td>
+<td>Synthetic-promoted</td>
 <td style="text-align: right;"><code>1.26e-7</code></td>
 </tr>
 <tr>
@@ -574,7 +585,7 @@ labels were:</p>
 <tr>
 <td><code>Ccnb1</code></td>
 <td>FLT lower in WT and Nrf2KO</td>
-<td>Synthetic-promoted</td>
+<td>Not selection-stable</td>
 <td style="text-align: right;"><code>3.40e-10</code></td>
 </tr>
 <tr>
@@ -592,7 +603,7 @@ labels were:</p>
 <tr>
 <td><code>Ube2c</code></td>
 <td>FLT lower in WT and Nrf2KO</td>
-<td>Real-only selected</td>
+<td>Reinforced</td>
 <td style="text-align: right;"><code>0.0102</code></td>
 </tr>
 </tbody>
@@ -601,10 +612,11 @@ labels were:</p>
 synthetic guidance assembled a coherent, transferable cell-cycle panel from
 real-supported genes. The Tier 2 labels describe thresholded selection behavior
 and should not be interpreted as eight independent novelty claims.</p>
-<p>The all-tissue development screens were not rerun with the corrected backbone.
-Their synthetic-promoted and reinforced labels remain exploratory. Their
-random-effects BH-FDR values were calculated only from real OSDR profiles and
-are unaffected by the generator overlap correction.</p>
+<p>The all-tissue and muscle-group development screens were rerun with the corrected
+backbone. Synthetic attribution was retained only when the selected generated
+arm was nonworse than real-only balanced accuracy, AUROC, and average precision
+under the frozen selection rule. Random-effects BH-FDR values were calculated
+only from real OSDR profiles.</p>
 <h2>S11. Random-effects reporting and LOO sensitivity</h2>
 <p>For gene (g) in accession (a), the real flight effect was:</p>
 <pre><code class="language-text">delta[g,a] = mean(real expression[g] | FLT,a)
@@ -646,8 +658,8 @@ Benjamini-Hochberg FDR was applied separately by tissue and selected-gene set.
 Reactome parent and child terms overlap. Counts of significant rows are therefore
 not counts of independent biological discoveries.</p>
 <h2>S13. Skeletal-muscle group analysis</h2>
-<p>The fixed DDIM and three frozen synthetic development views were reused. No neural
-network was retrained.</p>
+<p>The corrected factorized DDIM and three frozen synthetic development views were
+reused. No additional neural network was trained for the muscle-group screen.</p>
 <table>
 <thead>
 <tr>
@@ -698,22 +710,33 @@ network was retrained.</p>
 </table>
 <p>The full report is <code>docs/synthetic_skeletal_muscle_group_analysis.md</code>. Key frozen
 outputs are:</p>
-<pre><code class="language-text">outputs/generative_benchmark/analyses/within_study_generated_feature_stability_muscle_groups_v1/
+<pre><code class="language-text">outputs/generative_benchmark/analyses/within_study_generated_feature_stability_muscle_groups_osdr_disjoint_v1/
 </code></pre>
-<p>The BH-FDR soleus set contains eight synthetic-informed genes with the same
-direction in all three accessions: <code>Bdh1</code>, <code>Bnip3</code>, <code>Mef2c</code>, <code>Ech1</code>, <code>Pxmp2</code>,
-<code>Gmnn</code>, <code>Decr1</code>, and <code>Tpm1</code>. Seven also pass the LOO sensitivity criterion;
-<code>Decr1</code> does not.</p>
+<p>The selected soleus arm was real plus generated expression. It improved mean
+balanced accuracy from 0.9250 to 0.9625, left AUROC at 0.9800, and increased
+average precision from 0.9804 to 0.9865. Five BH-FDR genes were reinforced by
+both stable real-only and selected-arm feature ranking and had the same real
+effect direction in all three accessions: FLT-lower <code>Bdh1</code>, <code>Ech1</code>, <code>Bnip3</code>,
+and <code>Decr1</code>, and FLT-higher <code>Tpm1</code>. <code>Bdh1</code>, <code>Ech1</code>, <code>Bnip3</code>, and <code>Tpm1</code> also
+passed the LOO sensitivity criterion; <code>Decr1</code> did not. The corrected screen did
+not promote <code>Mef2c</code> or <code>Pxmp2</code>.</p>
+<p>Gastrocnemius selected a guided low-weight arm and promoted <code>Fhl2</code> and <code>Nfkbia</code>.
+Tibialis anterior selected real plus generated expression and reinforced
+<code>Cdkn1a</code>, <code>St3gal5</code>, and <code>Bnip3</code> while promoting <code>Cebpd</code>. None of these
+gastrocnemius or tibialis genes passed the LOO FDR sensitivity rule. EDL and
+quadriceps retained real-only arms, so their BH-FDR genes are not attributed to
+synthetic guidance.</p>
 <p>LOO here is a real-data meta-analysis sensitivity test. It does not remove the
 accession from the already completed generator adaptation. Soleus remains
 developmental until a new accession is excluded from adaptation and selection.</p>
 <h2>S14. Spleen <code>Igfbp3</code> follow-up</h2>
-<p>The all-tissue screen selected <code>Igfbp3</code> (<code>ENSMUSG00000020427</code>) through the
-generated-informed spleen arm. The subsequent biological follow-up used real
-samples only. Flight-minus-ground effects were positive in OSD-164, OSD-246,
-OSD-288, OSD-420, OSD-457, and OSD-506. The random-effects FDR was
-<code>1.76e-09</code>, and the maximum FDR across the six leave-one-accession-out analyses
-was <code>0.00385</code>.</p>
+<p>The corrected all-tissue screen did not stably select <code>Igfbp3</code>
+(<code>ENSMUSG00000020427</code>) in either the real-only or selected synthetic-guided
+arm. It therefore does not demonstrate a synthetic contribution. The separate
+real-data follow-up remains a secondary biological result: flight-minus-ground
+effects were positive in OSD-164, OSD-246, OSD-288, OSD-420, OSD-457, and
+OSD-506; random-effects FDR was <code>1.76e-09</code>; and the maximum FDR across the six
+leave-one-accession-out analyses was <code>0.00385</code>.</p>
 <p>A separate TPM calculation from the API-derived full-transcriptome count matrix
 found flight/ground-control mean ratios of 1.09 to 1.63 across the six studies.
 These ratios are descriptive; the accession-aware random-effects analysis is the
@@ -731,7 +754,8 @@ formal statistical result.</p>
 <p>These source-localization analyses are post hoc and do not constitute an
 independent flight replication. The defensible hypothesis is that whole-spleen
 <code>Igfbp3</code> elevation reflects altered stromal expression, altered stromal abundance
-or architecture, or both. The full audit and reproduction notes are in
+or architecture, or both. It is presented as real-data context, not as a
+synthetic-guided discovery. The full audit and reproduction notes are in
 <code>docs/spleen_igfbp3_handoff.md</code>.</p>
 <h2>S15. Random-effects BH-FDR gene inventories</h2>
 <p>Supplementary Table S17 is the primary statistical inventory. It contains every
@@ -765,7 +789,7 @@ exclusion rule.</p>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">21</td>
 <td style="text-align: right;">21</td>
-<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
@@ -792,7 +816,7 @@ exclusion rule.</p>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
@@ -810,7 +834,7 @@ exclusion rule.</p>
 <td style="text-align: right;">5</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">5</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
 </tr>
 <tr>
@@ -819,8 +843,8 @@ exclusion rule.</p>
 <td style="text-align: right;">12</td>
 <td style="text-align: right;">14</td>
 <td style="text-align: right;">5</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">6</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">8</td>
 </tr>
 <tr>
 <td>Skin</td>
@@ -828,7 +852,7 @@ exclusion rule.</p>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">0</td>
 </tr>
 <tr>
@@ -837,8 +861,8 @@ exclusion rule.</p>
 <td style="text-align: right;">32</td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">21</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td>Thymus</td>
@@ -846,8 +870,8 @@ exclusion rule.</p>
 <td style="text-align: right;">37</td>
 <td style="text-align: right;">41</td>
 <td style="text-align: right;">57</td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td>EDL</td>
@@ -855,8 +879,8 @@ exclusion rule.</p>
 <td style="text-align: right;">14</td>
 <td style="text-align: right;">122</td>
 <td style="text-align: right;">130</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
 <td>Gastrocnemius</td>
@@ -864,7 +888,7 @@ exclusion rule.</p>
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">7</td>
 <td style="text-align: right;">13</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
 <td style="text-align: right;">0</td>
 </tr>
 <tr>
@@ -873,8 +897,8 @@ exclusion rule.</p>
 <td style="text-align: right;">25</td>
 <td style="text-align: right;">4</td>
 <td style="text-align: right;">22</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
 <td>Soleus</td>
@@ -882,8 +906,8 @@ exclusion rule.</p>
 <td style="text-align: right;">5</td>
 <td style="text-align: right;">24</td>
 <td style="text-align: right;">27</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">6</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">5</td>
 </tr>
 <tr>
 <td>Tibialis anterior</td>
@@ -891,18 +915,19 @@ exclusion rule.</p>
 <td style="text-align: right;">42</td>
 <td style="text-align: right;">6</td>
 <td style="text-align: right;">48</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">3</td>
 </tr>
 </tbody>
 </table>
-<p>Supplementary Table S16 is the 52-row synthetic-informed subset of the primary
-inventory: 28 synthetic-promoted and 24 reinforced tissue-gene results whose real
-and generated effects agree. It is retained to attribute what the generator added,
-but it is not the primary significance table. The full inventory additionally
-contains 32 real-only selected results, 373 BH-significant results not stably
-selected by either arm, and two synthetic-selected results without real-direction
-agreement.</p>
+<p>Supplementary Table S16 is the 49-row synthetic-informed subset of the primary
+inventory: 26 synthetic-promoted and 23 reinforced tissue-gene results with
+supporting real effects. Synthetic attribution is suppressed when the candidate
+generated arm failed the three-metric eligibility gate. The table is retained to
+describe what the generator changed in feature ranking, but it is not the primary
+significance table. The full inventory additionally contains 34 real-only
+selected results, 370 BH-significant results not stably selected by either arm,
+and six synthetic-selected results without real-direction support.</p>
 <p>The complete Tier 2 genes are shown below. <code>FLT higher</code> and <code>FLT lower</code> refer to
 the sign of the real random-effects meta-estimate. An asterisk marks a
 BH-significant pooled effect whose direction was not identical in every
@@ -920,51 +945,41 @@ accession.</p>
 <tr>
 <td>Adrenal gland</td>
 <td>—</td>
-<td><code>Psmb8</code>, <code>Ticam1</code>, <code>Pmaip1</code></td>
+<td><code>Psmb8</code></td>
 </tr>
 <tr>
-<td>Retina</td>
-<td><code>Slc37a4</code></td>
+<td>Kidney</td>
+<td><code>Inpp4b</code>*</td>
 <td>—</td>
 </tr>
 <tr>
 <td>Skeletal muscle, pooled</td>
 <td>—</td>
-<td><code>H2az2</code>*</td>
+<td><code>Klhl21</code>*, <code>Mapkapk5</code>*, <code>Reep5</code>*, <code>Itgb5</code>*</td>
+</tr>
+<tr>
+<td>Skin</td>
+<td><code>Plscr1</code></td>
+<td>—</td>
 </tr>
 <tr>
 <td>Spleen</td>
-<td><code>Igfbp3</code>, <code>Rai14</code>, <code>Ptprk</code></td>
-<td><code>Snca</code>*</td>
+<td><code>Rai14</code>, <code>Myl9</code>*, <code>Ptprk</code></td>
+<td>—</td>
 </tr>
 <tr>
 <td>Thymus</td>
-<td><code>Mok</code>*</td>
-<td><code>Cenpe</code>, <code>Ccnb1</code>, <code>Nusap1</code>, <code>Stmn1</code>, <code>Cdk1</code>, <code>Top2a</code>, <code>Ccnb2</code>, <code>Ccne2</code></td>
-</tr>
-<tr>
-<td>EDL</td>
-<td>—</td>
-<td><code>Polr2i</code>, <code>Tsc22d3</code></td>
+<td><code>Hsd17b11</code>*, <code>Etv1</code></td>
+<td><code>Nusap1</code>, <code>Stmn1</code>, <code>Birc5</code>, <code>Cdk1</code>, <code>Top2a</code>, <code>Ccnb2</code>, <code>Aurka</code>, <code>Ccne2</code>, <code>Kif20a</code>, <code>Pcna</code>, <code>Ccnf</code></td>
 </tr>
 <tr>
 <td>Gastrocnemius</td>
-<td><code>Cxcr4</code></td>
-<td>—</td>
-</tr>
-<tr>
-<td>Quadriceps</td>
-<td><code>Cebpd</code>, <code>Rbm6</code>, <code>Sh3bp5</code></td>
-<td>—</td>
-</tr>
-<tr>
-<td>Soleus</td>
-<td>—</td>
-<td><code>Pxmp2</code>, <code>Mef2c</code></td>
+<td><code>Nfkbia</code></td>
+<td><code>Fhl2</code></td>
 </tr>
 <tr>
 <td>Tibialis anterior</td>
-<td><code>Cebpd</code>, <code>Pdhx</code></td>
+<td><code>Cebpd</code></td>
 <td>—</td>
 </tr>
 </tbody>
@@ -996,33 +1011,23 @@ accession.</p>
 </tr>
 <tr>
 <td>Skeletal muscle, pooled</td>
-<td><code>Cebpd</code>*, <code>Sh3bp5</code>, <code>Prkcd</code>, <code>Arid5b</code>*, <code>Sesn1</code>*, <code>Tle1</code>*</td>
-<td>—</td>
+<td><code>Sox4</code>, <code>Cebpd</code>*, <code>Sh3bp5</code>, <code>Prkcd</code>, <code>Arid5b</code>*, <code>Sesn1</code>*, <code>Tle1</code>*</td>
+<td><code>Bphl</code>*</td>
 </tr>
 <tr>
 <td>Spleen</td>
-<td><code>Bace2</code>, <code>Loxl1</code></td>
+<td><code>Loxl1</code></td>
 <td>—</td>
 </tr>
 <tr>
 <td>Thymus</td>
-<td>—</td>
-<td><code>Gmnn</code></td>
-</tr>
-<tr>
-<td>EDL</td>
-<td>—</td>
-<td><code>Abcc5</code>, <code>Lsm6</code></td>
-</tr>
-<tr>
-<td>Quadriceps</td>
-<td><code>Gpatch8</code></td>
-<td>—</td>
+<td><code>Snx7</code></td>
+<td><code>Ube2c</code>, <code>Gmnn</code></td>
 </tr>
 <tr>
 <td>Soleus</td>
 <td><code>Tpm1</code></td>
-<td><code>Bdh1</code>, <code>Ech1</code>, <code>Bnip3</code>, <code>Gmnn</code>, <code>Decr1</code></td>
+<td><code>Bdh1</code>, <code>Ech1</code>, <code>Bnip3</code>, <code>Decr1</code></td>
 </tr>
 <tr>
 <td>Tibialis anterior</td>
@@ -1031,28 +1036,28 @@ accession.</p>
 </tr>
 </tbody>
 </table>
-<p>Heart, liver, and skin had Tier 3 BH-FDR genes but no aligned Tier 2
-synthetic-informed gene. Bone, bone marrow, brain, brown adipose tissue, cecum,
-cerebellum, colon, hippocampus, lung, mammary gland, optic nerve, and white
-adipose tissue had no Tier 3 BH-FDR gene in the 974-gene panel.</p>
-<p>The pooled skeletal-muscle results remain auditable in Tables S17-S18 but are not
-used for organ-level interpretation because anatomical groups have different
-responses. Liver and skin illustrate why the two inventories must remain
-separate: liver has 19 and skin has three real-data BH-FDR associations, but
-neither tissue has an aligned synthetic-informed BH-FDR result. Lung has no
-BH-FDR gene in the 974-gene panel.</p>
+<p>Heart, liver, retina, EDL, and quadriceps had Tier 3 BH-FDR genes but no
+corrected Tier 2 synthetic-informed gene. Bone, bone marrow, brain, brown adipose
+tissue, cecum, cerebellum, colon, hippocampus, lung, mammary gland, optic nerve,
+and white adipose tissue had no Tier 3 BH-FDR gene in the 974-gene panel.</p>
+<p>The pooled skeletal-muscle results remain auditable in Tables S17-S18 and are
+interpreted separately from anatomical groups because those groups have
+different responses. Liver has 19 real-data BH-FDR associations but selected a
+real-only arm. Skin has three real-data BH-FDR associations and one corrected
+synthetic-promoted gene, <code>Plscr1</code>. Lung has no BH-FDR gene in the 974-gene
+panel.</p>
 <h2>S16. Supplementary figures</h2>
 <p><img alt="ARCHS4 denoising trajectory." src="figures/figure_s1_archs4_denoising_trajectory.png" /></p>
 <p class="caption"><strong>Figure S1. ARCHS4 DDIM denoising trajectory.</strong> The same generated profiles are shown at diffusion timesteps 1,000, 200, and 0 in a PCA space fitted to real ARCHS4 expression. Colors identify tissue classes. The two-dimensional view is descriptive; held-out tissue classification uses the full 974-gene representation.</p>
 
 <p><img alt="Locked real-versus-synthetic PCA." src="figures/figure_s2_locked_real_vs_synthetic_pca.png" /></p>
-<p class="caption"><strong>Figure S2. Real and generated profiles in the locked OSDR test.</strong> Seed 5020 is shown. Tissue and condition views are descriptive; formal fidelity and effect metrics use all declared seeds and higher-dimensional data.</p>
+<p class="caption"><strong>Figure S2. Real and generated profiles in the corrected locked OSDR test.</strong> Seed 5020 is shown. Tissue and condition views are descriptive; formal fidelity and effect metrics use all declared seeds and higher-dimensional data.</p>
 
 <p><img alt="Muscle arm heatmap." src="figures/figure_s3_muscle_arm_heatmap.png" /></p>
-<p class="caption"><strong>Figure S3. Repeated nested muscle-group balanced accuracy.</strong> Each row is a muscle group and each column is a downstream use of real or generated profiles. Arm selection also required nonworse AUROC and average precision.</p>
+<p class="caption"><strong>Figure S3. Corrected repeated nested muscle-group balanced accuracy.</strong> Each row is a muscle group and each column is a downstream use of real or generated profiles. Arm selection also required nonworse AUROC and average precision.</p>
 
 <p><img alt="Generator validation." src="figures/figure_2_generator_validation.png" /></p>
-<p class="caption"><strong>Figure S4. Generator validation.</strong> (A) Tissue balanced accuracy when a classifier was trained on held-out ARCHS4 real or synthetic profiles. (B) Broad-reference distribution metrics. The dashed line marks the strict correlation target. (C) Four OSDR locked-test generations; vertical marks show metric gates. (D) External adversarial accuracy and pooled or accession-aware flight-effect recovery. The shaded interval is the accepted adversarial-accuracy range.</p>
+<p class="caption"><strong>Figure S4. Generator validation.</strong> (A) Tissue balanced accuracy when a classifier was trained on held-out ARCHS4 real or synthetic profiles. (B) Broad-reference distribution metrics. The dashed line marks the strict correlation target. (C) Four corrected OSDR locked-test generations; vertical marks show metric gates. (D) External adversarial accuracy and pooled or accession-aware flight-effect recovery. The shaded interval is the accepted adversarial-accuracy range.</p>
 
 <p><img alt="Downstream utility." src="figures/figure_3_downstream_utility.png" /></p>
 <p class="caption"><strong>Figure S5. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real test. (B) Fixed synthetic-guided policies in leakage-corrected, OSDR-held-out lung and thymus accessions. (C) Guided-minus-baseline metric changes after post-hoc genotype stratification. Thymus improved uniformly; lung knockout AUROC declined.</p>

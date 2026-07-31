@@ -1,8 +1,6 @@
 tissue	gene	symbol	gene_set	best_generated_arm	stable_real	stable_generated	real_selection_frequency	generated_selection_frequency	real_coefficient	generated_coefficient	coefficient_direction_match	real_meta_effect	real_meta_fdr	real_accession_direction_fraction	real_loo_fdr_stable_0_05	real_effect_supports_generated
-soleus	ENSMUSG00000046598	Bdh1	core_intersection	generated_only	True	True	1.0	0.875	-0.2831417918205261	-0.3647681772708893	True	-0.0644880662748361	1.1073485447020053e-33	1.0	True	True
-soleus	ENSMUSG00000078566	Bnip3	core_intersection	generated_only	True	True	1.0	1.0	-0.1592509746551513	-0.1421573907136917	True	-0.0358175224677628	1.1408278005097296e-10	1.0	True	True
-soleus	ENSMUSG00000005583	Mef2c	generated_supported	generated_only	False	True	0.0	0.5	NA	-0.0596815198659896	False	-0.0334538226752321	4.4704809556781886e-05	1.0	True	True
-soleus	ENSMUSG00000053898	Ech1	core_intersection	generated_only	True	True	1.0	1.0	-0.1792336404323578	-0.1292640268802642	True	-0.0298289989761815	2.596565237267681e-23	1.0	True	True
-soleus	ENSMUSG00000029499	Pxmp2	generated_supported	generated_only	False	True	0.0	0.625	NA	-0.0950773954391479	False	-0.0190650305985124	3.504708478044088e-07	1.0	True	True
-soleus	ENSMUSG00000006715	Gmnn	core_intersection	generated_only	True	True	1.0	0.875	-0.2197905480861663	-0.1016551107168197	True	-0.0011086939318677	2.1414409289369825e-07	1.0	True	True
-soleus	ENSMUSG00000032366	Tpm1	core_intersection	generated_only	True	True	1.0	1.0	0.3607228398323059	0.1606221497058868	True	0.0259588786959929	0.0014467371758864	1.0	True	True
+soleus	ENSMUSG00000046598	Bdh1	core_intersection	real_plus_generated	True	True	1.0	1.0	-0.2831417918205261	-0.5192880630493164	True	-0.0644880662748361	1.1073485447020053e-33	1.0	True	True
+soleus	ENSMUSG00000078566	Bnip3	core_intersection	real_plus_generated	True	True	1.0	1.0	-0.1592509746551513	-0.1250645518302917	True	-0.0358175224677628	1.1408278005097296e-10	1.0	True	True
+soleus	ENSMUSG00000053898	Ech1	core_intersection	real_plus_generated	True	True	1.0	1.0	-0.1792336404323578	-0.2257454991340637	True	-0.0298289989761815	2.596565237267681e-23	1.0	True	True
+soleus	ENSMUSG00000028223	Decr1	core_intersection	real_plus_generated	True	True	0.875	1.0	-0.1173407882452011	-0.1608319580554962	True	-0.027688112105157	0.0002427344461937	1.0	False	True
+soleus	ENSMUSG00000032366	Tpm1	core_intersection	real_plus_generated	True	True	1.0	1.0	0.3607228398323059	0.5533312559127808	True	0.0259588786959929	0.0014467371758864	1.0	True	True
