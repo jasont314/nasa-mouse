@@ -15,10 +15,13 @@ indistinguishability and accession-aware effect recovery, so its locked test was
 not opened. These rows are consecutive selection stages, not a paired test-set
 comparison.
 
-The central biological result is the study-excluded thymus test. OSD-457 was
-excluded from OSDR adaptation, and all OSDR-linked GEO series were excluded from
-ARCHS4 pretraining. Soleus provides cross-accession metabolic evidence, while
-kidney provides a focused promoted `Inpp4b` and reinforced `Slc37a4` result.
+The main transfer analysis is a uniform three-fold screen across all 12 tissues
+with at least three eligible accessions. It covers 63 unique accessions and 1,284
+real test profiles. Skin, pooled skeletal muscle, and lung meet its predeclared
+predictive rule. A separate targeted OSD-457 thymus analysis provides a
+real-supported cell-cycle panel, while soleus provides cross-accession metabolic
+evidence and kidney provides a focused promoted `Inpp4b` and reinforced
+`Slc37a4` result.
 
 After generator selection, the paper follows a four-stage downstream funnel:
 
@@ -29,10 +32,10 @@ After generator selection, the paper follows a four-stage downstream funnel:
 4. complete-accession tests evaluate transfer outside the development studies.
 
 The pooled augmentation benchmark was negative. Several tissues improved during
-tissue-specific development, but most gains did not establish whole-study
-transfer. Thymus supplied the strongest retained transfer result. An initial
-pooled-muscle augmentation gain did not generalize when the same frozen recipe
-was extended to 11 held-out accessions.
+tissue-specific development. In the uniform whole-study analysis, the overall
+accession-macro gain was small, while skin, pooled skeletal muscle, and lung
+improved all three predictive metrics. Tissue-level effect recovery was moderate,
+but direct recovery within individual held-out accessions was weak.
 
 The same pretrained backbone was used for the lung/thymus held-out experiment
 and for regenerated all-tissue and muscle-group development screens. All BH-FDR
@@ -52,7 +55,7 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
 - `manuscript.md`, `manuscript.html`, and `manuscript.pdf`: full paper draft.
 - `supplementary_methods.md`, `.html`, and `.pdf`: exact implementation,
   evaluation gates, output provenance, and limitations.
-- `figures/`: six main figures and four supplementary figures in PNG/PDF.
+- `figures/`: six main figures and six supplementary figures in PNG/PDF.
   Figures 1-3 describe the configurable pipeline, generator selection, and
   diffusion trajectories; Figures 4-6 report the tissue biology.
 - `source_data/`: manuscript tables, figure source tables, and SHA-256 manifests
@@ -83,11 +86,14 @@ check, not part of the scientific method.
 
 ## Evidence interpretation
 
-- **Whole-study transfer:** a fixed generator and feature policy were tested in
-  an OSDR accession excluded from adaptation and policy development after
-  removing every OSDR-linked GEO series from ARCHS4. The eight-gene OSD-457
-  thymus panel is the central result. A new study is still required for
-  prospective replication.
+- **Whole-study transfer:** three globally disjoint folds test every eligible
+  tissue-accession pair once after removing test studies from OSDR adaptation,
+  policy selection, and classifier fitting. The analysis remains retrospective,
+  and a new study is still required for prospective replication.
+- **Targeted thymus analysis:** a separately frozen feature panel was tested in
+  OSD-457 after accession and linked-GEO exclusion. Its cell-cycle result is a
+  biological follow-up; uniform transfer did not improve average thymus
+  classification.
 - **Synthetic-informed development:** real-data BH-FDR genes were also repeatedly
   synthetic-promoted or reinforced. This contains 49 tissue-gene results and
   supports developmental hypotheses rather than independent transfer.
@@ -104,5 +110,5 @@ check, not part of the scientific method.
   accession-aware gene set or without unseen-study transfer. This applies to
   spleen, skin, adrenal gland, gastrocnemius, and tibialis anterior.
 - **Negative:** no coherent synthetic-guided biological result under the declared
-  rules. Quadriceps, EDL, and liver retained real-only arms; lung failed its
-  accession-held-out test.
+  rules. Quadriceps, EDL, and liver retained real-only arms. Lung improved
+  predictive transfer but had no BH-FDR gene in the 974-gene panel.

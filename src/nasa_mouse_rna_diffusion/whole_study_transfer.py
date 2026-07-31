@@ -208,11 +208,16 @@ def _plot_effect_levels(
         color="#3D6FA3",
         s=58,
     )
+    label_offsets = {
+        "fold0": (-29, -12),
+        "fold1": (5, -12),
+        "fold2": (5, 6),
+    }
     for row in pooled.itertuples(index=False):
         axes[0].annotate(
             str(row.fold),
             (row.delta_correlation, row.direction_agreement),
-            xytext=(4, 4),
+            xytext=label_offsets.get(str(row.fold), (4, 4)),
             textcoords="offset points",
             fontsize=8,
         )
@@ -252,7 +257,7 @@ def _plot_effect_levels(
         "Conditional FLT/GC recovery answers different aggregation questions",
         fontweight="bold",
     )
-    figure.tight_layout()
+    figure.tight_layout(rect=(0, 0, 1, 0.94))
     figure.savefig(output / "effect_recovery_levels.png", dpi=240)
     figure.savefig(output / "effect_recovery_levels.pdf")
     plt.close(figure)

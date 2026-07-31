@@ -53,6 +53,11 @@ TRANSFER_DIR = (
     / "outputs/generative_benchmark/analyses/"
     "generated_feature_guidance_transfer_v1"
 )
+WHOLE_STUDY_DIR = (
+    ROOT
+    / "outputs/generative_benchmark/analyses/"
+    "whole_study_transfer_12_tissue_v1"
+)
 ADAPTIVE_HOLDOUT_DIR = (
     ROOT
     / "outputs/generative_benchmark/analyses/"
@@ -497,6 +502,17 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     harmonization = _read_tsv(HARMONIZATION_DIR / "independent_metrics.tsv")
     confirmation = _read_tsv(CONFIRM_DIR / "tissue_results.tsv")
     transfer_screen = _read_tsv(TRANSFER_DIR / "tissue_results.tsv")
+    whole_study = _read_tsv(WHOLE_STUDY_DIR / "tissue_results.tsv")
+    whole_study_summary = _read_json(WHOLE_STUDY_DIR / "summary.json")
+    whole_study_tissue_effects = _read_tsv(
+        WHOLE_STUDY_DIR / "tissue_effect_recovery.tsv"
+    )
+    whole_study_accession_effects = _read_tsv(
+        WHOLE_STUDY_DIR / "accession_effect_recovery.tsv"
+    )
+    whole_study_pooled_effects = _read_tsv(
+        WHOLE_STUDY_DIR / "pooled_effect_recovery.tsv"
+    )
     adaptive_holdout = _read_json(ADAPTIVE_HOLDOUT_DIR / "final_summary.json")
     fresh_holdout = _read_json(FRESH_HOLDOUT_DIR / "final_summary.json")
     muscle_holdout_extension = _read_json(
@@ -550,6 +566,32 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         )
     if harmonization["heldout_absolute_gate"].astype(bool).any():
         raise ValueError("No liver harmonization arm should pass the absolute gate")
+    if len(whole_study) != 12 or set(whole_study["tissue"]) != {
+        "adrenal_gland",
+        "brain",
+        "cerebellum",
+        "heart",
+        "kidney",
+        "liver",
+        "lung",
+        "retina",
+        "skeletal_muscle",
+        "skin",
+        "spleen",
+        "thymus",
+    }:
+        raise ValueError("Expected the twelve eligible whole-study tissue rows")
+    if (
+        whole_study_summary["test_tissue_accession_pairs"] != 68
+        or whole_study_summary["test_accessions"] != 63
+        or whole_study_summary["test_profiles"] != 1284
+    ):
+        raise ValueError("Whole-study transfer coverage changed")
+    _assert_close(
+        whole_study_summary["accession_macro"]["delta"]["roc_auc"],
+        0.011057681112214612,
+        "whole-study accession-macro AUROC change",
+    )
 
     inventory = pd.DataFrame(
         [
@@ -1451,13 +1493,13 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         [
             {
                 "tissue": "thymus",
-                "tier": "held-out study validation",
-                "tier_score": 3,
+                "tier": "targeted study panel",
+                "tier_score": 2,
                 "predictive_result": "BA 0.500 to 0.833; AUROC 0.840 to 0.979",
                 "real_gene_support": "8 core FLT-down genes; genotype effect r=0.975",
                 "pathway_support": "G2/M, APC/C, DNA replication; Reactome FDR < 0.05",
                 "interpretation": (
-                    "study-held-out feature-guidance result; prospective replication required"
+                    "targeted real-supported panel; uniform thymus transfer did not improve"
                 ),
             },
             {
@@ -1480,23 +1522,23 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             },
             {
                 "tissue": "skeletal_muscle",
-                "tier": "cross-accession development",
-                "tier_score": 2,
-                "predictive_result": "guided delta BA/AUROC/AP +0.071/+0.036/+0.037",
+                "tier": "uniform study transfer",
+                "tier_score": 3,
+                "predictive_result": "whole-study delta BA/AUROC/AP +0.015/+0.055/+0.060",
                 "real_gene_support": "12 synthetic-informed BH-FDR genes; 9 pass LOO FDR",
                 "pathway_support": "interferon signaling and sialic-acid metabolism; FDR < 0.05",
-                "interpretation": "pooled signal complements anatomical soleus result",
+                "interpretation": "positive uniform transfer complements anatomical soleus result",
             },
             {
                 "tissue": "lung",
-                "tier": "mixed held-out exploratory",
+                "tier": "predictive transfer only",
                 "tier_score": 1,
                 "predictive_result": (
-                    "BA decreased; modest AUROC/AP gains; validation gate rejected"
+                    "whole-study delta BA/AUROC/AP +0.056/+0.164/+0.080"
                 ),
-                "real_gene_support": "no directionally confirmed core gene set",
+                "real_gene_support": "no BH-FDR gene in the 974-gene panel",
                 "pathway_support": "no Reactome term at FDR < 0.05",
-                "interpretation": "no retained synthetic-guided classifier result",
+                "interpretation": "predictive transfer without a supported biological panel",
             },
             {
                 "tissue": "spleen",
@@ -1509,12 +1551,12 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             },
             {
                 "tissue": "skin",
-                "tier": "developmental exploratory",
-                "tier_score": 1,
-                "predictive_result": "real-plus-generated delta BA/AUROC/AP +0.085/+0.076/+0.062",
+                "tier": "uniform study transfer",
+                "tier_score": 3,
+                "predictive_result": "whole-study delta BA/AUROC/AP +0.077/+0.110/+0.079",
                 "real_gene_support": "Plscr1 is promoted and FLT-up in 6/6 studies; not LOO-stable",
                 "pathway_support": "cell-cycle/DNA-repair theme matches published skin analyses",
-                "interpretation": "literature-aligned developmental candidate",
+                "interpretation": "positive uniform transfer with exploratory biological support",
             },
             {
                 "tissue": "adrenal_gland",
@@ -1574,6 +1616,10 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "muscle_reactome": muscle_reactome,
         "tissue_summary": tissue_summary,
         "development_highlights": development_highlights,
+        "whole_study": whole_study,
+        "whole_study_tissue_effects": whole_study_tissue_effects,
+        "whole_study_accession_effects": whole_study_accession_effects,
+        "whole_study_pooled_effects": whole_study_pooled_effects,
         "study_holdout_context": study_holdout_context,
         "ordinary_fdr_genes": ordinary_fdr_genes,
         "all_bh_fdr_genes": all_bh_fdr_genes,
@@ -1592,7 +1638,11 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "locked_summary": "table_s24_locked_ddim_metric_summary.tsv",
         "confirmation": "table_s25_heldout_study_confirmation.tsv",
         "evidence": "table_7_tissue_evidence.tsv",
-        "study_holdout_context": "table_6_whole_study_transfer_context.tsv",
+        "whole_study": "table_6_whole_study_transfer_context.tsv",
+        "study_holdout_context": "table_s26_prior_transfer_experiments.tsv",
+        "whole_study_tissue_effects": "table_s27_whole_study_tissue_effect_recovery.tsv",
+        "whole_study_accession_effects": "table_s28_whole_study_accession_effect_recovery.tsv",
+        "whole_study_pooled_effects": "table_s29_whole_study_pooled_effect_recovery.tsv",
         "arch_summary": "table_s1_archs4_ddim_metrics.tsv",
         "locked_repeats": "table_s2_locked_ddim_repeats.tsv",
         "naive_utility": "table_s3_naive_augmentation.tsv",
@@ -2284,7 +2334,7 @@ def figure_3_utility(tables: dict[str, pd.DataFrame]) -> None:
     ax.legend(frameon=False, ncol=3, fontsize=7, loc="upper right")
 
     fig.suptitle(
-        "Synthetic profiles did not improve naive augmentation, but fixed feature guidance transferred in thymus",
+        "Pooled augmentation failed, while targeted guidance improved OSD-457 thymus",
         x=0.02,
         ha="left",
         fontsize=11,
@@ -2347,7 +2397,7 @@ def figure_4_thymus(tables: dict[str, pd.DataFrame]) -> None:
         ax.text(score + 0.015, yi, f"{overlap}/{total} genes", va="center", fontsize=7)
 
     fig.suptitle(
-        "Held-out thymus test prioritizes a flight-lower mitotic program in both genotypes",
+        "Targeted OSD-457 thymus panel prioritizes a flight-lower mitotic program",
         x=0.02,
         ha="left",
         fontsize=11,
@@ -2578,12 +2628,15 @@ def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
     for yi, score, theme in zip(y, scores, evidence["interpretation"]):
         ax.plot([score, 3.25], [yi, yi], color="#D9DEE1", lw=0.8, zorder=1)
         ax.text(3.35, yi, theme, va="center", fontsize=7.4, color=COLORS["dark"])
-    ax.set_yticks(y, [name.title() for name in evidence["tissue"]])
+    ax.set_yticks(
+        y,
+        [name.replace("_", " ").title() for name in evidence["tissue"]],
+    )
     ax.invert_yaxis()
     ax.set_xlim(-0.25, 6.6)
     ax.set_xticks(
         [0, 1, 2, 3],
-        ["No clear\nsignal", "Candidate", "Promising", "Strongest"],
+        ["No clear\nsignal", "Candidate", "Promising", "Uniform\ntransfer"],
     )
     ax.tick_params(axis="x", top=True, labeltop=True, bottom=False, labelbottom=False)
     ax.grid(axis="x", color="#E5E9EB", linewidth=0.8)
@@ -2596,7 +2649,7 @@ def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
         fontsize=9,
     )
     fig.suptitle(
-        "Evidence is strongest in thymus and soleus, with secondary tissue candidates",
+        "Whole-study utility and biological support identify tissue-dependent priorities",
         x=0.02,
         ha="left",
         fontsize=11,
@@ -2614,6 +2667,10 @@ def copy_supplementary_figures() -> None:
         LOCKED_DIR / "seed5020/real_vs_synthetic_pca.pdf": "figure_s2_locked_real_vs_synthetic_pca.pdf",
         MUSCLE_DIR / "arm_balanced_accuracy_heatmap.png": "figure_s3_muscle_arm_heatmap.png",
         MUSCLE_DIR / "arm_balanced_accuracy_heatmap.pdf": "figure_s3_muscle_arm_heatmap.pdf",
+        WHOLE_STUDY_DIR / "whole_study_transfer_metric_deltas.png": "figure_s5_whole_study_transfer.png",
+        WHOLE_STUDY_DIR / "whole_study_transfer_metric_deltas.pdf": "figure_s5_whole_study_transfer.pdf",
+        WHOLE_STUDY_DIR / "effect_recovery_levels.png": "figure_s6_effect_recovery_levels.png",
+        WHOLE_STUDY_DIR / "effect_recovery_levels.pdf": "figure_s6_effect_recovery_levels.pdf",
     }
     for source, target in copies.items():
         shutil.copy2(_required(source), FIGURE_DIR / target)
@@ -2630,6 +2687,11 @@ def build_manifest() -> None:
         CONFIRM_DIR / "thymus/feature_stability.tsv",
         CONFIRM_DIR / "thymus/reactome_enrichment.tsv",
         TRANSFER_DIR / "tissue_results.tsv",
+        WHOLE_STUDY_DIR / "summary.json",
+        WHOLE_STUDY_DIR / "tissue_results.tsv",
+        WHOLE_STUDY_DIR / "tissue_effect_recovery.tsv",
+        WHOLE_STUDY_DIR / "accession_effect_recovery.tsv",
+        WHOLE_STUDY_DIR / "pooled_effect_recovery.tsv",
         ADAPTIVE_HOLDOUT_DIR / "final_summary.json",
         FRESH_HOLDOUT_DIR / "final_summary.json",
         FRESH_HOLDOUT_DIR / "confirmatory_folds/aggregate_summary.json",
@@ -2770,9 +2832,8 @@ def main() -> None:
         render_document(
             _required(PAPER_DIR / "manuscript.md"),
             (
-                "A configurable generative transcriptomics framework reveals "
-                "thymic proliferative suppression and soleus metabolic "
-                "remodeling in spaceflown mice"
+                "A configurable generative transcriptomics framework identifies "
+                "tissue-dependent synthetic utility in mouse spaceflight RNA-seq"
             ),
         )
         render_document(

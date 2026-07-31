@@ -381,7 +381,41 @@ Sample counts are shown as total development profiles followed by flight/ground-
 
 ## S10. Whole-study transfer experiments
 
-### Feature-guidance transfer screen
+### Uniform twelve-tissue analysis
+
+Every canonical tissue with at least three eligible FLT/GC accessions entered a
+three-fold global split: adrenal gland, brain, cerebellum, heart, kidney, liver,
+lung, retina, skeletal muscle, skin, spleen, and thymus. An accession had one
+role per fold even when it contributed several tissues. Every tissue retained
+FLT and GC profiles in the training, validation, and test roles. Across the
+folds, all 68 tissue-accession pairs from 63 unique accessions and 1,284 profiles
+entered the test role once.
+
+Each fold started from the 15,000-epoch OSDR-disjoint ARCHS4 checkpoint and
+trained a 5,000-epoch OSDR adapter on its training accessions. Conditioning was
+limited to tissue and FLT/GC because a truly unseen accession has no learned
+study embedding. Validation and test accessions were disjoint. The inner search
+selected feature count, regularization, real/synthetic ranking, and training
+weight. A generated candidate was deployed only when validation balanced
+accuracy improved by at least 0.02 and AUROC fell by no more than 0.01;
+otherwise the fold used its real-only baseline.
+
+The accession-macro real-only results were 0.581 balanced accuracy, 0.620 AUROC,
+and 0.694 average precision. Deployed values were 0.583, 0.631, and 0.708. Skin,
+pooled skeletal muscle, and lung passed the tissue rule. Full tissue rows are in
+Table 6.
+
+Effect recovery was calculated at three levels. Pooled fold-level correlation
+averaged 0.232 with mean direction agreement 0.575. Per-tissue random-effects
+correlation averaged 0.489 with direction agreement 0.682. Direct
+tissue-by-accession correlation averaged 0.033 with direction agreement 0.468.
+Tables S27-S29 contain the tissue, accession, and pooled rows. Figures S5-S6 show
+the predictive changes and the three effect-recovery levels.
+
+This is a cross-fitted retrospective analysis, not a prospective test. The
+project had inspected related OSDR outcomes before these folds were fixed.
+
+### Earlier feature-guidance transfer screen
 
 An initial transfer screen evaluated liver, kidney, lung, retina, skin, and
 thymus using complete held-out accessions. Liver and kidney gained balanced
@@ -446,15 +480,15 @@ Genotype assignment was audited after the primary result:
 
 ### Relationship between evaluation stages
 
-The complete-study transfer stage asks whether a frozen synthetic-guided policy
-applies to an OSDR accession excluded from adaptation and feature-policy
-development after OSDR-linked GEO series are also removed from ARCHS4. It remains
-retrospective because an earlier run exposed the outcomes. The development stage
-asks which BH-significant real effects also cross repeated synthetic-informed
-selection thresholds within represented studies. The complete real-data screen
-reports random-effects BH-FDR associations regardless of feature-selection
-status. These stages answer different questions and are not alternative
-statistical filters on one gene list.
+The uniform complete-study stage asks whether validation-gated synthetic use
+applies across all eligible held-out OSDR accessions. The targeted thymus study
+asks whether one separately specified feature panel works in OSD-457. Both are
+retrospective because related outcomes had already been inspected. The
+development stage asks which BH-significant real effects also cross repeated
+synthetic-informed selection thresholds within represented studies. The
+complete real-data screen reports random-effects BH-FDR associations regardless
+of feature-selection status. These stages answer different questions and are not
+alternative statistical filters on one gene list.
 
 All eight study-held-out thymus genes were FLT-lower in both OSD-457 genotype
 strata and had FLT-lower cross-study meta-effects with BH FDR < 0.05. Their
@@ -503,8 +537,8 @@ The expanded skeletal-muscle test exhausted all 11 eligible non-development
 accessions. The paired accession bootstrap interval for the balanced-accuracy
 difference was [-0.022, 0.030], while AUROC and average precision both declined.
 The initial two-accession gain was therefore not treated as a generalizable
-augmentation result. Exact rows for every transfer experiment are in
-`source_data/table_6_whole_study_transfer_context.tsv`.
+augmentation result. Exact rows for these earlier experiments are in
+`source_data/table_s26_prior_transfer_experiments.tsv`.
 
 ## S11. Random-effects reporting and LOO sensitivity
 
@@ -734,7 +768,15 @@ panel.
 
 ![Downstream utility.](figures/figure_3_downstream_utility.png)
 
-<p class="caption"><strong>Figure S4. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real test. (B) Fixed synthetic-guided policies in OSDR-held-out lung and thymus accessions. (C) Guided-minus-baseline metric changes after post-hoc genotype stratification. Thymus improved uniformly; lung knockout AUROC declined.</p>
+<p class="caption"><strong>Figure S4. Downstream utility of generated expression.</strong> (A) Direct pooled augmentation on the locked real test. (B) Fixed synthetic-guided policies in OSDR-held-out lung and thymus accessions. (C) Guided-minus-baseline metric changes after post-hoc genotype stratification. The targeted thymus metrics improved in both genotype strata.</p>
+
+![Uniform whole-study transfer.](figures/figure_s5_whole_study_transfer.png)
+
+<p class="caption"><strong>Figure S5. Uniform whole-study predictive transfer.</strong> Deployed-minus-real-only changes in balanced accuracy, AUROC, and average precision for every tissue with at least three eligible accessions. Metrics are accession-macro averages on real held-out profiles. Deployment reverted to the real-only baseline when the inner validation gate did not pass.</p>
+
+![Effect recovery at three aggregation levels.](figures/figure_s6_effect_recovery_levels.png)
+
+<p class="caption"><strong>Figure S6. FLT/GC effect recovery at three aggregation levels.</strong> Left: one real and synthetic 974-gene effect vector per outer fold after pooling tissues. Center: cross-fitted random-effects vectors calculated separately by tissue. Right: direct gene-effect correlations within each held-out tissue-accession pair. Tissue-level averaging recovers more shared structure than direct unseen-study comparison.</p>
 
 ## S17. Source tables
 
@@ -768,6 +810,10 @@ panel.
 - `table_s23_wgan_validation_repeats.tsv`
 - `table_s24_locked_ddim_metric_summary.tsv`
 - `table_s25_heldout_study_confirmation.tsv`
+- `table_s26_prior_transfer_experiments.tsv`
+- `table_s27_whole_study_tissue_effect_recovery.tsv`
+- `table_s28_whole_study_accession_effect_recovery.tsv`
+- `table_s29_whole_study_pooled_effect_recovery.tsv`
 
 ## S18. Rebuild command
 
