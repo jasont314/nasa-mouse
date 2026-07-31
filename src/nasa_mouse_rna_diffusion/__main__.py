@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 from .data import prepare
 from .evaluate import evaluate
@@ -20,6 +21,7 @@ from .factorized_subset import subset_factorized_data
 from .factorized_final_evaluate import evaluate_factorized_finalist_test
 from .factorized_trajectory import plot_factorized_trajectory
 from .contrastive_guidance import generate_contrastive_training
+from .whole_study_transfer import run as run_whole_study_transfer
 
 
 def parse_args() -> argparse.Namespace:
@@ -195,6 +197,12 @@ def parse_args() -> argparse.Namespace:
     contrastive.add_argument("--seeds", nargs="+", type=int, required=True)
     contrastive.add_argument("--batch-size", type=int, default=256)
     contrastive.add_argument("--eta", type=float, default=0.0)
+    whole_study = subparsers.add_parser(
+        "whole-study-transfer",
+        help="Aggregate cross-fitted transfer across eligible OSDR tissues",
+    )
+    whole_study.add_argument("--config", required=True)
+    whole_study.add_argument("--seed", type=int, default=6200)
     return parser.parse_args()
 
 
@@ -299,6 +307,8 @@ def main() -> None:
             batch_size=args.batch_size,
             eta=args.eta,
         )
+    elif args.command == "whole-study-transfer":
+        run_whole_study_transfer(Path(args.config), seed=args.seed)
 
 
 if __name__ == "__main__":
