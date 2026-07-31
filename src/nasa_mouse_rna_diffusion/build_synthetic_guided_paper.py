@@ -1411,17 +1411,9 @@ def update_supplementary_utility_tables(tables: dict[str, pd.DataFrame]) -> None
     ]
     block = "\n\n".join(
         [
-            (
-                "All five arms were fitted for every analysis unit below. Values "
-                "are means across eight repeated outer splits, and every outer "
-                "evaluation used real profiles. An eligible arm was nonworse than "
-                "real-only training in balanced accuracy, AUROC, and average "
-                "precision. An eligible tie met that rule without improving a mean "
-                "metric. These development results use profiles from represented "
-                "accessions."
-            ),
             "**Supplementary Table S9. Complete canonical-tissue utility screen.**",
             _markdown_table(headers, _compact_utility_rows(canonical)),
+            '<div class="page-break"></div>',
             (
                 "**Supplementary Table S6. Complete anatomical muscle-group "
                 "utility screen.**"
