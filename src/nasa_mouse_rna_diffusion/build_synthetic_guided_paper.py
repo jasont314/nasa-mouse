@@ -76,6 +76,9 @@ WGAN_DIR = (
     / "outputs/generative_benchmark/runs/vinas_wgan_gp/"
     "osdr_matched_study_conditioned_seed2020/evaluation/matched_validation"
 )
+HARMONIZATION_DIR = (
+    ROOT / "outputs/generative_benchmark/summary/liver_harmonization"
+)
 GENEJEPA_DIR = (
     ROOT
     / "outputs/generative_benchmark/runs/genejepa/"
@@ -487,6 +490,9 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     arch_run = _read_json(ARCHS4_RUN / "run_summary.json")
     locked = _read_tsv(LOCKED_DIR / "repeat_metrics.tsv")
     locked_run = _read_json(LOCKED_DIR / "summary.json")
+    wgan_run = _read_json(WGAN_DIR / "summary.json")
+    wgan_repeats = _read_tsv(WGAN_DIR / "calibrated_repeat_metrics.tsv")
+    harmonization = _read_tsv(HARMONIZATION_DIR / "independent_metrics.tsv")
     confirmation = _read_tsv(CONFIRM_DIR / "tissue_results.tsv")
     transfer_screen = _read_tsv(TRANSFER_DIR / "tissue_results.tsv")
     adaptive_holdout = _read_json(ADAPTIVE_HOLDOUT_DIR / "final_summary.json")
@@ -528,6 +534,19 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         0.9791666666666666,
         "held-out thymus guided AUROC",
     )
+    _assert_close(
+        wgan_run["calibrated"]["metric_repeat_stability"]
+        ["adversarial_accuracy"]["mean"],
+        0.6361940298507462,
+        "calibrated WGAN adversarial accuracy",
+    )
+    if len(harmonization) != 9:
+        raise ValueError(
+            "Expected nine liver harmonization arms, "
+            f"found {len(harmonization)}"
+        )
+    if harmonization["heldout_absolute_gate"].astype(bool).any():
+        raise ValueError("No liver harmonization arm should pass the absolute gate")
 
     inventory = pd.DataFrame(
         [
@@ -554,6 +573,135 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                 "role": "conditional adaptation and FLT/GC analysis",
             },
         ]
+    )
+
+    pipeline_design = pd.DataFrame(
+        [
+            {
+                "axis": "Expression input",
+                "configurable_options": (
+                    "raw counts; CPM; TPM; log1p/log2p1; gene z-score; "
+                    "robust or MaxAbs scaling"
+                ),
+                "evaluated_scope": (
+                    "shared preprocessing screens plus each model's native contract"
+                ),
+                "selected_branch": "full-transcriptome TPM, 974 landmarks, train MaxAbs",
+            },
+            {
+                "axis": "Feature space",
+                "configurable_options": (
+                    "all shared genes; fold-selected HVGs; Reactome genes; "
+                    "mapped mouse L1000 landmarks"
+                ),
+                "evaluated_scope": "gated screens; selection statistics fitted on training folds",
+                "selected_branch": "974 mapped mouse L1000 landmarks",
+            },
+            {
+                "axis": "Harmonization",
+                "configurable_options": (
+                    "none; within-study z-score; within-study then global z-score; "
+                    "ComBat; ComBat-seq; three MBatch methods; MOBER"
+                ),
+                "evaluated_scope": "nine matched 15,000-epoch liver DDIM arms",
+                "selected_branch": "no global correction; explicit study conditioning",
+            },
+            {
+                "axis": "Training data",
+                "configurable_options": (
+                    "OSDR only; ARCHS4 only; ARCHS4 pretraining then OSDR adaptation"
+                ),
+                "evaluated_scope": "paper-native and practical gated phases",
+                "selected_branch": "ARCHS4 pretraining then OSDR adaptation",
+            },
+            {
+                "axis": "Cohort scope",
+                "configurable_options": (
+                    "single accession; selected accessions; all eligible accessions"
+                ),
+                "evaluated_scope": "accession-scope screen followed by all eligible OSDR",
+                "selected_branch": "all eligible OSDR accessions",
+            },
+            {
+                "axis": "Tissue structure",
+                "configurable_options": "pooled tissue-conditioned; standalone per tissue",
+                "evaluated_scope": (
+                    "pooled generator plus tissue-specific downstream policies"
+                ),
+                "selected_branch": "pooled tissue-conditioned generator",
+            },
+            {
+                "axis": "Conditioning",
+                "configurable_options": (
+                    "FLT/GC; tissue; material; muscle group; study; sex; assay; "
+                    "platform; source"
+                ),
+                "evaluated_scope": (
+                    "condition and study policies screened; available covariates audited"
+                ),
+                "selected_branch": "tissue, FLT/GC, accession, and material",
+            },
+            {
+                "axis": "Generator",
+                "configurable_options": "WGAN-GP; DDIM; GeneJEPA representation screen",
+                "evaluated_scope": (
+                    "paper-reproduced architectures, then staged independent gates"
+                ),
+                "selected_branch": "ARCHS4-pretrained, OSDR-adapted DDIM",
+            },
+            {
+                "axis": "Validation",
+                "configurable_options": (
+                    "GEO-series or accession-grouped validation; locked test; "
+                    "unconditional controls; multiple generation seeds"
+                ),
+                "evaluated_scope": "no sample-random model-selection split",
+                "selected_branch": "four-seed 293-profile locked OSDR test",
+            },
+        ]
+    )
+
+    harmonization_summary = harmonization[
+        [
+            "label",
+            "normalization",
+            "harmonization",
+            "transductive_preprocessing",
+            "heldout_corr",
+            "heldout_precision",
+            "heldout_recall",
+            "heldout_f1",
+            "heldout_aa",
+            "heldout_fd_ratio",
+            "heldout_absolute_gate",
+            "delta_correlation",
+            "direction_agreement",
+            "conditional_effect_gate",
+            "accession_meta_correlation",
+            "accession_meta_direction",
+            "accession_effect_gate",
+        ]
+    ].copy()
+    harmonization_summary = harmonization_summary.rename(
+        columns={
+            "label": "method",
+            "heldout_corr": "correlation",
+            "heldout_precision": "precision",
+            "heldout_recall": "recall",
+            "heldout_f1": "f1",
+            "heldout_aa": "adversarial_accuracy",
+            "heldout_fd_ratio": "frechet_ratio",
+            "heldout_absolute_gate": "fidelity_gate",
+            "delta_correlation": "condition_effect_correlation",
+            "direction_agreement": "condition_direction_agreement",
+            "accession_meta_correlation": "accession_effect_correlation",
+            "accession_meta_direction": "accession_direction_agreement",
+        }
+    )
+    harmonization_summary["all_required_gates"] = (
+        harmonization_summary["fidelity_gate"].astype(bool)
+        & harmonization_summary["conditional_effect_gate"].astype(bool)
+        & harmonization_summary["accession_effect_gate"].astype(bool)
     )
 
     locked_summary = pd.DataFrame(
@@ -652,48 +800,101 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         columns=["metric", "value"],
     )
 
+    wgan_metrics = wgan_run["calibrated"]["metric_repeat_stability"]
+    arch_precision = arch_eval["precision_recall_in_scaled_l974"]["precision"]
+    arch_recall = arch_eval["precision_recall_in_scaled_l974"]["recall"]
+    arch_f1 = 2 * arch_precision * arch_recall / (arch_precision + arch_recall)
     model_screen = pd.DataFrame(
         [
             {
-                "model": "ARCHS4-pretrained DDIM",
-                "evaluation": "held-out ARCHS4 series",
+                "model": "Broad-reference DDIM",
+                "training_regime": "ARCHS4 only",
+                "evaluation_split": "4,628 held-out ARCHS4 profiles; complete GEO series",
+                "generation_repeats": 1,
                 "correlation": arch_eval["gene_correlation_matrix_agreement"],
-                "precision": arch_eval["precision_recall_in_scaled_l974"]["precision"],
-                "recall": arch_eval["precision_recall_in_scaled_l974"]["recall"],
+                "precision": arch_precision,
+                "recall": arch_recall,
+                "f1": arch_f1,
                 "adversarial_accuracy": arch_eval[
                     "nearest_neighbor_adversarial_accuracy_in_scaled_l974"
                 ],
+                "frechet_ratio": arch_eval["frechet_ratio_to_real_split_p95"],
+                "fidelity_repeats_passing": "0/1",
+                "condition_repeats_passing": "not applicable",
+                "accession_repeats_passing": "not applicable",
+                "locked_test_opened": "not applicable",
                 "decision": (
-                    "retained for tissue-conditioned initialization; strict "
-                    "correlation-matrix gate failed"
+                    "retained as tissue-conditioned initialization despite failed "
+                    "correlation-structure gate"
                 ),
             },
             {
-                "model": "OSDR-adapted factorized DDIM",
-                "evaluation": "293-profile locked within-study test",
+                "model": "Study-conditioned WGAN-GP",
+                "training_regime": "OSDR matched study-conditioned",
+                "evaluation_split": "536-profile validation; test unopened",
+                "generation_repeats": len(wgan_repeats),
+                "correlation": wgan_metrics["correlation"]["mean"],
+                "precision": wgan_metrics["precision"]["mean"],
+                "recall": wgan_metrics["recall"]["mean"],
+                "f1": wgan_metrics["f1"]["mean"],
+                "adversarial_accuracy": wgan_metrics["adversarial_accuracy"]["mean"],
+                "frechet_ratio": wgan_metrics["frechet_ratio"]["mean"],
+                "fidelity_repeats_passing": (
+                    f"{int(wgan_repeats['fidelity_pass'].sum())}/{len(wgan_repeats)}"
+                ),
+                "condition_repeats_passing": (
+                    f"{int(wgan_repeats['condition_effect_pass'].sum())}/{len(wgan_repeats)}"
+                ),
+                "accession_repeats_passing": (
+                    f"{int(wgan_repeats['muscle_accession_pass'].sum())}/{len(wgan_repeats)}"
+                ),
+                "locked_test_opened": bool(wgan_run["locked_test_opened"]),
+                "decision": (
+                    "rejected on validation: external separability and unstable "
+                    "accession-aware effect recovery"
+                ),
+            },
+            {
+                "model": "Factorized DDIM",
+                "training_regime": "ARCHS4 pretraining then OSDR adaptation",
+                "evaluation_split": "293-profile locked within-study test",
+                "generation_repeats": len(locked),
                 "correlation": locked["correlation"].mean(),
                 "precision": locked["precision"].mean(),
                 "recall": locked["recall"].mean(),
+                "f1": locked["f1"].mean(),
                 "adversarial_accuracy": locked["adversarial_accuracy"].mean(),
-                "decision": "accepted for represented-study conditional simulation",
+                "frechet_ratio": locked["frechet_ratio"].mean(),
+                "fidelity_repeats_passing": (
+                    f"{int(locked['fidelity_pass'].sum())}/{len(locked)}"
+                ),
+                "condition_repeats_passing": (
+                    f"{int(locked['condition_effect_pass'].sum())}/{len(locked)}"
+                ),
+                "accession_repeats_passing": (
+                    f"{int(locked['muscle_accession_pass'].sum())}/{len(locked)}"
+                ),
+                "locked_test_opened": bool(locked_run["locked_test_opened"]),
+                "decision": (
+                    "selected: only generator to pass the final joint locked gates"
+                ),
             },
             {
-                "model": "OSDR study-conditioned WGAN-GP",
-                "evaluation": "validation only; locked test unopened",
-                "correlation": 0.9759,
-                "precision": 0.9764,
-                "recall": 0.9938,
-                "adversarial_accuracy": 0.6362,
-                "decision": "rejected; externally separable and no accession-aware effect recovery",
-            },
-            {
-                "model": "GeneJEPA exact-architecture duration screen",
-                "evaluation": "held-out ARCHS4 series",
+                "model": "GeneJEPA",
+                "training_regime": "ARCHS4 representation screen",
+                "evaluation_split": "held-out ARCHS4 series",
+                "generation_repeats": 0,
                 "correlation": np.nan,
                 "precision": np.nan,
                 "recall": np.nan,
+                "f1": np.nan,
                 "adversarial_accuracy": np.nan,
-                "decision": "representation only; no expression decoder; not advanced",
+                "frechet_ratio": np.nan,
+                "fidelity_repeats_passing": "not applicable",
+                "condition_repeats_passing": "not applicable",
+                "accession_repeats_passing": "not applicable",
+                "locked_test_opened": False,
+                "decision": "not a generator: released architecture has no expression decoder",
             },
         ]
     )
@@ -1345,10 +1546,14 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
 
     tables = {
         "inventory": inventory,
+        "pipeline_design": pipeline_design,
+        "harmonization_summary": harmonization_summary,
+        "harmonization_full": harmonization,
         "arch_summary": arch_summary,
         "locked_repeats": locked,
         "locked_summary": locked_summary,
         "model_screen": model_screen,
+        "wgan_repeats": wgan_repeats,
         "naive_utility": naive_utility,
         "confirmation": confirmation,
         "genotype": genotype,
@@ -1374,8 +1579,9 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
 
     names = {
         "inventory": "table_1_data_inventory.tsv",
-        "model_screen": "table_2_model_screen.tsv",
-        "locked_summary": "table_3_locked_ddim_metrics.tsv",
+        "pipeline_design": "table_2_pipeline_design_space.tsv",
+        "model_screen": "table_3_generator_model_selection.tsv",
+        "locked_summary": "table_s24_locked_ddim_metric_summary.tsv",
         "confirmation": "table_4_heldout_study_confirmation.tsv",
         "evidence": "table_5_tissue_evidence.tsv",
         "study_holdout_context": "table_6_whole_study_transfer_context.tsv",
@@ -1399,6 +1605,9 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "bh_fdr_tissue_summary": "table_s18_bh_fdr_tissue_summary.tsv",
         "thymus_evidence_mapping": "table_s19_thymus_evidence_level_mapping.tsv",
         "development_highlights": "table_s20_tissue_utility_highlights.tsv",
+        "harmonization_summary": "table_s21_liver_harmonization_benchmark.tsv",
+        "harmonization_full": "table_s22_liver_harmonization_full_metrics.tsv",
+        "wgan_repeats": "table_s23_wgan_validation_repeats.tsv",
     }
     for key, name in names.items():
         _write_tsv(tables[key], name)
@@ -1406,9 +1615,9 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
 
 
 def figure_1_workflow() -> None:
-    fig, ax = plt.subplots(figsize=(8.1, 5.5))
+    fig, ax = plt.subplots(figsize=(8.1, 6.5))
     ax.set_xlim(0, 12)
-    ax.set_ylim(0, 9.4)
+    ax.set_ylim(0, 10.5)
     ax.axis("off")
 
     def box(
@@ -1430,15 +1639,23 @@ def figure_1_workflow() -> None:
             facecolor="white",
         )
         ax.add_patch(patch)
-        ax.text(x + 0.18, y + height - 0.28, title, color=color, weight="bold", va="top")
         ax.text(
             x + 0.18,
-            y + height - (0.95 if "\n" in title else 0.72),
+            y + height - 0.23,
+            title,
+            color=color,
+            weight="bold",
+            va="top",
+            fontsize=8.4,
+        )
+        ax.text(
+            x + 0.18,
+            y + height - (0.82 if "\n" in title else 0.62),
             body,
             color=COLORS["dark"],
             va="top",
-            fontsize=7.4,
-            linespacing=1.25,
+            fontsize=6.8,
+            linespacing=1.2,
         )
 
     def arrow(x1: float, y1: float, x2: float, y2: float) -> None:
@@ -1449,84 +1666,109 @@ def figure_1_workflow() -> None:
             arrowprops={"arrowstyle": "-|>", "lw": 1.25, "color": COLORS["gray"]},
         )
 
-    ax.text(0, 9.0, "A", weight="bold", fontsize=13)
-    ax.text(0.45, 9.0, "Data and conditional expression model", weight="bold", fontsize=11)
+    ax.text(0, 10.1, "A", weight="bold", fontsize=13)
+    ax.text(0.45, 10.1, "Data sources", weight="bold", fontsize=11)
     box(
         0.2,
-        5.7,
-        2.55,
-        2.55,
+        7.8,
+        3.35,
+        1.65,
         "ARCHS4 mouse",
-        "17,244 reference profiles\n20 tissue classes\nComplete-series splits",
+        "997,515 profiles audited\n17,244 selected across 20 tissues\nComplete GEO-series splits",
         COLORS["blue"],
     )
     box(
-        3.15,
-        5.7,
-        2.55,
-        2.55,
-        "Conditional\ndiffusion",
-        "Tissue-aware mouse\nexpression backbone\nOSDR adaptation",
-        COLORS["teal"],
-    )
-    box(
-        6.1,
-        5.7,
-        2.55,
-        2.55,
+        4.0,
+        7.8,
+        3.35,
+        1.65,
         "NASA OSDR API",
-        "1,610 flight/control\nprofiles\n75 accessions\nStudy provenance retained",
+        "1,610 biological profiles\n75 accessions; FLT/GC labels\nStudy and material retained",
         COLORS["coral"],
     )
     box(
-        9.05,
-        5.7,
-        2.55,
-        2.55,
-        "Conditional\nprofiles",
-        "Tissue, FLT/GC,\nstudy, and material\ncontexts represented",
-        COLORS["gold"],
+        7.8,
+        7.8,
+        4.0,
+        1.65,
+        "Biological scope",
+        "Pooled multi-tissue generation\nTissue-specific analysis\nSkeletal-muscle groups retained",
+        COLORS["green"],
     )
-    arrow(2.75, 6.95, 3.15, 6.95)
-    arrow(5.7, 6.95, 6.1, 6.95)
-    arrow(8.65, 6.95, 9.05, 6.95)
 
-    ax.text(0, 4.85, "B", weight="bold", fontsize=13)
-    ax.text(0.45, 4.85, "Evaluation funnel", weight="bold", fontsize=11)
-    levels = [
+    ax.text(0, 7.25, "B", weight="bold", fontsize=13)
+    ax.text(0.45, 7.25, "Configurable generative benchmark", weight="bold", fontsize=11)
+    axes = [
         (
-            "1. Pooled\nbenchmark",
-            "Test one-size-fits-all\nsynthetic-only and\naugmented training",
+            "Expression",
+            "Raw, CPM, TPM\nlog transforms\nz-score, robust, MaxAbs",
             COLORS["blue"],
         ),
         (
-            "2. Tissue\nselection",
-            "Compare five uses\nwithin represented\nstudies",
+            "Harmonization",
+            "None; two study z-scores\nComBat/ComBat-seq\nMBatch; MOBER",
             COLORS["teal"],
         ),
         (
-            "3. Real-data\ntesting",
-            "Estimate within-study\nFLT-GC effects and\nBH FDR",
+            "Generator",
+            "WGAN-GP; DDIM\nGeneJEPA screened as\nrepresentation only",
             COLORS["gold"],
         ),
         (
-            "4. Study\ntransfer",
-            "Exclude complete\naccessions; interpret\nretained biology",
+            "Training scope",
+            "OSDR only; ARCHS4 only\nARCHS4 pretrain plus\nOSDR adaptation",
+            COLORS["coral"],
+        ),
+        (
+            "Cohort structure",
+            "One or many studies\npooled or per tissue\naccession balancing",
+            COLORS["purple"],
+        ),
+        (
+            "Conditioning",
+            "FLT/GC; tissue; study\nmaterial; muscle group\nand available covariates",
+            COLORS["green"],
+        ),
+    ]
+    positions = [(0.2, 5.25), (4.0, 5.25), (7.8, 5.25), (0.2, 3.15), (4.0, 3.15), (7.8, 3.15)]
+    for (x, y), (title, body, color) in zip(positions, axes):
+        box(x, y, 3.35, 1.65, title, body, color)
+
+    ax.text(0, 2.45, "C", weight="bold", fontsize=13)
+    ax.text(0.45, 2.45, "Staged selection and biological use", weight="bold", fontsize=11)
+    stages = [
+        (
+            "Grouped splits",
+            "GEO series or OSDR\naccessions kept intact",
+            COLORS["blue"],
+        ),
+        (
+            "Independent gates",
+            "Fidelity, diversity,\nmemorization, effects",
+            COLORS["gold"],
+        ),
+        (
+            "Selected DDIM",
+            "Only candidate passing\nfinal joint locked gates",
+            COLORS["teal"],
+        ),
+        (
+            "Synthetic-guided\nanalysis",
+            "Per-tissue use selected;\nreal OSDR defines effects",
             COLORS["coral"],
         ),
     ]
     x_positions = [0.2, 3.15, 6.1, 9.05]
-    for x, (title, body, color) in zip(x_positions, levels):
-        box(x, 1.55, 2.55, 2.45, title, body, color)
+    for x, (title, body, color) in zip(x_positions, stages):
+        box(x, 0.55, 2.55, 1.45, title, body, color)
     for left, right in zip(x_positions[:-1], x_positions[1:]):
-        arrow(left + 2.55, 2.78, right, 2.78)
+        arrow(left + 2.55, 1.28, right, 1.28)
     ax.text(
         0.2,
-        0.55,
-        "Synthetic use is selected per tissue; biological effects and FDR are always estimated from real OSDR samples.",
-        fontsize=8.5,
-        weight="bold",
-        color=COLORS["dark"],
+        0.12,
+        "The matrix defined a gated search, not an exhaustive Cartesian sweep. Synthetic profiles were never counted as additional animals.",
+        fontsize=7.6,
+        color=COLORS["gray"],
     )
     _save_figure(fig, "figure_1_study_design")
 
@@ -1534,8 +1776,10 @@ def figure_1_workflow() -> None:
 def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
     arch = tables["arch_summary"].set_index("metric")["value"]
     locked = tables["locked_repeats"]
-    fig = plt.figure(figsize=(7.4, 6.2))
-    grid = fig.add_gridspec(2, 2, width_ratios=[0.92, 1.08], hspace=0.38, wspace=0.32)
+    model_screen = tables["model_screen"].set_index("model")
+    harmonization = tables["harmonization_summary"]
+    fig = plt.figure(figsize=(7.6, 6.7))
+    grid = fig.add_gridspec(2, 2, width_ratios=[0.86, 1.14], hspace=0.45, wspace=0.34)
 
     ax = fig.add_subplot(grid[0, 0])
     values = [
@@ -1555,67 +1799,127 @@ def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
         ax.text(bar.get_x() + bar.get_width() / 2, value + 0.025, f"{value:.3f}", ha="center")
 
     ax = fig.add_subplot(grid[0, 1])
-    metrics = ["Gene mean", "Gene SD", "Correlation", "Precision", "Recall"]
-    values = [
-        arch["Gene mean correlation"],
-        arch["Gene SD correlation"],
-        arch["Gene correlation agreement"],
-        arch["Precision, scaled L974"],
-        arch["Recall, scaled L974"],
+    metric_columns = [
+        ("Corr", "correlation"),
+        ("Precision", "precision"),
+        ("Recall", "recall"),
+        ("F1", "f1"),
+        ("AA", "adversarial_accuracy"),
+        ("FD ratio", "frechet_ratio"),
     ]
-    y = np.arange(len(metrics))
-    ax.barh(y, values, color=[COLORS["blue"], COLORS["blue"], COLORS["gold"], COLORS["teal"], COLORS["teal"]])
-    ax.set_yticks(y, metrics)
-    ax.invert_yaxis()
-    ax.set_xlim(0.75, 1.01)
-    ax.axvline(0.98, color=COLORS["coral"], lw=1, ls="--")
-    ax.set_xlabel("Agreement or neighborhood fraction")
-    ax.set_title("B  Broad-reference fidelity", loc="left")
-    for yi, value in zip(y, values):
-        ax.text(value - 0.004, yi, f"{value:.3f}", ha="right", va="center", color="white", fontsize=8)
+    labels = [item[0] for item in metric_columns]
+    x = np.arange(len(labels))
+    width = 0.36
+    wgan_values = [
+        model_screen.loc["Study-conditioned WGAN-GP", column]
+        for _, column in metric_columns
+    ]
+    ddim_values = [
+        model_screen.loc["Factorized DDIM", column]
+        for _, column in metric_columns
+    ]
+    ax.bar(
+        x - width / 2,
+        wgan_values,
+        width,
+        label="WGAN, validation",
+        color=COLORS["coral"],
+    )
+    ax.bar(
+        x + width / 2,
+        ddim_values,
+        width,
+        label="DDIM, locked test",
+        color=COLORS["teal"],
+    )
+    ax.axhspan(0.4, 0.6, xmin=0.66, xmax=0.84, color=COLORS["light"], zorder=0)
+    ax.set_xticks(x, labels, rotation=25, ha="right", fontsize=7)
+    ax.set_ylim(0, 1.08)
+    ax.set_ylabel("Metric value")
+    ax.set_title("B  Generator candidates", loc="left")
+    ax.legend(frameon=False, fontsize=7, loc="lower left")
 
-    selected = [
-        ("Correlation", "correlation", (0.94, 1.005), 0.949716),
-        ("Precision", "precision", (0.94, 1.005), 0.95),
-        ("Recall", "recall", (0.94, 1.005), 0.85),
-        ("F1", "f1", (0.94, 1.005), 0.90),
-    ]
     ax = fig.add_subplot(grid[1, 0])
-    for idx, (label, column, _, threshold) in enumerate(selected):
-        vals = locked[column].to_numpy()
-        ax.scatter(vals, np.full_like(vals, idx), color=COLORS["teal"], s=28, zorder=3)
-        ax.plot([vals.min(), vals.max()], [idx, idx], color=COLORS["teal"], lw=2)
-        ax.plot(threshold, idx, marker="|", color=COLORS["coral"], markersize=12, mew=1.5)
-    ax.set_yticks(range(len(selected)), [item[0] for item in selected])
+    gate_labels = ["Corr", "Precision", "Recall", "F1", "AA", "FD", "FLT/GC", "Muscle"]
+    gate_passes = [
+        (locked["correlation"] >= locked["correlation_minimum"]).mean(),
+        (locked["precision"] >= 0.95).mean(),
+        (locked["recall"] >= 0.85).mean(),
+        (locked["f1"] >= 0.90).mean(),
+        locked["adversarial_accuracy"].between(0.40, 0.60).mean(),
+        (locked["frechet_ratio"] <= 1.0).mean(),
+        locked["condition_effect_pass"].astype(bool).mean(),
+        locked["muscle_accession_pass"].astype(bool).mean(),
+    ]
+    y = np.arange(len(gate_labels))
+    bars = ax.barh(
+        y,
+        gate_passes,
+        color=[COLORS["teal"]] * 6 + [COLORS["gold"], COLORS["gold"]],
+    )
+    ax.set_yticks(y, gate_labels)
     ax.invert_yaxis()
-    ax.set_xlim(0.84, 1.005)
-    ax.set_xlabel("Four locked generation seeds")
-    ax.set_title("C  OSDR locked fidelity", loc="left")
+    ax.set_xlim(0, 1.08)
+    ax.set_xlabel("Fraction of four seeds passing")
+    ax.set_title("C  Selected DDIM locked gates", loc="left")
+    for bar, value in zip(bars, gate_passes):
+        ax.text(value + 0.025, bar.get_y() + bar.get_height() / 2, f"{int(value * 4)}/4", va="center", fontsize=7)
 
     ax = fig.add_subplot(grid[1, 1])
-    effect_metrics = [
-        ("AA", "adversarial_accuracy", 0.5),
-        ("Pooled FLT/GC r", "condition_delta_correlation", 0.3),
-        ("Muscle accession r", "muscle_accession_correlation", 0.3),
-    ]
-    for idx, (label, column, target) in enumerate(effect_metrics):
-        vals = locked[column].to_numpy()
-        ax.scatter(vals, np.full_like(vals, idx), color=COLORS["coral"] if idx == 0 else COLORS["gold"], s=28, zorder=3)
-        ax.plot([vals.min(), vals.max()], [idx, idx], color=COLORS["gray"], lw=2)
-        ax.plot(target, idx, marker="|", color=COLORS["navy"], markersize=12, mew=1.5)
-    ax.axvspan(0.4, 0.6, ymin=0.72, ymax=1.0, color=COLORS["light"], zorder=0)
-    ax.set_yticks(range(len(effect_metrics)), [item[0] for item in effect_metrics])
-    ax.invert_yaxis()
-    ax.set_xlim(0.25, 0.82)
-    ax.set_xlabel("Accuracy or effect correlation")
-    ax.set_title("D  Indistinguishability and condition recovery", loc="left")
+    method_colors = [COLORS["gray"]] * len(harmonization)
+    method_labels = harmonization["method"].astype(str).tolist()
+    for index, label in enumerate(method_labels):
+        if label == "Mentor two-stage z-score":
+            method_colors[index] = COLORS["teal"]
+        elif label == "MOBER (study)":
+            method_colors[index] = COLORS["coral"]
+        elif label == "No harmonization (TPM)":
+            method_colors[index] = COLORS["blue"]
+    ax.scatter(
+        harmonization["correlation"],
+        harmonization["f1"],
+        c=method_colors,
+        s=42,
+        edgecolor="white",
+        linewidth=0.5,
+        zorder=3,
+    )
+    for label in ["No harmonization (TPM)", "Mentor two-stage z-score", "MOBER (study)"]:
+        row = harmonization.loc[harmonization["method"].eq(label)].iloc[0]
+        short = {
+            "No harmonization (TPM)": "None",
+            "Mentor two-stage z-score": "Two-stage",
+            "MOBER (study)": "MOBER",
+        }[label]
+        ax.annotate(
+            short,
+            (row["correlation"], row["f1"]),
+            xytext=(4, 4),
+            textcoords="offset points",
+            fontsize=7,
+        )
+    ax.axvline(0.98, color=COLORS["coral"], lw=1, ls="--")
+    ax.axhline(0.90, color=COLORS["coral"], lw=1, ls="--")
+    ax.set_xlim(-0.06, 1.03)
+    ax.set_ylim(-0.04, 1.02)
+    ax.set_xlabel("Correlation agreement")
+    ax.set_ylabel("F1")
+    ax.set_title("D  Matched liver harmonization", loc="left")
 
     fig.suptitle(
-        "The ARCHS4 DDIM preserves tissue information and the adapted DDIM passes locked distribution gates",
+        "Staged benchmarking selected diffusion after WGAN and harmonization screens",
         x=0.02,
         ha="left",
         fontsize=11,
         weight="bold",
+    )
+    fig.text(
+        0.5,
+        0.005,
+        "WGAN values are validation results; DDIM values are locked-test results after staged selection, not a paired test-set comparison.",
+        ha="center",
+        fontsize=6.8,
+        color=COLORS["gray"],
     )
     _save_figure(fig, "figure_2_generator_validation")
 
@@ -2040,6 +2344,11 @@ def build_manifest() -> None:
         TISSUE_DIR / "real_random_effects.tsv.gz",
         LANDMARK_PANEL,
         WGAN_DIR / "summary.json",
+        WGAN_DIR / "calibrated_repeat_metrics.tsv",
+        HARMONIZATION_DIR / "independent_metrics.tsv",
+        ROOT / "configs/generative/preprocessing_profiles.yaml",
+        ROOT / "configs/generative/model_profiles.yaml",
+        ROOT / "configs/generative/experiment_matrix.yaml",
         GENEJEPA_DIR / "figures/archs4_tissues_validation/summary.json",
     ]
     rows = []

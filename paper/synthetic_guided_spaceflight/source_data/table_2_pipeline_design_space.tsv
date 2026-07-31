@@ -1,0 +1,10 @@
+axis	configurable_options	evaluated_scope	selected_branch
+Expression input	raw counts; CPM; TPM; log1p/log2p1; gene z-score; robust or MaxAbs scaling	shared preprocessing screens plus each model's native contract	full-transcriptome TPM, 974 landmarks, train MaxAbs
+Feature space	all shared genes; fold-selected HVGs; Reactome genes; mapped mouse L1000 landmarks	gated screens; selection statistics fitted on training folds	974 mapped mouse L1000 landmarks
+Harmonization	none; within-study z-score; within-study then global z-score; ComBat; ComBat-seq; three MBatch methods; MOBER	nine matched 15,000-epoch liver DDIM arms	no global correction; explicit study conditioning
+Training data	OSDR only; ARCHS4 only; ARCHS4 pretraining then OSDR adaptation	paper-native and practical gated phases	ARCHS4 pretraining then OSDR adaptation
+Cohort scope	single accession; selected accessions; all eligible accessions	accession-scope screen followed by all eligible OSDR	all eligible OSDR accessions
+Tissue structure	pooled tissue-conditioned; standalone per tissue	pooled generator plus tissue-specific downstream policies	pooled tissue-conditioned generator
+Conditioning	FLT/GC; tissue; material; muscle group; study; sex; assay; platform; source	condition and study policies screened; available covariates audited	tissue, FLT/GC, accession, and material
+Generator	WGAN-GP; DDIM; GeneJEPA representation screen	paper-reproduced architectures, then staged independent gates	ARCHS4-pretrained, OSDR-adapted DDIM
+Validation	GEO-series or accession-grouped validation; locked test; unconditional controls; multiple generation seeds	no sample-random model-selection split	four-seed 293-profile locked OSDR test
