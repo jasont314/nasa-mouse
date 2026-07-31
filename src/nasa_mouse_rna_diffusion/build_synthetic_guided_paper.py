@@ -28,6 +28,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PAPER_DIR = ROOT / "paper" / "synthetic_guided_spaceflight"
 FIGURE_DIR = PAPER_DIR / "figures"
 SOURCE_DIR = PAPER_DIR / "source_data"
+UTILITY_TABLES_BEGIN = "<!-- BEGIN GENERATED TISSUE UTILITY TABLES -->"
+UTILITY_TABLES_END = "<!-- END GENERATED TISSUE UTILITY TABLES -->"
 LANDMARK_PANEL = ROOT / "data/diffusion/l974_mouse_paper_parity.tsv"
 
 ARCHS4_RUN = (
@@ -516,6 +518,7 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     tissue_choices = _read_tsv(TISSUE_DIR / "tissue_arm_choices.tsv")
     tissue_repeats = _read_tsv(TISSUE_DIR / "paired_repeat_support.tsv")
     tissue_biology = _read_tsv(TISSUE_DIR / "biological_support_summary.tsv")
+    tissue_inventory = _read_tsv(TISSUE_DIR / "tissue_inventory.tsv")
     tissue_genes = _gate_synthetic_selection(
         _read_tsv(TISSUE_DIR / "stable_gene_sets.tsv.gz"),
         tissue_choices,
@@ -1166,6 +1169,11 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         on=["tissue", "selected_arm"],
         how="left",
         validate="one_to_one",
+    ).merge(
+        tissue_inventory,
+        on="tissue",
+        how="left",
+        validate="one_to_one",
     )
 
     development_tissues = [
@@ -1612,6 +1620,152 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     for key, name in names.items():
         _write_tsv(tables[key], name)
     return tables
+
+
+def _utility_display_name(value: str) -> str:
+    labels = {
+        "edl": "EDL",
+        "skeletal_muscle": "Skeletal muscle, pooled",
+        "tibialis_anterior": "Tibialis anterior",
+    }
+    return labels.get(value, value.replace("_", " ").capitalize())
+
+
+def _utility_arm_name(value: str) -> str:
+    labels = {
+        "real_only": "Real only",
+        "generated_only": "Generated only",
+        "real_plus_generated": "Real + generated",
+        "guided_real_only": "Guided ranking; real fit",
+        "guided_low_weight": "Guided ranking; 5% synthetic",
+    }
+    if value not in labels:
+        raise ValueError(f"Unexpected tissue utility arm: {value}")
+    return labels[value]
+
+
+def _utility_metric_pair(real: float, selected: float) -> str:
+    return f"{float(real):.3f} / {float(selected):.3f}"
+
+
+def _compact_utility_rows(frame: pd.DataFrame) -> list[list[str]]:
+    metric_pairs = [
+        ("real_mean_balanced_accuracy", "selected_mean_balanced_accuracy"),
+        ("real_mean_roc_auc", "selected_mean_roc_auc"),
+        ("real_mean_average_precision", "selected_mean_average_precision"),
+    ]
+    rows: list[list[str]] = []
+    for row in frame.sort_values("tissue").itertuples(index=False):
+        eligible = bool(row.generated_arm_eligible_all_metrics)
+        deltas = [
+            float(getattr(row, selected)) - float(getattr(row, real))
+            for real, selected in metric_pairs
+        ]
+        if not eligible:
+            status = "Real-only retained"
+        elif all(math.isclose(delta, 0.0, abs_tol=1e-12) for delta in deltas):
+            status = "Eligible tie"
+        else:
+            status = "Eligible improvement"
+        rows.append(
+            [
+                _utility_display_name(str(row.tissue)),
+                (
+                    f"{int(row.development_profiles)} "
+                    f"({int(row.flight)}/{int(row.ground_control)})"
+                ),
+                _utility_arm_name(str(row.selected_arm)),
+                _utility_metric_pair(
+                    row.real_mean_balanced_accuracy,
+                    row.selected_mean_balanced_accuracy,
+                ),
+                _utility_metric_pair(
+                    row.real_mean_roc_auc,
+                    row.selected_mean_roc_auc,
+                ),
+                _utility_metric_pair(
+                    row.real_mean_average_precision,
+                    row.selected_mean_average_precision,
+                ),
+                status,
+            ]
+        )
+    return rows
+
+
+def _markdown_table(headers: list[str], rows: list[list[str]]) -> str:
+    def clean(value: str) -> str:
+        return str(value).replace("|", "\\|").replace("\n", " ")
+
+    rendered = [
+        "| " + " | ".join(map(clean, headers)) + " |",
+        "|" + "|".join("---" for _ in headers) + "|",
+    ]
+    rendered.extend(
+        "| " + " | ".join(clean(value) for value in row) + " |" for row in rows
+    )
+    return "\n".join(rendered)
+
+
+def update_supplementary_utility_tables(tables: dict[str, pd.DataFrame]) -> None:
+    canonical = tables["tissue_summary"]
+    muscle = tables["muscle_summary"]
+    if len(canonical) != 22 or len(muscle) != 5:
+        raise ValueError(
+            "Expected utility summaries for 22 canonical tissues and five "
+            f"muscle groups, found {len(canonical)} and {len(muscle)}"
+        )
+
+    headers = [
+        "Tissue",
+        "n (FLT/GC)",
+        "Selected arm",
+        "BA real/selected",
+        "AUROC real/selected",
+        "AP real/selected",
+        "Status",
+    ]
+    block = "\n\n".join(
+        [
+            (
+                "All five arms were fitted for every analysis unit below. Values "
+                "are means across eight repeated outer splits, and every outer "
+                "evaluation used real profiles. An eligible arm was nonworse than "
+                "real-only training in balanced accuracy, AUROC, and average "
+                "precision. An eligible tie met that rule without improving a mean "
+                "metric. These development results are not complete-study transfer "
+                "tests."
+            ),
+            "**Supplementary Table S10. Complete canonical-tissue utility screen.**",
+            _markdown_table(headers, _compact_utility_rows(canonical)),
+            (
+                "**Supplementary Table S7. Complete anatomical muscle-group "
+                "utility screen.**"
+            ),
+            _markdown_table(headers, _compact_utility_rows(muscle)),
+            (
+                "Sample counts are shown as total development profiles followed by "
+                "flight/ground-control counts. Small cohorts and ceiling-level "
+                "scores remain exploratory even when a synthetic arm is eligible."
+            ),
+        ]
+    )
+
+    path = _required(PAPER_DIR / "supplementary_methods.md")
+    text = path.read_text(encoding="utf-8")
+    if text.count(UTILITY_TABLES_BEGIN) != 1 or text.count(UTILITY_TABLES_END) != 1:
+        raise ValueError(
+            "Supplementary utility-table markers are missing or duplicated"
+        )
+    prefix, remainder = text.split(UTILITY_TABLES_BEGIN, maxsplit=1)
+    _, suffix = remainder.split(UTILITY_TABLES_END, maxsplit=1)
+    path.write_text(
+        (
+            f"{prefix}{UTILITY_TABLES_BEGIN}\n\n{block}\n\n"
+            f"{UTILITY_TABLES_END}{suffix}"
+        ),
+        encoding="utf-8",
+    )
 
 
 def figure_1_workflow() -> None:
@@ -2415,6 +2569,9 @@ def render_document(markdown_path: Path, title: str) -> tuple[Path, Path]:
     th { background: #e8eef0; color: #23445d; font-weight: bold; text-align: left; padding: 1.5mm; border-bottom: 1pt solid #7b858c; }
     td { padding: 1.35mm; border-bottom: 0.45pt solid #ced6d9; vertical-align: top; }
     img { max-width: 100%; max-height: 215mm; display: block; margin: 3mm auto 2mm auto; }
+    .figure-block { break-inside: avoid; }
+    .figure-composite { break-inside: avoid; margin: 3mm 0 2mm 0; }
+    .figure-composite img { width: 88%; max-height: none; margin: 1mm auto; }
     blockquote { margin: 3mm 0; padding: 2.5mm 4mm; border-left: 2.5pt solid #d69a2d; background: #f7f4ea; }
     .title-page { min-height: 238mm; display: flex; flex-direction: column; justify-content: center; page-break-after: always; }
     .title-page h1 { font-size: 25pt; }
@@ -2450,6 +2607,7 @@ def main() -> None:
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     _style()
     tables = build_source_tables()
+    update_supplementary_utility_tables(tables)
     figure_1_workflow()
     figure_2_validation(tables)
     figure_3_utility(tables)

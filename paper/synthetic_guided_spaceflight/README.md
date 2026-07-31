@@ -52,9 +52,9 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
 - `manuscript.md`, `manuscript.html`, and `manuscript.pdf`: full paper draft.
 - `supplementary_methods.md`, `.html`, and `.pdf`: exact implementation,
   evaluation gates, output provenance, and limitations.
-- `figures/`: five main figures and four supplementary figures in PNG/PDF.
-  Figures 1-2 describe the configurable pipeline and generator selection;
-  Figures 3-5 report the tissue biology.
+- `figures/`: six main figures and four supplementary figures in PNG/PDF.
+  Figures 1-3 describe the configurable pipeline, generator selection, and
+  diffusion trajectories; Figures 4-6 report the tissue biology.
 - `source_data/`: manuscript tables, figure source tables, and SHA-256 manifests
   for every frozen analysis input.
 
