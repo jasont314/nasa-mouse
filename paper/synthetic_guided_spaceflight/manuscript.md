@@ -157,7 +157,7 @@ This result is consistent with strong tissue variation in bulk expression and wi
 
 <div class="figure-block">
   <div class="figure-composite">
-    <img src="figures/figure_3a_archs4_denoising_trajectory.png" alt="ARCHS4 DDIM denoising trajectory across mouse tissues">
+    <img class="trajectory-panel" src="figures/figure_3a_archs4_denoising_trajectory.png" alt="ARCHS4 DDIM denoising trajectory across mouse tissues">
     <img src="figures/figure_3b_locked_real_vs_synthetic_pca.png" alt="Locked OSDR real and synthetic profiles in PCA space">
   </div>
   <p class="caption"><strong>Figure 3. Diffusion generation across reference pretraining and OSDR adaptation.</strong> Top: ARCHS4 tissue-conditioned profiles at DDIM timesteps 1,000, 200, and 0 in a PCA space fitted to real reference expression; gray points are real ARCHS4 profiles and colors identify generated tissue conditions. Bottom: locked OSDR profiles for generation seed 5020; circles denote real profiles and crosses denote generated profiles, colored by tissue on the left and flight condition on the right. PCA views are descriptive and do not replace the quantitative validation gates.</p>

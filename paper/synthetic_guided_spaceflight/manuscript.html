@@ -30,6 +30,7 @@
     .figure-block { break-inside: avoid; }
     .figure-composite { break-inside: avoid; margin: 3mm 0 2mm 0; }
     .figure-composite img { width: 88%; max-height: none; margin: 1mm auto; }
+    .figure-composite img.trajectory-panel { width: 100%; }
     blockquote { margin: 3mm 0; padding: 2.5mm 4mm; border-left: 2.5pt solid #d69a2d; background: #f7f4ea; }
     .title-page { min-height: 238mm; display: flex; flex-direction: column; justify-content: center; page-break-after: always; }
     .title-page h1 { font-size: 25pt; }
@@ -339,7 +340,7 @@
 </table>
 <div class="figure-block">
   <div class="figure-composite">
-    <img src="figures/figure_3a_archs4_denoising_trajectory.png" alt="ARCHS4 DDIM denoising trajectory across mouse tissues">
+    <img class="trajectory-panel" src="figures/figure_3a_archs4_denoising_trajectory.png" alt="ARCHS4 DDIM denoising trajectory across mouse tissues">
     <img src="figures/figure_3b_locked_real_vs_synthetic_pca.png" alt="Locked OSDR real and synthetic profiles in PCA space">
   </div>
   <p class="caption"><strong>Figure 3. Diffusion generation across reference pretraining and OSDR adaptation.</strong> Top: ARCHS4 tissue-conditioned profiles at DDIM timesteps 1,000, 200, and 0 in a PCA space fitted to real reference expression; gray points are real ARCHS4 profiles and colors identify generated tissue conditions. Bottom: locked OSDR profiles for generation seed 5020; circles denote real profiles and crosses denote generated profiles, colored by tissue on the left and flight condition on the right. PCA views are descriptive and do not replace the quantitative validation gates.</p>
