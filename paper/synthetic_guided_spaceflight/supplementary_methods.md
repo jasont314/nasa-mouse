@@ -93,7 +93,7 @@ Exact repeats are in `source_data/table_s2_locked_ddim_repeats.tsv`. Locked-test
 
 ## S7. Configurable benchmark and comparator models
 
-The 463-row staged planner varied inputs, normalization, transformation, scaling, genes, harmonization, training data, accession and tissue scope, FLT/GC and study conditioning, balancing, seed, and synthetic ratio. Only branches passing lower-cost screens received full training.
+The 463-row experiment planner varied inputs, normalization, transformation, scaling, genes, harmonization, training data, accession and tissue scope, FLT/GC and study conditioning, balancing, seed, and synthetic ratio. Lower-cost screens identified branches for full training.
 
 ### Liver harmonization benchmark
 
@@ -115,7 +115,7 @@ ComBat, ComBat-seq, and MBatch were transductive; MOBER was inductive. None pass
 
 ### WGAN-GP and GeneJEPA screens
 
-The WGAN used the Viñas et al. topology: 64-dimensional noise, two 256-unit generator and critic layers, five critic updates, gradient-penalty weight 10, and batch size 32. RMSProp used learning rate 0.0005, alpha 0.9, and epsilon 1e-7 for at most 2,000 epochs. Released-code early stopping began at epoch 1, ran every five epochs, and allowed ten failed checks. Across six seeds, mean correlation, precision, recall, F1, adversarial accuracy, and FD/real-P95 were 0.9759, 0.9764, 0.9938, 0.9850, 0.6362, and 0.1439. Pooled FLT/GC recovery passed 6/6 repeats; accession-aware muscle recovery passed 0/6. No repeat passed full fidelity, so the locked test remained unopened. Table S15 contains exact repeats.
+The WGAN used the Viñas et al. topology: 64-dimensional noise, two 256-unit generator and critic layers, five critic updates, gradient-penalty weight 10, and batch size 32. RMSProp used learning rate 0.0005, alpha 0.9, and epsilon 1e-7 for at most 2,000 epochs. Released-code early stopping began at epoch 1, ran every five epochs, and allowed ten failed checks. Across six seeds, mean correlation, precision, recall, F1, adversarial accuracy, and FD/real-P95 were 0.9759, 0.9764, 0.9938, 0.9850, 0.6362, and 0.1439. Pooled FLT/GC recovery passed 6/6 repeats; accession-aware muscle recovery passed 0/6. These are validation metrics; no separate WGAN test metrics were generated. Table S15 contains exact repeats.
 
 GeneJEPA used the released 768-dimensional architecture with 512 latents, 24 blocks, 12 heads, 4,096 tokens, mask ratio 0.45, minimum context 512, and minimum target size 16 per block. Its one-epoch mouse screen used 43,744 replacement-sampled exposures, batch size 92 with two-step gradient accumulation, learning rate 0.0001, weight decay 0.0002, cosine scheduling with 5% warmup, bfloat16 AMP, EMA 0.992 to 0.9995 after 2,000 warmup steps, no weighted sampling, and similarity/variance/covariance weights 1/25/1. Held-out tissue balanced accuracy was 0.703 versus 0.839 from expression. It has no expression decoder.
 

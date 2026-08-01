@@ -8,19 +8,19 @@ reports the WGAN-GP, DDIM, GeneJEPA representation, and nine-arm liver
 harmonization screens before introducing the selected diffusion model and the
 downstream biology.
 
-The factorized DDIM was selected because it was the only generator to pass the
-final joint locked fidelity and effect-recovery gates. The WGAN-GP retained
-strong validation correlation and neighborhood metrics but failed external
-indistinguishability and accession-aware effect recovery, so its locked test was
-not opened. These rows are consecutive selection stages, not a paired test-set
-comparison.
+The factorized DDIM was used downstream because it combined high fidelity,
+near-chance real-versus-synthetic adversarial accuracy, and accession-aware
+effect recovery. WGAN-GP retained strong correlation and neighborhood metrics
+but remained more distinguishable from real profiles and recovered no
+accession-aware muscle effects. Metrics are reported on each model's stated
+evaluation split rather than as a paired comparison.
 
 The downstream analysis compares pooled and tissue-specific uses of generated
 expression. Thymus provides a real-supported cell-cycle panel, soleus provides a
 cross-accession metabolic program, and kidney provides a focused promoted
 `Inpp4b` and reinforced `Slc37a4` result.
 
-After generator selection, the paper follows a three-stage downstream funnel:
+Using the DDIM generator, the paper follows a three-part downstream funnel:
 
 1. a pooled benchmark tests whether one synthetic-data policy works across
    tissues;
@@ -43,9 +43,9 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
 
 - `manuscript.md`, `manuscript.html`, and `manuscript.pdf`: full paper draft.
 - `supplementary_methods.md`, `.html`, and `.pdf`: implementation details,
-  evaluation gates, complete supporting results, and limitations.
+  evaluation metrics, complete supporting results, and limitations.
 - `figures/`: six main figures and two supplementary figures in PNG/PDF.
-  Figures 1-3 describe the configurable pipeline, generator selection, and
+  Figures 1-3 describe the configurable pipeline, generator metrics, and
   diffusion trajectories; Figures 4-6 report the tissue biology.
 - `source_data/`: manuscript and supplementary data tables. SHA-256 manifests
   are retained for repository auditing but are not part of the formal supplement.

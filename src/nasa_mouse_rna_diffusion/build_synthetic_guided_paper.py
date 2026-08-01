@@ -575,7 +575,7 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                 "source": "NASA OSDR API",
                 "available_profiles": 1_631,
                 "analysis_profiles": 1_610,
-                "analysis_split": "781 train / 536 validation / 293 locked test",
+                "analysis_split": "781 train / 536 validation / 293 test",
                 "classes_or_accessions": 75,
                 "genes": 974,
                 "role": "conditional adaptation and FLT/GC analysis",
@@ -652,19 +652,17 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             {
                 "axis": "Generator",
                 "configurable_options": "WGAN-GP; DDIM; GeneJEPA representation screen",
-                "evaluated_scope": (
-                    "paper-reproduced architectures, then staged independent gates"
-                ),
+                "evaluated_scope": "paper-reproduced architectures and independent metrics",
                 "selected_branch": "ARCHS4-pretrained, OSDR-adapted DDIM",
             },
             {
                 "axis": "Validation",
                 "configurable_options": (
-                    "GEO-series or accession-grouped validation; locked test; "
+                    "GEO-series or accession-grouped evaluation; test set; "
                     "unconditional controls; multiple generation seeds"
                 ),
                 "evaluated_scope": "no sample-random model-selection split",
-                "selected_branch": "four-seed 293-profile locked OSDR test",
+                "selected_branch": "four-seed 293-profile OSDR test",
             },
         ]
     )
@@ -832,14 +830,14 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                 "accession_repeats_passing": "not applicable",
                 "locked_test_opened": "not applicable",
                 "decision": (
-                    "retained as tissue-conditioned initialization despite failed "
-                    "correlation-structure gate"
+                    "retained as tissue-conditioned initialization; correlation "
+                    "agreement was below the target"
                 ),
             },
             {
                 "model": "Study-conditioned WGAN-GP",
                 "training_regime": "OSDR matched study-conditioned",
-                "evaluation_split": "536-profile validation; test unopened",
+                "evaluation_split": "536-profile validation",
                 "generation_repeats": len(wgan_repeats),
                 "correlation": wgan_metrics["correlation"]["mean"],
                 "precision": wgan_metrics["precision"]["mean"],
@@ -858,14 +856,14 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                 ),
                 "locked_test_opened": bool(wgan_run["locked_test_opened"]),
                 "decision": (
-                    "rejected on validation: external separability and unstable "
-                    "accession-aware effect recovery"
+                    "not used downstream: higher external separability and no "
+                    "accession-aware muscle-effect recovery"
                 ),
             },
             {
                 "model": "Factorized DDIM",
                 "training_regime": "ARCHS4 pretraining then OSDR adaptation",
-                "evaluation_split": "293-profile locked within-study test",
+                "evaluation_split": "293-profile within-study OSDR test",
                 "generation_repeats": len(locked),
                 "correlation": locked["correlation"].mean(),
                 "precision": locked["precision"].mean(),
@@ -884,7 +882,8 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                 ),
                 "locked_test_opened": bool(locked_run["locked_test_opened"]),
                 "decision": (
-                    "selected: only generator to pass the final joint locked gates"
+                    "used downstream: lower adversarial accuracy and Frechet ratio "
+                    "with muscle-effect recovery in 4/4 repeats"
                 ),
             },
             {
@@ -1584,41 +1583,40 @@ def figure_1_workflow() -> None:
     ax.text(
         0.45,
         2.45 + top,
-        "Staged generator selection",
+        "Generator metrics and model choice",
         weight="bold",
         fontsize=11,
     )
-    stages = [
+    comparisons = [
         (
-            "Grouped splits",
-            "GEO series or OSDR\naccessions kept intact",
-            COLORS["blue"],
+            0.2,
+            3.35,
+            "WGAN-GP",
+            "Corr. 0.976; F1 0.985\nAA 0.636; muscle recovery 0/6",
+            COLORS["coral"],
         ),
         (
-            "Independent gates",
-            "Fidelity, diversity,\nmemorization, effects",
-            COLORS["gold"],
-        ),
-        (
-            "Selected DDIM",
-            "Only candidate passing\nfinal joint locked gates",
+            4.0,
+            3.35,
+            "DDIM",
+            "Corr. 0.974; F1 0.997\nAA 0.475; muscle recovery 4/4",
             COLORS["teal"],
         ),
         (
-            "Downstream\ncomparison",
-            "Five candidate uses\nevaluated per tissue",
-            COLORS["coral"],
+            7.8,
+            4.0,
+            "Downstream model",
+            "Lower AA and FD; muscle recovery 4/4\nDDIM used for downstream analysis",
+            COLORS["green"],
         ),
     ]
-    x_positions = [0.2, 3.15, 6.1, 9.05]
-    for x, (title, body, color) in zip(x_positions, stages):
-        box(x, 0.55 + top, 2.55, 1.45, title, body, color)
-    for left, right in zip(x_positions[:-1], x_positions[1:]):
-        arrow(left + 2.55, 1.28 + top, right, 1.28 + top)
+    for x, width, title, body, color in comparisons:
+        box(x, 0.55 + top, width, 1.45, title, body, color)
+    arrow(7.35, 1.28 + top, 7.8, 1.28 + top)
     ax.text(
         0.2,
         0.12 + top,
-        "The matrix defined a gated search, not an exhaustive Cartesian sweep. Synthetic profiles were never counted as additional animals.",
+        "AA near 0.5 indicates lower separability; generated profiles were never counted as additional animals.",
         fontsize=7.6,
         color=COLORS["gray"],
     )
@@ -1808,14 +1806,14 @@ def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
         x + width / 2,
         ddim_values,
         width,
-        label="DDIM, locked test",
+        label="DDIM, OSDR test",
         color=COLORS["teal"],
     )
     ax.axhspan(0.4, 0.6, xmin=0.66, xmax=0.84, color=COLORS["light"], zorder=0)
     ax.set_xticks(x, labels, rotation=25, ha="right", fontsize=7)
     ax.set_ylim(0, 1.08)
     ax.set_ylabel("Metric value")
-    ax.set_title("B  Generator candidates", loc="left")
+    ax.set_title("B  Generator metrics", loc="left")
     ax.legend(frameon=False, fontsize=7, loc="lower left")
 
     ax = fig.add_subplot(grid[1, 0])
@@ -1840,7 +1838,7 @@ def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
     ax.invert_yaxis()
     ax.set_xlim(0, 1.08)
     ax.set_xlabel("Fraction of four seeds passing")
-    ax.set_title("C  Selected DDIM locked gates", loc="left")
+    ax.set_title("C  DDIM repeat performance", loc="left")
     for bar, value in zip(bars, gate_passes):
         ax.text(value + 0.025, bar.get_y() + bar.get_height() / 2, f"{int(value * 4)}/4", va="center", fontsize=7)
 
@@ -1886,7 +1884,7 @@ def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
     ax.set_title("D  Matched liver harmonization", loc="left")
 
     fig.suptitle(
-        "Staged benchmarking selected diffusion after WGAN and harmonization screens",
+        "Generator metrics support DDIM use in downstream analysis",
         x=0.02,
         ha="left",
         fontsize=11,
@@ -1895,7 +1893,7 @@ def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
     fig.text(
         0.5,
         0.005,
-        "WGAN values are validation results; DDIM values are locked-test results after staged selection, not a paired test-set comparison.",
+        "WGAN values use validation data and DDIM values use the stated test data; metrics are not paired on one common split.",
         ha="center",
         fontsize=6.8,
         color=COLORS["gray"],
