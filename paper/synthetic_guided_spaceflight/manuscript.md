@@ -40,7 +40,7 @@ We built a common framework around three model families and the preprocessing, h
 
 Synthetic expression is commonly presented as a remedy for small sample size. Generated profiles, however, are not new biological replicates. After choosing diffusion for downstream analysis, we separated three questions: whether one pooled augmentation strategy helped at all, whether different tissues benefited from different synthetic-data uses, and whether prioritized genes were associated with flight in real samples.
 
-Our primary biological questions were whether this approach could clarify the tissue response to spaceflight and whether anatomical separation would expose muscle-specific responses hidden by pooling.
+Our primary biological question was whether tissue-specific analysis could reveal spaceflight responses obscured by multi-tissue pooling.
 
 The tissue-specific analysis supplied its most coherent biological programs in thymus and soleus. Kidney, spleen, skin, pooled skeletal muscle, and adrenal gland supplied narrower candidates. Results from the remaining tissues define the exploratory boundary of the approach.
 
