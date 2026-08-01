@@ -9,11 +9,10 @@ harmonization screens before introducing the selected diffusion model and the
 downstream biology.
 
 The factorized DDIM was used downstream because it combined high fidelity,
-near-chance real-versus-synthetic adversarial accuracy, and accession-aware
-effect recovery. WGAN-GP retained strong correlation and neighborhood metrics
-but remained more distinguishable from real profiles and recovered no
-accession-aware muscle effects. Metrics are reported on each model's stated
-evaluation split rather than as a paired comparison.
+near-chance real-versus-synthetic adversarial accuracy, and lower distributional
+distance. WGAN-GP retained strong correlation and neighborhood metrics but
+remained more distinguishable from real profiles. Metrics are reported on each
+model's stated evaluation split rather than as a paired comparison.
 
 The downstream analysis compares pooled and tissue-specific uses of generated
 expression. Thymus provides a real-supported cell-cycle panel, soleus provides a
@@ -44,9 +43,9 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
 - `manuscript.md`, `manuscript.html`, and `manuscript.pdf`: full paper draft.
 - `supplementary_methods.md`, `.html`, and `.pdf`: implementation details,
   evaluation metrics, complete supporting results, and limitations.
-- `figures/`: six main figures and two supplementary figures in PNG/PDF.
-  Figures 1-3 describe the configurable pipeline, generator metrics, and
-  diffusion trajectories; Figures 4-6 report the tissue biology.
+- `figures/`: five main figures and two supplementary figures in PNG/PDF.
+  Figures 1-2 report generator metrics and diffusion trajectories; Figures 3-5
+  report the tissue biology.
 - `source_data/`: manuscript and supplementary data tables. SHA-256 manifests
   are retained for repository auditing but are not part of the formal supplement.
 

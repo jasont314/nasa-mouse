@@ -20,7 +20,7 @@
 
 **Methods:** We assembled 1,610 mouse flight and ground-control bulk RNA-seq profiles through the NASA Open Science Data Repository API and audited all 997,515 profiles in ARCHS4 mouse. The framework varied expression transformations, feature spaces, harmonization, study scope, tissue structure, conditioning, and training regime. Paper-based WGAN-GP and diffusion implementations were compared using fidelity, real-versus-synthetic separability, distributional-distance, and FLT/GC-effect metrics; GeneJEPA was evaluated as a representation model because it has no expression decoder. The diffusion model used downstream was pretrained on 17,244 tissue-diverse ARCHS4 profiles. Downstream analysis compared pooled and tissue-specific uses of generated expression. Flight associations were tested with real profiles using accession-level random-effects models and Benjamini-Hochberg false-discovery control.
 
-**Results:** None of nine matched liver harmonization arms provided adequate fidelity and conditional-effect recovery together. A calibrated study-conditioned WGAN-GP achieved correlation 0.976, precision 0.976, recall 0.994, and F1 0.985 on validation, but its adversarial accuracy was 0.636 and accession-aware muscle-effect recovery was 0/6. Across four diffusion seeds, correlation was 0.974, precision 0.997, recall 0.996, F1 0.997, adversarial accuracy was 0.475, the Frechet-distance ratio was 0.074, and muscle-effect recovery was 4/4. Diffusion was therefore used downstream. Pooled augmentation reduced balanced accuracy from 0.754 with real-only training to 0.737 with real-plus-generated training. Tissue-specific use was more informative: 49 real-data BH-FDR associations also entered stable synthetic-informed selection, including a flight-lower mitotic program in thymus and a soleus program with lower *Bdh1*, *Ech1*, *Bnip3*, and *Decr1* and higher *Tpm1*.
+**Results:** None of nine matched liver harmonization arms provided adequate fidelity and conditional-effect recovery together. A calibrated study-conditioned WGAN-GP achieved correlation 0.976, precision 0.976, recall 0.994, F1 0.985, adversarial accuracy 0.636, and a Frechet-distance ratio of 0.144 on validation. Across four diffusion seeds, correlation was 0.974, precision 0.997, recall 0.996, F1 0.997, adversarial accuracy was 0.475, and the Frechet-distance ratio was 0.074. Diffusion was therefore used downstream because it was less distinguishable from real data and had lower distributional distance while retaining high fidelity. Pooled augmentation reduced balanced accuracy from 0.754 with real-only training to 0.737 with real-plus-generated training. Tissue-specific use was more informative: 49 real-data BH-FDR associations also entered stable synthetic-informed selection, including a flight-lower mitotic program in thymus and a soleus program with lower *Bdh1*, *Ech1*, *Bnip3*, and *Decr1* and higher *Tpm1*.
 
 **Conclusions:** Model choice depended on joint fidelity and biological-effect recovery rather than one favorable metric. Diffusion provided the strongest distributionally validated generator, but its downstream value depended on tissue and mode of use. Synthetic expression worked better as a feature prior or regularizer than as additional biological sample size. The thymus, soleus, kidney, spleen, skin, and pooled skeletal-muscle results define testable hypotheses that require independent biological replication.
 
@@ -36,17 +36,13 @@ Deep generative models can learn high-dimensional expression distributions. Cond
 
 The model is only one part of the problem. Multi-study bulk RNA-seq can be represented as counts, CPM, TPM, or transformed and scaled expression; studies can be corrected, explicitly conditioned, modeled separately, or pooled. Published spaceflight workflows have used within-study standardization [24] and compared ComBat, ComBat-seq, and MBatch correction families [25]. MOBER offers a learned, inductive alternative based on an adversarial conditional variational autoencoder [26]. Any of these choices can improve one diagnostic while erasing flight-related structure or preserving study artifacts instead of biology.
 
-We built a common framework around three model families and the preprocessing, harmonization, cohort, conditioning, and training choices surrounding them. Models were compared using correlation, neighborhood, adversarial, distributional, diversity, memorization, and FLT/GC-effect metrics. The OSDR-adapted DDIM was less distinguishable from real profiles, had lower distributional distance, and recovered accession-aware muscle effects while maintaining high fidelity, so it was used for downstream analysis.
+We built a common framework around three model families and the preprocessing, harmonization, cohort, conditioning, and training choices surrounding them. Models were compared using correlation, neighborhood, adversarial, distributional, diversity, memorization, and FLT/GC-effect metrics. The OSDR-adapted DDIM was less distinguishable from real profiles and had lower distributional distance while maintaining high fidelity, so it was used for downstream analysis.
 
 Synthetic expression is commonly presented as a remedy for small sample size. Generated profiles, however, are not new biological replicates. After choosing diffusion for downstream analysis, we separated three questions: whether one pooled augmentation strategy helped at all, whether different tissues benefited from different synthetic-data uses, and whether prioritized genes were associated with flight in real samples.
 
 Our primary biological question was whether tissue-specific analysis could reveal spaceflight responses obscured by multi-tissue pooling.
 
 The tissue-specific analysis supplied its most coherent biological programs in thymus and soleus. Kidney, spleen, skin, pooled skeletal muscle, and adrenal gland supplied narrower candidates. Results from the remaining tissues define the exploratory boundary of the approach.
-
-![Configurable generative transcriptomics framework.](figures/figure_1_study_design.png)
-
-<p class="caption"><strong>Figure 1. Configurable generative transcriptomics framework.</strong> (A) ARCHS4 supplied tissue-diverse reference profiles and the NASA OSDR API supplied flight and ground-control profiles with study provenance. (B) Configurable axes covered expression representation, harmonization, model family, training scope, cohort structure, and conditioning. (C) WGAN-GP and DDIM metrics were compared; DDIM's lower real-versus-synthetic separability and stronger accession-effect recovery supported its downstream use. (D) Each tissue compared real-only, generated-only, real-plus-generated, consensus-ranked real-only, and consensus-ranked low-weight synthetic training. Every arm was evaluated on held-out real profiles from represented accessions; biological effects and false-discovery rates came from real OSDR samples.</p>
 
 ## Materials and methods
 
@@ -90,11 +86,11 @@ Nine harmonization arms were compared in a matched liver experiment: no correcti
 
 We implemented paper-based WGAN-GP and DDIM generators [3,4,12,13]. GeneJEPA was evaluated as a representation model but not as a generator because its released architecture has no expression decoder [5]. The DDIM was first trained on the 17,244-profile ARCHS4 reference, then adapted to OSDR with tissue, FLT/GC, accession, and material conditions. Exact architectures, optimization schedules, adaptation stages, seeds, and hardware records are provided in Supplementary Methods S4-S7.
 
-Complete GEO series and OSDR accessions were grouped when study-level separation was required. Candidate generators were evaluated for correlation structure, neighborhood precision and recall, external real-versus-synthetic separability, distributional distance, diversity, memorization, and recovery of FLT/GC effects [14,15]. Metrics were assessed independently and each model's evaluation split was reported. Exact thresholds are provided in Supplementary Methods S6. The factorized DDIM had lower adversarial accuracy and distributional distance than WGAN-GP and recovered accession-aware muscle effects; it generated FLT or GC expression for represented tissue and study contexts and supplied the downstream screens.
+Complete GEO series and OSDR accessions were grouped when study-level separation was required. Candidate generators were evaluated for correlation structure, neighborhood precision and recall, external real-versus-synthetic separability, distributional distance, diversity, memorization, and recovery of FLT/GC effects [14,15]. Metrics were assessed independently and each model's evaluation split was reported. Exact thresholds are provided in Supplementary Methods S6. The factorized DDIM had lower adversarial accuracy and distributional distance than WGAN-GP while retaining high correlation and neighborhood fidelity; it generated FLT or GC expression for represented tissue and study contexts and supplied the downstream screens.
 
 ### Evaluation funnel and synthetic-guided analysis
 
-Evaluation used three stages. First, we tested the most direct use of synthetic expression: pooled augmentation across all tissues. Individual tissue profiles were not averaged or collapsed; instead, they were combined in one FLT/GC classification problem governed by a common decision rule. The locked benchmark compared classifiers trained with real profiles, generated profiles, or real plus generated profiles. Second, because the pooled strategy did not improve performance, each tissue was evaluated separately with five candidate uses (Fig. 1D). Real-only ranking and fitting used observed OSDR profiles; generated-only ranking and fitting used DDIM profiles. Real-plus-generated training used consensus ranking and equal total real and synthetic weight. Both guided arms used real/synthetic consensus ranking: one fitted the classifier only on real profiles, while the other added condition-recentered generated profiles at 0.05 total synthetic weight. Nested development splits withheld profiles but retained representation from the same accessions. These are within-study development results. Synthetic attribution was retained only when the selected arm was nonworse than real-only training across balanced accuracy, AUROC, and average precision under the frozen eligibility rule.
+Evaluation used three stages. First, we tested the most direct use of synthetic expression: pooled augmentation across all tissues. Individual tissue profiles were not averaged or collapsed; instead, they were combined in one FLT/GC classification problem governed by a common decision rule. The locked benchmark compared classifiers trained with real profiles, generated profiles, or real plus generated profiles. Second, because the pooled strategy did not improve performance, each tissue was evaluated separately with five candidate uses. Real-only ranking and fitting used observed OSDR profiles; generated-only ranking and fitting used DDIM profiles. Real-plus-generated training used consensus ranking and equal total real and synthetic weight. Both guided arms used real/synthetic consensus ranking: one fitted the classifier only on real profiles, while the other added condition-recentered generated profiles at 0.05 total synthetic weight. Nested development splits withheld profiles but retained representation from the same accessions. These are within-study development results. Synthetic attribution was retained only when the selected arm was nonworse than real-only training across balanced accuracy, AUROC, and average precision under the frozen eligibility rule.
 
 Third, stable features from the selected tissue arm were compared with stable real-only features. Genes stable under both approaches were interpreted as reinforced. Genes stable only under the eligible synthetic-informed arm were interpreted as synthetic-promoted. "Synthetic-promoted" describes repeated feature selection; it does not mean that a gene was absent from real expression or biologically novel.
 
@@ -116,25 +112,25 @@ Within each tissue, the 974 real-data gene-level meta-analysis P values were adj
 
 The broad ARCHS4 DDIM retained tissue identity and passed most distributional tests on 4,628 held-out profiles, but its gene-correlation agreement missed the prespecified floor. It was therefore retained only as tissue-conditioned initialization. GeneJEPA also encoded tissue information, but its representation did not outperform expression directly and it could not generate profiles without an additional decoder.
 
-No liver harmonization arm passed the joint fidelity and conditional-effect criteria (Fig. 2D; Supplementary Tables S13-S14). Some methods improved a single diagnostic while degrading neighborhood fidelity, real-versus-synthetic separability, or distributional distance. The selected path therefore retained TPM/MaxAbs expression without global correction and represented accession explicitly during OSDR adaptation.
+No liver harmonization arm passed the joint fidelity and conditional-effect criteria (Supplementary Tables S13-S14). Some methods improved a single diagnostic while degrading neighborhood fidelity, real-versus-synthetic separability, or distributional distance. The selected path therefore retained TPM/MaxAbs expression without global correction and represented accession explicitly during OSDR adaptation.
 
-WGAN-GP achieved correlation 0.976, F1 0.985, adversarial accuracy 0.636, and FD/real-P95 0.144; pooled FLT/GC recovery passed in 6/6 repeats, but accession-aware muscle recovery passed in 0/6. DDIM achieved correlation 0.974, F1 0.997, adversarial accuracy 0.475, and FD/real-P95 0.074; pooled recovery passed in 3/4 repeats and muscle recovery in 4/4. DDIM was therefore used downstream because it was less distinguishable from real data and recovered accession-aware condition effects while retaining high fidelity (Table 4).
+WGAN-GP achieved correlation 0.976, F1 0.985, adversarial accuracy 0.636, and FD/real-P95 0.144. DDIM achieved correlation 0.974, F1 0.997, adversarial accuracy 0.475, and FD/real-P95 0.074. DDIM was therefore used downstream because it was less distinguishable from real data and had lower distributional distance while retaining high fidelity (Table 4).
 
-![Generator benchmarking and selection.](figures/figure_2_generator_validation.png)
+![Generator metrics and model choice.](figures/figure_1_generator_validation.png)
 
-<p class="caption"><strong>Figure 2. Generator metrics and model choice.</strong> (A) Real-trained and synthetic-trained classifiers retained the same broad ARCHS4 tissue balanced accuracy. (B) WGAN-GP validation metrics and DDIM test metrics on their stated evaluation splits; adversarial accuracy closer to 0.5 indicates lower real-versus-synthetic separability. (C) Fraction of four DDIM generation seeds passing each fidelity and effect-recovery criterion. (D) Correlation and F1 in the nine-arm matched liver harmonization benchmark. DDIM was used downstream because it combined near-chance adversarial accuracy, high fidelity, and accession-aware effect recovery.</p>
+<p class="caption"><strong>Figure 1. Generator metrics and model choice.</strong> (A) Real-trained and synthetic-trained classifiers retained the same broad ARCHS4 tissue balanced accuracy. (B) WGAN-GP validation metrics and DDIM test metrics on their stated evaluation splits; adversarial accuracy closer to 0.5 indicates lower real-versus-synthetic separability. (C) Fraction of four DDIM generation seeds passing each general fidelity or FLT/GC-effect criterion. DDIM was used downstream because it combined near-chance adversarial accuracy, lower distributional distance, and high fidelity.</p>
 
 **Table 4. Generator metrics and model choice. Values are reported on each model's stated evaluation split and are not paired on one common split.**
 
-| Model | Evaluation split | Corr. | Precision | Recall | F1 | AA | FD/real P95 | FLT/GC recovery | Muscle recovery | Decision |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| Broad-reference DDIM | 4,628 held-out ARCHS4 profiles | 0.878 | 0.951 | 0.890 | 0.919 | 0.515 | 0.866 | NA | NA | Initialization only |
-| Study-conditioned WGAN-GP | 536-profile validation; 6 seeds | 0.976 | 0.976 | 0.994 | 0.985 | 0.636 | 0.144 | 6/6 | 0/6 | Not used downstream |
-| Factorized DDIM | 293-profile OSDR test; 4 seeds | 0.974 | 0.997 | 0.996 | 0.997 | 0.475 | 0.074 | 3/4 | 4/4 | Used downstream |
+| Model | Evaluation split | Corr. | Precision | Recall | F1 | AA | FD/real P95 | FLT/GC recovery | Decision |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---|
+| Broad-reference DDIM | 4,628 held-out ARCHS4 profiles | 0.878 | 0.951 | 0.890 | 0.919 | 0.515 | 0.866 | NA | Initialization only |
+| Study-conditioned WGAN-GP | 536-profile validation; 6 seeds | 0.976 | 0.976 | 0.994 | 0.985 | 0.636 | 0.144 | 6/6 | Not used downstream |
+| Factorized DDIM | 293-profile OSDR test; 4 seeds | 0.974 | 0.997 | 0.996 | 0.997 | 0.475 | 0.074 | 3/4 | Used downstream |
 
 ### Diffusion generation recovered tissue-conditioned expression structure
 
-The reverse trajectory provides a direct view of the model transforming noise into tissue-conditioned expression. In the ARCHS4 reference model, profiles moved from an overlapping noise cloud at timestep 1,000 toward the tissue-structured real-data manifold at timestep 0 (Fig. 3, top). After OSDR adaptation, locked real and generated profiles occupied similar tissue-defined regions, and flight and ground-control profiles remained interspersed within that broader structure (Fig. 3, bottom). These two-dimensional projections are descriptive: model selection used the full correlation, precision, recall, adversarial, Frechet-distance, and conditional-effect gates rather than visual similarity.
+The reverse trajectory provides a direct view of the model transforming noise into tissue-conditioned expression. In the ARCHS4 reference model, profiles moved from an overlapping noise cloud at timestep 1,000 toward the tissue-structured real-data manifold at timestep 0 (Fig. 2, top). After OSDR adaptation, locked real and generated profiles occupied similar tissue-defined regions, and flight and ground-control profiles remained interspersed within that broader structure (Fig. 2, bottom). These two-dimensional projections are descriptive: model selection used the full correlation, precision, recall, adversarial, Frechet-distance, and conditional-effect gates rather than visual similarity.
 
 ### Pooled augmentation motivated tissue-specific analysis
 
@@ -157,10 +153,10 @@ This result is consistent with strong tissue variation in bulk expression and wi
 
 <div class="figure-block">
   <div class="figure-composite">
-    <img class="trajectory-panel" src="figures/figure_3a_archs4_denoising_trajectory.png" alt="ARCHS4 DDIM denoising trajectory across mouse tissues">
-    <img src="figures/figure_3b_locked_real_vs_synthetic_pca.png" alt="Locked OSDR real and synthetic profiles in PCA space">
+    <img class="trajectory-panel" src="figures/figure_2a_archs4_denoising_trajectory.png" alt="ARCHS4 DDIM denoising trajectory across mouse tissues">
+    <img src="figures/figure_2b_locked_real_vs_synthetic_pca.png" alt="Locked OSDR real and synthetic profiles in PCA space">
   </div>
-  <p class="caption"><strong>Figure 3. Diffusion generation across reference pretraining and OSDR adaptation.</strong> Top: ARCHS4 tissue-conditioned profiles at DDIM timesteps 1,000, 200, and 0 in a PCA space fitted to real reference expression; gray points are real ARCHS4 profiles and colors identify generated tissue conditions. Bottom: OSDR test profiles for generation seed 5020; circles denote real profiles and crosses denote generated profiles, colored by tissue on the left and flight condition on the right. PCA views are descriptive and do not replace quantitative validation metrics.</p>
+  <p class="caption"><strong>Figure 2. Diffusion generation across reference pretraining and OSDR adaptation.</strong> Top: ARCHS4 tissue-conditioned profiles at DDIM timesteps 1,000, 200, and 0 in a PCA space fitted to real reference expression; gray points are real ARCHS4 profiles and colors identify generated tissue conditions. Bottom: OSDR test profiles for generation seed 5020; circles denote real profiles and crosses denote generated profiles, colored by tissue on the left and flight condition on the right. PCA views are descriptive and do not replace quantitative validation metrics.</p>
 </div>
 
 ### Synthetic-informed selection identified real-data associations
@@ -173,7 +169,7 @@ All 459 P values and FDR values came from real profiles. Synthetic data affected
 
 The thymus screen selected low-weight synthetic-guided training. Balanced accuracy increased from 0.733 to 0.844, AUROC from 0.818 to 0.887, and average precision from 0.862 to 0.918 across repeated within-study splits. Sixteen thymus associations passed real-data BH FDR and entered stable synthetic-informed selection: 13 were synthetic-promoted and three were reinforced.
 
-The strongest coherent subset contained flight-lower *Nusap1*, *Stmn1*, *Birc5*, *Cdk1*, *Top2a*, *Ccnb2*, *Aurka*, and *Ccne2*, all promoted by synthetic guidance, together with reinforced *Ube2c* and *Gmnn* (Fig. 4A). Each had a lower random-effects estimate across the five thymus accessions and BH FDR below 0.05. Reactome analysis of the synthetic-supported set identified mitotic cell cycle, DNA replication, S phase, APC/C regulation, and G2/M control (Fig. 4B).
+The strongest coherent subset contained flight-lower *Nusap1*, *Stmn1*, *Birc5*, *Cdk1*, *Top2a*, *Ccnb2*, *Aurka*, and *Ccne2*, all promoted by synthetic guidance, together with reinforced *Ube2c* and *Gmnn* (Fig. 3A). Each had a lower random-effects estimate across the five thymus accessions and BH FDR below 0.05. Reactome analysis of the synthetic-supported set identified mitotic cell cycle, DNA replication, S phase, APC/C regulation, and G2/M control (Fig. 3B).
 
 These genes were present and statistically supported in the real data. Synthetic guidance changed their repeated selection behavior and organized them into a coherent panel; it did not create independent evidence or establish de novo biological discovery.
 
@@ -181,25 +177,25 @@ Prior thymus studies report related biology, although the present result is more
 
 Bulk thymus expression cannot distinguish lower transcription within proliferating thymocytes from loss or redistribution of proliferating cell populations. The defensible biological conclusion is lower abundance of a mitotic transcript program in flight, consistent with reduced proliferative renewal. Cell-resolved or histological confirmation is required to assign the effect to a cell-intrinsic mechanism.
 
-![Thymus biology.](figures/figure_4_thymus_biology.png)
+![Thymus biology.](figures/figure_3_thymus_biology.png)
 
-<p class="caption"><strong>Figure 4. Thymus response to spaceflight.</strong> (A) Real-data random-effects flight-minus-ground estimates for ten genes across five thymus accessions; coral denotes synthetic-promoted genes and teal denotes reinforced genes. (B) The synthetic-supported set converges on mitotic and DNA-replication processes.</p>
+<p class="caption"><strong>Figure 3. Thymus response to spaceflight.</strong> (A) Real-data random-effects flight-minus-ground estimates for ten genes across five thymus accessions; coral denotes synthetic-promoted genes and teal denotes reinforced genes. (B) The synthetic-supported set converges on mitotic and DNA-replication processes.</p>
 
 ### Anatomical separation exposes a soleus-specific metabolic program
 
 Aggregate skeletal muscle concealed substantial anatomical heterogeneity. We therefore examined extensor digitorum longus, gastrocnemius, quadriceps, soleus, and tibialis anterior separately. Soleus produced the clearest biological pattern: its selected genes showed consistent flight effects across three accessions and converged on related metabolic processes.
 
-The soleus screen selected real-plus-generated training. Balanced accuracy increased from 0.925 to 0.963, AUROC remained 0.980, and average precision increased from 0.980 to 0.986. Five BH-FDR genes were stable in both real-only and synthetic-guided selection: *Bdh1*, *Ech1*, *Bnip3*, and *Decr1* were lower in flight in all three accessions, while *Tpm1* was higher (Fig. 5B). Four genes passed leave-one-accession-out FDR; *Decr1* did not.
+The soleus screen selected real-plus-generated training. Balanced accuracy increased from 0.925 to 0.963, AUROC remained 0.980, and average precision increased from 0.980 to 0.986. Five BH-FDR genes were stable in both real-only and synthetic-guided selection: *Bdh1*, *Ech1*, *Bnip3*, and *Decr1* were lower in flight in all three accessions, while *Tpm1* was higher (Fig. 4B). Four genes passed leave-one-accession-out FDR; *Decr1* did not.
 
-The model did not promote a soleus gene absent from stable real-only selection. Its contribution was reinforcement of a coherent existing pattern. Reactome connected the retained genes to mitochondrial protein turnover, mitochondrial fatty-acid beta-oxidation, and lipid metabolism (Fig. 5C). *Bdh1* and *Ech1* support oxidative substrate handling, *Bnip3* supports mitochondrial quality control, *Decr1* contributes to unsaturated fatty-acid oxidation, and *Tpm1* suggests contractile remodeling.
+The model did not promote a soleus gene absent from stable real-only selection. Its contribution was reinforcement of a coherent existing pattern. Reactome connected the retained genes to mitochondrial protein turnover, mitochondrial fatty-acid beta-oxidation, and lipid metabolism (Fig. 4C). *Bdh1* and *Ech1* support oxidative substrate handling, *Bnip3* supports mitochondrial quality control, *Decr1* contributes to unsaturated fatty-acid oxidation, and *Tpm1* suggests contractile remodeling.
 
 Prior 30-day spaceflight profiling of mouse soleus reported a slow-to-fast shift and broad changes in oxidative metabolism, PPAR signaling, and contractile genes [10]. Unloading studies have also reported reduced soleus fatty-acid oxidation [11]. This is literature-supported panel reinforcement rather than de novo gene discovery.
 
 Unlike thymus, soleus was represented during model development. Its cross-study consistency makes it a focused biological hypothesis, but an entirely unseen soleus study is still needed for independent confirmation.
 
-![Soleus biology.](figures/figure_5_soleus_biology.png)
+![Soleus biology.](figures/figure_4_soleus_biology.png)
 
-<p class="caption"><strong>Figure 5. Skeletal-muscle and soleus response.</strong> (A) Number of synthetic-informed genes that also pass real leave-one-accession-out FDR in each anatomical muscle group. (B) Five reinforced soleus BH-FDR genes with consistent real flight effects. (C) Their strongest shared biological processes center on mitochondrial turnover and lipid metabolism.</p>
+<p class="caption"><strong>Figure 4. Skeletal-muscle and soleus response.</strong> (A) Number of synthetic-informed genes that also pass real leave-one-accession-out FDR in each anatomical muscle group. (B) Five reinforced soleus BH-FDR genes with consistent real flight effects. (C) Their strongest shared biological processes center on mitochondrial turnover and lipid metabolism.</p>
 
 ### Other muscle groups provide narrower hypotheses
 
@@ -223,9 +219,9 @@ Kidney produced the clearest secondary gene-level result. *Slc37a4* was reinforc
 
 Adrenal gland produced flight-lower synthetic-promoted *Psmb8* and reinforced *Tspan4*, each with the same direction in all three studies but neither passing leave-one-accession-out FDR. Retina showed repeated predictive gains and selected-set enrichment but no synthetic-informed BH-FDR gene. Liver selected the real-only arm: its 19 real-data BH-FDR genes remain in the complete inventory, but none support a synthetic-guided claim. Quadriceps and EDL likewise selected real-only arms.
 
-![Tissue evidence hierarchy.](figures/figure_6_tissue_evidence.png)
+![Tissue evidence hierarchy.](figures/figure_5_tissue_evidence.png)
 
-<p class="caption"><strong>Figure 6. Tissue evidence.</strong> (A) Repeated development-screen changes relative to real-only models for selected tissues. (B) BH-FDR genes promoted or reinforced by the synthetic workflow; synthetic labels are suppressed where the generated arm failed its metric gate. (C) Thymus and soleus provide the clearest process-level hypotheses, kidney supplies a focused secondary pair, and spleen, skin, and adrenal gland remain exploratory.</p>
+<p class="caption"><strong>Figure 5. Tissue evidence.</strong> (A) Repeated development-screen changes relative to real-only models for selected tissues. (B) BH-FDR genes promoted or reinforced by the synthetic workflow; synthetic labels are suppressed where the generated arm failed its metric gate. (C) Thymus and soleus provide the clearest process-level hypotheses, kidney supplies a focused secondary pair, and spleen, skin, and adrenal gland remain exploratory.</p>
 
 **Table 6. Selected synthetic-guided biological interpretations by tissue. Complete real-data BH-FDR results are in Supplementary Tables S11-S12.**
 
@@ -248,7 +244,7 @@ Adrenal gland produced flight-lower synthetic-promoted *Psmb8* and reinforced *T
 
 ### Generator metrics favored diffusion for downstream analysis
 
-Both WGAN-GP and DDIM reproduced expression structure, but DDIM was less distinguishable from real profiles and recovered accession-aware muscle effects. OSDR adaptation was needed because the broad ARCHS4 model retained tissue identity but missed the correlation target. Harmonization also showed that reducing study structure could damage expression neighborhoods or FLT/GC effects, so accession was represented explicitly. These results support using DDIM for this analysis; they do not establish universal superiority over adversarial training.
+Both WGAN-GP and DDIM reproduced expression structure, but DDIM was less distinguishable from real profiles and had lower distributional distance. OSDR adaptation was needed because the broad ARCHS4 model retained tissue identity but missed the correlation target. Harmonization also showed that reducing study structure could damage expression neighborhoods or FLT/GC effects, so accession was represented explicitly. These results support using DDIM for this analysis; they do not establish universal superiority over adversarial training.
 
 ### What synthetic data added
 

@@ -229,7 +229,7 @@ def _plot_trajectory(
     }
     colors = plt.get_cmap("tab20", len(classes))
     order = sorted(snapshots, reverse=True)
-    figure, axes = plt.subplots(1, len(order), figsize=(16.2, 5.2), sharex=True, sharey=True)
+    figure, axes = plt.subplots(1, len(order), figsize=(16.2, 7.2), sharex=True, sharey=True)
     for axis, timestep in zip(axes, order):
         axis.scatter(
             real_coordinates[:, 0],

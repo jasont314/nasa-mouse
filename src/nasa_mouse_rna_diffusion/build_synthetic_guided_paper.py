@@ -32,6 +32,20 @@ UTILITY_TABLES_BEGIN = "<!-- BEGIN GENERATED TISSUE UTILITY TABLES -->"
 UTILITY_TABLES_END = "<!-- END GENERATED TISSUE UTILITY TABLES -->"
 LANDMARK_PANEL = ROOT / "data/diffusion/l974_mouse_paper_parity.tsv"
 OBSOLETE_PAPER_ARTIFACTS = (
+    "figures/figure_1_study_design.png",
+    "figures/figure_1_study_design.pdf",
+    "figures/figure_2_generator_validation.png",
+    "figures/figure_2_generator_validation.pdf",
+    "figures/figure_3a_archs4_denoising_trajectory.png",
+    "figures/figure_3a_archs4_denoising_trajectory.pdf",
+    "figures/figure_3b_locked_real_vs_synthetic_pca.png",
+    "figures/figure_3b_locked_real_vs_synthetic_pca.pdf",
+    "figures/figure_4_thymus_biology.png",
+    "figures/figure_4_thymus_biology.pdf",
+    "figures/figure_5_soleus_biology.png",
+    "figures/figure_5_soleus_biology.pdf",
+    "figures/figure_6_tissue_evidence.png",
+    "figures/figure_6_tissue_evidence.pdf",
     "figures/figure_3_downstream_utility.png",
     "figures/figure_3_downstream_utility.pdf",
     "figures/figure_s1_archs4_denoising_trajectory.png",
@@ -1750,13 +1764,19 @@ def figure_1_workflow() -> None:
     _save_figure(fig, "figure_1_study_design")
 
 
-def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
+def figure_1_validation(tables: dict[str, pd.DataFrame]) -> None:
     arch = tables["arch_summary"].set_index("metric")["value"]
     locked = tables["locked_repeats"]
     model_screen = tables["model_screen"].set_index("model")
-    harmonization = tables["harmonization_summary"]
-    fig = plt.figure(figsize=(7.6, 6.7))
-    grid = fig.add_gridspec(2, 2, width_ratios=[0.86, 1.14], hspace=0.45, wspace=0.34)
+    fig = plt.figure(figsize=(7.6, 5.2))
+    grid = fig.add_gridspec(
+        2,
+        2,
+        height_ratios=[1.05, 0.82],
+        width_ratios=[0.86, 1.14],
+        hspace=0.52,
+        wspace=0.34,
+    )
 
     ax = fig.add_subplot(grid[0, 0])
     values = [
@@ -1816,8 +1836,8 @@ def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
     ax.set_title("B  Generator metrics", loc="left")
     ax.legend(frameon=False, fontsize=7, loc="lower left")
 
-    ax = fig.add_subplot(grid[1, 0])
-    gate_labels = ["Corr", "Precision", "Recall", "F1", "AA", "FD", "FLT/GC", "Muscle"]
+    ax = fig.add_subplot(grid[1, :])
+    gate_labels = ["Corr", "Precision", "Recall", "F1", "AA", "FD", "FLT/GC"]
     gate_passes = [
         (locked["correlation"] >= locked["correlation_minimum"]).mean(),
         (locked["precision"] >= 0.95).mean(),
@@ -1826,13 +1846,12 @@ def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
         locked["adversarial_accuracy"].between(0.40, 0.60).mean(),
         (locked["frechet_ratio"] <= 1.0).mean(),
         locked["condition_effect_pass"].astype(bool).mean(),
-        locked["muscle_accession_pass"].astype(bool).mean(),
     ]
     y = np.arange(len(gate_labels))
     bars = ax.barh(
         y,
         gate_passes,
-        color=[COLORS["teal"]] * 6 + [COLORS["gold"], COLORS["gold"]],
+        color=[COLORS["teal"]] * 6 + [COLORS["gold"]],
     )
     ax.set_yticks(y, gate_labels)
     ax.invert_yaxis()
@@ -1841,47 +1860,6 @@ def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
     ax.set_title("C  DDIM repeat performance", loc="left")
     for bar, value in zip(bars, gate_passes):
         ax.text(value + 0.025, bar.get_y() + bar.get_height() / 2, f"{int(value * 4)}/4", va="center", fontsize=7)
-
-    ax = fig.add_subplot(grid[1, 1])
-    method_colors = [COLORS["gray"]] * len(harmonization)
-    method_labels = harmonization["method"].astype(str).tolist()
-    for index, label in enumerate(method_labels):
-        if label == "Mentor two-stage z-score":
-            method_colors[index] = COLORS["teal"]
-        elif label == "MOBER (study)":
-            method_colors[index] = COLORS["coral"]
-        elif label == "No harmonization (TPM)":
-            method_colors[index] = COLORS["blue"]
-    ax.scatter(
-        harmonization["correlation"],
-        harmonization["f1"],
-        c=method_colors,
-        s=42,
-        edgecolor="white",
-        linewidth=0.5,
-        zorder=3,
-    )
-    for label in ["No harmonization (TPM)", "Mentor two-stage z-score", "MOBER (study)"]:
-        row = harmonization.loc[harmonization["method"].eq(label)].iloc[0]
-        short = {
-            "No harmonization (TPM)": "None",
-            "Mentor two-stage z-score": "Two-stage",
-            "MOBER (study)": "MOBER",
-        }[label]
-        ax.annotate(
-            short,
-            (row["correlation"], row["f1"]),
-            xytext=(4, 4),
-            textcoords="offset points",
-            fontsize=7,
-        )
-    ax.axvline(0.98, color=COLORS["coral"], lw=1, ls="--")
-    ax.axhline(0.90, color=COLORS["coral"], lw=1, ls="--")
-    ax.set_xlim(-0.06, 1.03)
-    ax.set_ylim(-0.04, 1.02)
-    ax.set_xlabel("Correlation agreement")
-    ax.set_ylabel("F1")
-    ax.set_title("D  Matched liver harmonization", loc="left")
 
     fig.suptitle(
         "Generator metrics support DDIM use in downstream analysis",
@@ -1898,7 +1876,7 @@ def figure_2_validation(tables: dict[str, pd.DataFrame]) -> None:
         fontsize=6.8,
         color=COLORS["gray"],
     )
-    _save_figure(fig, "figure_2_generator_validation")
+    _save_figure(fig, "figure_1_generator_validation")
 
 
 def figure_s2_utility(tables: dict[str, pd.DataFrame]) -> None:
@@ -1955,7 +1933,7 @@ def figure_s2_utility(tables: dict[str, pd.DataFrame]) -> None:
     _save_figure(fig, "figure_s2_downstream_utility")
 
 
-def figure_4_thymus(tables: dict[str, pd.DataFrame]) -> None:
+def figure_3_thymus(tables: dict[str, pd.DataFrame]) -> None:
     genes = tables["thymus_core"].sort_values("real_meta_effect")
     pathways = tables["thymus_reactome"].copy()
     selected_ids = [
@@ -2020,10 +1998,10 @@ def figure_4_thymus(tables: dict[str, pd.DataFrame]) -> None:
         weight="bold",
     )
     fig.tight_layout(rect=(0, 0, 1, 0.91))
-    _save_figure(fig, "figure_4_thymus_biology")
+    _save_figure(fig, "figure_3_thymus_biology")
 
 
-def figure_5_soleus(tables: dict[str, pd.DataFrame]) -> None:
+def figure_4_soleus(tables: dict[str, pd.DataFrame]) -> None:
     genes = tables["soleus_genes"].sort_values("real_meta_effect")
     summary = tables["muscle_summary"].copy()
     pathways = tables["muscle_reactome"]
@@ -2126,10 +2104,10 @@ def figure_5_soleus(tables: dict[str, pd.DataFrame]) -> None:
         weight="bold",
     )
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.91))
-    _save_figure(fig, "figure_5_soleus_biology")
+    _save_figure(fig, "figure_4_soleus_biology")
 
 
-def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
+def figure_5_evidence(tables: dict[str, pd.DataFrame]) -> None:
     evidence = tables["evidence"].copy()
     scores = evidence["tier_score"].to_numpy()
     palette = {
@@ -2272,15 +2250,15 @@ def figure_6_evidence(tables: dict[str, pd.DataFrame]) -> None:
         weight="bold",
     )
     fig.subplots_adjust(top=0.92, bottom=0.06, left=0.16, right=0.98)
-    _save_figure(fig, "figure_6_tissue_evidence")
+    _save_figure(fig, "figure_5_tissue_evidence")
 
 
 def copy_publication_figures() -> None:
     copies = {
-        ARCHS4_RUN / "evaluation/archs4_mouse_ddim_trajectory_pca.png": "figure_3a_archs4_denoising_trajectory.png",
-        ARCHS4_RUN / "evaluation/archs4_mouse_ddim_trajectory_pca.pdf": "figure_3a_archs4_denoising_trajectory.pdf",
-        LOCKED_DIR / "seed5020/real_vs_synthetic_pca.png": "figure_3b_locked_real_vs_synthetic_pca.png",
-        LOCKED_DIR / "seed5020/real_vs_synthetic_pca.pdf": "figure_3b_locked_real_vs_synthetic_pca.pdf",
+        ARCHS4_RUN / "evaluation/archs4_mouse_ddim_trajectory_pca.png": "figure_2a_archs4_denoising_trajectory.png",
+        ARCHS4_RUN / "evaluation/archs4_mouse_ddim_trajectory_pca.pdf": "figure_2a_archs4_denoising_trajectory.pdf",
+        LOCKED_DIR / "seed5020/real_vs_synthetic_pca.png": "figure_2b_locked_real_vs_synthetic_pca.png",
+        LOCKED_DIR / "seed5020/real_vs_synthetic_pca.pdf": "figure_2b_locked_real_vs_synthetic_pca.pdf",
         MUSCLE_DIR / "arm_balanced_accuracy_heatmap.png": "figure_s1_muscle_arm_heatmap.png",
         MUSCLE_DIR / "arm_balanced_accuracy_heatmap.pdf": "figure_s1_muscle_arm_heatmap.pdf",
     }
@@ -2422,12 +2400,11 @@ def main() -> None:
     _style()
     tables = build_source_tables()
     update_supplementary_utility_tables(tables)
-    figure_1_workflow()
-    figure_2_validation(tables)
+    figure_1_validation(tables)
     figure_s2_utility(tables)
-    figure_4_thymus(tables)
-    figure_5_soleus(tables)
-    figure_6_evidence(tables)
+    figure_3_thymus(tables)
+    figure_4_soleus(tables)
+    figure_5_evidence(tables)
     copy_publication_figures()
     build_manifest()
 
