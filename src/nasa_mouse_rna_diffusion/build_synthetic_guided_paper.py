@@ -2385,7 +2385,7 @@ def render_document(markdown_path: Path, title: str) -> tuple[Path, Path]:
     .figure-block { break-inside: avoid; }
     .figure-composite { break-inside: avoid; margin: 3mm 0 2mm 0; }
     .figure-composite img { width: 88%; max-height: none; margin: 1mm auto; }
-    .figure-composite img.trajectory-panel { width: 100%; }
+    .figure-composite img.trajectory-panel { width: 112%; max-width: none; margin: 1mm 0 1mm -6%; }
     blockquote { margin: 3mm 0; padding: 2.5mm 4mm; border-left: 2.5pt solid #d69a2d; background: #f7f4ea; }
     .title-page { min-height: 238mm; display: flex; flex-direction: column; justify-content: center; page-break-after: always; }
     .title-page h1 { font-size: 25pt; }
