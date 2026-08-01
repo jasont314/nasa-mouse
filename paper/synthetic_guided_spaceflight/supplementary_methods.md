@@ -10,7 +10,7 @@ This document records data roles, model configurations, evaluation gates, statis
 
 OSDR data came from the [Biological Data API](https://visualization.osdr.nasa.gov/biodata/api/). Eligible profiles were *Mus musculus* bulk RNA-seq with a resolvable flight or ground-control label, processed RSEM expected counts, and tissue or material metadata sufficient for canonicalization.
 
-No combined OSDR HDF5 file was used. The API returned 1,631 rows; aggregation of 21 technical replicates left 1,610 biological profiles (835 flight and 775 ground control) from 75 accessions and 24 canonical material classes.
+The API returned 1,631 rows; aggregation of 21 technical replicates left 1,610 biological profiles (835 flight and 775 ground control) from 75 accessions and 24 canonical material classes.
 
 ## S2. ARCHS4 cohort audit
 

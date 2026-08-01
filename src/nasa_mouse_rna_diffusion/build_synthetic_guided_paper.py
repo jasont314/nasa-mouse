@@ -1715,10 +1715,10 @@ def figure_1_workflow() -> None:
         0.85,
         3.0,
         2.15,
-        "Held-out real evaluation",
+        "Within-study real-profile\nevaluation",
         (
-            "Balanced accuracy, AUROC, AP\n"
-            "Nonworse on all three metrics\n"
+            "BA, AUROC, AP on real holdouts\n"
+            "Profiles split within accession\n"
             "Eligible arm selected per tissue"
         ),
         COLORS["green"],
