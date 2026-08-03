@@ -1,6 +1,6 @@
 # SLSTP 2026 generative transcriptomics speaker notes
 
-Target length: 12-15 minutes. Planned speaking time: about 13 minutes 50 seconds.
+Target length: 12-15 minutes. Planned speaking time: about 14 minutes 30 seconds.
 
 ## 1. Synthetic transcriptomics for mouse spaceflight (0:25)
 
@@ -32,7 +32,7 @@ Synthetic data can be used for direct training, mixed training or feature guidan
 
 ## 8. Pooling tissues hid useful signal (0:55)
 
-The pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy.
+The pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. The bars use a true zero-to-one balanced-accuracy scale. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy.
 
 ## 9. Synthetic guidance changed ranking, not statistical evidence (0:50)
 
@@ -48,7 +48,7 @@ This is the full analysis coverage: 22 canonical tissues and five anatomical mus
 
 ## 12. Synthetic-informed genes spanned 10 tissue analyses (0:45)
 
-This is the complete 49-association inventory. P and R show promoted versus reinforced selection. Color independently shows aligning, complementary, ambiguous or unmatched literature. FLT-higher and FLT-lower directions come from real-data meta-analysis.
+This is the complete 49-association inventory. The explicit P and R tags show promoted versus reinforced selection. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT-higher and FLT-lower directions come from real-data meta-analysis.
 
 ## 13. Thymus points to lower proliferative renewal (1:10)
 
@@ -58,14 +58,18 @@ Thymus produced the clearest promoted panel. The lower mitotic and DNA-replicati
 
 Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. The literature is mixed for Bnip3 and Tpm1, which is recorded explicitly.
 
-## 15. Additional tissues produced narrower hypotheses (0:45)
+## 15. Each additional tissue defines a separate hypothesis (0:40)
 
-Pooled muscle, kidney, spleen, skin, eye, adrenal gland, gastrocnemius and tibialis anterior also produced synthetic-informed genes. These findings remain in the inventory, but none formed a process-level story as coherent as thymus or soleus. They should be prioritized by biological relevance and available validation material rather than by a single secondary-tissue ranking.
+Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. Read these as separate hypotheses, not as grouped biology. Pooled muscle is heterogeneous, kidney suggests phosphoinositide and glucose handling, spleen suggests adhesion and extracellular-matrix or immune organization, and skin contributes a single interferon-linked candidate.
 
-## 16. Synthetic data helped most as a tissue-specific prior (0:40)
+## 16. Eye, adrenal and muscle-group results remain tissue-specific (0:40)
+
+Eye, adrenal gland, gastrocnemius and tibialis anterior are reported separately as well. Eye reinforces lower cytokinesis, adrenal contributes two unmatched candidates, gastrocnemius combines an NF-kappa-B stress signal with an autophagy or myogenesis candidate, and tibialis anterior spans stress, cell-cycle, ganglioside and mitophagy hypotheses.
+
+## 17. Synthetic data helped most as a tissue-specific prior (0:40)
 
 The useful role was tissue-specific feature ranking or limited regularization, not increasing biological sample size. Literature annotation then separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests.
 
-## 17. Thank you (0:10)
+## 18. Thank you (0:10)
 
 Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions.
