@@ -18,7 +18,7 @@ The framework kept the published model architectures and varied the surrounding 
 
 Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel.
 
-## 5. DDIM matched expression and was harder to distinguish from real data (1:15)
+## 5. DDIM matched expression and reduced separability (1:15)
 
 Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split, so this is a model-choice summary rather than a paired significance test.
 
@@ -42,7 +42,7 @@ Thymus produced the clearest promoted panel. The lower mitotic and DNA-replicati
 
 Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling.
 
-## 11. Kidney adds a focused signal; other tissues remain exploratory (1:00)
+## 11. Kidney adds a focused signal; other tissues are exploratory (1:00)
 
 Kidney supplied the strongest secondary pair: promoted Inpp4b and reinforced Slc37a4. Spleen, skin and adrenal results are narrower. Lung and retina improved predictively without a synthetic-informed BH-FDR gene, while liver, EDL and quadriceps retained real-only models.
 
