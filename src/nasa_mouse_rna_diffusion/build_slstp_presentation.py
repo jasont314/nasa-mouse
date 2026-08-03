@@ -754,16 +754,21 @@ def _slide_9(slide):
         "Synthetic guidance changed ranking, not statistical evidence",
         "Promoted and reinforced describe repeated feature selection; both require a supporting effect in real OSDR data.",
     )
-    _add_text(slide, "Repeated stable selection", 0.55, 2.02, 4.0, 0.34, size=16, color=GRAY, bold=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "Repeated stable selection", 0.62, 2.02, 4.86, 0.34, size=16, color=GRAY, bold=True, align=PP_ALIGN.CENTER)
     left = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.62), Inches(2.52), Inches(3.00), Inches(2.35))
     left.fill.background()
     _set_line(left, BLUE, 2.4)
     right = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2.48), Inches(2.52), Inches(3.00), Inches(2.35))
     right.fill.background()
     _set_line(right, TEAL, 2.4)
-    _add_text(slide, "Real-only\nranking", 0.82, 3.03, 1.35, 0.72, size=17, color=BLUE, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "Synthetic-informed\nranking", 3.90, 3.03, 1.35, 0.72, size=16, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "23\nreinforced", 2.52, 3.33, 1.06, 0.64, size=12, color=ORANGE, bold=True, align=PP_ALIGN.CENTER)
+    # Separate line boxes prevent PowerPoint from wrapping one Venn label
+    # differently from the other when fonts are substituted during rendering.
+    _add_text(slide, "Real-only", 0.71, 3.08, 1.76, 0.29, size=16, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "ranking", 0.71, 3.40, 1.76, 0.29, size=16, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "Synthetic-guided", 3.61, 3.08, 1.88, 0.29, size=13.5, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "ranking", 3.61, 3.40, 1.88, 0.29, size=16, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "23", 2.52, 3.28, 1.06, 0.24, size=12, color=ORANGE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "reinforced", 2.52, 3.54, 1.06, 0.24, size=12, color=ORANGE, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_panel(slide, 3.52, 4.96, 1.86, 0.78, fill=PALE_TEAL, line=TEAL)
     _add_text(slide, "26 promoted", 3.66, 5.06, 1.58, 0.24, size=13.5, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
     _add_text(slide, "selected only with\nsynthetic guidance", 3.68, 5.34, 1.54, 0.32, size=9.5, color=GRAY, align=PP_ALIGN.CENTER)
