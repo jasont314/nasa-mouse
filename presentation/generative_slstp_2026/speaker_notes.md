@@ -60,11 +60,11 @@ Soleus improved with real plus generated training. The selected genes were alrea
 
 ## 15. Each additional tissue defines a separate hypothesis (0:40)
 
-Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. Read these as separate hypotheses, not as grouped biology. Pooled muscle is heterogeneous, kidney suggests phosphoinositide and glucose handling, spleen suggests adhesion and extracellular-matrix or immune organization, and skin contributes a single interferon-linked candidate.
+Promoted and reinforced genes are shown on separate subrows for each tissue. Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. Read these as separate hypotheses, not as grouped biology. Pooled muscle is heterogeneous, kidney suggests phosphoinositide and glucose handling, spleen suggests adhesion and extracellular-matrix or immune organization, and skin contributes a single interferon-linked candidate.
 
 ## 16. Eye, adrenal and muscle-group results remain tissue-specific (0:40)
 
-Eye, adrenal gland, gastrocnemius and tibialis anterior are reported separately as well. Eye reinforces lower cytokinesis, adrenal contributes two unmatched candidates, gastrocnemius combines an NF-kappa-B stress signal with an autophagy or myogenesis candidate, and tibialis anterior spans stress, cell-cycle, ganglioside and mitophagy hypotheses.
+Promoted and reinforced genes remain separated here as well. Eye reinforces lower cytokinesis, adrenal contributes two unmatched candidates, gastrocnemius combines an NF-kappa-B stress signal with an autophagy or myogenesis candidate, and tibialis anterior spans stress, cell-cycle, ganglioside and mitophagy hypotheses.
 
 ## 17. Synthetic data helped most as a tissue-specific prior (0:40)
 

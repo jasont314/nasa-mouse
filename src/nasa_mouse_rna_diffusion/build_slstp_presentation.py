@@ -1246,15 +1246,20 @@ def _slide_13(slide):
 
 
 def _add_additional_finding_rows(slide, rows):
-    _add_text(slide, "Analysis unit", 0.72, 2.00, 2.05, 0.28, size=11.5, color=GRAY, bold=True)
-    _add_text(slide, "Synthetic-informed genes", 2.95, 2.00, 3.90, 0.28, size=11.5, color=GRAY, bold=True)
+    _add_text(slide, "Analysis unit", 0.72, 2.00, 1.70, 0.28, size=11.5, color=GRAY, bold=True)
+    _add_text(slide, "Selection", 2.48, 2.00, 1.15, 0.28, size=11.5, color=GRAY, bold=True)
+    _add_text(slide, "Genes and FLT direction", 3.78, 2.00, 3.15, 0.28, size=11.5, color=GRAY, bold=True)
     _add_text(slide, "Interpretation", 7.20, 2.00, 5.10, 0.28, size=11.5, color=GRAY, bold=True)
-    for index, (tissue, genes, interpretation, color, fill) in enumerate(rows):
+    for index, (tissue, promoted, reinforced, interpretation, color, fill) in enumerate(rows):
         y = 2.35 + index * 1.06
         _add_panel(slide, 0.43, y, 12.44, 0.88, fill=fill, line="DDE4E8", radius=False)
         _add_rule(slide, 0.43, y, 0.08, color, 0.88)
-        _add_text(slide, tissue, 0.72, y + 0.20, 2.05, 0.44, size=15.5, color=color, bold=True, valign=MSO_ANCHOR.MIDDLE)
-        _add_text(slide, genes, 2.95, y + 0.12, 3.90, 0.62, size=12.5, color=DARK, valign=MSO_ANCHOR.MIDDLE)
+        _add_text(slide, tissue, 0.72, y + 0.20, 1.62, 0.44, size=15.0, color=color, bold=True, valign=MSO_ANCHOR.MIDDLE)
+        _add_rule(slide, 2.42, y + 0.44, 4.42, "DDE4E8", 0.012)
+        _add_text(slide, "Promoted", 2.48, y + 0.08, 1.12, 0.25, size=10.5, color=CORAL, bold=True, valign=MSO_ANCHOR.MIDDLE)
+        _add_text(slide, promoted, 3.78, y + 0.05, 3.08, 0.35, size=10.5, color=DARK, valign=MSO_ANCHOR.MIDDLE)
+        _add_text(slide, "Reinforced", 2.48, y + 0.52, 1.12, 0.25, size=10.5, color=TEAL, bold=True, valign=MSO_ANCHOR.MIDDLE)
+        _add_text(slide, reinforced, 3.78, y + 0.48, 3.08, 0.35, size=10.5, color=DARK, valign=MSO_ANCHOR.MIDDLE)
         _add_text(slide, interpretation, 7.20, y + 0.10, 5.20, 0.66, size=12.2, color=DARK, valign=MSO_ANCHOR.MIDDLE)
 
 
@@ -1263,40 +1268,44 @@ def _slide_14(slide):
         slide,
         "Additional findings I",
         "Each additional tissue defines a separate hypothesis",
-        "These results remain distinct; their placement on one slide does not imply shared biology.",
+        "Promoted and reinforced selections are separated within every tissue.",
     )
     rows = [
         (
             "Pooled muscle",
-            "12 genes: 4 promoted, 8 reinforced",
+            "Lower: Klhl21, Mapkapk5, Reep5, Itgb5",
+            "Higher: Sox4, Cebpd, Sh3bp5, Prkcd, Arid5b, Sesn1, Tle1; lower: Bphl",
             "Heterogeneous stress, differentiation, interferon and sialic-acid response; interpret with the anatomical muscle groups.",
             BLUE,
             PALE_BLUE,
         ),
         (
             "Kidney",
-            "[P] Inpp4b higher; [R] Slc37a4 higher",
+            "Inpp4b higher",
+            "Slc37a4 higher",
             "Renal phosphoinositide signaling and glucose-handling hypothesis; the pair had no shared Reactome enrichment.",
             PURPLE,
             "F0ECF6",
         ),
         (
             "Spleen",
-            "[P] Rai14, Myl9, Ptprk higher; [R] Loxl1 higher",
+            "Rai14, Myl9, Ptprk higher",
+            "Loxl1 higher",
             "Adhesion, actomyosin and extracellular-matrix or immune-organization hypothesis; no coherent pathway enrichment.",
             TEAL,
             PALE_TEAL,
         ),
         (
             "Skin",
-            "[P] Plscr1 higher",
+            "Plscr1 higher",
+            "None",
             "Interferon-linked skin candidate within broader cell-cycle and DNA-repair responses; a single-gene result.",
             ORANGE,
             PALE_GOLD,
         ),
     ]
     _add_additional_finding_rows(slide, rows)
-    _add_source(slide, "[P] promoted; [R] reinforced. All listed effects passed BH FDR in observed OSDR profiles.")
+    _add_source(slide, "All listed effects passed BH FDR in observed OSDR profiles; 'None' means no gene in that selection category.")
 
 
 def _slide_additional_2(slide):
@@ -1304,40 +1313,44 @@ def _slide_additional_2(slide):
         slide,
         "Additional findings II",
         "Eye, adrenal and muscle-group results remain tissue-specific",
-        "Each row reports its own selected genes and the narrowest supported interpretation.",
+        "Promoted and reinforced selections are separated within every tissue.",
     )
     rows = [
         (
             "Eye",
-            "[R] Klhl21 lower",
+            "None",
+            "Klhl21 lower",
             "Process-level alignment with lower proliferation and cytokinesis in flight eye tissue; not an exact prior gene replication.",
             GREEN,
             "ECF4ED",
         ),
         (
             "Adrenal gland",
-            "[P] Psmb8 lower; [R] Tspan4 lower",
+            "Psmb8 lower",
+            "Tspan4 lower",
             "Literature-unmatched immune, proteostasis or tissue-composition candidates; no adrenal mechanism is established.",
             MID_GRAY,
             "F2F4F5",
         ),
         (
             "Gastrocnemius",
-            "[P] Nfkbia higher; [P] Fhl2 lower",
+            "Nfkbia higher; Fhl2 lower",
+            "None",
             "NF-kappaB stress alignment plus an autophagy or myogenesis candidate; the two genes do not form a coherent pathway.",
             BLUE,
             PALE_BLUE,
         ),
         (
             "Tibialis anterior",
-            "[P] Cebpd higher; [R] Cdkn1a, St3gal5, Bnip3 higher",
+            "Cebpd higher",
+            "Cdkn1a, St3gal5, Bnip3 higher",
             "Stress, cell-cycle, ganglioside-signaling and mitophagy candidates with mixed or complementary prior evidence.",
             TEAL,
             PALE_TEAL,
         ),
     ]
     _add_additional_finding_rows(slide, rows)
-    _add_source(slide, "[P] promoted; [R] reinforced. Interpretations follow the independent literature annotations in Table S16.")
+    _add_source(slide, "Interpretations follow the independent literature annotations in Table S16; 'None' means no gene in that selection category.")
 
 
 def _slide_15(slide):
@@ -1459,8 +1472,8 @@ def build() -> Path:
         SlideNote(12, "Synthetic-informed genes spanned 10 tissue analyses", "0:45", "This is the complete 49-association inventory. The explicit P and R tags show promoted versus reinforced selection. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT-higher and FLT-lower directions come from real-data meta-analysis."),
         SlideNote(13, "Thymus points to lower proliferative renewal", "1:10", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
         SlideNote(14, "Soleus reinforces a mitochondrial and lipid program", "1:00", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. The literature is mixed for Bnip3 and Tpm1, which is recorded explicitly."),
-        SlideNote(15, "Each additional tissue defines a separate hypothesis", "0:40", "Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. Read these as separate hypotheses, not as grouped biology. Pooled muscle is heterogeneous, kidney suggests phosphoinositide and glucose handling, spleen suggests adhesion and extracellular-matrix or immune organization, and skin contributes a single interferon-linked candidate."),
-        SlideNote(16, "Eye, adrenal and muscle-group results remain tissue-specific", "0:40", "Eye, adrenal gland, gastrocnemius and tibialis anterior are reported separately as well. Eye reinforces lower cytokinesis, adrenal contributes two unmatched candidates, gastrocnemius combines an NF-kappa-B stress signal with an autophagy or myogenesis candidate, and tibialis anterior spans stress, cell-cycle, ganglioside and mitophagy hypotheses."),
+        SlideNote(15, "Each additional tissue defines a separate hypothesis", "0:40", "Promoted and reinforced genes are shown on separate subrows for each tissue. Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. Read these as separate hypotheses, not as grouped biology. Pooled muscle is heterogeneous, kidney suggests phosphoinositide and glucose handling, spleen suggests adhesion and extracellular-matrix or immune organization, and skin contributes a single interferon-linked candidate."),
+        SlideNote(16, "Eye, adrenal and muscle-group results remain tissue-specific", "0:40", "Promoted and reinforced genes remain separated here as well. Eye reinforces lower cytokinesis, adrenal contributes two unmatched candidates, gastrocnemius combines an NF-kappa-B stress signal with an autophagy or myogenesis candidate, and tibialis anterior spans stress, cell-cycle, ganglioside and mitophagy hypotheses."),
         SlideNote(17, "Synthetic data helped most as a tissue-specific prior", "0:40", "The useful role was tissue-specific feature ranking or limited regularization, not increasing biological sample size. Literature annotation then separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests."),
         SlideNote(18, "Thank you", "0:10", "Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions."),
     ]
