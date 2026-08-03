@@ -615,21 +615,39 @@ def _slide_3(slide):
         option_tile(label, xs[4] + 0.16, 2.92 + index * 0.42, 2.03, GREEN, selected, size=8.9)
 
     _add_panel(slide, 0.35, 5.60, 12.55, 1.20, fill="F7F9FA", line="DDE4E8")
-    _add_text(slide, "Selected branch", 0.64, 5.82, 1.42, 0.25, size=10.8, color=GOLD, bold=True)
-    _add_text(slide, "No global correction", 0.64, 6.20, 1.35, 0.28, size=10.5, color=GRAY)
+    _add_text(slide, "Selected branch", 0.64, 5.81, 1.42, 0.25, size=10.8, color=GOLD, bold=True)
+    _add_text(slide, "Used downstream", 0.64, 6.19, 1.35, 0.24, size=9.6, color=GRAY)
+
+    def selected_step(x, width, heading, value, color):
+        _add_panel(slide, x, 5.73, width, 0.49, fill=WHITE, line=color)
+        _add_text(slide, heading, x + 0.10, 5.78, width - 0.20, 0.12, size=7.1, color=color, bold=True, margin=0)
+        _add_text(slide, value, x + 0.10, 5.94, width - 0.20, 0.19, size=9.1, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
 
     selected_path = [
-        (2.12, "ARCHS4 pretrain", TEAL),
-        (4.22, "OSDR adaptation", BLUE),
-        (6.32, "Conditional DDIM", ORANGE),
+        (2.10, 2.15, "PREPROCESS", "TPM / MaxAbs / 974 landmarks", TEAL),
+        (4.65, 1.85, "PRETRAIN", "ARCHS4", TEAL),
+        (6.90, 1.85, "ADAPT", "OSDR", BLUE),
+        (9.15, 2.45, "GENERATE", "Conditional DDIM", ORANGE),
     ]
-    for index, (x, label, color) in enumerate(selected_path):
-        option_tile(label, x, 5.80, 1.74, color, True, size=9.3)
+    for index, (x, width, heading, value, color) in enumerate(selected_path):
+        selected_step(x, width, heading, value, color)
         if index < len(selected_path) - 1:
-            _add_arrow(slide, x + 1.80, 5.87, 0.23, 0.20, MID_GRAY)
+            _add_arrow(slide, x + width + 0.07, 5.86, 0.23, 0.20, MID_GRAY)
 
-    _add_text(slide, "TPM | MaxAbs | 974 landmarks", 8.42, 5.77, 4.02, 0.27, size=11.7, color=NAVY, bold=True)
-    _add_text(slide, "Tissue | FLT / GC | Accession | Material type", 8.42, 6.14, 4.02, 0.27, size=10.8, color=DARK)
+    _add_text(slide, "CONDITION", 2.10, 6.37, 0.72, 0.16, size=7.3, color=GREEN, bold=True, margin=0)
+    condition_tiles = [
+        (2.88, 0.90, "Tissue"),
+        (3.85, 1.00, "FLT / GC"),
+        (4.92, 1.14, "Accession"),
+        (6.13, 1.38, "Material type"),
+    ]
+    for x, width, label in condition_tiles:
+        option_tile(label, x, 6.27, width, GREEN, True, size=7.8)
+
+    _add_text(slide, "HARMONIZE", 7.76, 6.37, 0.82, 0.16, size=7.3, color=PURPLE, bold=True, margin=0)
+    option_tile("None", 8.65, 6.27, 0.78, PURPLE, True, size=7.8)
+    _add_text(slide, "SCOPE", 9.70, 6.37, 0.46, 0.16, size=7.3, color=BLUE, bold=True, margin=0)
+    option_tile("All tissues", 10.24, 6.27, 1.20, BLUE, True, size=7.8)
     _add_source(slide, "Screen: 463 planned configurations and nine matched liver harmonization arms. Models: Vinas et al. (2022); Lacan et al. (2026).")
 
 
