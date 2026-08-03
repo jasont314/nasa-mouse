@@ -12,7 +12,7 @@ OSDR gives broad tissue coverage, but the data are spread across 75 accessions w
 
 ## 3. We built a configurable bulk RNA-seq generation pipeline (1:10)
 
-We built one pipeline that can change data source, transformation, feature set, harmonization, model, training scope and conditions without changing the evaluation contract. It supports OSDR-only, ARCHS4-only and ARCHS4-pretrained plus OSDR-adapted runs, with pooled or per-tissue cohorts. We completed WGAN-GP and DDIM generator branches. The selected path used TPM, 974 mouse landmarks, no global correction and a DDIM conditioned on tissue, FLT/GC, accession and material.
+Each card shows alternatives available at one pipeline stage, and the heavy outlines identify the downstream branch. We used both ARCHS4 and NASA OSDR across multiple studies and all tissues. The selected path used TPM, training-fitted MaxAbs scaling, 974 mouse landmarks, no global correction, ARCHS4 pretraining plus OSDR adaptation, and a DDIM conditioned on tissue, FLT/GC, accession and material. WGAN-GP and the other preprocessing and harmonization choices remained benchmark alternatives.
 
 ## 4. DDIM matched expression and reduced separability (0:55)
 

@@ -516,46 +516,121 @@ def _slide_3(slide):
         slide,
         "Method",
         "We built a configurable bulk RNA-seq generation pipeline",
-        "Data scope, transforms, harmonization, training and conditioning can change without changing the evaluation contract.",
+        "Each stage exposes alternatives; a strong outline marks the configuration used downstream.",
     )
-    stages = [
-        (0.35, "Data + scope", "OSDR API or ARCHS4\none or many studies\npooled or per tissue", BLUE, PALE_BLUE),
-        (2.90, "Transform", "raw / CPM / TPM\nlog + scaling\nall genes / HVG / L1000", TEAL, PALE_TEAL),
-        (5.45, "Harmonize", "none or study z\nComBat / MBatch\nMOBER adapter", PURPLE, "F0ECF6"),
-        (8.00, "Model + train", "WGAN-GP or DDIM\nOSDR or ARCHS4\npretrain + adapt", ORANGE, PALE_GOLD),
-        (10.55, "Condition", "FLT/GC + tissue\nstudy + material\navailable covariates", GREEN, "ECF4ED"),
-    ]
-    for x, title, body, color, fill in stages:
-        _add_panel(slide, x, 2.08, 2.35, 2.58, fill=fill, line=color)
-        _add_rule(slide, x, 2.08, 2.35, color)
-        _add_text(slide, title, x + 0.18, 2.37, 1.99, 0.38, size=16, color=color, bold=True)
-        _add_text(slide, body, x + 0.18, 2.91, 1.99, 1.40, size=13.2, color=DARK)
 
-    _add_panel(slide, 0.35, 4.95, 12.55, 1.28, fill="F7F9FA", line="DDE4E8")
-    _add_text(slide, "Selected branch", 0.66, 5.18, 1.65, 0.28, size=13, color=GOLD, bold=True)
-    _add_rich_text(
-        slide,
-        [
-            ("TPM / MaxAbs -> ARCHS4 DDIM -> OSDR adaptation. ", {"bold": True, "color": NAVY}),
-            ("Conditions: tissue, FLT/GC, accession and material; no global batch correction.", {"color": DARK}),
-        ],
-        2.25,
-        5.12,
-        10.15,
-        0.55,
-        size=14.6,
-    )
-    _add_text(
-        slide,
-        "A 463-row experiment plan and nine matched liver harmonization arms were screened before full training.",
-        2.25,
-        5.70,
-        10.15,
-        0.33,
-        size=12.5,
-        color=GRAY,
-    )
-    _add_source(slide, "Generator sources: Vinas et al., Bioinformatics (2022); Lacan et al., BMC Bioinformatics (2026).")
+    def option_tile(label, x, y, w, color, selected=False, *, size=9.1):
+        tile = slide.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE,
+            Inches(x),
+            Inches(y),
+            Inches(w),
+            Inches(0.36),
+        )
+        _set_fill(tile, WHITE if selected else "F7F9FA")
+        _set_line(tile, color if selected else "C9D2D8", 2.0 if selected else 0.65)
+        text_x = x + (0.15 if selected else 0.06)
+        text_w = w - (0.18 if selected else 0.12)
+        if selected:
+            _add_circle(slide, x + 0.055, y + 0.152, 0.055, color)
+        _add_text(
+            slide,
+            label,
+            text_x,
+            y + 0.055,
+            text_w,
+            0.23,
+            size=size,
+            color=DARK if selected else GRAY,
+            bold=selected,
+            align=PP_ALIGN.CENTER,
+            valign=MSO_ANCHOR.MIDDLE,
+            margin=0,
+        )
+
+    def segmented_row(x, y, label, options, color):
+        _add_text(slide, label, x + 0.16, y, 2.02, 0.18, size=8.4, color=GRAY, bold=True, margin=0)
+        gap = 0.05
+        available = 2.03
+        tile_width = (available - gap * (len(options) - 1)) / len(options)
+        for index, (option, selected) in enumerate(options):
+            option_tile(
+                option,
+                x + 0.16 + index * (tile_width + gap),
+                y + 0.22,
+                tile_width,
+                color,
+                selected,
+                size=8.2 if len(options) == 3 else 8.8,
+            )
+
+    def stage_panel(x, number, title, color, fill):
+        _add_panel(slide, x, 2.00, 2.35, 3.35, fill=fill, line="DDE4E8")
+        _add_circle(slide, x + 0.16, 2.18, 0.32, color)
+        _add_text(slide, number, x + 0.16, 2.225, 0.32, 0.20, size=10.5, color=WHITE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+        _add_text(slide, title, x + 0.58, 2.19, 1.57, 0.30, size=14.0, color=color, bold=True, valign=MSO_ANCHOR.MIDDLE)
+        _add_rule(slide, x + 0.16, 2.58, 2.03, color, 0.025)
+
+    xs = [0.35, 2.90, 5.45, 8.00, 10.55]
+
+    stage_panel(xs[0], "1", "Data scope", BLUE, PALE_BLUE)
+    segmented_row(xs[0], 2.72, "Sources", [("OSDR API", True), ("ARCHS4", True)], BLUE)
+    segmented_row(xs[0], 3.48, "Studies", [("Single", False), ("Multiple", True)], BLUE)
+    segmented_row(xs[0], 4.24, "Tissues", [("Per tissue", False), ("All tissues", True)], BLUE)
+
+    stage_panel(xs[1], "2", "Transform", TEAL, PALE_TEAL)
+    segmented_row(xs[1], 2.72, "Expression", [("Raw", False), ("CPM", False), ("TPM", True)], TEAL)
+    segmented_row(xs[1], 3.48, "Scaling", [("None", False), ("Z-score", False), ("MaxAbs", True)], TEAL)
+    segmented_row(xs[1], 4.24, "Features", [("All", False), ("HVG", False), ("L1000", True)], TEAL)
+
+    stage_panel(xs[2], "3", "Harmonization", PURPLE, "F0ECF6")
+    _add_text(slide, "Global or study correction", xs[2] + 0.16, 2.72, 2.02, 0.18, size=8.4, color=GRAY, bold=True, margin=0)
+    for index, (label, selected) in enumerate([
+        ("None", True),
+        ("Within-study z-score", False),
+        ("ComBat / MBatch", False),
+        ("MOBER", False),
+    ]):
+        option_tile(label, xs[2] + 0.16, 2.94 + index * 0.50, 2.03, PURPLE, selected, size=9.2)
+
+    stage_panel(xs[3], "4", "Model training", ORANGE, PALE_GOLD)
+    segmented_row(xs[3], 2.72, "Generator", [("WGAN-GP", False), ("DDIM", True)], ORANGE)
+    _add_text(slide, "Training source", xs[3] + 0.16, 3.48, 2.02, 0.18, size=8.4, color=GRAY, bold=True, margin=0)
+    for index, (label, selected) in enumerate([
+        ("OSDR only", False),
+        ("ARCHS4 only", False),
+        ("Pretrain + adapt", True),
+    ]):
+        option_tile(label, xs[3] + 0.16, 3.70 + index * 0.50, 2.03, ORANGE, selected, size=9.2)
+
+    stage_panel(xs[4], "5", "Conditioning", GREEN, "ECF4ED")
+    _add_text(slide, "Model inputs", xs[4] + 0.16, 2.72, 2.02, 0.18, size=8.4, color=GRAY, bold=True, margin=0)
+    for index, (label, selected) in enumerate([
+        ("Tissue", True),
+        ("FLT / GC", True),
+        ("Accession", True),
+        ("Material type", True),
+        ("Sex / age", False),
+    ]):
+        option_tile(label, xs[4] + 0.16, 2.92 + index * 0.42, 2.03, GREEN, selected, size=8.9)
+
+    _add_panel(slide, 0.35, 5.60, 12.55, 1.20, fill="F7F9FA", line="DDE4E8")
+    _add_text(slide, "Selected branch", 0.64, 5.82, 1.42, 0.25, size=10.8, color=GOLD, bold=True)
+    _add_text(slide, "No global correction", 0.64, 6.20, 1.35, 0.28, size=10.5, color=GRAY)
+
+    selected_path = [
+        (2.12, "ARCHS4 pretrain", TEAL),
+        (4.22, "OSDR adaptation", BLUE),
+        (6.32, "Conditional DDIM", ORANGE),
+    ]
+    for index, (x, label, color) in enumerate(selected_path):
+        option_tile(label, x, 5.80, 1.74, color, True, size=9.3)
+        if index < len(selected_path) - 1:
+            _add_arrow(slide, x + 1.80, 5.87, 0.23, 0.20, MID_GRAY)
+
+    _add_text(slide, "TPM | MaxAbs | 974 landmarks", 8.42, 5.77, 4.02, 0.27, size=11.7, color=NAVY, bold=True)
+    _add_text(slide, "Tissue | FLT / GC | Accession | Material type", 8.42, 6.14, 4.02, 0.27, size=10.8, color=DARK)
+    _add_source(slide, "Screen: 463 planned configurations and nine matched liver harmonization arms. Models: Vinas et al. (2022); Lacan et al. (2026).")
 
 
 def _slide_5(slide, trajectory: Path):
@@ -1460,7 +1535,7 @@ def build() -> Path:
     notes = [
         SlideNote(1, "Synthetic transcriptomics for mouse spaceflight", "0:25", "Introduce the question. This talk asks whether generated expression can help analyze tissue-specific FLT versus GC biology without counting synthetic profiles as additional animals."),
         SlideNote(2, "Small studies and study effects complicate tissue comparisons", "0:50", "OSDR gives broad tissue coverage, but the data are spread across 75 accessions with different mission and assay contexts. ARCHS4 supplies a much larger mouse reference. The challenge is to use that reference without letting study structure masquerade as spaceflight biology."),
-        SlideNote(3, "We built a configurable bulk RNA-seq generation pipeline", "1:10", "We built one pipeline that can change data source, transformation, feature set, harmonization, model, training scope and conditions without changing the evaluation contract. It supports OSDR-only, ARCHS4-only and ARCHS4-pretrained plus OSDR-adapted runs, with pooled or per-tissue cohorts. We completed WGAN-GP and DDIM generator branches. The selected path used TPM, 974 mouse landmarks, no global correction and a DDIM conditioned on tissue, FLT/GC, accession and material."),
+        SlideNote(3, "We built a configurable bulk RNA-seq generation pipeline", "1:10", "Each card shows alternatives available at one pipeline stage, and the heavy outlines identify the downstream branch. We used both ARCHS4 and NASA OSDR across multiple studies and all tissues. The selected path used TPM, training-fitted MaxAbs scaling, 974 mouse landmarks, no global correction, ARCHS4 pretraining plus OSDR adaptation, and a DDIM conditioned on tissue, FLT/GC, accession and material. WGAN-GP and the other preprocessing and harmonization choices remained benchmark alternatives."),
         SlideNote(4, "DDIM matched expression and reduced separability", "0:55", "Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split. These results are why the remaining analyses use DDIM."),
         SlideNote(5, "Diffusion learns tissue structure from noise", "0:50", "Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel."),
         SlideNote(6, "Generated profiles track the real OSDR PCA manifold", "0:50", "Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. Generated samples track the tissue-defined branches. FLT and GC remain more interspersed because condition effects are smaller than tissue effects. Visual overlap complements the quantitative validation."),
