@@ -19,6 +19,11 @@ expression. Thymus provides a real-supported cell-cycle panel, soleus provides a
 cross-accession metabolic program, and kidney provides a focused promoted
 `Inpp4b` and reinforced `Slc37a4` result.
 
+A targeted literature review classifies every synthetic-promoted association as
+aligning, contradictory, complementary, ambiguous, or unsupported/potentially
+novel. Evidence scope is recorded separately so exact gene-tissue-direction
+matches are not conflated with process-level agreement.
+
 Using the DDIM generator, the paper follows a three-part downstream funnel:
 
 1. a pooled benchmark tests whether one synthetic-data policy works across
@@ -48,6 +53,8 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
   report the tissue biology.
 - `source_data/`: manuscript and supplementary data tables. SHA-256 manifests
   are retained for repository auditing but are not part of the formal supplement.
+  Tables S16-S17 contain the promoted-gene literature annotations and source
+  inventory.
 
 ## Rebuild
 
@@ -78,6 +85,10 @@ scientific method.
   supports developmental hypotheses rather than independent biological evidence.
 - **Complete real-data screen:** all 459 random-effects BH-FDR tissue-gene
   results, regardless of synthetic feature-selection status.
+- **Literature interpretation:** all 26 promoted associations receive one
+  mutually exclusive literature label. Only three have direct same-gene,
+  same-tissue, same-direction matches; the tables distinguish those results from
+  broader process-level and mechanistic context.
 
 ## Tissue evidence labels
 

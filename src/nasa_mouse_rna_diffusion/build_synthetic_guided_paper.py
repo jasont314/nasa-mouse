@@ -23,6 +23,8 @@ from matplotlib.patches import FancyBboxPatch
 import numpy as np
 import pandas as pd
 
+from .annotate_promoted_gene_literature import write_tables as write_literature_tables
+
 
 ROOT = Path(__file__).resolve().parents[2]
 PAPER_DIR = ROOT / "paper" / "synthetic_guided_spaceflight"
@@ -2399,6 +2401,7 @@ def main() -> None:
         (PAPER_DIR / relative_path).unlink(missing_ok=True)
     _style()
     tables = build_source_tables()
+    write_literature_tables()
     update_supplementary_utility_tables(tables)
     figure_1_validation(tables)
     figure_s2_utility(tables)

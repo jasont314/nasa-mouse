@@ -258,9 +258,25 @@ Table S10 is the 49-row synthetic-informed subset: 26 promoted and 23 reinforced
 
 Heart, liver, retina, EDL, and quadriceps had BH-FDR genes but none was synthetic-informed. Bone, bone marrow, brain, brown adipose tissue, cecum, cerebellum, colon, hippocampus, lung, mammary gland, optic nerve, and white adipose tissue had no BH-FDR gene in the landmark panel. Tables S11-S12 retain the complete results, including pooled muscle, liver's 19 real-only associations, skin's promoted `Plscr1`, and the null lung inventory.
 
-Machine-readable Tables S1-S15 are under `source_data/`.
+Machine-readable Tables S1-S17 are under `source_data/`.
 
-## S13. Supplementary figures
+## S13. Targeted literature annotation of promoted genes
+
+The literature screen covered all 26 synthetic-promoted tissue-gene associations in Table S10. Searches used the gene symbol and synonyms together with the tissue, spaceflight or microgravity, and relevant process terms. Primary studies were preferred for directional and mechanistic claims. Public OSDR reanalyses were retained as context but were not counted as independent confirmation.
+
+Each association received one mutually exclusive label. Aligning evidence agreed with the observed direction or same-tissue process; the `evidence_scope` column distinguishes exact matches from process-level agreement. Contradictory evidence had an opposing prior result without comparable supporting evidence. Complementary evidence connected the gene to a reported spaceflight process or a relevant mechanism without reproducing the same gene-tissue-direction result. Ambiguous evidence was mixed. Unsupported/potentially novel means that the targeted search found no relevant direct match; it is not proof of novelty.
+
+| Literature label | Associations | Interpretation |
+|---|---:|---|
+| Aligning | 11 | Three exact matches and eight same-tissue process-level matches |
+| Complementary | 11 | Related spaceflight process or gene mechanism; not replication |
+| Ambiguous | 1 | Mixed direct and process-level evidence for thymus `Birc5` |
+| Unsupported/potentially novel | 3 | No direct match found for `Psmb8`, `Hsd17b11`, or `Etv1` |
+| Contradictory | 0 | No association had only opposing evidence |
+
+The three exact same-gene, same-tissue, same-direction matches were thymus `Ccnb2`, thymus `Ccne2`, and gastrocnemius `Nfkbia`. The first two came from published two-mission thymus RNA-seq that may overlap the present OSDR aggregate, so they are literature alignment rather than independent replication. The `Nfkbia` result came from an independent shuttle mission and microarray/PCR platform. Table S16 records each classification, scope, relationship to the current data, and interpretation. Table S17 supplies the 16-source bibliography and states whether each source is independent, potentially overlapping, or mechanistic context only. The deterministic builder is `nasa_mouse_rna_diffusion.annotate_promoted_gene_literature`.
+
+## S14. Supplementary figures
 
 ![Muscle arm heatmap.](figures/figure_s1_muscle_arm_heatmap.png)
 
