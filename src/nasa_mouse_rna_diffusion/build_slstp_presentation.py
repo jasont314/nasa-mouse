@@ -419,11 +419,23 @@ def _set_title_slide(slide):
         for placeholder in slide.placeholders
         if placeholder.placeholder_format.type == PP_PLACEHOLDER.BODY
     )
+    main.left = Inches(0.62)
+    main.top = Inches(2.36)
+    main.width = Inches(4.70)
+    main.height = Inches(1.55)
     main.text_frame.clear()
+    main.text_frame.word_wrap = True
+    main.text_frame.margin_left = Inches(0)
+    main.text_frame.margin_right = Inches(0)
+    main.text_frame.margin_top = Inches(0)
+    main.text_frame.margin_bottom = Inches(0)
+    main.text_frame.vertical_anchor = MSO_ANCHOR.TOP
     paragraph = main.text_frame.paragraphs[0]
+    paragraph.space_before = Pt(0)
     paragraph.space_after = Pt(0)
+    paragraph.line_spacing = 1.0
     run = paragraph.add_run()
-    run.text = "Synthetic transcriptomics\nfor mouse spaceflight"
+    run.text = "Synthetic transcriptomics for mouse spaceflight"
     run.font.name = FONT
     run.font.size = Pt(30)
     run.font.bold = True
@@ -452,7 +464,6 @@ def _set_title_slide(slide):
         run.font.size = Pt(size)
         run.font.bold = bold
         run.font.color.rgb = _rgb(color)
-    _add_text(slide, "SLSTP FINAL PRESENTATION", 0.54, 1.08, 3.8, 0.25, size=10.5, color="D5A64A", bold=True)
     _add_text(slide, "Biological & Physical Sciences", 0.62, 7.12, 3.30, 0.22, size=10.5, color="B9C7D5")
 
 
