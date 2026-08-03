@@ -72,12 +72,16 @@ Markdown manuscripts with WeasyPrint.
 
 ## Editorial provenance
 
-The manuscript prose was audited with `blader/humanizer` version 2.9.1 under its
-no-fabrication rule. The pass removed formulaic transitions and repetitive
-sentence structures while preserving the scientific register. It did not alter
-frozen analysis outputs, source-table values, gene names, citations, or
-statistical interpretations. Humanizer was an editorial check, not part of the
-scientific method.
+The current manuscript, presentation text, and speaker notes were audited on
+2026-08-03 with
+[`blader/humanizer`](https://github.com/blader/humanizer) version 2.9.1 under
+its no-fabrication rule. The file-mode pass simplified formulaic transitions and
+repetitive sentence structures while preserving the scientific register. It did
+not alter frozen analysis outputs, source-table values, gene names, citations,
+or statistical interpretations. Humanizer was an editorial check, not part of
+the scientific method. This audit is recorded in the commit named
+`Reaudit manuscript and slides with Humanizer`; it supersedes an earlier
+provenance note whose cited commit is not present in this repository.
 
 ## Evidence interpretation
 

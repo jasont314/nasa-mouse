@@ -16,7 +16,7 @@ Each card shows alternatives available at one pipeline stage, and the heavy outl
 
 ## 4. DDIM matched expression and reduced separability (0:55)
 
-Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split. These results are why the remaining analyses use DDIM.
+Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split. DDIM was used for the remaining analyses.
 
 ## 5. Diffusion learns tissue structure from noise (0:50)
 
@@ -60,7 +60,7 @@ Soleus improved with real plus generated training. The selected genes were alrea
 
 ## 15. Each additional tissue defines a separate hypothesis (0:40)
 
-Promoted and reinforced genes are shown on separate subrows for each tissue. Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. Read these as separate hypotheses, not as grouped biology. Pooled muscle is heterogeneous, kidney suggests phosphoinositide and glucose handling, spleen suggests adhesion and extracellular-matrix or immune organization, and skin contributes a single interferon-linked candidate.
+Promoted and reinforced genes are shown on separate subrows for each tissue. Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. The rows share a slide for presentation space; each remains a separate hypothesis. Pooled muscle is heterogeneous, kidney suggests phosphoinositide and glucose handling, spleen suggests adhesion and extracellular-matrix or immune organization, and skin contributes a single interferon-linked candidate.
 
 ## 16. Eye, adrenal and muscle-group results remain tissue-specific (0:40)
 
@@ -68,7 +68,7 @@ Promoted and reinforced genes remain separated here as well. Eye reinforces lowe
 
 ## 17. Synthetic data helped most as a tissue-specific prior (0:40)
 
-The useful role was tissue-specific feature ranking or limited regularization, not increasing biological sample size. Literature annotation then separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests.
+Synthetic data was useful for tissue-specific feature ranking and limited regularization. It did not increase biological sample size. Literature annotation separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests.
 
 ## 18. Thank you (0:10)
 
