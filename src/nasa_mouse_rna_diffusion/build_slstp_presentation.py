@@ -400,6 +400,20 @@ def _build_trajectory_crop() -> Path:
 
 
 def _set_title_slide(slide):
+    cleanup = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE,
+        Inches(0),
+        Inches(5.42),
+        Inches(4.30),
+        Inches(SLIDE_H - 5.42),
+    )
+    cleanup.name = "Title background artifact mask"
+    _set_fill(cleanup, "000000")
+    cleanup.line.fill.background()
+    shape_tree = slide.shapes._spTree
+    shape_tree.remove(cleanup._element)
+    shape_tree.insert(2, cleanup._element)
+
     main = next(
         placeholder
         for placeholder in slide.placeholders
@@ -439,6 +453,7 @@ def _set_title_slide(slide):
         run.font.bold = bold
         run.font.color.rgb = _rgb(color)
     _add_text(slide, "SLSTP FINAL PRESENTATION", 0.54, 1.08, 3.8, 0.25, size=10.5, color="D5A64A", bold=True)
+    _add_text(slide, "Biological & Physical Sciences", 0.62, 7.12, 3.30, 0.22, size=10.5, color="B9C7D5")
 
 
 def _slide_2(slide):
