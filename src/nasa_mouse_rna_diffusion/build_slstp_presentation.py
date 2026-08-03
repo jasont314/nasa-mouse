@@ -801,8 +801,8 @@ def _slide_10(slide):
     _add_slide_title(
         slide,
         "Literature interpretation",
-        "Annotation separates recovery from hypothesis extension",
-        "The label describes the relationship to prior evidence, not whether a gene is biologically plausible.",
+        "Selection and literature are separate dimensions",
+        "All 49 synthetic-informed associations received both a selection status and a literature interpretation.",
     )
 
     steps = [
@@ -824,56 +824,47 @@ def _slide_10(slide):
         sep="\t",
     )
     counts = annotations["literature_classification"].value_counts().to_dict()
+    selection_counts = annotations["selection_status"].value_counts().to_dict()
     direct = int(
         annotations["evidence_scope"]
         .eq("direct_same_gene_same_tissue_same_direction")
         .sum()
     )
-    if len(annotations) != 26 or direct != 3:
-        raise ValueError("Unexpected promoted-gene literature annotation inventory")
+    if len(annotations) != 49 or direct != 5:
+        raise ValueError("Unexpected synthetic-informed literature inventory")
 
-    _add_panel(slide, 0.45, 3.19, 7.63, 3.26, fill=WHITE, line="DDE4E8")
-    _add_text(slide, "What the 26 promoted associations showed", 0.72, 3.43, 6.98, 0.34, size=17, color=NAVY, bold=True)
+    _add_panel(slide, 0.45, 3.19, 4.14, 3.26, fill=PALE_BLUE, line="C9D9EA")
+    _add_text(slide, "Selection status", 0.73, 3.43, 3.58, 0.34, size=17, color=BLUE, bold=True)
+    selection_rows = [
+        ("Promoted", selection_counts.get("promoted", 0), "Stable only with synthetic guidance", CORAL),
+        ("Reinforced", selection_counts.get("reinforced", 0), "Stable with and without guidance", TEAL),
+    ]
+    for index, (label, count, detail, color) in enumerate(selection_rows):
+        y = 4.08 + index * 0.93
+        _add_circle(slide, 0.75, y, 0.50, color)
+        _add_text(slide, str(count), 0.75, y + 0.08, 0.50, 0.25, size=14, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
+        _add_text(slide, label, 1.45, y - 0.02, 2.65, 0.30, size=15, color=color, bold=True)
+        _add_text(slide, detail, 1.45, y + 0.31, 2.65, 0.38, size=11.5, color=DARK)
+
+    _add_panel(slide, 4.80, 3.19, 8.07, 3.26, fill=WHITE, line="DDE4E8")
+    _add_text(slide, "Literature interpretation", 5.08, 3.43, 7.52, 0.34, size=17, color=NAVY, bold=True)
     category_rows = [
-        ("Aligning", counts.get("aligning", 0), "3 exact matches + 8 same-tissue process matches", GREEN),
-        ("Complementary", counts.get("complementary", 0), "Related process or mechanism; not direct replication", BLUE),
-        ("Ambiguous", counts.get("ambiguous", 0), "Birc5 differed across mission contexts", ORANGE),
-        (
-            "Literature-unmatched",
-            counts.get("unsupported/potentially_novel", 0),
-            "Psmb8 remains mechanistically plausible",
-            PURPLE,
-        ),
+        ("Aligning", counts.get("aligning", 0), "Direct or same-tissue process agreement", GREEN),
+        ("Complementary", counts.get("complementary", 0), "Related process or mechanism", BLUE),
+        ("Ambiguous", counts.get("ambiguous", 0), "Mixed or context-dependent evidence", ORANGE),
+        ("Unmatched", counts.get("unmatched", 0), "No sufficiently specific match found", PURPLE),
     ]
     for index, (label, count, detail, color) in enumerate(category_rows):
         y = 3.91 + index * 0.57
-        _add_circle(slide, 0.75, y + 0.02, 0.37, color)
-        _add_text(slide, str(count), 0.75, y + 0.07, 0.37, 0.22, size=12, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
-        _add_text(slide, label, 1.30, y, 1.92, 0.34, size=14.2, color=color, bold=True, valign=MSO_ANCHOR.MIDDLE)
-        _add_text(slide, detail, 3.18, y, 4.55, 0.34, size=13.2, color=DARK, valign=MSO_ANCHOR.MIDDLE)
-
-    _add_panel(slide, 8.33, 3.19, 4.54, 3.26, fill=PALE_GOLD, line="E3CEAA")
-    _add_text(slide, "How to read a result", 8.64, 3.43, 3.94, 0.34, size=17, color=GOLD, bold=True)
-    _add_bullet_rows(
-        slide,
-        [
-            "Promoted: synthetic guidance changed stable ranking",
-            "BH FDR: the association is present in real OSDR data",
-            "Literature class: direct, related, mixed, or unmatched",
-            "Interpretation: a testable hypothesis, not independent proof",
-        ],
-        8.65,
-        3.91,
-        3.88,
-        size=12.5,
-        bullet_color=GOLD,
-        row_h=0.57,
-    )
+        _add_circle(slide, 5.09, y + 0.02, 0.37, color)
+        _add_text(slide, str(count), 5.09, y + 0.07, 0.37, 0.22, size=12, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
+        _add_text(slide, label, 5.62, y, 1.74, 0.34, size=14.2, color=color, bold=True, valign=MSO_ANCHOR.MIDDLE)
+        _add_text(slide, detail, 7.42, y, 4.93, 0.34, size=12.8, color=DARK, valign=MSO_ANCHOR.MIDDLE)
 
     _add_panel(slide, 0.45, 6.57, 12.42, 0.43, fill=NAVY, line=NAVY)
     _add_text(
         slide,
-        f"11 align and 13 extend prior biology; only {direct} are exact gene-tissue-direction matches.",
+        "A reinforced gene can be complementary, ambiguous, or unmatched; an aligning gene can be promoted.",
         0.71,
         6.64,
         11.90,
@@ -883,7 +874,7 @@ def _slide_10(slide):
         bold=True,
         align=PP_ALIGN.CENTER,
     )
-    _add_source(slide, "Targeted review completed 2026-08-03; full decisions and 19-source inventory are in Supplementary Tables S16-S17.")
+    _add_source(slide, "Targeted review completed 2026-08-03; 5 direct transcript-level matches and a 33-source inventory are in Tables S16-S17.")
 
 
 def _inventory_gene_segments(
@@ -894,7 +885,7 @@ def _inventory_gene_segments(
         "aligning": GREEN,
         "complementary": BLUE,
         "ambiguous": ORANGE,
-        "unsupported/potentially_novel": PURPLE,
+        "unmatched": PURPLE,
     }
     priority = {
         "synthetic_promoted": 0,
@@ -908,16 +899,12 @@ def _inventory_gene_segments(
         if index:
             segments.append((", ", {"size": 9.8, "color": MID_GRAY}))
         promoted = row.selection_interpretation == "synthetic_promoted"
-        if promoted:
-            key = (row.analysis_scope, row.tissue, row.gene)
-            literature_class = annotation_lookup.get(key)
-            if literature_class not in class_colors:
-                raise ValueError(f"Missing promoted-gene annotation for {key}")
-            color = class_colors[literature_class]
-            prefix = "P:"
-        else:
-            color = GRAY
-            prefix = "R:"
+        key = (row.analysis_scope, row.tissue, row.gene)
+        literature_class = annotation_lookup.get(key)
+        if literature_class not in class_colors:
+            raise ValueError(f"Missing synthetic-informed annotation for {key}")
+        color = class_colors[literature_class]
+        prefix = "P:" if promoted else "R:"
         segments.append(
             (
                 f"{prefix}{row.symbol}",
@@ -1000,6 +987,93 @@ def _add_gene_inventory_block(
         )
 
 
+def _slide_all_tissue_coverage(slide):
+    _add_slide_title(
+        slide,
+        "Analysis coverage",
+        "All 27 completed tissue analyses were retained",
+        "The biological narrative narrows only after reporting synthetic-informed, real-only, and null outcomes.",
+    )
+    summary = pd.read_csv(
+        PAPER_DIR / "source_data/table_s12_bh_fdr_tissue_summary.tsv",
+        sep="\t",
+    )
+    if len(summary) != 27:
+        raise ValueError("Expected 27 completed tissue analysis units")
+
+    synthetic = summary.loc[
+        summary["n_reinforced_real_and_synthetic"]
+        .add(summary["n_synthetic_promoted"])
+        .gt(0)
+    ]
+    real_only = summary.loc[
+        summary["n_bh_fdr_genes"].gt(0)
+        & ~summary.index.to_series().isin(synthetic.index)
+    ]
+    null = summary.loc[summary["n_bh_fdr_genes"].eq(0)]
+    if (len(synthetic), len(real_only), len(null)) != (10, 5, 12):
+        raise ValueError("Unexpected all-tissue coverage partition")
+
+    display = {
+        "skeletal_muscle": "Skeletal muscle (pooled)",
+        "edl": "EDL",
+    }
+
+    def names(frame: pd.DataFrame) -> list[str]:
+        return [
+            display.get(value, value.replace("_", " ").title())
+            for value in frame["tissue"]
+        ]
+
+    columns = [
+        (
+            0.43,
+            "10",
+            "Synthetic-informed",
+            names(synthetic),
+            TEAL,
+            PALE_TEAL,
+            "Promoted or reinforced BH-FDR gene",
+        ),
+        (
+            4.49,
+            "5",
+            "Real BH FDR only",
+            names(real_only),
+            BLUE,
+            PALE_BLUE,
+            "Real association, no synthetic-informed selection",
+        ),
+        (
+            8.55,
+            "12",
+            "No panel BH-FDR gene",
+            names(null),
+            ORANGE,
+            PALE_GOLD,
+            "No BH-FDR gene in the 974-gene panel",
+        ),
+    ]
+    for x, count, heading, tissue_names, color, fill, detail in columns:
+        _add_panel(slide, x, 2.02, 3.83, 4.70, fill=fill, line=color)
+        _add_circle(slide, x + 0.25, 2.27, 0.57, color)
+        _add_text(slide, count, x + 0.25, 2.37, 0.57, 0.27, size=15, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
+        _add_text(slide, heading, x + 0.98, 2.29, 2.55, 0.35, size=17, color=color, bold=True)
+        _add_text(slide, detail, x + 0.29, 2.91, 3.23, 0.47, size=10.8, color=GRAY)
+        _add_text(
+            slide,
+            "\n".join(tissue_names),
+            x + 0.32,
+            3.48,
+            3.20,
+            2.88,
+            size=11.6,
+            color=DARK,
+            margin=0,
+        )
+    _add_source(slide, "Twenty-two canonical tissues plus EDL, gastrocnemius, quadriceps, soleus and tibialis anterior; complete counts in Table S12.")
+
+
 def _slide_11(slide):
     _add_slide_title(
         slide,
@@ -1015,7 +1089,7 @@ def _slide_11(slide):
         PAPER_DIR / "source_data/table_s16_promoted_gene_literature_annotations.tsv",
         sep="\t",
     )
-    if len(inventory) != 49 or len(annotations) != 26:
+    if len(inventory) != 49 or len(annotations) != 49:
         raise ValueError("Unexpected synthetic-informed gene inventory")
     if inventory[["analysis_scope", "tissue"]].drop_duplicates().shape[0] != 10:
         raise ValueError("Expected 10 tissue analyses in synthetic-informed inventory")
@@ -1024,18 +1098,18 @@ def _slide_11(slide):
         for row in annotations.itertuples(index=False)
     }
 
-    _add_text(slide, "P: promoted", 0.45, 1.87, 1.10, 0.25, size=10.2, color=NAVY, bold=True)
+    _add_text(slide, "P: promoted (bold)", 0.45, 1.87, 1.42, 0.25, size=10.2, color=NAVY, bold=True)
     legend = [
-        ("aligning", GREEN, 1.55, 0.92),
-        ("complementary", BLUE, 2.55, 1.22),
-        ("ambiguous", ORANGE, 3.88, 1.02),
-        ("literature-unmatched", PURPLE, 5.02, 1.60),
-        ("R: reinforced", GRAY, 6.83, 1.25),
+        ("aligning", GREEN, 1.91, 0.92),
+        ("complementary", BLUE, 2.91, 1.22),
+        ("ambiguous", ORANGE, 4.24, 1.02),
+        ("unmatched", PURPLE, 5.38, 1.05),
     ]
     for label, color, x, width in legend:
         _add_rule(slide, x, 1.91, 0.14, color, 0.05)
         _add_text(slide, label, x + 0.19, 1.85, width, 0.25, size=9.8, color=color, bold=True)
-    _add_text(slide, "Direction is shown within each tissue.", 10.18, 1.85, 2.66, 0.25, size=9.8, color=MID_GRAY, italic=True, align=PP_ALIGN.RIGHT)
+    _add_text(slide, "R: reinforced (regular)", 6.72, 1.85, 1.76, 0.25, size=9.8, color=NAVY, bold=True)
+    _add_text(slide, "Color = literature | P/R = selection", 9.63, 1.85, 3.21, 0.25, size=9.8, color=MID_GRAY, italic=True, align=PP_ALIGN.RIGHT)
 
     left_blocks = [
         ("canonical_tissue", "thymus", "Thymus", 2.24, 1.45, 0.34),
@@ -1079,7 +1153,7 @@ def _slide_11(slide):
             h=h,
             higher_h=higher_h,
         )
-    _add_source(slide, "P/R reflects repeated feature selection. Literature colors apply to promoted genes only; full statistics are in Supplementary Table S10.")
+    _add_source(slide, "P/R reflects repeated feature selection; color independently reports literature interpretation for all 49 associations.")
 
 
 def _slide_12(slide):
@@ -1147,16 +1221,16 @@ def _slide_13(slide):
 def _slide_14(slide):
     _add_slide_title(
         slide,
-        "Other tissues",
-        "Kidney adds a focused signal; other tissues are exploratory",
-        "The strongest process-level stories were thymus and soleus, but several tissues produced narrower candidates.",
+        "Additional findings",
+        "Additional tissues produced narrower gene-level hypotheses",
+        "Thymus and soleus remained the strongest coherent programs, but they were not the only synthetic-informed results.",
     )
     rows = [
-        ("Kidney", "Inpp4b promoted, Slc37a4 reinforced; both higher in flight", "Focused secondary", BLUE, PALE_BLUE),
-        ("Spleen", "Rai14, Ptprk and Myl9 promoted; Loxl1 reinforced; no Reactome enrichment", "Exploratory", PURPLE, "F0ECF6"),
-        ("Skin + adrenal", "Plscr1 higher in skin; adrenal Psmb8 is plausible but literature-unmatched", "Exploratory", ORANGE, PALE_GOLD),
-        ("Lung + retina", "Predictive gains without a synthetic-informed BH-FDR gene", "Prediction only", TEAL, PALE_TEAL),
-        ("Liver + EDL + quadriceps", "Real-only arm retained", "No synthetic claim", MID_GRAY, "F2F4F5"),
+        ("Pooled muscle", "12 genes: stress, differentiation, mitochondrial and signaling candidates", "Mixed panel", BLUE, PALE_BLUE),
+        ("Kidney + spleen", "2 renal genes and 4 splenic adhesion/ECM candidates", "Gene-level", PURPLE, "F0ECF6"),
+        ("Skin + eye", "Plscr1 higher in skin; Klhl21 lower in eye", "Gene-level", ORANGE, PALE_GOLD),
+        ("Other muscle groups", "Gastrocnemius 2 genes; tibialis anterior 4 genes", "Gene-level", TEAL, PALE_TEAL),
+        ("Adrenal gland", "Psmb8 and Tspan4 were lower in flight and literature unmatched", "Unmatched", MID_GRAY, "F2F4F5"),
     ]
     for index, (tissue, finding, label, color, fill) in enumerate(rows):
         y = 2.02 + index * 0.89
@@ -1165,7 +1239,7 @@ def _slide_14(slide):
         _add_text(slide, tissue, 0.70, y + 0.17, 2.12, 0.34, size=16, color=color, bold=True)
         _add_text(slide, finding, 2.79, y + 0.14, 7.70, 0.40, size=14, color=DARK, valign=MSO_ANCHOR.MIDDLE)
         _add_text(slide, label, 10.67, y + 0.16, 1.84, 0.34, size=12.5, color=color, bold=True, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE)
-    _add_text(slide, "A plausible mechanism is not independent validation; these candidates still require targeted experiments.", 0.75, 6.60, 11.80, 0.33, size=14, color=GRAY, italic=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "These findings remain available for follow-up without displacing the stronger thymus and soleus programs.", 0.75, 6.60, 11.80, 0.33, size=14, color=GRAY, italic=True, align=PP_ALIGN.CENTER)
 
 
 def _slide_15(slide):
@@ -1188,7 +1262,7 @@ def _slide_15(slide):
         _add_text(slide, body, x + 0.28, 3.08, 3.15, 1.33, size=15, color=DARK)
     _add_panel(slide, 0.42, 5.15, 12.00, 1.30, fill=NAVY, line=NAVY)
     _add_text(slide, "Next test", 0.75, 5.48, 1.38, 0.34, size=17, color="FFD69A", bold=True)
-    _add_text(slide, "Use independent samples and cell-resolved assays to test thymus proliferation, soleus metabolism, kidney signaling and adrenal Psmb8.", 2.05, 5.40, 9.92, 0.58, size=16, color=WHITE, valign=MSO_ANCHOR.MIDDLE)
+    _add_text(slide, "Use independent samples and cell-resolved assays to test thymus proliferation, soleus metabolism and prioritized candidates from additional tissues.", 2.05, 5.40, 9.92, 0.58, size=16, color=WHITE, valign=MSO_ANCHOR.MIDDLE)
     _add_text(slide, "Generated profiles never enter the biological sample count or the BH-FDR test.", 2.05, 6.05, 9.92, 0.28, size=12.5, color="BFD0E1")
 
 
@@ -1223,7 +1297,7 @@ def _write_notes(notes: list[SlideNote]) -> None:
     lines = [
         "# SLSTP 2026 generative transcriptomics speaker notes",
         "",
-        "Target length: 12-15 minutes. Planned speaking time: about 14 minutes 35 seconds.",
+        "Target length: 12-15 minutes. Planned speaking time: about 13 minutes 50 seconds.",
         "",
     ]
     for note in notes:
@@ -1243,7 +1317,7 @@ def build() -> Path:
     presentation = Presentation(TEMPLATE)
     _set_title_slide(presentation.slides[0])
     _prepare_content_slide(presentation.slides[1], 2)
-    while len(presentation.slides) < 16:
+    while len(presentation.slides) < 17:
         number = len(presentation.slides) + 1
         slide = presentation.slides.add_slide(presentation.slide_layouts[3])
         _prepare_content_slide(slide, number)
@@ -1259,6 +1333,7 @@ def build() -> Path:
         lambda slide: _slide_8(slide, utility_chart),
         _slide_9,
         _slide_10,
+        _slide_all_tissue_coverage,
         _slide_11,
         _slide_12,
         _slide_13,
@@ -1272,21 +1347,22 @@ def build() -> Path:
 
     notes = [
         SlideNote(1, "Synthetic transcriptomics for mouse spaceflight", "0:25", "Introduce the question. This talk asks whether generated expression can help analyze tissue-specific FLT versus GC biology without counting synthetic profiles as additional animals."),
-        SlideNote(2, "Small studies and study effects complicate tissue comparisons", "0:55", "OSDR gives broad tissue coverage, but the data are spread across 75 accessions with different mission and assay contexts. ARCHS4 supplies a much larger mouse reference. The challenge is to use that reference without letting study structure masquerade as spaceflight biology."),
-        SlideNote(3, "We built a configurable bulk RNA-seq generation pipeline", "1:15", "We built one pipeline that can change data source, transformation, feature set, harmonization, model, training scope and conditions without changing the evaluation contract. It supports OSDR-only, ARCHS4-only and ARCHS4-pretrained plus OSDR-adapted runs, with pooled or per-tissue cohorts. We completed WGAN-GP and DDIM generator branches. The selected path used TPM, 974 mouse landmarks, no global correction and a DDIM conditioned on tissue, FLT/GC, accession and material."),
-        SlideNote(4, "DDIM matched expression and reduced separability", "1:00", "Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split, so this is a model-choice summary rather than a paired significance test. These results are why the remaining analyses use DDIM."),
-        SlideNote(5, "Diffusion learns tissue structure from noise", "0:55", "Having selected DDIM, read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel."),
-        SlideNote(6, "Generated profiles track the real OSDR PCA manifold", "0:55", "This is PCA, not UMAP. Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. On the left, generated samples track the tissue-defined branches. On the right, FLT and GC remain interspersed because condition effects are smaller than tissue effects. Visual overlap is descriptive and complements the quantitative validation shown earlier."),
-        SlideNote(7, "Synthetic profiles entered the analysis in five different ways", "1:00", "Synthetic data can be used for direct training, mixed training or feature guidance. Each tissue could choose among five arms. The eligibility check used held-out real profiles. Once features were nominated, FLT/GC effects and BH FDR were computed from observed OSDR samples only."),
-        SlideNote(8, "Pooling tissues hid useful signal", "1:00", "The simplest pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
-        SlideNote(9, "Synthetic guidance changed ranking, not statistical evidence", "0:55", "Reinforced genes were selected with and without synthetic guidance. Promoted genes crossed the stable-selection rule only with synthetic guidance. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations also had a supporting effect and BH FDR below 0.05 in real data."),
-        SlideNote(10, "Annotation separates recovery from hypothesis extension", "1:05", "This slide separates four questions. Promoted tells us that synthetic guidance changed stable feature ranking. BH FDR tells us the association is present in real OSDR profiles. The literature label describes whether prior work is exact, related, mixed or unmatched. The biological interpretation remains a hypothesis. Eleven associations aligned, 13 were complementary, one was ambiguous and one was literature unmatched. Only Ccnb2, Ccne2 and Nfkbia were exact gene-tissue-direction matches. Psmb8 was unmatched in adrenal spaceflight literature but remains mechanistically plausible."),
-        SlideNote(11, "Synthetic-informed genes spanned 10 tissue analyses", "1:00", "This is the complete 49-association inventory. FLT-higher and FLT-lower directions come from the real-data meta-analysis. P marks genes promoted only with synthetic guidance; R marks genes reinforced by both ranking arms. Colors apply the literature interpretation from the prior slide to promoted genes. The largest panels occur in thymus and pooled skeletal muscle, while soleus, spleen and kidney provide smaller focused sets."),
-        SlideNote(12, "Thymus points to lower proliferative renewal", "1:15", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses, but neither is a direct prior flight replication or an established driver. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
-        SlideNote(13, "Soleus reinforces a mitochondrial and lipid program", "1:05", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling."),
-        SlideNote(14, "Kidney adds a focused signal; other tissues are exploratory", "0:55", "Kidney supplied the strongest secondary pair: promoted Inpp4b and reinforced Slc37a4. Spleen and skin results are narrower. Adrenal Psmb8 has plausible immunoproteasome biology but no prior adrenal flight match. Lung and retina improved predictively without a synthetic-informed BH-FDR gene, while liver, EDL and quadriceps retained real-only models."),
-        SlideNote(15, "Synthetic data helped most as a tissue-specific prior", "0:45", "The useful role was tissue-specific feature ranking or limited regularization, not increasing biological sample size. Literature annotation then separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests."),
-        SlideNote(16, "Thank you", "0:10", "Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions."),
+        SlideNote(2, "Small studies and study effects complicate tissue comparisons", "0:50", "OSDR gives broad tissue coverage, but the data are spread across 75 accessions with different mission and assay contexts. ARCHS4 supplies a much larger mouse reference. The challenge is to use that reference without letting study structure masquerade as spaceflight biology."),
+        SlideNote(3, "We built a configurable bulk RNA-seq generation pipeline", "1:10", "We built one pipeline that can change data source, transformation, feature set, harmonization, model, training scope and conditions without changing the evaluation contract. It supports OSDR-only, ARCHS4-only and ARCHS4-pretrained plus OSDR-adapted runs, with pooled or per-tissue cohorts. We completed WGAN-GP and DDIM generator branches. The selected path used TPM, 974 mouse landmarks, no global correction and a DDIM conditioned on tissue, FLT/GC, accession and material."),
+        SlideNote(4, "DDIM matched expression and reduced separability", "0:55", "Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split. These results are why the remaining analyses use DDIM."),
+        SlideNote(5, "Diffusion learns tissue structure from noise", "0:50", "Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel."),
+        SlideNote(6, "Generated profiles track the real OSDR PCA manifold", "0:50", "Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. Generated samples track the tissue-defined branches. FLT and GC remain more interspersed because condition effects are smaller than tissue effects. Visual overlap complements the quantitative validation."),
+        SlideNote(7, "Synthetic profiles entered the analysis in five different ways", "0:55", "Synthetic data can be used for direct training, mixed training or feature guidance. Each tissue could choose among five arms. The eligibility check used held-out real profiles. Once features were nominated, FLT/GC effects and BH FDR were computed from observed OSDR samples only."),
+        SlideNote(8, "Pooling tissues hid useful signal", "0:55", "The pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
+        SlideNote(9, "Synthetic guidance changed ranking, not statistical evidence", "0:50", "Reinforced genes were selected with and without synthetic guidance. Promoted genes crossed the stable-selection rule only with synthetic guidance. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations also had BH FDR below 0.05 in real data."),
+        SlideNote(10, "Selection and literature are separate dimensions", "0:55", "Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. A reinforced gene is not automatically literature aligned, and an aligning gene can still be promoted."),
+        SlideNote(11, "All 27 completed tissue analyses were retained", "0:45", "This is the full analysis coverage: 22 canonical tissues and five anatomical muscle groups. Ten had a synthetic-informed BH-FDR association, five had real BH-FDR genes without synthetic-informed selection, and 12 had no BH-FDR gene in the landmark panel. The narrative focuses later, but no completed tissue result is hidden."),
+        SlideNote(12, "Synthetic-informed genes spanned 10 tissue analyses", "0:45", "This is the complete 49-association inventory. P and R show promoted versus reinforced selection. Color independently shows aligning, complementary, ambiguous or unmatched literature. FLT-higher and FLT-lower directions come from real-data meta-analysis."),
+        SlideNote(13, "Thymus points to lower proliferative renewal", "1:10", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
+        SlideNote(14, "Soleus reinforces a mitochondrial and lipid program", "1:00", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. The literature is mixed for Bnip3 and Tpm1, which is recorded explicitly."),
+        SlideNote(15, "Additional tissues produced narrower hypotheses", "0:45", "Pooled muscle, kidney, spleen, skin, eye, adrenal gland, gastrocnemius and tibialis anterior also produced synthetic-informed genes. These findings remain in the inventory, but none formed a process-level story as coherent as thymus or soleus. They should be prioritized by biological relevance and available validation material rather than by a single secondary-tissue ranking."),
+        SlideNote(16, "Synthetic data helped most as a tissue-specific prior", "0:40", "The useful role was tissue-specific feature ranking or limited regularization, not increasing biological sample size. Literature annotation then separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests."),
+        SlideNote(17, "Thank you", "0:10", "Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions."),
     ]
     for note, slide in zip(notes, presentation.slides):
         _add_notes(slide, note)
