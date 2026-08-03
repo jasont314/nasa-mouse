@@ -1169,17 +1169,17 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             },
             {
                 "tissue": "kidney",
-                "tier": "cross-accession development",
-                "tier_score": 2,
+                "tier": "additional gene-level finding",
+                "tier_score": 1,
                 "predictive_result": "guided delta BA/AUROC/AP +0.053/+0.091/+0.115",
                 "real_gene_support": "Inpp4b promoted and LOO-stable; Slc37a4 reinforced",
                 "pathway_support": "no stable-set Reactome term at FDR < 0.05",
-                "interpretation": "focused renal metabolic-signaling hypothesis",
+                "interpretation": "renal metabolic-signaling hypothesis",
             },
             {
                 "tissue": "skeletal_muscle",
-                "tier": "cross-accession development",
-                "tier_score": 2,
+                "tier": "additional heterogeneous panel",
+                "tier_score": 1,
                 "predictive_result": "guided delta BA/AUROC/AP +0.071/+0.036/+0.037",
                 "real_gene_support": "12 synthetic-informed BH-FDR genes; 9 pass LOO FDR",
                 "pathway_support": "interferon signaling and sialic-acid metabolism; FDR < 0.05",
@@ -1196,7 +1196,7 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             },
             {
                 "tissue": "spleen",
-                "tier": "developmental exploratory",
+                "tier": "additional gene-level finding",
                 "tier_score": 1,
                 "predictive_result": "real-plus-generated delta BA/AUROC/AP +0.131/+0.163/+0.160",
                 "real_gene_support": "Rai14, Ptprk, Myl9 promoted; Loxl1 reinforced; none pass LOO",
@@ -1205,16 +1205,16 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             },
             {
                 "tissue": "skin",
-                "tier": "developmental exploratory",
+                "tier": "additional gene-level finding",
                 "tier_score": 1,
                 "predictive_result": "real-plus-generated delta BA/AUROC/AP +0.085/+0.077/+0.061",
                 "real_gene_support": "Plscr1 is promoted and FLT-up in 6/6 studies; not LOO-stable",
                 "pathway_support": "cell-cycle/DNA-repair theme matches published skin analyses",
-                "interpretation": "literature-aligned exploratory biological support",
+                "interpretation": "literature-aligned skin candidate",
             },
             {
                 "tissue": "adrenal_gland",
-                "tier": "developmental exploratory",
+                "tier": "additional gene-level finding",
                 "tier_score": 1,
                 "predictive_result": "generated-only delta BA/AUROC/AP +0.141/+0.078/+0.070",
                 "real_gene_support": "Psmb8 promoted and Tspan4 reinforced; FLT-lower in 3/3 studies",
@@ -2209,7 +2209,7 @@ def figure_5_evidence(tables: dict[str, pd.DataFrame]) -> None:
     ax.set_xlim(-0.25, 6.6)
     ax.set_xticks(
         [0, 1, 2],
-        ["No clear\nsignal", "Exploratory", "Coherent\ndevelopment"],
+        ["No synthetic\nclaim", "Additional\nfinding", "Coherent\nprogram"],
     )
     ax.tick_params(axis="x", top=True, labeltop=True, bottom=False, labelbottom=False)
     ax.grid(axis="x", color="#E5E9EB", linewidth=0.8)
@@ -2222,7 +2222,7 @@ def figure_5_evidence(tables: dict[str, pd.DataFrame]) -> None:
         fontsize=9,
     )
     fig.suptitle(
-        "Synthetic-guided development and real-data support identify tissue priorities",
+        "Synthetic-informed results vary from coherent programs to narrower findings",
         x=0.02,
         ha="left",
         fontsize=11,

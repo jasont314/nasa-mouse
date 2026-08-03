@@ -258,21 +258,23 @@ Heart, liver, retina, EDL, and quadriceps had BH-FDR genes but none was syntheti
 
 Machine-readable Tables S1-S17 are under `source_data/`.
 
-## S13. Targeted literature annotation of promoted genes
+## S13. Targeted literature annotation of synthetic-informed genes
 
-The literature screen covered all 26 synthetic-promoted tissue-gene associations in Table S10. Searches used the gene symbol and synonyms together with the tissue, spaceflight or microgravity, and relevant process terms. Primary studies were preferred for directional and mechanistic claims. Public OSDR reanalyses were retained as context but were not counted as independent confirmation.
+The literature screen covered all 49 synthetic-informed tissue-gene associations in Table S10: 26 promoted and 23 reinforced. Searches used the gene symbol and synonyms together with the tissue, spaceflight or microgravity, and relevant process terms. Primary studies were preferred for directional and mechanistic claims. Public OSDR or GeneLab reanalyses were retained as context but were not counted as independent confirmation.
 
-Each association received one mutually exclusive literature label. Aligning evidence agreed with the observed direction or same-tissue process; the `evidence_scope` column distinguishes exact matches from process-level agreement. Contradictory evidence had an opposing prior result without comparable supporting evidence. Complementary evidence connected the gene to a reported spaceflight process or a relevant mechanism without reproducing the same gene-tissue-direction result. Ambiguous evidence was mixed. Unsupported/potentially novel means that the targeted search found no tissue-specific match; it is not proof of novelty or a judgment that the gene lacks a plausible mechanism. The `interpretive_role` column records whether the result recovers prior evidence, extends a hypothesis, is context dependent, or remains literature unmatched.
+Selection status and literature interpretation were recorded as independent dimensions. `selection_status` is `promoted` when a gene was stable only under synthetic-informed selection and `reinforced` when it was stable under both real-only and synthetic-informed selection. `literature_classification` is one of four mutually exclusive labels. Aligning evidence agrees with the observed gene direction or the same-tissue process. Complementary evidence connects the gene to a reported flight process or relevant mechanism without reproducing the same gene-tissue-direction result. Ambiguous evidence is mixed or context dependent. Unmatched means that the targeted search found no sufficiently specific tissue or process match. Unmatched is not proof of novelty and does not imply that the gene lacks a plausible mechanism.
 
-| Literature label | Associations | Interpretation |
-|---|---:|---|
-| Aligning | 11 | Three exact matches and eight same-tissue process-level matches |
-| Complementary | 13 | Related spaceflight process or gene mechanism; not replication |
-| Ambiguous | 1 | Mixed direct and process-level evidence for thymus `Birc5` |
-| Unsupported/potentially novel | 1 | No adrenal spaceflight match found for `Psmb8`; mechanism remains plausible |
-| Contradictory | 0 | No association had only opposing evidence |
+| Selection status | Aligning | Complementary | Ambiguous | Unmatched | Total |
+|---|---:|---:|---:|---:|---:|
+| Promoted | 11 | 13 | 1 | 1 | 26 |
+| Reinforced | 11 | 6 | 3 | 3 | 23 |
+| **Total** | **22** | **19** | **4** | **4** | **49** |
 
-The three exact same-gene, same-tissue, same-direction matches were thymus `Ccnb2`, thymus `Ccne2`, and gastrocnemius `Nfkbia`. The first two came from published two-mission thymus RNA-seq that may overlap the present OSDR aggregate, so they are literature alignment rather than independent replication. The `Nfkbia` result came from an independent shuttle mission and microarray/PCR platform. Thymus `Hsd17b11` and `Etv1` were classified as complementary because primary studies support lipid-handling and CD4+ T-cell mechanisms, respectively, without a directional thymus-flight match. Adrenal `Psmb8` remained literature unmatched, although its interferon-inducible immunoproteasome function supports an exploratory immune, proteostasis, or tissue-composition interpretation. Table S16 records each classification, interpretive role, scope, relationship to the current data, and interpretation. Table S17 supplies the 19-source bibliography and states whether each source is independent, potentially overlapping, or mechanistic context only. The deterministic builder is `nasa_mouse_rna_diffusion.annotate_promoted_gene_literature`.
+Five records used a direct same-gene, same-tissue, same-direction transcript-level scope: thymus `Ccnb2`, thymus `Ccne2`, gastrocnemius `Nfkbia`, and pooled-muscle `Sox4` and `Arid5b`. Soleus `Ech1` and `Decr1` matched the gene/protein, tissue, and direction in flight proteomics and were recorded separately as cross-assay alignment. Process-level alignment covered the remaining flight-lower thymus mitotic genes, reinforced thymus `Ube2c` and `Gmnn`, flight-lower eye `Klhl21`, several pooled-muscle genes, and soleus `Bdh1`.
+
+The four ambiguous records were thymus `Birc5`, soleus `Bnip3`, soleus `Tpm1`, and tibialis-anterior `Cdkn1a`. Their prior directions varied by mission, assay, species, sex, or muscle context. The four unmatched records were adrenal `Psmb8` and `Tspan4`, pooled-muscle `Bphl`, and thymus `Snx7`. These candidates remain statistically associated in the real-data analysis but should not be presented as literature-supported mechanisms.
+
+Table S16 records selection status, literature class, interpretive role, evidence scope, source relationship, and a gene-level interpretation. Table S17 supplies the 33-source bibliography and states whether each source is independent, potentially overlapping, or mechanistic context only. The deterministic builder is `nasa_mouse_rna_diffusion.annotate_promoted_gene_literature`.
 
 ## S14. Supplementary figures
 

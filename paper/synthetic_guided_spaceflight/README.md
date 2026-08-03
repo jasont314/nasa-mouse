@@ -15,16 +15,15 @@ remained more distinguishable from real profiles. Metrics are reported on each
 model's stated evaluation split rather than as a paired comparison.
 
 The downstream analysis compares pooled and tissue-specific uses of generated
-expression. Thymus provides a real-supported cell-cycle panel, soleus provides a
-cross-accession metabolic program, and kidney provides a focused promoted
-`Inpp4b` and reinforced `Slc37a4` result.
+expression. Thymus provides a real-supported cell-cycle panel, and soleus
+provides a cross-accession metabolic program. Additional tissues provide
+narrower gene-level findings or negative results.
 
-A targeted literature review classifies every synthetic-promoted association as
-aligning, contradictory, complementary, ambiguous, or unsupported/potentially
-novel. Evidence scope is recorded separately so exact gene-tissue-direction
-matches are not conflated with process-level agreement. An interpretive-role
-field also separates prior-evidence recovery from mechanistic hypothesis
-extension and literature-unmatched candidates.
+A targeted literature review covers all 49 synthetic-informed associations.
+Selection status records promoted or reinforced genes, while an independent
+literature field records aligning, complementary, ambiguous, or unmatched
+evidence. Evidence scope keeps exact gene-tissue-direction matches separate
+from process-level agreement.
 
 Using the DDIM generator, the paper follows a three-part downstream funnel:
 
@@ -55,7 +54,7 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
   report the tissue biology.
 - `source_data/`: manuscript and supplementary data tables. SHA-256 manifests
   are retained for repository auditing but are not part of the formal supplement.
-  Tables S16-S17 contain the promoted-gene literature annotations and source
+  Tables S16-S17 contain the synthetic-informed literature annotations and source
   inventory.
 
 ## Rebuild
@@ -87,20 +86,19 @@ scientific method.
   supports developmental hypotheses rather than independent biological evidence.
 - **Complete real-data screen:** all 459 random-effects BH-FDR tissue-gene
   results, regardless of synthetic feature-selection status.
-- **Literature interpretation:** all 26 promoted associations receive one
-  mutually exclusive literature label. Only three have direct same-gene,
-  same-tissue, same-direction matches; the tables distinguish those results from
-  broader process-level and mechanistic context.
+- **Literature interpretation:** all 49 synthetic-informed associations receive
+  one mutually exclusive literature label. Five have direct transcript-level
+  same-gene, same-tissue, same-direction matches, and two soleus genes match
+  across transcriptomic and proteomic assays. The tables distinguish those
+  results from broader process-level and mechanistic context.
 
 ## Tissue evidence labels
 
-- **Cross-accession development:** selected BH-FDR genes form a coherent pattern
-  across represented studies, but the generator was adapted in the same
-  development domain. This applies most clearly to soleus, pooled skeletal
-  muscle, and kidney.
-- **Exploratory:** predictive or enrichment signals without a stable real
-  accession-aware gene set. This applies to
-  spleen, skin, adrenal gland, gastrocnemius, and tibialis anterior.
-- **Negative:** no coherent synthetic-guided biological result under the declared
-  rules. Quadriceps, EDL, and liver retained real-only arms. Lung improved during
-  development but had no BH-FDR gene in the 974-gene panel.
+- **Coherent programs:** thymus and soleus provide the strongest process-level
+  interpretations in the current screen.
+- **Additional findings:** pooled skeletal muscle, kidney, spleen, skin, eye,
+  adrenal gland, gastrocnemius, and tibialis anterior provide narrower
+  synthetic-informed gene-level results.
+- **Real-data only or null results:** heart, liver, retina, EDL, and quadriceps
+  have BH-FDR genes without synthetic-informed selection. Twelve other analysis
+  units have no BH-FDR gene in the 974-gene panel; Table S12 lists all of them.
