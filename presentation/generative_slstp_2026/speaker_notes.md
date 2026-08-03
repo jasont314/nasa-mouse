@@ -1,6 +1,6 @@
 # SLSTP 2026 generative transcriptomics speaker notes
 
-Target length: 12-15 minutes. Planned speaking time: about 13 minutes 35 seconds.
+Target length: 12-15 minutes. Planned speaking time: about 14 minutes 35 seconds.
 
 ## 1. Synthetic transcriptomics for mouse spaceflight (0:25)
 
@@ -42,22 +42,26 @@ Reinforced genes were selected with and without synthetic guidance. Promoted gen
 
 This slide separates four questions. Promoted tells us that synthetic guidance changed stable feature ranking. BH FDR tells us the association is present in real OSDR profiles. The literature label describes whether prior work is exact, related, mixed or unmatched. The biological interpretation remains a hypothesis. Eleven associations aligned, 13 were complementary, one was ambiguous and one was literature unmatched. Only Ccnb2, Ccne2 and Nfkbia were exact gene-tissue-direction matches. Psmb8 was unmatched in adrenal spaceflight literature but remains mechanistically plausible.
 
-## 11. Thymus points to lower proliferative renewal (1:15)
+## 11. Synthetic-informed genes spanned 10 tissue analyses (1:00)
+
+This is the complete 49-association inventory. FLT-higher and FLT-lower directions come from the real-data meta-analysis. P marks genes promoted only with synthetic guidance; R marks genes reinforced by both ranking arms. Colors apply the literature interpretation from the prior slide to promoted genes. The largest panels occur in thymus and pooled skeletal muscle, while soleus, spleen and kidney provide smaller focused sets.
+
+## 12. Thymus points to lower proliferative renewal (1:15)
 
 Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses, but neither is a direct prior flight replication or an established driver. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both.
 
-## 12. Soleus reinforces a mitochondrial and lipid program (1:05)
+## 13. Soleus reinforces a mitochondrial and lipid program (1:05)
 
 Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling.
 
-## 13. Kidney adds a focused signal; other tissues are exploratory (0:55)
+## 14. Kidney adds a focused signal; other tissues are exploratory (0:55)
 
 Kidney supplied the strongest secondary pair: promoted Inpp4b and reinforced Slc37a4. Spleen and skin results are narrower. Adrenal Psmb8 has plausible immunoproteasome biology but no prior adrenal flight match. Lung and retina improved predictively without a synthetic-informed BH-FDR gene, while liver, EDL and quadriceps retained real-only models.
 
-## 14. Synthetic data helped most as a tissue-specific prior (0:45)
+## 15. Synthetic data helped most as a tissue-specific prior (0:45)
 
 The useful role was tissue-specific feature ranking or limited regularization, not increasing biological sample size. Literature annotation then separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests.
 
-## 15. Thank you (0:10)
+## 16. Thank you (0:10)
 
 Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions.

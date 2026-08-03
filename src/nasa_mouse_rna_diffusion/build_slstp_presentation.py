@@ -886,7 +886,203 @@ def _slide_10(slide):
     _add_source(slide, "Targeted review completed 2026-08-03; full decisions and 19-source inventory are in Supplementary Tables S16-S17.")
 
 
+def _inventory_gene_segments(
+    rows: pd.DataFrame,
+    annotation_lookup: dict[tuple[str, str, str], str],
+) -> list[tuple[str, dict]]:
+    class_colors = {
+        "aligning": GREEN,
+        "complementary": BLUE,
+        "ambiguous": ORANGE,
+        "unsupported/potentially_novel": PURPLE,
+    }
+    priority = {
+        "synthetic_promoted": 0,
+        "reinforced_real_and_synthetic": 1,
+    }
+    ordered = rows.assign(
+        _selection_order=rows["selection_interpretation"].map(priority)
+    ).sort_values(["_selection_order", "real_meta_fdr", "symbol"])
+    segments: list[tuple[str, dict]] = []
+    for index, row in enumerate(ordered.itertuples(index=False)):
+        if index:
+            segments.append((", ", {"size": 9.8, "color": MID_GRAY}))
+        promoted = row.selection_interpretation == "synthetic_promoted"
+        if promoted:
+            key = (row.analysis_scope, row.tissue, row.gene)
+            literature_class = annotation_lookup.get(key)
+            if literature_class not in class_colors:
+                raise ValueError(f"Missing promoted-gene annotation for {key}")
+            color = class_colors[literature_class]
+            prefix = "P:"
+        else:
+            color = GRAY
+            prefix = "R:"
+        segments.append(
+            (
+                f"{prefix}{row.symbol}",
+                {
+                    "size": 9.8,
+                    "color": color,
+                    "bold": promoted,
+                    "italic": True,
+                },
+            )
+        )
+    return segments or [("none", {"size": 9.8, "color": MID_GRAY, "italic": True})]
+
+
+def _add_gene_inventory_block(
+    slide,
+    inventory: pd.DataFrame,
+    annotation_lookup: dict[tuple[str, str, str], str],
+    *,
+    scope: str,
+    tissue: str,
+    label: str,
+    x: float,
+    y: float,
+    w: float,
+    h: float,
+    higher_h: float,
+) -> None:
+    rows = inventory[
+        inventory["analysis_scope"].eq(scope) & inventory["tissue"].eq(tissue)
+    ]
+    if rows.empty:
+        raise ValueError(f"No synthetic-informed genes for {scope}/{tissue}")
+
+    _add_rule(slide, x, y, w, "DDE4E8", 0.018)
+    count_label = "gene" if len(rows) == 1 else "genes"
+    _add_rich_text(
+        slide,
+        [
+            (f"{label}\n", {"size": 11.8, "color": NAVY, "bold": True}),
+            (f"{len(rows)} {count_label}", {"size": 9.0, "color": MID_GRAY}),
+        ],
+        x + 0.06,
+        y + 0.07,
+        1.28,
+        h - 0.10,
+        margin=0,
+    )
+
+    content_x = x + 2.12
+    content_w = w - 2.20
+    lower_y = y + 0.06 + higher_h
+    lower_h = h - higher_h - 0.11
+    for direction, direction_label, direction_color, row_y, row_h in [
+        ("FLT_higher", "FLT higher", CORAL, y + 0.06, higher_h),
+        ("FLT_lower", "FLT lower", TEAL, lower_y, lower_h),
+    ]:
+        _add_text(
+            slide,
+            direction_label,
+            x + 1.37,
+            row_y,
+            0.68,
+            min(0.24, row_h),
+            size=9.0,
+            color=direction_color,
+            bold=True,
+            margin=0,
+        )
+        direction_rows = rows[rows["flt_gc_direction"].eq(direction)]
+        _add_rich_text(
+            slide,
+            _inventory_gene_segments(direction_rows, annotation_lookup),
+            content_x,
+            row_y,
+            content_w,
+            row_h,
+            size=9.8,
+            margin=0,
+        )
+
+
 def _slide_11(slide):
+    _add_slide_title(
+        slide,
+        "Gene inventory",
+        "Synthetic-informed genes spanned 10 tissue analyses",
+        "All 49 associations passed BH FDR in real OSDR data; synthetic profiles affected prioritization, not the statistical test.",
+    )
+    inventory = pd.read_csv(
+        PAPER_DIR / "source_data/table_s10_synthetic_informed_bh_fdr_genes.tsv",
+        sep="\t",
+    )
+    annotations = pd.read_csv(
+        PAPER_DIR / "source_data/table_s16_promoted_gene_literature_annotations.tsv",
+        sep="\t",
+    )
+    if len(inventory) != 49 or len(annotations) != 26:
+        raise ValueError("Unexpected synthetic-informed gene inventory")
+    if inventory[["analysis_scope", "tissue"]].drop_duplicates().shape[0] != 10:
+        raise ValueError("Expected 10 tissue analyses in synthetic-informed inventory")
+    annotation_lookup = {
+        (row.analysis_scope, row.tissue, row.gene): row.literature_classification
+        for row in annotations.itertuples(index=False)
+    }
+
+    _add_text(slide, "P: promoted", 0.45, 1.87, 1.10, 0.25, size=10.2, color=NAVY, bold=True)
+    legend = [
+        ("aligning", GREEN, 1.55, 0.92),
+        ("complementary", BLUE, 2.55, 1.22),
+        ("ambiguous", ORANGE, 3.88, 1.02),
+        ("literature-unmatched", PURPLE, 5.02, 1.60),
+        ("R: reinforced", GRAY, 6.83, 1.25),
+    ]
+    for label, color, x, width in legend:
+        _add_rule(slide, x, 1.91, 0.14, color, 0.05)
+        _add_text(slide, label, x + 0.19, 1.85, width, 0.25, size=9.8, color=color, bold=True)
+    _add_text(slide, "Direction is shown within each tissue.", 10.18, 1.85, 2.66, 0.25, size=9.8, color=MID_GRAY, italic=True, align=PP_ALIGN.RIGHT)
+
+    left_blocks = [
+        ("canonical_tissue", "thymus", "Thymus", 2.24, 1.45, 0.34),
+        ("canonical_tissue", "spleen", "Spleen", 3.78, 0.67, 0.30),
+        ("canonical_tissue", "kidney", "Kidney", 4.54, 0.61, 0.30),
+        ("skeletal_muscle_group", "gastrocnemius", "Gastrocnemius", 5.24, 0.61, 0.27),
+        ("canonical_tissue", "eye", "Eye", 5.94, 0.51, 0.19),
+    ]
+    right_blocks = [
+        ("canonical_tissue", "skeletal_muscle", "Skeletal muscle\n(pooled)", 2.24, 1.25, 0.56),
+        ("skeletal_muscle_group", "soleus", "Soleus", 3.58, 0.68, 0.27),
+        ("skeletal_muscle_group", "tibialis_anterior", "Tibialis anterior", 4.35, 0.69, 0.39),
+        ("canonical_tissue", "adrenal_gland", "Adrenal gland", 5.13, 0.61, 0.18),
+        ("canonical_tissue", "skin", "Skin", 5.83, 0.55, 0.29),
+    ]
+    for scope, tissue, label, y, h, higher_h in left_blocks:
+        _add_gene_inventory_block(
+            slide,
+            inventory,
+            annotation_lookup,
+            scope=scope,
+            tissue=tissue,
+            label=label,
+            x=0.43,
+            y=y,
+            w=6.15,
+            h=h,
+            higher_h=higher_h,
+        )
+    for scope, tissue, label, y, h, higher_h in right_blocks:
+        _add_gene_inventory_block(
+            slide,
+            inventory,
+            annotation_lookup,
+            scope=scope,
+            tissue=tissue,
+            label=label,
+            x=6.76,
+            y=y,
+            w=6.15,
+            h=h,
+            higher_h=higher_h,
+        )
+    _add_source(slide, "P/R reflects repeated feature selection. Literature colors apply to promoted genes only; full statistics are in Supplementary Table S10.")
+
+
+def _slide_12(slide):
     _add_slide_title(
         slide,
         "Thymus",
@@ -917,7 +1113,7 @@ def _slide_11(slide):
     _add_source(slide, "Context: Gridley et al. (2013), Horie et al. (2019), Keenan et al. (2025), and Shi et al. (2026).")
 
 
-def _slide_12(slide):
+def _slide_13(slide):
     _add_slide_title(
         slide,
         "Soleus",
@@ -948,7 +1144,7 @@ def _slide_12(slide):
     _add_source(slide, "Literature context: Gambara et al. (2017) and Stein et al. (2002).")
 
 
-def _slide_13(slide):
+def _slide_14(slide):
     _add_slide_title(
         slide,
         "Other tissues",
@@ -972,7 +1168,7 @@ def _slide_13(slide):
     _add_text(slide, "A plausible mechanism is not independent validation; these candidates still require targeted experiments.", 0.75, 6.60, 11.80, 0.33, size=14, color=GRAY, italic=True, align=PP_ALIGN.CENTER)
 
 
-def _slide_14(slide):
+def _slide_15(slide):
     _add_slide_title(
         slide,
         "Takeaways",
@@ -996,7 +1192,7 @@ def _slide_14(slide):
     _add_text(slide, "Generated profiles never enter the biological sample count or the BH-FDR test.", 2.05, 6.05, 9.92, 0.28, size=12.5, color="BFD0E1")
 
 
-def _slide_15(slide):
+def _slide_16(slide):
     body = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0.38), Inches(SLIDE_W), Inches(SLIDE_H - 0.38))
     _set_fill(body, NAVY)
     body.line.fill.background()
@@ -1027,7 +1223,7 @@ def _write_notes(notes: list[SlideNote]) -> None:
     lines = [
         "# SLSTP 2026 generative transcriptomics speaker notes",
         "",
-        "Target length: 12-15 minutes. Planned speaking time: about 13 minutes 35 seconds.",
+        "Target length: 12-15 minutes. Planned speaking time: about 14 minutes 35 seconds.",
         "",
     ]
     for note in notes:
@@ -1047,7 +1243,7 @@ def build() -> Path:
     presentation = Presentation(TEMPLATE)
     _set_title_slide(presentation.slides[0])
     _prepare_content_slide(presentation.slides[1], 2)
-    while len(presentation.slides) < 15:
+    while len(presentation.slides) < 16:
         number = len(presentation.slides) + 1
         slide = presentation.slides.add_slide(presentation.slide_layouts[3])
         _prepare_content_slide(slide, number)
@@ -1068,6 +1264,7 @@ def build() -> Path:
         _slide_13,
         _slide_14,
         _slide_15,
+        _slide_16,
     ]
     for index, builder in enumerate(builders):
         if builder is not None:
@@ -1084,11 +1281,12 @@ def build() -> Path:
         SlideNote(8, "Pooling tissues hid useful signal", "1:00", "The simplest pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
         SlideNote(9, "Synthetic guidance changed ranking, not statistical evidence", "0:55", "Reinforced genes were selected with and without synthetic guidance. Promoted genes crossed the stable-selection rule only with synthetic guidance. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations also had a supporting effect and BH FDR below 0.05 in real data."),
         SlideNote(10, "Annotation separates recovery from hypothesis extension", "1:05", "This slide separates four questions. Promoted tells us that synthetic guidance changed stable feature ranking. BH FDR tells us the association is present in real OSDR profiles. The literature label describes whether prior work is exact, related, mixed or unmatched. The biological interpretation remains a hypothesis. Eleven associations aligned, 13 were complementary, one was ambiguous and one was literature unmatched. Only Ccnb2, Ccne2 and Nfkbia were exact gene-tissue-direction matches. Psmb8 was unmatched in adrenal spaceflight literature but remains mechanistically plausible."),
-        SlideNote(11, "Thymus points to lower proliferative renewal", "1:15", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses, but neither is a direct prior flight replication or an established driver. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
-        SlideNote(12, "Soleus reinforces a mitochondrial and lipid program", "1:05", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling."),
-        SlideNote(13, "Kidney adds a focused signal; other tissues are exploratory", "0:55", "Kidney supplied the strongest secondary pair: promoted Inpp4b and reinforced Slc37a4. Spleen and skin results are narrower. Adrenal Psmb8 has plausible immunoproteasome biology but no prior adrenal flight match. Lung and retina improved predictively without a synthetic-informed BH-FDR gene, while liver, EDL and quadriceps retained real-only models."),
-        SlideNote(14, "Synthetic data helped most as a tissue-specific prior", "0:45", "The useful role was tissue-specific feature ranking or limited regularization, not increasing biological sample size. Literature annotation then separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests."),
-        SlideNote(15, "Thank you", "0:10", "Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions."),
+        SlideNote(11, "Synthetic-informed genes spanned 10 tissue analyses", "1:00", "This is the complete 49-association inventory. FLT-higher and FLT-lower directions come from the real-data meta-analysis. P marks genes promoted only with synthetic guidance; R marks genes reinforced by both ranking arms. Colors apply the literature interpretation from the prior slide to promoted genes. The largest panels occur in thymus and pooled skeletal muscle, while soleus, spleen and kidney provide smaller focused sets."),
+        SlideNote(12, "Thymus points to lower proliferative renewal", "1:15", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses, but neither is a direct prior flight replication or an established driver. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
+        SlideNote(13, "Soleus reinforces a mitochondrial and lipid program", "1:05", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling."),
+        SlideNote(14, "Kidney adds a focused signal; other tissues are exploratory", "0:55", "Kidney supplied the strongest secondary pair: promoted Inpp4b and reinforced Slc37a4. Spleen and skin results are narrower. Adrenal Psmb8 has plausible immunoproteasome biology but no prior adrenal flight match. Lung and retina improved predictively without a synthetic-informed BH-FDR gene, while liver, EDL and quadriceps retained real-only models."),
+        SlideNote(15, "Synthetic data helped most as a tissue-specific prior", "0:45", "The useful role was tissue-specific feature ranking or limited regularization, not increasing biological sample size. Literature annotation then separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests."),
+        SlideNote(16, "Thank you", "0:10", "Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions."),
     ]
     for note, slide in zip(notes, presentation.slides):
         _add_notes(slide, note)
