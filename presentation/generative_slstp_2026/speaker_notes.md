@@ -12,11 +12,11 @@ OSDR gives broad tissue coverage, but the data are spread across 75 accessions w
 
 ## 3. We built a configurable bulk RNA-seq generation pipeline (1:10)
 
-Each card shows alternatives available at one pipeline stage, and the heavy outlines identify the downstream branch. We used both ARCHS4 and NASA OSDR across multiple studies and all tissues. The selected path used TPM, training-fitted MaxAbs scaling, 974 mouse landmarks, no global correction, ARCHS4 pretraining plus OSDR adaptation, and a DDIM conditioned on tissue, FLT/GC, accession and material. WGAN-GP and the other preprocessing and harmonization choices remained benchmark alternatives.
+Each column shows the alternatives available at one pipeline stage; outlines identify the downstream branch. We used both ARCHS4 and NASA OSDR across multiple studies and all tissues. The selected path used TPM, training-fitted MaxAbs scaling, 974 mouse landmarks, no global correction, ARCHS4 pretraining plus OSDR adaptation, and a DDIM conditioned on tissue, FLT/GC, accession and material. WGAN-GP and the other preprocessing and harmonization choices remained benchmark alternatives.
 
 ## 4. DDIM matched expression and reduced separability (0:55)
 
-Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split. DDIM was used for the remaining analyses.
+The left diagram shows the model used downstream: a 974-to-8192-to-8192-to-974 noise predictor, adapted to OSDR with rank-512 LoRA and tissue, condition, accession and material context. Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split.
 
 ## 5. Diffusion learns tissue structure from noise (0:50)
 
@@ -42,11 +42,11 @@ Reinforced genes were selected with and without synthetic guidance. Promoted gen
 
 Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. Table S16 records the gene-level rationale, evidence scope and source IDs; Table S17 records citations, DOI or URL and whether the evidence is independent, overlapping or mechanistic context.
 
-## 11. All 27 completed tissue analyses were retained (0:45)
+## 11. The screen covered all 27 completed tissue analyses (0:45)
 
-This is the full analysis coverage: 22 canonical tissues and five anatomical muscle groups. Ten had a synthetic-informed BH-FDR association, five had real BH-FDR genes without synthetic-informed selection, and 12 had no BH-FDR gene in the landmark panel. The narrative focuses later, but no completed tissue result is hidden.
+This is the full analysis coverage: 22 canonical tissues and five anatomical muscle groups. Ten had a synthetic-informed BH-FDR association, five had real BH-FDR genes without synthetic-informed selection, and 12 had no BH-FDR gene in the landmark panel. The discussion focuses later, but every completed tissue result remains visible here.
 
-## 12. Synthetic-informed genes spanned 10 tissue analyses (0:45)
+## 12. Ten tissue analyses contained synthetic-informed genes (0:45)
 
 This is the complete 49-association inventory. Separate rows show FLT-higher or FLT-lower direction and promoted or reinforced selection status. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT directions come from real-data meta-analysis.
 
@@ -58,7 +58,7 @@ Thymus produced the clearest promoted panel. The lower mitotic and DNA-replicati
 
 Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. The literature is mixed for Bnip3 and Tpm1, which is recorded explicitly.
 
-## 15. Each additional tissue defines a separate hypothesis (0:40)
+## 15. Additional tissues produced distinct hypotheses (0:40)
 
 Promoted and reinforced genes are shown on separate subrows for each tissue. Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. The rows share a slide for presentation space; each remains a separate hypothesis. Pooled muscle is heterogeneous, kidney suggests phosphoinositide and glucose handling, spleen suggests adhesion and extracellular-matrix or immune organization, and skin contributes a single interferon-linked candidate.
 
@@ -66,7 +66,7 @@ Promoted and reinforced genes are shown on separate subrows for each tissue. Poo
 
 Promoted and reinforced genes remain separated here as well. Eye reinforces lower cytokinesis, adrenal contributes two unmatched candidates, gastrocnemius combines an NF-kappa-B stress signal with an autophagy or myogenesis candidate, and tibialis anterior spans stress, cell-cycle, ganglioside and mitophagy hypotheses.
 
-## 17. Synthetic data helped most as a tissue-specific prior (0:40)
+## 17. Synthetic data worked best as a tissue-specific prior (0:40)
 
 Synthetic data was useful for tissue-specific feature ranking and limited regularization. It did not increase biological sample size. Literature annotation separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests.
 
