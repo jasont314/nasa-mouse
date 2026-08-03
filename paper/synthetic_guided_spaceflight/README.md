@@ -4,8 +4,8 @@ This package contains a research manuscript on a configurable bulk RNA-seq
 generation framework and its use in organ-specific mouse spaceflight analysis.
 The paper first describes the expression, feature, harmonization, cohort,
 conditioning, training, and model choices represented by the framework. It then
-reports the WGAN-GP, DDIM, GeneJEPA representation, and nine-arm liver
-harmonization screens before introducing the selected diffusion model and the
+reports the WGAN-GP, DDIM, and nine-arm liver harmonization screens before
+introducing the selected diffusion model and the
 downstream biology.
 
 The factorized DDIM was used downstream because it combined high fidelity,

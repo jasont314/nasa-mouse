@@ -119,12 +119,6 @@ WGAN_DIR = (
 HARMONIZATION_DIR = (
     ROOT / "outputs/generative_benchmark/summary/liver_harmonization"
 )
-GENEJEPA_DIR = (
-    ROOT
-    / "outputs/generative_benchmark/runs/genejepa/"
-    "matrix_phase_0_genejepa_exact_mouse_one_epoch_f2e01cf1f130d5cb"
-)
-
 COLORS = {
     "navy": "#23445D",
     "teal": "#17807E",
@@ -667,7 +661,7 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             },
             {
                 "axis": "Generator",
-                "configurable_options": "WGAN-GP; DDIM; GeneJEPA representation screen",
+                "configurable_options": "WGAN-GP; DDIM",
                 "evaluated_scope": "paper-reproduced architectures and independent metrics",
                 "selected_branch": "ARCHS4-pretrained, OSDR-adapted DDIM",
             },
@@ -901,23 +895,6 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
                     "used downstream: lower adversarial accuracy and Frechet ratio "
                     "with muscle-effect recovery in 4/4 repeats"
                 ),
-            },
-            {
-                "model": "GeneJEPA",
-                "training_regime": "ARCHS4 representation screen",
-                "evaluation_split": "held-out ARCHS4 series",
-                "generation_repeats": 0,
-                "correlation": np.nan,
-                "precision": np.nan,
-                "recall": np.nan,
-                "f1": np.nan,
-                "adversarial_accuracy": np.nan,
-                "frechet_ratio": np.nan,
-                "fidelity_repeats_passing": "not applicable",
-                "condition_repeats_passing": "not applicable",
-                "accession_repeats_passing": "not applicable",
-                "locked_test_opened": False,
-                "decision": "not a generator: released architecture has no expression decoder",
             },
         ]
     )
@@ -1565,7 +1542,7 @@ def figure_1_workflow() -> None:
         ),
         (
             "Generator",
-            "WGAN-GP; DDIM\nGeneJEPA screened as\nrepresentation only",
+            "WGAN-GP; DDIM\npaper-based architectures\ncommon evaluation contract",
             COLORS["gold"],
         ),
         (
@@ -2294,7 +2271,6 @@ def build_manifest() -> None:
         ROOT / "configs/generative/preprocessing_profiles.yaml",
         ROOT / "configs/generative/model_profiles.yaml",
         ROOT / "configs/generative/experiment_matrix.yaml",
-        GENEJEPA_DIR / "figures/archs4_tissues_validation/summary.json",
     ]
     rows = []
     for path in tracked_inputs:

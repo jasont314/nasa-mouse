@@ -6,5 +6,5 @@ Training data	OSDR only; ARCHS4 only; ARCHS4 pretraining then OSDR adaptation	pa
 Cohort scope	single accession; selected accessions; all eligible accessions	accession-scope screen followed by all eligible OSDR	all eligible OSDR accessions
 Tissue structure	pooled tissue-conditioned; standalone per tissue	pooled generator plus tissue-specific downstream policies	pooled tissue-conditioned generator
 Conditioning	FLT/GC; tissue; material; muscle group; study; sex; assay; platform; source	condition and study policies screened; available covariates audited	tissue, FLT/GC, accession, and material
-Generator	WGAN-GP; DDIM; GeneJEPA representation screen	paper-reproduced architectures and independent metrics	ARCHS4-pretrained, OSDR-adapted DDIM
+Generator	WGAN-GP; DDIM	paper-reproduced architectures and independent metrics	ARCHS4-pretrained, OSDR-adapted DDIM
 Validation	GEO-series or accession-grouped evaluation; test set; unconditional controls; multiple generation seeds	no sample-random model-selection split	four-seed 293-profile OSDR test
