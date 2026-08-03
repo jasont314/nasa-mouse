@@ -763,9 +763,98 @@ def _slide_8(slide):
 def _slide_9(slide):
     _add_slide_title(
         slide,
+        "Literature interpretation",
+        "Annotation separates recovery from hypothesis extension",
+        "The label describes the relationship to prior evidence, not whether a gene is biologically plausible.",
+    )
+
+    steps = [
+        ("1  Candidate", "Gene + tissue +\nFLT direction", BLUE, PALE_BLUE),
+        ("2  Search", "Spaceflight +\nmechanism literature", TEAL, PALE_TEAL),
+        ("3  Classify", "Relation to\npublished evidence", ORANGE, PALE_GOLD),
+        ("4  Interpret", "Recovery, extension,\nor unmatched", PURPLE, "F0ECF6"),
+    ]
+    for index, (heading, body, color, fill) in enumerate(steps):
+        x = 0.45 + index * 3.12
+        _add_panel(slide, x, 2.00, 2.55, 0.91, fill=fill, line=color)
+        _add_text(slide, heading, x + 0.16, 2.13, 2.22, 0.25, size=13.5, color=color, bold=True)
+        _add_text(slide, body, x + 0.16, 2.39, 2.22, 0.40, size=12.1, color=DARK)
+        if index < len(steps) - 1:
+            _add_arrow(slide, x + 2.67, 2.31, 0.31, 0.28, MID_GRAY)
+
+    annotations = pd.read_csv(
+        PAPER_DIR / "source_data/table_s16_promoted_gene_literature_annotations.tsv",
+        sep="\t",
+    )
+    counts = annotations["literature_classification"].value_counts().to_dict()
+    direct = int(
+        annotations["evidence_scope"]
+        .eq("direct_same_gene_same_tissue_same_direction")
+        .sum()
+    )
+    if len(annotations) != 26 or direct != 3:
+        raise ValueError("Unexpected promoted-gene literature annotation inventory")
+
+    _add_panel(slide, 0.45, 3.19, 7.63, 3.26, fill=WHITE, line="DDE4E8")
+    _add_text(slide, "What the 26 promoted associations showed", 0.72, 3.43, 6.98, 0.34, size=17, color=NAVY, bold=True)
+    category_rows = [
+        ("Aligning", counts.get("aligning", 0), "3 exact matches + 8 same-tissue process matches", GREEN),
+        ("Complementary", counts.get("complementary", 0), "Related process or mechanism; not direct replication", BLUE),
+        ("Ambiguous", counts.get("ambiguous", 0), "Birc5 differed across mission contexts", ORANGE),
+        (
+            "Literature-unmatched",
+            counts.get("unsupported/potentially_novel", 0),
+            "Psmb8 remains mechanistically plausible",
+            PURPLE,
+        ),
+    ]
+    for index, (label, count, detail, color) in enumerate(category_rows):
+        y = 3.91 + index * 0.57
+        _add_circle(slide, 0.75, y + 0.02, 0.37, color)
+        _add_text(slide, str(count), 0.75, y + 0.07, 0.37, 0.22, size=12, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
+        _add_text(slide, label, 1.30, y, 1.92, 0.34, size=14.2, color=color, bold=True, valign=MSO_ANCHOR.MIDDLE)
+        _add_text(slide, detail, 3.18, y, 4.55, 0.34, size=13.2, color=DARK, valign=MSO_ANCHOR.MIDDLE)
+
+    _add_panel(slide, 8.33, 3.19, 4.54, 3.26, fill=PALE_GOLD, line="E3CEAA")
+    _add_text(slide, "How to read a result", 8.64, 3.43, 3.94, 0.34, size=17, color=GOLD, bold=True)
+    _add_bullet_rows(
+        slide,
+        [
+            "Promoted: synthetic guidance changed stable ranking",
+            "BH FDR: the association is present in real OSDR data",
+            "Literature class: direct, related, mixed, or unmatched",
+            "Interpretation: a testable hypothesis, not independent proof",
+        ],
+        8.65,
+        3.91,
+        3.88,
+        size=12.5,
+        bullet_color=GOLD,
+        row_h=0.57,
+    )
+
+    _add_panel(slide, 0.45, 6.57, 12.42, 0.43, fill=NAVY, line=NAVY)
+    _add_text(
+        slide,
+        f"11 align and 13 extend prior biology; only {direct} are exact gene-tissue-direction matches.",
+        0.71,
+        6.64,
+        11.90,
+        0.25,
+        size=14,
+        color=WHITE,
+        bold=True,
+        align=PP_ALIGN.CENTER,
+    )
+    _add_source(slide, "Targeted review completed 2026-08-03; full decisions and 19-source inventory are in Supplementary Tables S16-S17.")
+
+
+def _slide_10(slide):
+    _add_slide_title(
+        slide,
         "Thymus",
         "Thymus points to lower proliferative renewal",
-        "Synthetic guidance organized real-data associations into a coherent mitotic and DNA-replication panel.",
+        "The core panel recovers cell-cycle biology; two flight-higher genes extend the hypothesis.",
     )
     figure = PAPER_DIR / "figures/figure_3_thymus_biology.png"
     _add_picture_contain(slide, figure, 0.35, 1.93, 8.55, 4.78, alt="Thymus gene effects and Reactome processes")
@@ -778,19 +867,20 @@ def _slide_9(slide):
         [
             "Lower Nusap1, Stmn1, Birc5, Cdk1, Top2a and related genes",
             "Cell cycle, DNA replication, APC/C and G2/M processes",
+            "Higher Hsd17b11 and Etv1 suggest lipid or T-cell-state shifts",
             "Bulk RNA-seq cannot separate cell loss from lower transcription",
         ],
         9.44,
-        3.62,
+        3.53,
         3.03,
-        size=13.2,
+        size=12.2,
         bullet_color=CORAL,
-        row_h=0.77,
+        row_h=0.64,
     )
-    _add_source(slide, "Prior thymus studies report involution and altered cell-cycle expression after spaceflight (Gridley et al. 2013; Horie et al. 2019).")
+    _add_source(slide, "Context: Gridley et al. (2013), Horie et al. (2019), Keenan et al. (2025), and Shi et al. (2026).")
 
 
-def _slide_10(slide):
+def _slide_11(slide):
     _add_slide_title(
         slide,
         "Soleus",
@@ -821,7 +911,7 @@ def _slide_10(slide):
     _add_source(slide, "Literature context: Gambara et al. (2017) and Stein et al. (2002).")
 
 
-def _slide_11(slide):
+def _slide_12(slide):
     _add_slide_title(
         slide,
         "Other tissues",
@@ -831,7 +921,7 @@ def _slide_11(slide):
     rows = [
         ("Kidney", "Inpp4b promoted, Slc37a4 reinforced; both higher in flight", "Focused secondary", BLUE, PALE_BLUE),
         ("Spleen", "Rai14, Ptprk and Myl9 promoted; Loxl1 reinforced; no Reactome enrichment", "Exploratory", PURPLE, "F0ECF6"),
-        ("Skin + adrenal", "Plscr1 higher in skin; Psmb8 and Tspan4 lower in adrenal", "Exploratory", ORANGE, PALE_GOLD),
+        ("Skin + adrenal", "Plscr1 higher in skin; adrenal Psmb8 is plausible but literature-unmatched", "Exploratory", ORANGE, PALE_GOLD),
         ("Lung + retina", "Predictive gains without a synthetic-informed BH-FDR gene", "Prediction only", TEAL, PALE_TEAL),
         ("Liver + EDL + quadriceps", "Real-only arm retained", "No synthetic claim", MID_GRAY, "F2F4F5"),
     ]
@@ -842,10 +932,10 @@ def _slide_11(slide):
         _add_text(slide, tissue, 0.70, y + 0.17, 2.12, 0.34, size=16, color=color, bold=True)
         _add_text(slide, finding, 2.79, y + 0.14, 7.70, 0.40, size=14, color=DARK, valign=MSO_ANCHOR.MIDDLE)
         _add_text(slide, label, 10.67, y + 0.16, 1.84, 0.34, size=12.5, color=color, bold=True, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE)
-    _add_text(slide, "Independent missions are still needed before any candidate becomes a transferable spaceflight biomarker.", 0.75, 6.60, 11.80, 0.33, size=14, color=GRAY, italic=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "A plausible mechanism is not independent validation; these candidates still require targeted experiments.", 0.75, 6.60, 11.80, 0.33, size=14, color=GRAY, italic=True, align=PP_ALIGN.CENTER)
 
 
-def _slide_12(slide):
+def _slide_13(slide):
     _add_slide_title(
         slide,
         "Takeaways",
@@ -855,7 +945,7 @@ def _slide_12(slide):
     columns = [
         (0.42, "1", "Generate", "Conditional DDIM produced high-fidelity profiles with near-chance real-versus-synthetic separation.", BLUE, PALE_BLUE),
         (4.44, "2", "Use", "Pooled augmentation failed. Tissue-specific ranking and low-weight training were more useful.", TEAL, PALE_TEAL),
-        (8.46, "3", "Interpret", "Thymus and soleus formed the clearest programs; kidney supplied a focused secondary pair.", ORANGE, PALE_GOLD),
+        (8.46, "3", "Interpret", "Thymus and soleus were clearest. Literature review separated recovery from complementary hypotheses.", ORANGE, PALE_GOLD),
     ]
     for x, number, heading, body, color, fill in columns:
         _add_panel(slide, x, 2.10, 3.74, 2.72, fill=fill, line=color)
@@ -865,11 +955,11 @@ def _slide_12(slide):
         _add_text(slide, body, x + 0.28, 3.08, 3.15, 1.33, size=15, color=DARK)
     _add_panel(slide, 0.42, 5.15, 12.00, 1.30, fill=NAVY, line=NAVY)
     _add_text(slide, "Next test", 0.75, 5.48, 1.38, 0.34, size=17, color="FFD69A", bold=True)
-    _add_text(slide, "Hold out complete accessions, then validate the thymus panel, soleus metabolism and kidney Inpp4b / Slc37a4 in independent data.", 2.05, 5.40, 9.92, 0.58, size=16, color=WHITE, valign=MSO_ANCHOR.MIDDLE)
+    _add_text(slide, "Use independent samples and cell-resolved assays to test thymus proliferation, soleus metabolism, kidney signaling and adrenal Psmb8.", 2.05, 5.40, 9.92, 0.58, size=16, color=WHITE, valign=MSO_ANCHOR.MIDDLE)
     _add_text(slide, "Generated profiles never enter the biological sample count or the BH-FDR test.", 2.05, 6.05, 9.92, 0.28, size=12.5, color="BFD0E1")
 
 
-def _slide_13(slide):
+def _slide_14(slide):
     body = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0.38), Inches(SLIDE_W), Inches(SLIDE_H - 0.38))
     _set_fill(body, NAVY)
     body.line.fill.background()
@@ -920,7 +1010,7 @@ def build() -> Path:
     presentation = Presentation(TEMPLATE)
     _set_title_slide(presentation.slides[0])
     _prepare_content_slide(presentation.slides[1], 2)
-    while len(presentation.slides) < 13:
+    while len(presentation.slides) < 14:
         number = len(presentation.slides) + 1
         slide = presentation.slides.add_slide(presentation.slide_layouts[3])
         _prepare_content_slide(slide, number)
@@ -939,6 +1029,7 @@ def build() -> Path:
         _slide_11,
         _slide_12,
         _slide_13,
+        _slide_14,
     ]
     for index, builder in enumerate(builders):
         if builder is not None:
@@ -946,18 +1037,19 @@ def build() -> Path:
 
     notes = [
         SlideNote(1, "Synthetic transcriptomics for mouse spaceflight", "0:25", "Introduce the question. This talk asks whether generated expression can help analyze tissue-specific FLT versus GC biology without counting synthetic profiles as additional animals."),
-        SlideNote(2, "Small studies and study effects complicate tissue comparisons", "1:00", "OSDR gives broad tissue coverage, but the data are spread across 75 accessions with different mission and assay contexts. ARCHS4 supplies a much larger mouse reference. The challenge is to use that reference without letting study structure masquerade as spaceflight biology."),
-        SlideNote(3, "We compared three model families and used conditional diffusion", "1:10", "The framework kept the published model architectures and varied the surrounding choices. GeneJEPA was useful for representation but had no expression decoder. WGAN-GP and DDIM could generate profiles. The chosen DDIM used TPM, 974 mouse landmarks, ARCHS4 pretraining and OSDR adaptation conditioned on tissue, FLT/GC, accession and material."),
+        SlideNote(2, "Small studies and study effects complicate tissue comparisons", "0:55", "OSDR gives broad tissue coverage, but the data are spread across 75 accessions with different mission and assay contexts. ARCHS4 supplies a much larger mouse reference. The challenge is to use that reference without letting study structure masquerade as spaceflight biology."),
+        SlideNote(3, "We compared three model families and used conditional diffusion", "1:00", "The framework kept the published model architectures and varied the surrounding choices. GeneJEPA was useful for representation but had no expression decoder. WGAN-GP and DDIM could generate profiles. The chosen DDIM used TPM, 974 mouse landmarks, ARCHS4 pretraining and OSDR adaptation conditioned on tissue, FLT/GC, accession and material."),
         SlideNote(4, "Diffusion learns tissue structure from noise", "0:55", "Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel."),
-        SlideNote(5, "DDIM matched expression and reduced separability", "1:15", "Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split, so this is a model-choice summary rather than a paired significance test."),
-        SlideNote(6, "Synthetic profiles entered the analysis in five different ways", "1:15", "Synthetic data can be used for direct training, mixed training or feature guidance. Each tissue could choose among five arms. The eligibility check used held-out real profiles. Once features were nominated, FLT/GC effects and BH FDR were computed from observed OSDR samples only."),
-        SlideNote(7, "Pooling tissues hid useful signal", "1:10", "The simplest pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
-        SlideNote(8, "Synthetic guidance changed ranking, not statistical evidence", "1:05", "Reinforced genes were selected with and without synthetic guidance. Promoted genes crossed the stable-selection rule only with synthetic guidance. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations also had a supporting effect and BH FDR below 0.05 in real data."),
-        SlideNote(9, "Thymus points to lower proliferative renewal", "1:25", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Because this is bulk RNA-seq, the signal could reflect fewer cycling thymocytes, lower transcription within those cells or both."),
-        SlideNote(10, "Soleus reinforces a mitochondrial and lipid program", "1:15", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling."),
-        SlideNote(11, "Kidney adds a focused signal; other tissues are exploratory", "1:00", "Kidney supplied the strongest secondary pair: promoted Inpp4b and reinforced Slc37a4. Spleen, skin and adrenal results are narrower. Lung and retina improved predictively without a synthetic-informed BH-FDR gene, while liver, EDL and quadriceps retained real-only models."),
-        SlideNote(12, "Synthetic data helped most as a tissue-specific prior", "0:55", "The main result is not that synthetic samples increase biological n. The useful role was tissue-specific feature ranking or limited regularization. The next decisive test is complete-accession holdout followed by validation of the thymus, soleus and kidney hypotheses in independent data."),
-        SlideNote(13, "Thank you", "0:10", "Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions."),
+        SlideNote(5, "DDIM matched expression and reduced separability", "1:05", "Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split, so this is a model-choice summary rather than a paired significance test."),
+        SlideNote(6, "Synthetic profiles entered the analysis in five different ways", "1:00", "Synthetic data can be used for direct training, mixed training or feature guidance. Each tissue could choose among five arms. The eligibility check used held-out real profiles. Once features were nominated, FLT/GC effects and BH FDR were computed from observed OSDR samples only."),
+        SlideNote(7, "Pooling tissues hid useful signal", "1:00", "The simplest pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
+        SlideNote(8, "Synthetic guidance changed ranking, not statistical evidence", "0:55", "Reinforced genes were selected with and without synthetic guidance. Promoted genes crossed the stable-selection rule only with synthetic guidance. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations also had a supporting effect and BH FDR below 0.05 in real data."),
+        SlideNote(9, "Annotation separates recovery from hypothesis extension", "1:05", "This slide separates four questions. Promoted tells us that synthetic guidance changed stable feature ranking. BH FDR tells us the association is present in real OSDR profiles. The literature label describes whether prior work is exact, related, mixed or unmatched. The biological interpretation remains a hypothesis. Eleven associations aligned, 13 were complementary, one was ambiguous and one was literature unmatched. Only Ccnb2, Ccne2 and Nfkbia were exact gene-tissue-direction matches. Psmb8 was unmatched in adrenal spaceflight literature but remains mechanistically plausible."),
+        SlideNote(10, "Thymus points to lower proliferative renewal", "1:15", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses, but neither is a direct prior flight replication or an established driver. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
+        SlideNote(11, "Soleus reinforces a mitochondrial and lipid program", "1:05", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling."),
+        SlideNote(12, "Kidney adds a focused signal; other tissues are exploratory", "0:55", "Kidney supplied the strongest secondary pair: promoted Inpp4b and reinforced Slc37a4. Spleen and skin results are narrower. Adrenal Psmb8 has plausible immunoproteasome biology but no prior adrenal flight match. Lung and retina improved predictively without a synthetic-informed BH-FDR gene, while liver, EDL and quadriceps retained real-only models."),
+        SlideNote(13, "Synthetic data helped most as a tissue-specific prior", "0:45", "The useful role was tissue-specific feature ranking or limited regularization, not increasing biological sample size. Literature annotation then separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests."),
+        SlideNote(14, "Thank you", "0:10", "Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions."),
     ]
     for note, slide in zip(notes, presentation.slides):
         _add_notes(slide, note)
