@@ -40,7 +40,7 @@ Reinforced genes were selected with and without synthetic guidance. Promoted gen
 
 ## 10. Selection and literature are separate dimensions (0:55)
 
-Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. A reinforced gene is not automatically literature aligned, and an aligning gene can still be promoted.
+Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. Table S16 records the gene-level rationale, evidence scope and source IDs; Table S17 records citations, DOI or URL and whether the evidence is independent, overlapping or mechanistic context.
 
 ## 11. All 27 completed tissue analyses were retained (0:45)
 
@@ -48,7 +48,7 @@ This is the full analysis coverage: 22 canonical tissues and five anatomical mus
 
 ## 12. Synthetic-informed genes spanned 10 tissue analyses (0:45)
 
-This is the complete 49-association inventory. The explicit P and R tags show promoted versus reinforced selection. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT-higher and FLT-lower directions come from real-data meta-analysis.
+This is the complete 49-association inventory. Separate rows show FLT-higher or FLT-lower direction and promoted or reinforced selection status. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT directions come from real-data meta-analysis.
 
 ## 13. Thymus points to lower proliferative renewal (1:10)
 

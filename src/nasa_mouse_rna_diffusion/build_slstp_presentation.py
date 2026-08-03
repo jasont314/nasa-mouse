@@ -758,22 +758,29 @@ def _slide_7(slide):
     _add_arrow(slide, 2.93, 3.12, 0.52, 0.38)
 
     cards = [
-        (3.62, 2.10, "Real only", "rank: real\nfit: real", BLUE, PALE_BLUE),
-        (5.47, 2.10, "Generated only", "rank: generated\nfit: generated", CORAL, PALE_CORAL),
-        (7.32, 2.10, "Real + generated", "rank: consensus\nfit: equal weight", TEAL, PALE_TEAL),
-        (4.55, 3.73, "Guided, real fit", "rank: consensus\nfit: real", PURPLE, "F0ECF6"),
-        (6.40, 3.73, "Guided, 5% synth.", "rank: consensus\nfit: real + 5%", ORANGE, PALE_GOLD),
+        (3.62, 2.10, "Real only", "Real", "Real", BLUE, PALE_BLUE),
+        (5.47, 2.10, "Generated only", "Generated", "Generated", CORAL, PALE_CORAL),
+        (7.32, 2.10, "Real + generated", "Consensus", "Equal weight", TEAL, PALE_TEAL),
+        (4.55, 3.73, "Guided: real fit", "Consensus", "Real", PURPLE, "F0ECF6"),
+        (6.40, 3.73, "Guided: 5% synthetic", "Consensus", "Real + 5% synthetic", ORANGE, PALE_GOLD),
     ]
-    for x, y, title, body, color, fill in cards:
+    for x, y, title, rank_value, fit_value, color, fill in cards:
         _add_panel(slide, x, y, 1.65, 1.28, fill=fill, line=color)
-        _add_text(slide, title, x + 0.10, y + 0.18, 1.45, 0.35, size=13.5, color=color, bold=True, align=PP_ALIGN.CENTER)
-        _add_text(slide, body, x + 0.13, y + 0.66, 1.39, 0.50, size=11.5, color=DARK, align=PP_ALIGN.CENTER)
+        _add_text(slide, title, x + 0.09, y + 0.13, 1.47, 0.34, size=12.4, color=color, bold=True, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE)
+        _add_rule(slide, x + 0.13, y + 0.53, 1.39, "D7DEE2", 0.014)
+        _add_text(slide, "Rank", x + 0.14, y + 0.66, 0.40, 0.20, size=8.8, color=GRAY, bold=True, margin=0)
+        _add_text(slide, rank_value, x + 0.56, y + 0.62, 0.91, 0.26, size=10.6, color=DARK, bold=True, align=PP_ALIGN.RIGHT, valign=MSO_ANCHOR.MIDDLE, margin=0)
+        _add_text(slide, "Fit", x + 0.14, y + 0.96, 0.40, 0.20, size=8.8, color=GRAY, bold=True, margin=0)
+        _add_text(slide, fit_value, x + 0.56, y + 0.91, 0.91, 0.31, size=9.7, color=DARK, bold=True, align=PP_ALIGN.RIGHT, valign=MSO_ANCHOR.MIDDLE, margin=0)
 
     _add_arrow(slide, 9.32, 3.12, 0.52, 0.38)
     _add_panel(slide, 10.00, 2.38, 2.88, 2.25, fill="ECF4ED", line=GREEN)
-    _add_text(slide, "Held-out real profiles", 10.23, 2.69, 2.42, 0.50, size=17, color=GREEN, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "BA | AUROC | AP", 10.28, 3.35, 2.30, 0.36, size=16, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "select one eligible arm\nfor each tissue", 10.28, 3.83, 2.30, 0.50, size=12.5, color=GRAY, align=PP_ALIGN.CENTER)
+    _add_text(slide, "Held-out real profiles", 10.23, 2.64, 2.42, 0.38, size=16.5, color=GREEN, bold=True, align=PP_ALIGN.CENTER)
+    _add_rule(slide, 10.28, 3.11, 2.30, "C9D9CF", 0.018)
+    _add_text(slide, "Metrics", 10.30, 3.30, 0.58, 0.20, size=9.3, color=GRAY, bold=True, margin=0)
+    _add_text(slide, "BA | AUROC | AP", 10.92, 3.25, 1.60, 0.30, size=12.0, color=NAVY, bold=True, align=PP_ALIGN.RIGHT, valign=MSO_ANCHOR.MIDDLE, margin=0)
+    _add_text(slide, "Decision", 10.30, 3.79, 0.58, 0.20, size=9.3, color=GRAY, bold=True, margin=0)
+    _add_text(slide, "Eligible arm\nfor each tissue", 10.92, 3.70, 1.60, 0.52, size=11.2, color=DARK, bold=True, align=PP_ALIGN.RIGHT, valign=MSO_ANCHOR.MIDDLE, margin=0)
 
     _add_panel(slide, 0.38, 5.38, 12.50, 1.15, fill=NAVY, line=NAVY)
     _add_text(slide, "Biology check", 0.70, 5.65, 1.75, 0.34, size=17, color=WHITE, bold=True)
@@ -897,16 +904,20 @@ def _slide_10(slide):
     )
 
     steps = [
-        ("1  Candidate", "Gene + tissue +\nFLT direction", BLUE, PALE_BLUE),
-        ("2  Search", "Spaceflight +\nmechanism literature", TEAL, PALE_TEAL),
-        ("3  Classify", "Relation to\npublished evidence", ORANGE, PALE_GOLD),
-        ("4  Interpret", "Recovery, extension,\nor unmatched", PURPLE, "F0ECF6"),
+        ("1", "Candidate", "Fix", "Gene, tissue, and FLT direction", BLUE, PALE_BLUE),
+        ("2", "Search", "Query", "Spaceflight and mechanism literature", TEAL, PALE_TEAL),
+        ("3", "Classify", "Match", "Result with published evidence", ORANGE, PALE_GOLD),
+        ("4", "Interpret", "Record", "Category, rationale, and source IDs", PURPLE, "F0ECF6"),
     ]
-    for index, (heading, body, color, fill) in enumerate(steps):
+    for index, (number, heading, action, detail, color, fill) in enumerate(steps):
         x = 0.45 + index * 3.12
-        _add_panel(slide, x, 2.00, 2.55, 0.91, fill=fill, line=color)
-        _add_text(slide, heading, x + 0.16, 2.13, 2.22, 0.25, size=13.5, color=color, bold=True)
-        _add_text(slide, body, x + 0.16, 2.39, 2.22, 0.40, size=12.1, color=DARK)
+        _add_panel(slide, x, 2.00, 2.55, 0.98, fill=fill, line=color)
+        _add_circle(slide, x + 0.15, 2.14, 0.31, color)
+        _add_text(slide, number, x + 0.15, 2.185, 0.31, 0.19, size=10.4, color=WHITE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+        _add_text(slide, heading, x + 0.58, 2.13, 1.73, 0.28, size=14.0, color=color, bold=True, valign=MSO_ANCHOR.MIDDLE)
+        _add_rule(slide, x + 0.15, 2.51, 2.25, "D7DEE2", 0.014)
+        _add_text(slide, action, x + 0.16, 2.65, 0.52, 0.19, size=8.7, color=GRAY, bold=True, margin=0)
+        _add_text(slide, detail, x + 0.74, 2.59, 1.64, 0.31, size=9.8, color=DARK, bold=True, align=PP_ALIGN.RIGHT, valign=MSO_ANCHOR.MIDDLE, margin=0)
         if index < len(steps) - 1:
             _add_arrow(slide, x + 2.67, 2.31, 0.31, 0.28, MID_GRAY)
 
@@ -965,7 +976,10 @@ def _slide_10(slide):
         bold=True,
         align=PP_ALIGN.CENTER,
     )
-    _add_source(slide, "Targeted review completed 2026-08-03; 5 direct transcript-level matches and a 33-source inventory are in Tables S16-S17.")
+    _add_source(
+        slide,
+        "Table S16 records gene-level rationale, evidence scope and source IDs; Table S17 provides 33 citations with DOI/URL and data relationship.",
+    )
 
 
 def _inventory_gene_segments(
@@ -978,47 +992,28 @@ def _inventory_gene_segments(
         "ambiguous": ORANGE,
         "unmatched": PURPLE,
     }
-    priority = {
-        "synthetic_promoted": 0,
-        "reinforced_real_and_synthetic": 1,
-    }
-    ordered = rows.assign(
-        _selection_order=rows["selection_interpretation"].map(priority)
-    ).sort_values(["_selection_order", "real_meta_fdr", "symbol"])
+    ordered = rows.sort_values(["real_meta_fdr", "symbol"])
     segments: list[tuple[str, dict]] = []
     for index, row in enumerate(ordered.itertuples(index=False)):
         if index:
-            segments.append((", ", {"size": 9.8, "color": MID_GRAY}))
-        promoted = row.selection_interpretation == "synthetic_promoted"
+            segments.append((", ", {"size": 9.0, "color": MID_GRAY}))
         key = (row.analysis_scope, row.tissue, row.gene)
         literature_class = annotation_lookup.get(key)
         if literature_class not in class_colors:
             raise ValueError(f"Missing synthetic-informed annotation for {key}")
         color = class_colors[literature_class]
-        selection_tag = "[P]" if promoted else "[R]"
-        selection_color = CORAL if promoted else TEAL
-        segments.append(
-            (
-                selection_tag,
-                {
-                    "size": 9.1,
-                    "color": selection_color,
-                    "bold": True,
-                },
-            )
-        )
         segments.append(
             (
                 row.symbol,
                 {
-                    "size": 9.8,
+                    "size": 9.0,
                     "color": color,
                     "bold": True,
                     "italic": True,
                 },
             )
         )
-    return segments or [("none", {"size": 9.8, "color": MID_GRAY, "italic": True})]
+    return segments
 
 
 def _add_gene_inventory_block(
@@ -1033,7 +1028,6 @@ def _add_gene_inventory_block(
     y: float,
     w: float,
     h: float,
-    higher_h: float,
 ) -> None:
     rows = inventory[
         inventory["analysis_scope"].eq(scope) & inventory["tissue"].eq(tissue)
@@ -1043,50 +1037,93 @@ def _add_gene_inventory_block(
 
     _add_rule(slide, x, y, w, "DDE4E8", 0.018)
     count_label = "gene" if len(rows) == 1 else "genes"
+    label_size = 10.8 if len(label.replace("\n", "")) > 12 else 11.8
     _add_rich_text(
         slide,
         [
-            (f"{label}\n", {"size": 11.8, "color": NAVY, "bold": True}),
+            (f"{label}\n", {"size": label_size, "color": NAVY, "bold": True}),
             (f"{len(rows)} {count_label}", {"size": 9.0, "color": MID_GRAY}),
         ],
         x + 0.06,
         y + 0.07,
-        1.28,
+        1.36,
         h - 0.10,
         margin=0,
     )
 
-    content_x = x + 2.12
-    content_w = w - 2.20
-    lower_y = y + 0.06 + higher_h
-    lower_h = h - higher_h - 0.11
-    for direction, direction_label, direction_color, row_y, row_h in [
-        ("FLT_higher", "FLT higher", CORAL, y + 0.06, higher_h),
-        ("FLT_lower", "FLT lower", TEAL, lower_y, lower_h),
+    groups = []
+    for direction, direction_label, direction_color in [
+        ("FLT_higher", "FLT higher", CORAL),
+        ("FLT_lower", "FLT lower", TEAL),
     ]:
+        for selection, selection_label, selection_color in [
+            ("synthetic_promoted", "Promoted", CORAL),
+            ("reinforced_real_and_synthetic", "Reinforced", TEAL),
+        ]:
+            group_rows = rows[
+                rows["flt_gc_direction"].eq(direction)
+                & rows["selection_interpretation"].eq(selection)
+            ]
+            if group_rows.empty:
+                continue
+            symbol_characters = int(group_rows["symbol"].str.len().sum()) + 2 * max(0, len(group_rows) - 1)
+            estimated_lines = max(1, int(np.ceil(symbol_characters / 38)))
+            groups.append(
+                (
+                    direction_label,
+                    direction_color,
+                    selection_label,
+                    selection_color,
+                    group_rows,
+                    1.0 + 0.75 * (estimated_lines - 1),
+                )
+            )
+
+    available_height = h - 0.11
+    weight_total = sum(group[-1] for group in groups)
+    row_y = y + 0.06
+    for index, (direction_label, direction_color, selection_label, selection_color, group_rows, weight) in enumerate(groups):
+        row_h = available_height * weight / weight_total
+        if index:
+            _add_rule(slide, x + 1.44, row_y, w - 1.50, "E2E7EA", 0.010)
         _add_text(
             slide,
             direction_label,
-            x + 1.37,
-            row_y,
-            0.68,
-            min(0.24, row_h),
-            size=9.0,
+            x + 1.47,
+            row_y + 0.01,
+            0.72,
+            row_h - 0.02,
+            size=8.0,
             color=direction_color,
             bold=True,
+            valign=MSO_ANCHOR.MIDDLE,
             margin=0,
         )
-        direction_rows = rows[rows["flt_gc_direction"].eq(direction)]
+        _add_text(
+            slide,
+            selection_label,
+            x + 2.22,
+            row_y + 0.01,
+            0.78,
+            row_h - 0.02,
+            size=7.9,
+            color=selection_color,
+            bold=True,
+            valign=MSO_ANCHOR.MIDDLE,
+            margin=0,
+        )
         _add_rich_text(
             slide,
-            _inventory_gene_segments(direction_rows, annotation_lookup),
-            content_x,
-            row_y,
-            content_w,
-            row_h,
-            size=9.8,
+            _inventory_gene_segments(group_rows, annotation_lookup),
+            x + 3.04,
+            row_y + 0.01,
+            w - 3.12,
+            row_h - 0.02,
+            size=9.0,
+            valign=MSO_ANCHOR.MIDDLE,
             margin=0,
         )
+        row_y += row_h
 
 
 def _slide_all_tissue_coverage(slide):
@@ -1140,7 +1177,7 @@ def _slide_all_tissue_coverage(slide):
         (
             4.49,
             "5",
-            "Real BH FDR only",
+            "Real BH-FDR only",
             names(real_only),
             BLUE,
             PALE_BLUE,
@@ -1149,7 +1186,7 @@ def _slide_all_tissue_coverage(slide):
         (
             8.55,
             "12",
-            "No panel BH-FDR gene",
+            "No BH-FDR gene",
             names(null),
             ORANGE,
             PALE_GOLD,
@@ -1158,21 +1195,34 @@ def _slide_all_tissue_coverage(slide):
     ]
     for x, count, heading, tissue_names, color, fill, detail in columns:
         _add_panel(slide, x, 2.02, 3.83, 4.70, fill=fill, line=color)
-        _add_circle(slide, x + 0.25, 2.27, 0.57, color)
-        _add_text(slide, count, x + 0.25, 2.37, 0.57, 0.27, size=15, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
-        _add_text(slide, heading, x + 0.98, 2.29, 2.55, 0.35, size=17, color=color, bold=True)
-        _add_text(slide, detail, x + 0.29, 2.91, 3.23, 0.47, size=10.8, color=GRAY)
-        _add_text(
-            slide,
-            "\n".join(tissue_names),
-            x + 0.32,
-            3.48,
-            3.20,
-            2.88,
-            size=11.6,
-            color=DARK,
-            margin=0,
-        )
+        _add_circle(slide, x + 0.25, 2.25, 0.52, color)
+        _add_text(slide, count, x + 0.25, 2.34, 0.52, 0.25, size=14.5, color=WHITE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+        _add_text(slide, heading, x + 0.92, 2.27, 2.58, 0.38, size=16.3, color=color, bold=True, valign=MSO_ANCHOR.MIDDLE)
+        _add_rule(slide, x + 0.28, 2.83, 3.27, "D7DEE2", 0.014)
+        _add_text(slide, "Criterion", x + 0.30, 3.00, 0.76, 0.18, size=8.7, color=GRAY, bold=True, margin=0)
+        _add_text(slide, detail, x + 1.08, 2.94, 2.42, 0.39, size=10.2, color=DARK, bold=True, align=PP_ALIGN.RIGHT, valign=MSO_ANCHOR.MIDDLE, margin=0)
+        _add_rule(slide, x + 0.28, 3.48, 3.27, "D7DEE2", 0.014)
+        _add_text(slide, "Analysis units", x + 0.30, 3.66, 1.20, 0.19, size=8.8, color=GRAY, bold=True, margin=0)
+
+        list_top = 3.98
+        list_height = 2.42
+        row_height = min(0.36, list_height / len(tissue_names))
+        list_size = 9.8 if len(tissue_names) >= 12 else 10.4 if len(tissue_names) >= 10 else 11.2
+        for index, tissue_name in enumerate(tissue_names):
+            row_y = list_top + index * row_height
+            _add_circle(slide, x + 0.31, row_y + (row_height - 0.06) / 2, 0.06, color)
+            _add_text(
+                slide,
+                tissue_name,
+                x + 0.48,
+                row_y,
+                3.02,
+                row_height,
+                size=list_size,
+                color=DARK,
+                valign=MSO_ANCHOR.MIDDLE,
+                margin=0,
+            )
     _add_source(slide, "Twenty-two canonical tissues plus EDL, gastrocnemius, quadriceps, soleus and tibialis anterior; complete counts in Table S12.")
 
 
@@ -1200,34 +1250,33 @@ def _slide_11(slide):
         for row in annotations.itertuples(index=False)
     }
 
-    _add_text(slide, "[P] promoted", 0.45, 1.87, 1.05, 0.25, size=10.2, color=CORAL, bold=True)
-    _add_text(slide, "[R] reinforced", 1.55, 1.87, 1.18, 0.25, size=10.2, color=TEAL, bold=True)
+    _add_text(slide, "Rows: FLT direction + status", 0.45, 1.86, 2.42, 0.25, size=9.8, color=NAVY, bold=True)
     legend = [
-        ("aligning", GREEN, 2.91, 0.92),
-        ("complementary", BLUE, 3.91, 1.22),
-        ("ambiguous", ORANGE, 5.24, 1.02),
-        ("unmatched", PURPLE, 6.38, 1.05),
+        ("aligning", GREEN, 3.02, 0.84),
+        ("complementary", BLUE, 4.02, 1.15),
+        ("ambiguous", ORANGE, 5.37, 0.96),
+        ("unmatched", PURPLE, 6.53, 0.96),
     ]
     for label, color, x, width in legend:
         _add_rule(slide, x, 1.91, 0.14, color, 0.05)
         _add_text(slide, label, x + 0.19, 1.85, width, 0.25, size=9.8, color=color, bold=True)
-    _add_text(slide, "Tag = selection | Gene color = literature", 9.20, 1.85, 3.64, 0.25, size=9.8, color=MID_GRAY, italic=True, align=PP_ALIGN.RIGHT)
+    _add_text(slide, "Gene color = literature | Non-empty rows shown", 8.64, 1.85, 4.20, 0.25, size=9.8, color=MID_GRAY, italic=True, align=PP_ALIGN.RIGHT)
 
     left_blocks = [
-        ("canonical_tissue", "thymus", "Thymus", 2.24, 1.45, 0.34),
-        ("canonical_tissue", "spleen", "Spleen", 3.78, 0.67, 0.30),
-        ("canonical_tissue", "kidney", "Kidney", 4.54, 0.61, 0.30),
-        ("skeletal_muscle_group", "gastrocnemius", "Gastrocnemius", 5.24, 0.61, 0.27),
-        ("canonical_tissue", "eye", "Eye", 5.94, 0.51, 0.19),
+        ("canonical_tissue", "thymus", "Thymus", 2.24, 1.45),
+        ("canonical_tissue", "spleen", "Spleen", 3.78, 0.67),
+        ("canonical_tissue", "kidney", "Kidney", 4.54, 0.61),
+        ("skeletal_muscle_group", "gastrocnemius", "Gastrocnemius", 5.24, 0.61),
+        ("canonical_tissue", "eye", "Eye", 5.94, 0.51),
     ]
     right_blocks = [
-        ("canonical_tissue", "skeletal_muscle", "Skeletal muscle\n(pooled)", 2.24, 1.25, 0.56),
-        ("skeletal_muscle_group", "soleus", "Soleus", 3.58, 0.68, 0.27),
-        ("skeletal_muscle_group", "tibialis_anterior", "Tibialis anterior", 4.35, 0.69, 0.39),
-        ("canonical_tissue", "adrenal_gland", "Adrenal gland", 5.13, 0.61, 0.18),
-        ("canonical_tissue", "skin", "Skin", 5.83, 0.55, 0.29),
+        ("canonical_tissue", "skeletal_muscle", "Skeletal muscle\n(pooled)", 2.24, 1.25),
+        ("skeletal_muscle_group", "soleus", "Soleus", 3.58, 0.68),
+        ("skeletal_muscle_group", "tibialis_anterior", "Tibialis anterior", 4.35, 0.69),
+        ("canonical_tissue", "adrenal_gland", "Adrenal gland", 5.13, 0.61),
+        ("canonical_tissue", "skin", "Skin", 5.83, 0.55),
     ]
-    for scope, tissue, label, y, h, higher_h in left_blocks:
+    for scope, tissue, label, y, h in left_blocks:
         _add_gene_inventory_block(
             slide,
             inventory,
@@ -1239,9 +1288,8 @@ def _slide_11(slide):
             y=y,
             w=6.15,
             h=h,
-            higher_h=higher_h,
         )
-    for scope, tissue, label, y, h, higher_h in right_blocks:
+    for scope, tissue, label, y, h in right_blocks:
         _add_gene_inventory_block(
             slide,
             inventory,
@@ -1253,9 +1301,8 @@ def _slide_11(slide):
             y=y,
             w=6.15,
             h=h,
-            higher_h=higher_h,
         )
-    _add_source(slide, "[P]/[R] tags report repeated feature selection; gene color independently reports literature interpretation for all 49 associations.")
+    _add_source(slide, "Separate rows report FLT direction and selection status; gene color independently reports literature interpretation for all 49 associations.")
 
 
 def _slide_12(slide):
@@ -1542,9 +1589,9 @@ def build() -> Path:
         SlideNote(7, "Synthetic profiles entered the analysis in five different ways", "0:55", "Synthetic data can be used for direct training, mixed training or feature guidance. Each tissue could choose among five arms. The eligibility check used held-out real profiles. Once features were nominated, FLT/GC effects and BH FDR were computed from observed OSDR samples only."),
         SlideNote(8, "Pooling tissues hid useful signal", "0:55", "The pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. The bars use a true zero-to-one balanced-accuracy scale. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
         SlideNote(9, "Synthetic guidance changed ranking, not statistical evidence", "0:50", "Reinforced genes were selected with and without synthetic guidance. Promoted genes crossed the stable-selection rule only with synthetic guidance. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations also had BH FDR below 0.05 in real data."),
-        SlideNote(10, "Selection and literature are separate dimensions", "0:55", "Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. A reinforced gene is not automatically literature aligned, and an aligning gene can still be promoted."),
+        SlideNote(10, "Selection and literature are separate dimensions", "0:55", "Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. Table S16 records the gene-level rationale, evidence scope and source IDs; Table S17 records citations, DOI or URL and whether the evidence is independent, overlapping or mechanistic context."),
         SlideNote(11, "All 27 completed tissue analyses were retained", "0:45", "This is the full analysis coverage: 22 canonical tissues and five anatomical muscle groups. Ten had a synthetic-informed BH-FDR association, five had real BH-FDR genes without synthetic-informed selection, and 12 had no BH-FDR gene in the landmark panel. The narrative focuses later, but no completed tissue result is hidden."),
-        SlideNote(12, "Synthetic-informed genes spanned 10 tissue analyses", "0:45", "This is the complete 49-association inventory. The explicit P and R tags show promoted versus reinforced selection. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT-higher and FLT-lower directions come from real-data meta-analysis."),
+        SlideNote(12, "Synthetic-informed genes spanned 10 tissue analyses", "0:45", "This is the complete 49-association inventory. Separate rows show FLT-higher or FLT-lower direction and promoted or reinforced selection status. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT directions come from real-data meta-analysis."),
         SlideNote(13, "Thymus points to lower proliferative renewal", "1:10", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
         SlideNote(14, "Soleus reinforces a mitochondrial and lipid program", "1:00", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. The literature is mixed for Bnip3 and Tpm1, which is recorded explicitly."),
         SlideNote(15, "Each additional tissue defines a separate hypothesis", "0:40", "Promoted and reinforced genes are shown on separate subrows for each tissue. Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. The rows share a slide for presentation space; each remains a separate hypothesis. Pooled muscle is heterogeneous, kidney suggests phosphoinositide and glucose handling, spleen suggests adhesion and extracellular-matrix or immune organization, and skin contributes a single interferon-linked candidate."),
