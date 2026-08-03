@@ -14,17 +14,17 @@ OSDR gives broad tissue coverage, but the data are spread across 75 accessions w
 
 We built one pipeline that can change data source, transformation, feature set, harmonization, model, training scope and conditions without changing the evaluation contract. It supports OSDR-only, ARCHS4-only and ARCHS4-pretrained plus OSDR-adapted runs, with pooled or per-tissue cohorts. We completed WGAN-GP and DDIM generator branches. The selected path used TPM, 974 mouse landmarks, no global correction and a DDIM conditioned on tissue, FLT/GC, accession and material.
 
-## 4. Diffusion learns tissue structure from noise (0:55)
+## 4. DDIM matched expression and reduced separability (1:00)
 
-Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel.
+Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split, so this is a model-choice summary rather than a paired significance test. These results are why the remaining analyses use DDIM.
 
-## 5. Generated profiles track the real OSDR PCA manifold (0:55)
+## 5. Diffusion learns tissue structure from noise (0:55)
 
-This is PCA, not UMAP. Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. On the left, generated samples track the tissue-defined branches. On the right, FLT and GC remain interspersed because condition effects are smaller than tissue effects. Visual overlap is useful but descriptive; the next slide provides the quantitative validation.
+Having selected DDIM, read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel.
 
-## 6. DDIM matched expression and reduced separability (1:00)
+## 6. Generated profiles track the real OSDR PCA manifold (0:55)
 
-Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split, so this is a model-choice summary rather than a paired significance test.
+This is PCA, not UMAP. Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. On the left, generated samples track the tissue-defined branches. On the right, FLT and GC remain interspersed because condition effects are smaller than tissue effects. Visual overlap is descriptive and complements the quantitative validation shown earlier.
 
 ## 7. Synthetic profiles entered the analysis in five different ways (1:00)
 

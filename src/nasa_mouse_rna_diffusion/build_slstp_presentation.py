@@ -558,7 +558,7 @@ def _slide_3(slide):
     _add_source(slide, "Generator sources: Vinas et al., Bioinformatics (2022); Lacan et al., BMC Bioinformatics (2026).")
 
 
-def _slide_4(slide, trajectory: Path):
+def _slide_5(slide, trajectory: Path):
     _add_slide_title(
         slide,
         "Diffusion",
@@ -580,7 +580,7 @@ def _slide_4(slide, trajectory: Path):
     _add_source(slide, "Gray points are real ARCHS4 profiles; colors identify generated tissue conditions. PC1 and PC2 limits are shared across panels.")
 
 
-def _slide_5(slide):
+def _slide_6(slide):
     _add_slide_title(
         slide,
         "Diffusion output",
@@ -613,7 +613,7 @@ def _slide_5(slide):
     _add_source(slide, "PCA was fitted in the common locked OSDR expression space. This is PCA, not UMAP.")
 
 
-def _slide_6(slide):
+def _slide_4(slide):
     _add_slide_title(
         slide,
         "Validation",
@@ -1056,8 +1056,8 @@ def build() -> Path:
         None,
         _slide_2,
         _slide_3,
-        lambda slide: _slide_4(slide, trajectory),
-        _slide_5,
+        _slide_4,
+        lambda slide: _slide_5(slide, trajectory),
         _slide_6,
         _slide_7,
         lambda slide: _slide_8(slide, utility_chart),
@@ -1077,9 +1077,9 @@ def build() -> Path:
         SlideNote(1, "Synthetic transcriptomics for mouse spaceflight", "0:25", "Introduce the question. This talk asks whether generated expression can help analyze tissue-specific FLT versus GC biology without counting synthetic profiles as additional animals."),
         SlideNote(2, "Small studies and study effects complicate tissue comparisons", "0:55", "OSDR gives broad tissue coverage, but the data are spread across 75 accessions with different mission and assay contexts. ARCHS4 supplies a much larger mouse reference. The challenge is to use that reference without letting study structure masquerade as spaceflight biology."),
         SlideNote(3, "We built a configurable bulk RNA-seq generation pipeline", "1:15", "We built one pipeline that can change data source, transformation, feature set, harmonization, model, training scope and conditions without changing the evaluation contract. It supports OSDR-only, ARCHS4-only and ARCHS4-pretrained plus OSDR-adapted runs, with pooled or per-tissue cohorts. We completed WGAN-GP and DDIM generator branches. The selected path used TPM, 974 mouse landmarks, no global correction and a DDIM conditioned on tissue, FLT/GC, accession and material."),
-        SlideNote(4, "Diffusion learns tissue structure from noise", "0:55", "Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel."),
-        SlideNote(5, "Generated profiles track the real OSDR PCA manifold", "0:55", "This is PCA, not UMAP. Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. On the left, generated samples track the tissue-defined branches. On the right, FLT and GC remain interspersed because condition effects are smaller than tissue effects. Visual overlap is useful but descriptive; the next slide provides the quantitative validation."),
-        SlideNote(6, "DDIM matched expression and reduced separability", "1:00", "Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split, so this is a model-choice summary rather than a paired significance test."),
+        SlideNote(4, "DDIM matched expression and reduced separability", "1:00", "Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split, so this is a model-choice summary rather than a paired significance test. These results are why the remaining analyses use DDIM."),
+        SlideNote(5, "Diffusion learns tissue structure from noise", "0:55", "Having selected DDIM, read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel."),
+        SlideNote(6, "Generated profiles track the real OSDR PCA manifold", "0:55", "This is PCA, not UMAP. Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. On the left, generated samples track the tissue-defined branches. On the right, FLT and GC remain interspersed because condition effects are smaller than tissue effects. Visual overlap is descriptive and complements the quantitative validation shown earlier."),
         SlideNote(7, "Synthetic profiles entered the analysis in five different ways", "1:00", "Synthetic data can be used for direct training, mixed training or feature guidance. Each tissue could choose among five arms. The eligibility check used held-out real profiles. Once features were nominated, FLT/GC effects and BH FDR were computed from observed OSDR samples only."),
         SlideNote(8, "Pooling tissues hid useful signal", "1:00", "The simplest pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
         SlideNote(9, "Synthetic guidance changed ranking, not statistical evidence", "0:55", "Reinforced genes were selected with and without synthetic guidance. Promoted genes crossed the stable-selection rule only with synthetic guidance. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations also had a supporting effect and BH FDR below 0.05 in real data."),
