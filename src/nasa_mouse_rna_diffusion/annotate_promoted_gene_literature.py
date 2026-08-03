@@ -27,9 +27,18 @@ ALLOWED_CLASSIFICATIONS = {
 EXPECTED_COUNTS = {
     "aligning": 11,
     "contradictory": 0,
-    "complementary": 11,
+    "complementary": 13,
     "ambiguous": 1,
-    "unsupported/potentially_novel": 3,
+    "unsupported/potentially_novel": 1,
+}
+INTERPRETIVE_ROLE_BY_CLASSIFICATION = {
+    "aligning": "recovery_of_prior_evidence",
+    "contradictory": "conflict_requiring_resolution",
+    "complementary": "mechanistic_or_process_hypothesis_extension",
+    "ambiguous": "context_dependent_prior_evidence",
+    "unsupported/potentially_novel": (
+        "biologically_plausible_literature_unmatched_candidate"
+    ),
 }
 
 
@@ -201,6 +210,33 @@ SOURCES = (
         "Multi-organ OSDR analysis reporting 61 adrenal differentially expressed genes and broad endocrine or metabolic responses.",
         "Uses public OSDR cohorts; used to define the searched adrenal context, not as independent validation.",
     ),
+    LiteratureSource(
+        "keenan_2025_hsd17b11",
+        "Keenan SN, Suriani ND, Fidelito G, et al. HSD17B11 regulates PLIN5-ATGL mediated lipolysis, but not hepatic lipid metabolism in mice. Journal of Lipid Research. 2025;66:100943.",
+        2025,
+        "10.1016/j.jlr.2025.100943",
+        "https://pubmed.ncbi.nlm.nih.gov/41238190/",
+        "Primary evidence connecting HSD17B11 to lipid droplets, steroid metabolism, and regulated lipolysis.",
+        "Mechanistic metabolic context only; not a thymus or spaceflight replication study.",
+    ),
+    LiteratureSource(
+        "shi_2026_etv1",
+        "Shi Y, Wang S, Yan Y, et al. ETV1 drives CD4+ T cell-mediated intestinal inflammation in inflammatory bowel disease through amino acid transporter Slc7a5. Advanced Science. 2026;13:e11595.",
+        2026,
+        "10.1002/advs.202511595",
+        "https://pubmed.ncbi.nlm.nih.gov/41347630/",
+        "Primary evidence that ETV1 regulates CD4+ T-cell activation, proliferation, differentiation, and amino-acid uptake.",
+        "Mechanistic T-cell context only; not a thymus or spaceflight replication study.",
+    ),
+    LiteratureSource(
+        "kitamura_2011_psmb8",
+        "Kitamura A, Maekawa Y, Uehara H, et al. A mutation in the immunoproteasome subunit PSMB8 causes autoinflammation and lipodystrophy in humans. Journal of Clinical Investigation. 2011;121:4150-4160.",
+        2011,
+        "10.1172/JCI58414",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC3195477/",
+        "Primary evidence connecting interferon-inducible PSMB8 to immunoproteasome function, inflammation, and adipocyte homeostasis.",
+        "Mechanistic immune and adipocyte context only; not an adrenal or spaceflight replication study.",
+    ),
 )
 
 
@@ -241,11 +277,11 @@ ANNOTATIONS = (
         "adrenal_gland",
         "Psmb8",
         "unsupported/potentially_novel",
-        "targeted_search_no_direct_match",
-        "No direct adrenal spaceflight match found in the targeted search.",
-        ("mathyk_2024_multi_organ",),
-        "Published mouse adrenal analysis reported a small endocrine and metabolic response, but the targeted search found no prior adrenal spaceflight Psmb8 association.",
-        "Potentially novel within the searched literature, not proof of novelty; independent validation is required.",
+        "targeted_search_no_adrenal_specific_match",
+        "Mechanistic support exists, but no adrenal spaceflight match was found in the targeted search.",
+        ("mathyk_2024_multi_organ", "kitamura_2011_psmb8"),
+        "PSMB8 is an interferon-inducible immunoproteasome subunit with roles in inflammation and adipocyte homeostasis. Published mouse adrenal analysis reported a small endocrine and metabolic response, but the targeted search found no prior adrenal spaceflight Psmb8 association.",
+        "A biologically plausible immune, proteostasis, or composition candidate that remains unmatched in the searched adrenal spaceflight literature.",
     ),
     _annotation(
         "kidney",
@@ -373,18 +409,25 @@ ANNOTATIONS = (
         )
         for symbol in ("Ccnb2", "Ccne2")
     ),
-    *(
-        _annotation(
-            "thymus",
-            symbol,
-            "unsupported/potentially_novel",
-            "targeted_search_no_direct_match",
-            "No direct thymus spaceflight match found in the targeted search.",
-            ("horie_2019_thymus", "gridley_2009_thymus_spleen"),
-            f"The targeted thymus spaceflight literature search found no prior directional {symbol} association.",
-            "Potentially novel within the searched literature, not proof of novelty; independent validation is required.",
-        )
-        for symbol in ("Hsd17b11", "Etv1")
+    _annotation(
+        "thymus",
+        "Hsd17b11",
+        "complementary",
+        "related_lipid_mechanism_and_thymus_composition",
+        "Mechanistic and tissue-composition context only; no direct thymus spaceflight match was found.",
+        ("keenan_2025_hsd17b11", "horie_2019_thymus"),
+        "HSD17B11 localizes to lipid droplets and supports regulated lipolysis in human cells, while mouse flight thymus work reported lower proliferation and expression shifts consistent with altered cellular composition. No prior directional thymus-flight Hsd17b11 result was found.",
+        "A plausible lipid-handling or tissue-composition marker, not evidence that HSD17B11 drives the thymus response.",
+    ),
+    _annotation(
+        "thymus",
+        "Etv1",
+        "complementary",
+        "related_t_cell_mechanism_and_thymus_composition",
+        "Mechanistic and tissue-composition context only; no direct thymus spaceflight match was found.",
+        ("shi_2026_etv1", "horie_2019_thymus"),
+        "ETV1 regulates CD4+ T-cell activation and proliferation, while mouse flight thymus work reported lower proliferation and expression shifts consistent with altered cellular composition. No prior directional thymus-flight Etv1 result was found.",
+        "A plausible T-cell-state or tissue-composition marker, not a direct spaceflight mechanism.",
     ),
     _annotation(
         "gastrocnemius",
@@ -432,6 +475,15 @@ def build_tables() -> tuple[pd.DataFrame, pd.DataFrame]:
         row["source_ids"] = ";".join(annotation.source_ids)
         annotation_rows.append(row)
     annotations = pd.DataFrame(annotation_rows)
+    annotations.insert(
+        3,
+        "interpretive_role",
+        annotations["literature_classification"].map(
+            INTERPRETIVE_ROLE_BY_CLASSIFICATION
+        ),
+    )
+    if annotations["interpretive_role"].isna().any():
+        raise ValueError("Every literature classification needs an interpretive role")
 
     source_rows = [asdict(source) for source in SOURCES]
     sources = pd.DataFrame(source_rows)

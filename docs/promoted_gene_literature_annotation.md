@@ -27,15 +27,19 @@ Each tissue-gene association receives one mutually exclusive classification:
 The `evidence_scope` column records whether agreement is exact or process-level.
 The `evidence_relationship` column states whether the source is independent,
 potentially overlaps the OSDR aggregate, or supplies mechanistic context only.
+The `interpretive_role` column states whether the result recovers prior evidence,
+extends a mechanism or process, is context dependent, or remains unmatched in the
+searched tissue literature. Literature status and biological plausibility are
+separate questions.
 
 ## Results
 
 | Classification | Associations |
 |---|---:|
 | Aligning | 11 |
-| Complementary | 11 |
+| Complementary | 13 |
 | Ambiguous | 1 |
-| Unsupported/potentially novel | 3 |
+| Unsupported/potentially novel | 1 |
 | Contradictory | 0 |
 
 Only three associations have direct same-gene, same-tissue, same-direction
@@ -53,14 +57,19 @@ level rather than as exact prior gene results.
 
 Thymus `Birc5` is ambiguous. An earlier shuttle study reported higher expression
 after flight, whereas later ISS work reported a broad lower cell-cycle program.
-The targeted search found no direct match for adrenal `Psmb8` or thymus
-`Hsd17b11` and `Etv1`; these remain potentially novel candidates within the
-searched literature.
+Thymus `Hsd17b11` and `Etv1` are complementary. Primary studies connect
+HSD17B11 to lipid-droplet lipolysis and ETV1 to CD4+ T-cell activation and
+proliferation, but neither supplies a directional thymus spaceflight match.
 
-The 11 complementary associations connect kidney phosphoinositide signaling,
+The 13 complementary associations connect kidney phosphoinositide signaling,
 muscle stress and mechanotransduction, skin interferon response, and spleen
 adhesion or inflammatory mechanics to earlier findings. These links support
 hypothesis development, not replication.
+
+Adrenal `Psmb8` is the only literature-unmatched candidate. PSMB8 is an
+interferon-inducible immunoproteasome subunit linked to inflammation and
+adipocyte homeostasis, so the association is biologically plausible. The
+targeted search found no prior adrenal spaceflight result for the gene.
 
 ## Reproducibility
 

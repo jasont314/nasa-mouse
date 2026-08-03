@@ -22,7 +22,9 @@ cross-accession metabolic program, and kidney provides a focused promoted
 A targeted literature review classifies every synthetic-promoted association as
 aligning, contradictory, complementary, ambiguous, or unsupported/potentially
 novel. Evidence scope is recorded separately so exact gene-tissue-direction
-matches are not conflated with process-level agreement.
+matches are not conflated with process-level agreement. An interpretive-role
+field also separates prior-evidence recovery from mechanistic hypothesis
+extension and literature-unmatched candidates.
 
 Using the DDIM generator, the paper follows a three-part downstream funnel:
 
