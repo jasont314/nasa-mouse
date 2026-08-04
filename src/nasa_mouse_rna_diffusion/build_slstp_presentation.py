@@ -1087,14 +1087,14 @@ def _slide_guidance_mechanism(slide):
     _add_arrow(slide, 4.16, 2.93, 0.27, 0.20, MID_GRAY)
     _add_panel(slide, 4.50, panel_y, 3.61, panel_h, fill=PALE_CORAL, line="E6CEC8", radius=False)
     _add_text(slide, "2  GENERATED DRAWS", 4.74, 2.27, 2.35, 0.25, size=14.0, color=CORAL, bold=True, margin=0)
-    _add_text(slide, "Rank the same genes in every matched draw", 4.74, 2.61, 3.07, 0.23, size=10.4, color=DARK, margin=0)
+    _add_text(slide, "Sample 3 matched datasets from the same DDIM", 4.74, 2.61, 3.07, 0.23, size=10.4, color=DARK, margin=0)
     _add_text(slide, "lower-ranked", 5.61, 2.96, 0.82, 0.18, size=8.5, color=GRAY, margin=0)
     _add_text(slide, "top-ranked", 7.04, 2.96, 0.72, 0.18, size=8.5, color=GRAY, align=PP_ALIGN.RIGHT, margin=0)
     add_rank_track(4.74, 3.28, "Cdk1", 0.95, CORAL)
     add_rank_track(4.74, 3.69, "Nusap1", 0.90, CORAL)
-    for index in range(5):
-        _add_circle(slide, 4.79 + index * 0.22, 4.08, 0.11, CORAL if index < 4 else "E7B5AC")
-    _add_text(slide, "Use the middle position across draws", 6.00, 4.04, 1.78, 0.21, size=8.8, color=CORAL, italic=True, align=PP_ALIGN.RIGHT, margin=0)
+    for index in range(3):
+        _add_circle(slide, 4.79 + index * 0.22, 4.08, 0.11, CORAL)
+    _add_text(slide, "same DDIM, different random samples", 5.51, 4.04, 2.27, 0.21, size=8.8, color=CORAL, italic=True, align=PP_ALIGN.RIGHT, margin=0)
 
     _add_arrow(slide, 8.18, 2.93, 0.27, 0.20, MID_GRAY)
     _add_panel(slide, 8.52, panel_y, 4.13, panel_h, fill=PALE_TEAL, line="C9DFDB", radius=False)
@@ -2054,7 +2054,7 @@ def build() -> Path:
         SlideNote(7, "Diffusion learns tissue structure from noise", "0:40", "Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change does not come from rescaling each panel."),
         SlideNote(8, "Generated profiles track the real OSDR PCA manifold", "0:40", "Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. Generated samples follow the tissue-defined branches. FLT and GC overlap more because condition effects are smaller than tissue effects. The numerical validation on the previous slide tests fidelity directly."),
         SlideNote(9, "Five arms separate gene ranking from classifier fitting", "0:50", "Each arm makes two decisions: which profiles rank the genes and which profiles fit the classifier. In both guided arms, real and synthetic evidence jointly rank genes. Guided real fit then trains only on observed profiles. Guided 5% also uses condition-recentered synthetic profiles, but they contribute only 5% of total classifier weight. Held-out real profiles determine eligibility, and FLT/GC effects and BH FDR come from observed OSDR profiles only."),
-        SlideNote(10, "Consensus ranking combines two gene leaderboards", "0:35", "The markers are positions in ranked gene lists, not expression values. Real OSDR profiles rank all 974 genes by FLT versus GC separation. The generated profiles rank the same genes in each matched draw, and the middle generated position is used so one unusual draw cannot dominate. Genes near the top of both lists move up in the shared ranking; a gene supported by only one source is held back. The implementation normalizes both rank positions and takes their geometric mean, while the effect-based version also checks direction and stability."),
+        SlideNote(10, "Consensus ranking combines two gene leaderboards", "0:35", "The markers are positions in ranked gene lists, not expression values. Real OSDR profiles rank all 974 genes by FLT versus GC separation. A draw is one complete matched synthetic dataset sampled from the same trained DDIM checkpoint with a different random seed; it is not a model retraining. We used three draws to check whether the generated evidence repeated. Genes near the top of both the real and generated lists move up in the shared ranking; a gene supported by only one source is held back."),
         SlideNote(11, "Synthetic guidance shifts the FLT-GC decision boundary", "0:25", "The same held-out real samples appear in both schematic panels, so the dots are fixed and only the boundary changes. Under the hood, consensus ranking changes which genes enter the model, and the guided arm may also use low-weight generated profiles during fitting. In thymus, Cdk1 and Nusap1 went from zero of eight real-only selections to eight of eight guided selections. Effects and BH FDR still come from observed OSDR profiles."),
         SlideNote(12, "Pooling tissues hid useful signal", "0:50", "The pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
         SlideNote(13, "Synthetic guidance changed ranking, not statistical evidence", "0:45", "The blue set contains genes selected stably by real-only ranking, and the teal set contains genes selected stably by the eligible synthetic-guided arm. Thirty-four were real-only, 23 were selected by both arms and classified as reinforced, and 26 were selected only with guidance and classified as promoted. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations passed BH FDR in observed OSDR profiles."),

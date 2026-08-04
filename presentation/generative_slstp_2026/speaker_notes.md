@@ -40,7 +40,7 @@ Each arm makes two decisions: which profiles rank the genes and which profiles f
 
 ## 10. Consensus ranking combines two gene leaderboards (0:35)
 
-The markers are positions in ranked gene lists, not expression values. Real OSDR profiles rank all 974 genes by FLT versus GC separation. The generated profiles rank the same genes in each matched draw, and the middle generated position is used so one unusual draw cannot dominate. Genes near the top of both lists move up in the shared ranking; a gene supported by only one source is held back. The implementation normalizes both rank positions and takes their geometric mean, while the effect-based version also checks direction and stability.
+The markers are positions in ranked gene lists, not expression values. Real OSDR profiles rank all 974 genes by FLT versus GC separation. A draw is one complete matched synthetic dataset sampled from the same trained DDIM checkpoint with a different random seed; it is not a model retraining. We used three draws to check whether the generated evidence repeated. Genes near the top of both the real and generated lists move up in the shared ranking; a gene supported by only one source is held back.
 
 ## 11. Synthetic guidance shifts the FLT-GC decision boundary (0:25)
 
