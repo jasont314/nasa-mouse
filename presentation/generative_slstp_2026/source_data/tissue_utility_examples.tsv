@@ -1,0 +1,10 @@
+tissue	real_mean_balanced_accuracy	best_generated_arm	synthetic_candidate_mean_balanced_accuracy	delta_balanced_accuracy
+spleen	0.517045455	real_plus_generated	0.647727273	0.130681818
+thymus	0.73342803	guided_low_weight	0.84375	0.11032197
+skin	0.670758929	real_plus_generated	0.756138393	0.0853794643
+skeletal_muscle	0.860562865	guided_real_only	0.931652047	0.0710891813
+kidney	0.653846154	guided_low_weight	0.706730769	0.0528846154
+soleus	0.925	real_plus_generated	0.9625	0.0375
+liver	0.721153846	guided_low_weight	0.71875	-0.00240384615
+colon	0.65625	guided_low_weight	0.625	-0.03125
+cecum	0.875	guided_low_weight	0.8125	-0.0625

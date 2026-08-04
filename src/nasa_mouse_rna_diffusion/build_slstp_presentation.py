@@ -351,24 +351,10 @@ def _add_source(slide, text: str):
 
 
 def _build_tissue_utility_chart() -> Path:
-    table = pd.read_csv(PAPER_DIR / "source_data/table_s9_all_tissue_development_screen.tsv", sep="\t")
-    order = [
-        "thymus",
-        "skeletal_muscle",
-        "soleus",
-        "kidney",
-        "spleen",
-        "skin",
-        "lung",
-        "adrenal_gland",
-    ]
-    muscle = pd.read_csv(PAPER_DIR / "source_data/table_s6_muscle_group_summary.tsv", sep="\t")
-    rows = []
-    for tissue in order:
-        source = muscle if tissue == "soleus" else table
-        row = source.loc[source["tissue"].eq(tissue)].iloc[0]
-        rows.append(row)
-    data = pd.DataFrame(rows).reset_index(drop=True)
+    data = pd.read_csv(
+        PACKAGE_DIR / "source_data/tissue_utility_examples.tsv",
+        sep="\t",
+    )
     display = {
         "thymus": "Thymus",
         "skeletal_muscle": "Skeletal muscle",
@@ -376,33 +362,48 @@ def _build_tissue_utility_chart() -> Path:
         "kidney": "Kidney",
         "spleen": "Spleen",
         "skin": "Skin",
-        "lung": "Lung",
-        "adrenal_gland": "Adrenal gland",
+        "liver": "Liver",
+        "colon": "Colon",
+        "cecum": "Cecum",
     }
     real = data["real_mean_balanced_accuracy"].to_numpy(float)
-    selected = data["selected_mean_balanced_accuracy"].to_numpy(float)
+    candidate = data["synthetic_candidate_mean_balanced_accuracy"].to_numpy(float)
+    delta = data["delta_balanced_accuracy"].to_numpy(float)
     y = np.arange(len(data))
-    fig, ax = plt.subplots(figsize=(8.1, 4.6))
+    fig, ax = plt.subplots(figsize=(8.1, 4.8))
     fig.patch.set_alpha(0)
     ax.set_facecolor("none")
-    for yi, start, end in zip(y, real, selected):
+    for yi, start, end in zip(y, real, candidate):
         ax.plot([start, end], [yi, yi], color="#AEB9BF", lw=2.0, zorder=1)
-    ax.scatter(real, y, s=62, color="#7E8A92", label="Real only", zorder=3)
-    ax.scatter(selected, y, s=72, color="#178681", label="Selected synthetic use", zorder=4)
-    for yi, start, end in zip(y, real, selected):
-        ax.text(end + 0.009, yi, f"+{end-start:.3f}", va="center", fontsize=9, color="#263746")
+    candidate_colors = np.where(delta >= 0, "#178681", "#D96552")
+    ax.scatter(real, y, s=58, color="#7E8A92", label="Real only", zorder=3)
+    ax.scatter(candidate, y, s=70, color=candidate_colors, zorder=4)
+    for yi, end, change, color in zip(y, candidate, delta, candidate_colors):
+        label_x = end + 0.009 if change >= 0 else end - 0.012
+        ax.text(
+            label_x,
+            yi,
+            f"{change:+.3f}",
+            ha="left" if change >= 0 else "right",
+            va="center",
+            fontsize=8.7,
+            color=color,
+            weight="bold",
+        )
     ax.set_yticks(y, [display[value] for value in data["tissue"]])
     ax.invert_yaxis()
-    ax.set_xlim(0.45, 1.01)
+    ax.set_xlim(0.45, 1.04)
     ax.set_xlabel("Balanced accuracy on held-out real profiles", fontsize=10)
     ax.grid(axis="x", color="#DDE4E8", lw=0.8)
     ax.spines[["top", "right", "left"]].set_visible(False)
     ax.tick_params(axis="y", length=0, labelsize=10)
     ax.tick_params(axis="x", labelsize=9)
+    ax.scatter([], [], s=70, color="#178681", label="Candidate improved")
+    ax.scatter([], [], s=70, color="#D96552", label="Candidate declined")
     ax.legend(
         frameon=False,
-        ncol=2,
-        fontsize=9,
+        ncol=3,
+        fontsize=8.3,
         loc="lower center",
         bbox_to_anchor=(0.5, 1.01),
     )
@@ -421,6 +422,69 @@ def _build_trajectory_crop() -> Path:
         cropped = image.crop((0, top, image.width, bottom))
         path = ASSET_DIR / "ddim_trajectory_panels.png"
         cropped.save(path)
+    return path
+
+
+def _build_accession_pca_chart() -> Path:
+    source = pd.read_csv(
+        PACKAGE_DIR / "source_data/locked_pca_by_accession.tsv",
+        sep="\t",
+    )
+    required = {"source", "accession", "pc1", "pc2"}
+    missing = required.difference(source.columns)
+    if missing:
+        raise ValueError(
+            "Accession PCA source data are missing columns: "
+            + ", ".join(sorted(missing))
+        )
+    accessions = sorted(
+        source["accession"].astype(str).unique(),
+        key=lambda value: int(value.rsplit("-", 1)[-1]),
+    )
+    hues = (np.arange(len(accessions)) * 0.61803398875) % 1.0
+    palette = {
+        accession: matplotlib.colors.hsv_to_rgb((hue, 0.66, 0.82))
+        for accession, hue in zip(accessions, hues)
+    }
+    x_pad = 0.04 * (source["pc1"].max() - source["pc1"].min())
+    y_pad = 0.06 * (source["pc2"].max() - source["pc2"].min())
+    x_limits = (source["pc1"].min() - x_pad, source["pc1"].max() + x_pad)
+    y_limits = (source["pc2"].min() - y_pad, source["pc2"].max() + y_pad)
+
+    figure, axes = plt.subplots(1, 2, figsize=(12.4, 4.45), sharex=True, sharey=True)
+    figure.patch.set_alpha(0)
+    panels = [
+        ("real", "Observed OSDR", "o", 27, 0.72),
+        ("synthetic", "Matched DDIM", "x", 31, 0.88),
+    ]
+    for axis, (kind, title, marker, size, alpha) in zip(axes, panels):
+        frame = source.loc[source["source"].eq(kind)]
+        axis.set_facecolor("none")
+        for accession in accessions:
+            points = frame.loc[frame["accession"].astype(str).eq(accession)]
+            axis.scatter(
+                points["pc1"],
+                points["pc2"],
+                s=size,
+                marker=marker,
+                color=palette[accession],
+                alpha=alpha,
+                linewidths=1.0 if marker == "x" else 0,
+                edgecolors="none" if marker == "o" else None,
+            )
+        axis.set_title(title, fontsize=14, color="#082B55", weight="bold", pad=9)
+        axis.set_xlabel("PC1", fontsize=11, color="#263746")
+        axis.set_xlim(x_limits)
+        axis.set_ylim(y_limits)
+        axis.grid(color="#DDE4E8", linewidth=0.75, alpha=0.78)
+        axis.tick_params(labelsize=8.5, colors="#59697A")
+        axis.spines[["top", "right"]].set_visible(False)
+        axis.spines[["left", "bottom"]].set_color("#AEB9BF")
+    axes[0].set_ylabel("PC2", fontsize=11, color="#263746")
+    figure.subplots_adjust(left=0.06, right=0.99, top=0.90, bottom=0.13, wspace=0.16)
+    path = ASSET_DIR / "locked_real_vs_synthetic_pca_by_accession.png"
+    figure.savefig(path, dpi=240, transparent=True)
+    plt.close(figure)
     return path
 
 
@@ -1236,6 +1300,38 @@ def _slide_6(slide):
     _add_source(slide, "PCA was fitted in the common locked OSDR expression space. This is PCA, not UMAP.")
 
 
+def _slide_pca_by_study(slide, study_pca: Path):
+    _add_slide_title(
+        slide,
+        "Diffusion output",
+        "DDIM preserves study-specific structure",
+        "The same locked PCA coordinates are recolored by OSDR accession, with one shared color per study.",
+    )
+    _add_picture_contain(
+        slide,
+        study_pca,
+        0.38,
+        1.79,
+        12.52,
+        4.66,
+        alt="Aligned PCA panels of observed and matched DDIM profiles colored by OSDR accession",
+    )
+    _add_panel(slide, 0.48, 6.47, 12.37, 0.47, fill=PALE_BLUE, line="C9DCE9", radius=False)
+    _add_text(
+        slide,
+        "Each color is one of 74 OSDR studies. Similar patterns across panels show that the generated profiles retain accession context.",
+        0.76,
+        6.56,
+        11.80,
+        0.26,
+        size=13.0,
+        color=NAVY,
+        bold=True,
+        align=PP_ALIGN.CENTER,
+    )
+    _add_source(slide, "Accession was an explicit model condition; this figure checks preservation of study context, not batch removal.")
+
+
 def _slide_4(slide, architecture_figure: Path):
     _add_slide_title(
         slide,
@@ -1515,8 +1611,8 @@ def _slide_8(slide, utility_chart: Path):
     _add_slide_title(
         slide,
         "Utility",
-        "Pooled training missed improvements seen within tissues",
-        "The pooled FLT/GC classifier declined, while several tissue-specific classifiers improved.",
+        "Synthetic use helped some tissues and hurt others",
+        "The pooled classifier declined, and even the best tissue-specific synthetic candidate was not always better than real-only training.",
     )
     _add_rule(slide, 0.48, 2.05, 3.30, GOLD, 0.035)
     _add_text(slide, "Pooled across tissues", 0.67, 2.25, 2.90, 0.35, size=17, color=NAVY, bold=True)
@@ -1568,7 +1664,7 @@ def _slide_8(slide, utility_chart: Path):
 
     _add_rule(slide, 3.98, 2.05, 0.015, "D5DDE2", 4.55)
     _add_rule(slide, 4.25, 2.05, 8.48, TEAL, 0.035)
-    _add_text(slide, "Selected use within each tissue", 4.42, 2.25, 4.2, 0.34, size=17, color=NAVY, bold=True)
+    _add_text(slide, "Best synthetic-informed candidate by tissue", 4.42, 2.25, 5.0, 0.34, size=17, color=NAVY, bold=True)
     _add_picture_contain(
         slide,
         utility_chart,
@@ -1578,7 +1674,7 @@ def _slide_8(slide, utility_chart: Path):
         3.70,
         alt="Balanced accuracy before and after tissue-specific synthetic use",
     )
-    _add_text(slide, "The useful arm differed by tissue.", 4.44, 6.25, 4.5, 0.27, size=12.5, color=GRAY, italic=True)
+    _add_text(slide, "Only candidates that were non-worse on BA, AUROC, and AP were retained.", 4.44, 6.25, 7.2, 0.27, size=11.7, color=GRAY, italic=True)
     _add_source(slide, "Development results with held-out profiles from represented accessions; they do not measure transfer to a new mission.")
 
 
@@ -2280,7 +2376,7 @@ def _write_notes(notes: list[SlideNote]) -> None:
     lines = [
         "# SLSTP 2026 mouse spaceflight transcriptomics speaker notes",
         "",
-        "Target length: 12-15 minutes. Planned speaking time: about 12 minutes.",
+        "Target length: 12-15 minutes. Planned speaking time: about 13 minutes.",
         "",
     ]
     for note in notes:
@@ -2297,6 +2393,7 @@ def build() -> Path:
     ASSET_DIR.mkdir(parents=True, exist_ok=True)
     utility_chart = _build_tissue_utility_chart()
     trajectory = _build_trajectory_crop()
+    study_pca = _build_accession_pca_chart()
     architecture_figure = ASSET_DIR / "lacan_figure1c_generator_architecture.png"
     if not architecture_figure.exists():
         raise FileNotFoundError(
@@ -2317,6 +2414,7 @@ def build() -> Path:
         lambda slide: _slide_4(slide, architecture_figure),
         lambda slide: _slide_5(slide, trajectory),
         _slide_6,
+        lambda slide: _slide_pca_by_study(slide, study_pca),
         _slide_7,
         _slide_guidance_mechanism,
         _slide_guidance_boundary,
@@ -2353,20 +2451,21 @@ def build() -> Path:
         SlideNote(9, "DDIM matched expression and reduced separability", "0:40", "We compared WGAN-GP with the conditional diffusion model. Both matched expression well. DDIM had higher F1, adversarial accuracy close to chance, and lower distributional distance, so the remaining analysis uses DDIM."),
         SlideNote(10, "Diffusion learns tissue structure from noise", "0:25", "The same generated profiles begin as noise, develop structure by timestep 200, and reach their tissue-conditioned regions at timestep zero. All three panels share PCA axes."),
         SlideNote(11, "Generated profiles track the real OSDR PCA manifold", "0:25", "Real and generated profiles occupy the same broad tissue branches. FLT and GC remain much closer because the condition effect is smaller than the tissue effect."),
-        SlideNote(12, "Five arms separate gene ranking from classifier fitting", "0:40", "The five arms vary which profiles rank genes and which profiles fit the classifier. The guided arms use real and generated rankings together. One then fits on real profiles only; the other gives generated profiles five percent of the training weight. Association tests still use observed OSDR data."),
-        SlideNote(13, "Consensus ranking chooses the classifier input genes", "0:25", "Real and generated profiles rank the same 974 genes. Combining those rankings can move a gene into or out of the selected top set. The classifier is then trained using only the selected expression columns."),
-        SlideNote(14, "Synthetic guidance can shift the FLT/GC boundary", "0:15", "Opaque points are training profiles and transparent points are held-out real profiles. The panels use the same held-out samples. A useful synthetic-guided feature set changes the fitted boundary so that more held-out labels fall on the correct side."),
-        SlideNote(15, "Pooling tissues hid useful signal", "0:30", "One classifier across all tissues did not improve with generated profiles. Tissue-specific classifiers gave a different result because the useful synthetic arm varied by tissue."),
-        SlideNote(16, "Synthetic guidance changed ranking, not statistical evidence", "0:30", "Twenty-three associations were selected with and without guidance, so we call them reinforced. Twenty-six crossed the repeated selection threshold only with guidance, so we call them promoted. All 49 passed BH FDR in observed OSDR profiles."),
-        SlideNote(17, "Selection and literature are separate dimensions", "0:30", "Promoted or reinforced describes feature selection. Aligning, complementary, ambiguous, or unmatched describes the literature review. These labels answer different questions and can occur in any combination."),
-        SlideNote(18, "The screen covered all 27 completed tissue analyses", "0:20", "The full screen includes 22 canonical tissues and five anatomical muscle groups. Ten analyses had a synthetic-informed BH-FDR association, five had real-data BH-FDR genes without synthetic support, and 12 had no BH-FDR gene in the landmark panel."),
-        SlideNote(19, "Ten tissue analyses contained synthetic-informed genes", "0:20", "This slide lists all 49 synthetic-informed associations. Rows separate FLT direction and selection status. Gene color gives the independent literature classification."),
-        SlideNote(20, "Thymus points to lower proliferative renewal", "0:40", "Thymus produced the clearest promoted panel. Lower mitotic and DNA-replication genes fit prior reports of thymic involution. Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. Bulk RNA-seq cannot separate transcriptional regulation from cell-composition change."),
-        SlideNote(21, "Soleus reinforces a mitochondrial and lipid program", "0:35", "Soleus improved with real plus generated training. Lower Bdh1, Ech1, Bnip3, and Decr1 with higher Tpm1 support altered oxidative metabolism and contractile remodeling. The real association remains, but its synthetic reinforcement was sensitive to material conditioning."),
-        SlideNote(22, "Additional tissues produced distinct hypotheses", "0:20", "Pooled muscle, kidney, spleen, and skin each produced a separate result. Promoted and reinforced genes are kept on separate rows so the selection claim stays clear."),
-        SlideNote(23, "Eye, adrenal and muscle-group results remain tissue-specific", "0:20", "Eye, adrenal gland, gastrocnemius, and tibialis anterior add smaller tissue-specific candidates. These are follow-up hypotheses rather than one shared systemic signature."),
-        SlideNote(24, "Synthetic data worked best as a tissue-specific prior", "0:25", "Conditional DDIM produced realistic profiles. Tissue-specific ranking and light synthetic training improved held-out prediction in selected tissues. The final biological associations and FDR still come from observed OSDR samples."),
-        SlideNote(25, "Thank you", "0:10", "Acknowledge James Casaletto, SLSTP, NASA OSDR, ARCHS4, Reactome, and NASA Ames compute, then invite questions."),
+        SlideNote(12, "DDIM preserves study-specific structure", "0:25", "Here the same locked PCA coordinates are colored by accession rather than tissue or condition. Each of the 74 studies has one color shared between the observed and generated panels. Similar clusters show that the accession-conditioned model retained study context. This is a conditional-fidelity check, not evidence that batch effects were removed."),
+        SlideNote(13, "Five arms separate gene ranking from classifier fitting", "0:40", "The five arms vary which profiles rank genes and which profiles fit the classifier. The guided arms use real and generated rankings together. One then fits on real profiles only; the other gives generated profiles five percent of the training weight. Association tests still use observed OSDR data."),
+        SlideNote(14, "Consensus ranking chooses the classifier input genes", "0:25", "Real and generated profiles rank the same 974 genes. Combining those rankings can move a gene into or out of the selected top set. The classifier is then trained using only the selected expression columns."),
+        SlideNote(15, "Synthetic guidance can shift the FLT/GC boundary", "0:15", "Opaque points are training profiles and transparent points are held-out real profiles. The panels use the same held-out samples. A useful synthetic-guided feature set changes the fitted boundary so that more held-out labels fall on the correct side."),
+        SlideNote(16, "Synthetic use helped some tissues and hurt others", "0:35", "The pooled classifier declined with generated profiles. Within tissues, the best synthetic-informed candidate improved balanced accuracy in examples such as spleen, thymus, and skin, but declined in cecum, colon, and slightly in liver. The selection rule retained a synthetic arm only when balanced accuracy, AUROC, and average precision were all non-worse than real-only training."),
+        SlideNote(17, "Synthetic guidance changed ranking, not statistical evidence", "0:30", "Twenty-three associations were selected with and without guidance, so we call them reinforced. Twenty-six crossed the repeated selection threshold only with guidance, so we call them promoted. All 49 passed BH FDR in observed OSDR profiles."),
+        SlideNote(18, "Selection and literature are separate dimensions", "0:30", "Promoted or reinforced describes feature selection. Aligning, complementary, ambiguous, or unmatched describes the literature review. These labels answer different questions and can occur in any combination."),
+        SlideNote(19, "The screen covered all 27 completed tissue analyses", "0:20", "The full screen includes 22 canonical tissues and five anatomical muscle groups. Ten analyses had a synthetic-informed BH-FDR association, five had real-data BH-FDR genes without synthetic support, and 12 had no BH-FDR gene in the landmark panel."),
+        SlideNote(20, "Ten tissue analyses contained synthetic-informed genes", "0:20", "This slide lists all 49 synthetic-informed associations. Rows separate FLT direction and selection status. Gene color gives the independent literature classification."),
+        SlideNote(21, "Thymus points to lower proliferative renewal", "0:40", "Thymus produced the clearest promoted panel. Lower mitotic and DNA-replication genes fit prior reports of thymic involution. Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. Bulk RNA-seq cannot separate transcriptional regulation from cell-composition change."),
+        SlideNote(22, "Soleus reinforces a mitochondrial and lipid program", "0:35", "Soleus improved with real plus generated training. Lower Bdh1, Ech1, Bnip3, and Decr1 with higher Tpm1 support altered oxidative metabolism and contractile remodeling. The real association remains, but its synthetic reinforcement was sensitive to material conditioning."),
+        SlideNote(23, "Additional tissues produced distinct hypotheses", "0:20", "Pooled muscle, kidney, spleen, and skin each produced a separate result. Promoted and reinforced genes are kept on separate rows so the selection claim stays clear."),
+        SlideNote(24, "Eye, adrenal and muscle-group results remain tissue-specific", "0:20", "Eye, adrenal gland, gastrocnemius, and tibialis anterior add smaller tissue-specific candidates. These are follow-up hypotheses rather than one shared systemic signature."),
+        SlideNote(25, "Synthetic data worked best as a tissue-specific prior", "0:25", "Conditional DDIM produced realistic profiles. Tissue-specific ranking and light synthetic training improved held-out prediction in selected tissues. The final biological associations and FDR still come from observed OSDR samples."),
+        SlideNote(26, "Thank you", "0:10", "Acknowledge James Casaletto, SLSTP, NASA OSDR, ARCHS4, Reactome, and NASA Ames compute, then invite questions."),
     ]
     for note, slide in zip(notes, presentation.slides):
         _add_notes(slide, note)

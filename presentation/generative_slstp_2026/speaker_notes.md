@@ -1,6 +1,6 @@
 # SLSTP 2026 mouse spaceflight transcriptomics speaker notes
 
-Target length: 12-15 minutes. Planned speaking time: about 12 minutes.
+Target length: 12-15 minutes. Planned speaking time: about 13 minutes.
 
 ## 1. Interpretable and generative models for mouse spaceflight (0:15)
 
@@ -46,58 +46,62 @@ The same generated profiles begin as noise, develop structure by timestep 200, a
 
 Real and generated profiles occupy the same broad tissue branches. FLT and GC remain much closer because the condition effect is smaller than the tissue effect.
 
-## 12. Five arms separate gene ranking from classifier fitting (0:40)
+## 12. DDIM preserves study-specific structure (0:25)
+
+Here the same locked PCA coordinates are colored by accession rather than tissue or condition. Each of the 74 studies has one color shared between the observed and generated panels. Similar clusters show that the accession-conditioned model retained study context. This is a conditional-fidelity check, not evidence that batch effects were removed.
+
+## 13. Five arms separate gene ranking from classifier fitting (0:40)
 
 The five arms vary which profiles rank genes and which profiles fit the classifier. The guided arms use real and generated rankings together. One then fits on real profiles only; the other gives generated profiles five percent of the training weight. Association tests still use observed OSDR data.
 
-## 13. Consensus ranking chooses the classifier input genes (0:25)
+## 14. Consensus ranking chooses the classifier input genes (0:25)
 
 Real and generated profiles rank the same 974 genes. Combining those rankings can move a gene into or out of the selected top set. The classifier is then trained using only the selected expression columns.
 
-## 14. Synthetic guidance can shift the FLT/GC boundary (0:15)
+## 15. Synthetic guidance can shift the FLT/GC boundary (0:15)
 
 Opaque points are training profiles and transparent points are held-out real profiles. The panels use the same held-out samples. A useful synthetic-guided feature set changes the fitted boundary so that more held-out labels fall on the correct side.
 
-## 15. Pooling tissues hid useful signal (0:30)
+## 16. Synthetic use helped some tissues and hurt others (0:35)
 
-One classifier across all tissues did not improve with generated profiles. Tissue-specific classifiers gave a different result because the useful synthetic arm varied by tissue.
+The pooled classifier declined with generated profiles. Within tissues, the best synthetic-informed candidate improved balanced accuracy in examples such as spleen, thymus, and skin, but declined in cecum, colon, and slightly in liver. The selection rule retained a synthetic arm only when balanced accuracy, AUROC, and average precision were all non-worse than real-only training.
 
-## 16. Synthetic guidance changed ranking, not statistical evidence (0:30)
+## 17. Synthetic guidance changed ranking, not statistical evidence (0:30)
 
 Twenty-three associations were selected with and without guidance, so we call them reinforced. Twenty-six crossed the repeated selection threshold only with guidance, so we call them promoted. All 49 passed BH FDR in observed OSDR profiles.
 
-## 17. Selection and literature are separate dimensions (0:30)
+## 18. Selection and literature are separate dimensions (0:30)
 
 Promoted or reinforced describes feature selection. Aligning, complementary, ambiguous, or unmatched describes the literature review. These labels answer different questions and can occur in any combination.
 
-## 18. The screen covered all 27 completed tissue analyses (0:20)
+## 19. The screen covered all 27 completed tissue analyses (0:20)
 
 The full screen includes 22 canonical tissues and five anatomical muscle groups. Ten analyses had a synthetic-informed BH-FDR association, five had real-data BH-FDR genes without synthetic support, and 12 had no BH-FDR gene in the landmark panel.
 
-## 19. Ten tissue analyses contained synthetic-informed genes (0:20)
+## 20. Ten tissue analyses contained synthetic-informed genes (0:20)
 
 This slide lists all 49 synthetic-informed associations. Rows separate FLT direction and selection status. Gene color gives the independent literature classification.
 
-## 20. Thymus points to lower proliferative renewal (0:40)
+## 21. Thymus points to lower proliferative renewal (0:40)
 
 Thymus produced the clearest promoted panel. Lower mitotic and DNA-replication genes fit prior reports of thymic involution. Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. Bulk RNA-seq cannot separate transcriptional regulation from cell-composition change.
 
-## 21. Soleus reinforces a mitochondrial and lipid program (0:35)
+## 22. Soleus reinforces a mitochondrial and lipid program (0:35)
 
 Soleus improved with real plus generated training. Lower Bdh1, Ech1, Bnip3, and Decr1 with higher Tpm1 support altered oxidative metabolism and contractile remodeling. The real association remains, but its synthetic reinforcement was sensitive to material conditioning.
 
-## 22. Additional tissues produced distinct hypotheses (0:20)
+## 23. Additional tissues produced distinct hypotheses (0:20)
 
 Pooled muscle, kidney, spleen, and skin each produced a separate result. Promoted and reinforced genes are kept on separate rows so the selection claim stays clear.
 
-## 23. Eye, adrenal and muscle-group results remain tissue-specific (0:20)
+## 24. Eye, adrenal and muscle-group results remain tissue-specific (0:20)
 
 Eye, adrenal gland, gastrocnemius, and tibialis anterior add smaller tissue-specific candidates. These are follow-up hypotheses rather than one shared systemic signature.
 
-## 24. Synthetic data worked best as a tissue-specific prior (0:25)
+## 25. Synthetic data worked best as a tissue-specific prior (0:25)
 
 Conditional DDIM produced realistic profiles. Tissue-specific ranking and light synthetic training improved held-out prediction in selected tissues. The final biological associations and FDR still come from observed OSDR samples.
 
-## 25. Thank you (0:10)
+## 26. Thank you (0:10)
 
 Acknowledge James Casaletto, SLSTP, NASA OSDR, ARCHS4, Reactome, and NASA Ames compute, then invite questions.

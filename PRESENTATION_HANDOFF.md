@@ -26,7 +26,7 @@ This file transfers the working context and decisions. It does not contain the c
 - NASA template: `presentation/SLSTP_template_2026.pptx`
 - Midpoint reference: `presentation/Biomedical_Foundation_Models_SLSTP_Midpoint_portable (2).pptx`
 
-The current deck has 25 slides, 25 embedded note pages, and a planned runtime of 12:15. All slides were rendered and visually checked after the most recent rebuild.
+The current deck has 26 slides, 26 embedded note pages, and a planned runtime of 12:45. All slides were rendered and visually checked after the most recent rebuild.
 
 ## Working on another device
 
@@ -61,20 +61,21 @@ Therefore, another device can edit the deck and rebuild its current figures and 
 9. WGAN-GP versus DDIM validation metrics and DDIM architecture.
 10. DDIM reverse-diffusion PCA trajectory.
 11. Real versus generated OSDR PCA comparison.
-12. Five tissue-specific analysis arms.
-13. Real, generated, and consensus gene ranking with top-k classifier inputs.
-14. Schematic real-only versus synthetic-guided FLT/GC classifier boundaries.
-15. Pooled and tissue-specific classifier utility results.
-16. Reinforced, promoted, and real-only feature-selection sets.
-17. Independent literature-interpretation categories.
-18. Coverage across 27 completed tissue analyses.
-19. Complete 49-association synthetic-informed gene inventory.
-20. Thymus biological interpretation.
-21. Soleus biological interpretation.
-22. Additional findings in pooled muscle, kidney, spleen, and skin.
-23. Additional findings in eye, adrenal gland, gastrocnemius, and tibialis anterior.
-24. Takeaways.
-25. Acknowledgments and questions.
+12. The same locked PCA coordinates colored by OSDR study/accession.
+13. Five tissue-specific analysis arms.
+14. Real, generated, and consensus gene ranking with top-k classifier inputs.
+15. Schematic real-only versus synthetic-guided FLT/GC classifier boundaries.
+16. Pooled and tissue-specific classifier utility, including positive and negative examples.
+17. Reinforced, promoted, and real-only feature-selection sets.
+18. Independent literature-interpretation categories.
+19. Coverage across 27 completed tissue analyses.
+20. Complete 49-association synthetic-informed gene inventory.
+21. Thymus biological interpretation.
+22. Soleus biological interpretation.
+23. Additional findings in pooled muscle, kidney, spleen, and skin.
+24. Additional findings in eye, adrenal gland, gastrocnemius, and tibialis anterior.
+25. Takeaways.
+26. Acknowledgments and questions.
 
 ## Presentation decisions
 
@@ -83,9 +84,11 @@ Therefore, another device can edit the deck and rebuild its current figures and 
 - GLARE is omitted from the short project review.
 - The title slide follows the supplied NASA template.
 - Slide 6 keeps only the enlarged three-stage synthetic-transcriptomics diagram. The explanation that generated profiles are not new biological evidence is in the speaker notes.
-- Slide 14 contains only the two classifier diagrams and their legend. The removed comparison panel and detailed leakage-control sentence remain explained verbally.
-- The same transparent held-out profiles appear in both slide 14 panels. They are scored, not fitted.
-- Slide 24 has only Generate, Use, and Interpret. It has no next-test section and does not mention pooled augmentation.
+- Slide 12 uses the exact locked PCA coordinates from slide 11 and colors all 293 real and 293 matched DDIM profiles by 74 OSDR accessions. The model was conditioned on accession, so this is a conditional-fidelity check rather than batch removal.
+- Slide 15 contains only the two classifier diagrams and their legend. The removed comparison panel and detailed leakage-control sentence remain explained verbally.
+- The same transparent held-out profiles appear in both slide 15 panels. They are scored, not fitted.
+- Slide 16 shows both gains and declines. Cecum, colon, and liver are the displayed non-improving synthetic-informed candidates; non-worse performance across BA, AUROC, and AP remains the retention rule.
+- Slide 25 has only Generate, Use, and Interpret. It has no next-test section and does not mention pooled augmentation.
 - Wording was reviewed using the local humanizer guidance. Avoid formulaic phrasing, promotional claims, em dashes, and unnecessary technical caveats on the slides.
 
 ## expiMap summary used in the deck
@@ -137,14 +140,16 @@ Minimum checks before committing:
 git diff --check
 ```
 
-Render every PDF page with `pdftoppm`, inspect a contact sheet, and inspect changed slides at full resolution. The most recent verified state had 25 PPTX slides, 25 embedded note pages, and 25 PDF pages.
+Render every PDF page with `pdftoppm`, inspect a contact sheet, and inspect changed slides at full resolution. The most recent verified state had 26 PPTX slides, 26 embedded note pages, and 26 PDF pages.
 
 Only stage these files for presentation-only changes unless the task explicitly requires more:
 
 ```text
 presentation/SLSTP_2026_Generative_Transcriptomics.pdf
 presentation/SLSTP_2026_Generative_Transcriptomics.pptx
+presentation/generative_slstp_2026/assets/SOURCES.md
 presentation/generative_slstp_2026/speaker_notes.md
+presentation/generative_slstp_2026/source_data/*.tsv
 src/nasa_mouse_rna_diffusion/build_slstp_presentation.py
 PRESENTATION_HANDOFF.md
 ```
