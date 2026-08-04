@@ -932,32 +932,37 @@ def _slide_9(slide):
 
     _add_text(slide, "34", 1.16, 3.42, 1.42, 0.48, size=29, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "real-only", 1.12, 3.93, 1.50, 0.30, size=14.5, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "stable only in\nreal ranking", 1.12, 4.28, 1.50, 0.52, size=10.3, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "WITHOUT GUIDANCE", 1.03, 4.31, 1.68, 0.24, size=9.2, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
 
     _add_text(slide, "23", 3.16, 3.42, 1.17, 0.48, size=29, color=ORANGE, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "reinforced", 3.10, 3.93, 1.29, 0.30, size=13.2, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "stable in both", 3.07, 4.28, 1.34, 0.30, size=10.3, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "BOTH RANKINGS", 3.04, 4.31, 1.40, 0.24, size=9.2, color=ORANGE, bold=True, align=PP_ALIGN.CENTER, margin=0)
 
     _add_text(slide, "26", 4.89, 3.42, 1.50, 0.48, size=29, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "promoted", 4.89, 3.93, 1.50, 0.30, size=14.5, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "stable only with\nsynthetic guidance", 4.86, 4.28, 1.56, 0.52, size=10.3, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "GUIDANCE ONLY", 4.80, 4.31, 1.68, 0.24, size=9.2, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
 
     _add_rule(slide, 7.18, 2.10, 0.018, "D5DDE2", 3.98)
     _add_text(slide, "Real OSDR evidence gate", 7.53, 2.43, 4.92, 0.40, size=20, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
-    _add_bullet_rows(
-        slide,
-        [
-            "Estimate FLT vs GC inside each accession",
-            "Combine accession effects with a random-effects model",
-            "Apply BH FDR within each tissue",
-        ],
-        7.73,
-        3.18,
-        4.43,
-        size=14.2,
-        bullet_color=BLUE,
-        row_h=0.61,
-    )
+    evidence_rows = [
+        (3.18, 0.38, "Estimate FLT vs GC inside each accession"),
+        (3.82, 0.58, "Combine accession effects with a\nrandom-effects model"),
+        (4.63, 0.38, "Apply BH FDR within each tissue"),
+    ]
+    for y, height, label in evidence_rows:
+        _add_circle(slide, 7.79, y + 0.10, 0.10, BLUE)
+        _add_text(
+            slide,
+            label,
+            8.05,
+            y,
+            4.15,
+            height,
+            size=14.2,
+            color=DARK,
+            valign=MSO_ANCHOR.TOP,
+            margin=0,
+        )
     _add_panel(slide, 7.68, 5.14, 4.46, 0.78, fill=NAVY, line=NAVY, radius=False)
     _add_text(slide, "23 reinforced + 26 promoted", 7.90, 5.26, 4.02, 0.24, size=11.5, color="BFD0E1", bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "49 synthetic-informed associations", 7.88, 5.52, 4.06, 0.28, size=15.5, color=WHITE, bold=True, align=PP_ALIGN.CENTER, margin=0)
