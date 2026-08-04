@@ -1,0 +1,18 @@
+version: 1
+
+run:
+  output_dir: outputs/generative_benchmark/analyses/classifier_importance_osdr_disjoint_v1
+  seed: 9300
+
+sources:
+  - scope: tissue
+    workflow_config: configs/rna_diffusion/within_study_generated_feature_stability_osdr_disjoint.yaml
+    analysis_dir: outputs/generative_benchmark/analyses/within_study_generated_feature_stability_osdr_disjoint_v1
+  - scope: muscle_group
+    workflow_config: configs/rna_diffusion/within_study_generated_feature_stability_muscle_groups_osdr_disjoint.yaml
+    analysis_dir: outputs/generative_benchmark/analyses/within_study_generated_feature_stability_muscle_groups_osdr_disjoint_v1
+
+analysis:
+  permutation_repeats: 20
+  top_genes_per_arm: 20
+  coefficient_tolerance: 0.001
