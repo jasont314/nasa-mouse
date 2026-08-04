@@ -28,6 +28,7 @@ PACKAGE_DIR = ROOT / "presentation/generative_slstp_2026"
 ASSET_DIR = PACKAGE_DIR / "assets"
 NOTES_PATH = PACKAGE_DIR / "speaker_notes.md"
 PAPER_DIR = ROOT / "paper/synthetic_guided_spaceflight"
+EXPIMAP_PAPER_DIR = ROOT / "paper/asgsr_expimap_hvg"
 
 SLIDE_W = 13.333333
 SLIDE_H = 7.5
@@ -437,7 +438,7 @@ def _set_title_slide(slide):
     paragraph.space_after = Pt(0)
     paragraph.line_spacing = 1.0
     run = paragraph.add_run()
-    run.text = "Synthetic transcriptomics\nfor mouse spaceflight"
+    run.text = "Interpretable and generative models\nfor mouse spaceflight"
     run.font.name = FONT
     run.font.size = Pt(29)
     run.font.bold = True
@@ -465,6 +466,322 @@ def _set_title_slide(slide):
         run.font.size = Pt(size)
         run.font.bold = bold
         run.font.color.rgb = _rgb(color)
+
+
+def _slide_project_scope(slide):
+    _add_slide_title(
+        slide,
+        "Project",
+        "One dataset, two machine-learning questions",
+        "We used mouse bulk RNA-seq to study how spaceflight changes genes, pathways, and tissue state.",
+    )
+
+    _add_panel(slide, 0.55, 2.05, 12.24, 0.76, fill=NAVY, line=NAVY, radius=False)
+    _add_text(slide, "NASA OSDR API", 0.86, 2.20, 1.78, 0.31, size=16, color=WHITE, bold=True, margin=0)
+    _add_text(
+        slide,
+        "Mus musculus bulk RNA-seq | spaceflight (FLT) and ground control (GC) | multiple missions and tissues",
+        2.72,
+        2.18,
+        9.58,
+        0.34,
+        size=13.2,
+        color="DCE7F2",
+        valign=MSO_ANCHOR.MIDDLE,
+        margin=0,
+    )
+
+    panels = [
+        (
+            0.55,
+            "01",
+            "Which biological programs change?",
+            "expiMap",
+            "Train a pathway-constrained reference on ARCHS4, then map OSDR samples into mouse Reactome programs.",
+            "Output: tissue-specific pathway shifts",
+            BLUE,
+            PALE_BLUE,
+        ),
+        (
+            6.83,
+            "02",
+            "Can synthetic profiles sharpen the analysis?",
+            "Conditional generation",
+            "Generate matched expression profiles by tissue, study context, and FLT or GC condition.",
+            "Output: validated profiles and gene ranking",
+            TEAL,
+            PALE_TEAL,
+        ),
+    ]
+    for x, number, question, method, body, output, color, fill in panels:
+        _add_panel(slide, x, 3.22, 5.96, 3.20, fill=fill, line=fill, radius=False)
+        _add_text(slide, number, x + 0.24, 3.48, 0.45, 0.25, size=11, color=color, bold=True, margin=0)
+        _add_text(slide, question, x + 0.82, 3.40, 4.76, 0.50, size=17.2, color=NAVY, bold=True, margin=0)
+        _add_rule(slide, x + 0.25, 4.12, 5.43, color, 0.025)
+        _add_text(slide, method, x + 0.25, 4.37, 5.30, 0.34, size=15.4, color=color, bold=True, margin=0)
+        _add_text(slide, body, x + 0.25, 4.82, 5.30, 0.66, size=13.0, color=DARK, margin=0)
+        _add_text(slide, output, x + 0.25, 5.78, 5.30, 0.31, size=12.3, color=NAVY, bold=True, margin=0)
+    _add_source(slide, "Data source: NASA Open Science Data Repository Biological Data API.")
+
+
+def _slide_autoencoder_foundation(slide):
+    _add_slide_title(
+        slide,
+        "Neural networks",
+        "Autoencoders compress expression into a latent space",
+        "The encoder summarizes a gene profile; the decoder learns enough structure to reconstruct it.",
+    )
+
+    _add_text(slide, "AUTOENCODER", 0.58, 2.05, 1.44, 0.24, size=10.2, color=BLUE, bold=True, margin=0)
+    _add_panel(slide, 0.50, 2.36, 7.38, 3.88, fill="F7F9FA", line="D9E1E5", radius=False)
+    _add_text(slide, "gene\nprofile", 0.75, 3.82, 0.72, 0.52, size=11.2, color=GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    gene_values = [0.58, 1.07, 0.73, 1.32, 0.90, 0.46]
+    for index, height in enumerate(gene_values):
+        bar = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE,
+            Inches(1.64 + index * 0.19),
+            Inches(4.72 - height),
+            Inches(0.11),
+            Inches(height),
+        )
+        _set_fill(bar, BLUE if index % 2 == 0 else "8FB2CC")
+        bar.line.fill.background()
+    _add_arrow(slide, 2.86, 3.86, 0.34, 0.25, MID_GRAY)
+
+    encoder_columns = [(3.35, 5), (3.85, 3)]
+    for col_index, (x, count) in enumerate(encoder_columns):
+        for row in range(count):
+            y = 3.00 + row * (2.02 / max(1, count - 1))
+            _add_circle(slide, x, y, 0.16, "6D97B5" if col_index == 0 else TEAL)
+    _add_text(slide, "encoder", 3.18, 5.35, 1.05, 0.24, size=10.2, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+
+    _add_arrow(slide, 4.35, 3.86, 0.34, 0.25, MID_GRAY)
+    for index, y in enumerate([3.44, 3.88, 4.32]):
+        _add_circle(slide, 4.88, y, 0.20, ORANGE if index == 1 else GOLD)
+    _add_text(slide, "latent\nvariables", 4.56, 4.88, 0.84, 0.48, size=10.2, color=ORANGE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+
+    _add_arrow(slide, 5.35, 3.86, 0.34, 0.25, MID_GRAY)
+    decoder_columns = [(5.88, 3), (6.38, 5)]
+    for col_index, (x, count) in enumerate(decoder_columns):
+        for row in range(count):
+            y = 3.00 + row * (2.02 / max(1, count - 1))
+            _add_circle(slide, x, y, 0.16, TEAL if col_index == 0 else "6D97B5")
+    _add_text(slide, "decoder", 5.70, 5.35, 1.05, 0.24, size=10.2, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_arrow(slide, 6.88, 3.86, 0.34, 0.25, MID_GRAY)
+    _add_text(slide, "reconstructed\nprofile", 7.13, 3.70, 0.58, 0.62, size=10.0, color=GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+
+    _add_text(slide, "LATENT SPACE", 8.30, 2.05, 1.34, 0.24, size=10.2, color=TEAL, bold=True, margin=0)
+    _add_panel(slide, 8.22, 2.36, 4.58, 3.88, fill=PALE_TEAL, line="C9DFDB", radius=False)
+    _add_rule(slide, 8.72, 5.55, 3.43, MID_GRAY, 0.018)
+    _add_rule(slide, 8.72, 2.86, 0.018, MID_GRAY, 2.71)
+    clusters = [
+        (9.33, 4.63, BLUE),
+        (10.47, 3.66, ORANGE),
+        (11.48, 4.78, TEAL),
+    ]
+    offsets = [(-0.19, -0.07), (0.08, -0.16), (0.20, 0.05), (-0.06, 0.18), (0.02, 0.02)]
+    for cx, cy, color in clusters:
+        for dx, dy in offsets:
+            _add_circle(slide, cx + dx, cy + dy, 0.13, color)
+    _add_text(slide, "profiles with similar expression\noccupy nearby regions", 8.93, 5.72, 3.10, 0.42, size=10.5, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+
+    _add_panel(slide, 0.50, 6.45, 12.30, 0.47, fill=NAVY, line=NAVY, radius=False)
+    _add_text(slide, "expiMap adds interpretation:", 0.82, 6.56, 2.25, 0.23, size=12.2, color=WHITE, bold=True, margin=0)
+    _add_text(slide, "each constrained latent variable corresponds to a Reactome gene program.", 3.18, 6.56, 8.88, 0.23, size=12.2, color="DCE7F2", margin=0)
+    _add_source(slide, "Concept adapted from the midpoint presentation. expiMap: Lotfollahi et al., Nature Cell Biology (2023).")
+
+
+def _slide_expimap_workflow(slide):
+    _add_slide_title(
+        slide,
+        "expiMap",
+        "Reactome pathways make the latent space interpretable",
+        "Tissue-matched ARCHS4 references define the background; OSDR FLT and GC samples are mapped as queries.",
+    )
+    figure = EXPIMAP_PAPER_DIR / "figures/figure_1_workflow_architecture.png"
+    _add_picture_contain(
+        slide,
+        figure,
+        0.22,
+        1.92,
+        8.72,
+        4.92,
+        alt="expiMap ARCHS4 reference training, Reactome mask, and OSDR query workflow",
+    )
+    _add_rule(slide, 9.00, 2.02, 0.015, "D5DDE2", 4.60)
+    _add_text(slide, "MODEL SCOPE", 9.34, 2.10, 1.34, 0.24, size=10.2, color=BLUE, bold=True, margin=0)
+    scope_rows = [
+        ("17,708", "ARCHS4 reference profiles"),
+        ("700", "OSDR profiles in the primary effects"),
+        ("~2,000", "highly variable genes per tissue"),
+        ("319-387", "Reactome programs per primary model"),
+    ]
+    for index, (value, label) in enumerate(scope_rows):
+        y = 2.55 + index * 0.86
+        if index:
+            _add_rule(slide, 9.34, y - 0.16, 3.00, "E0E5E8", 0.012)
+        _add_text(slide, value, 9.34, y, 1.24, 0.38, size=20, color=TEAL, bold=True, margin=0)
+        _add_text(slide, label, 10.65, y + 0.02, 1.82, 0.43, size=11.3, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
+    _add_text(slide, "Reference training and query mapping were run separately for each tissue.", 9.34, 6.06, 3.00, 0.50, size=11.3, color=GRAY, margin=0)
+    _add_source(slide, "Source: expiMap manuscript Figure 1 and Tables 1/S25. Implementation: src/expiMap_scarches/nasa_mouse_expimap/.")
+
+
+def _slide_expimap_tissue_results(slide):
+    _add_slide_title(
+        slide,
+        "expiMap results",
+        "Four tissues produced the clearest pathway patterns",
+        "Effects were estimated within each project before the project-level shifts were combined.",
+    )
+    rows = [
+        (
+            "Thymus",
+            "117 samples | 5 projects",
+            "DNA repair; RHOA cytoskeletal cycle; lymphoid-stromal interactions",
+            "Known involution may also involve lower repair, motility, and niche coordination.",
+            PURPLE,
+            "F1EDF7",
+        ),
+        (
+            "Skin",
+            "151 samples | 4 projects",
+            "Chromatin regulation; DNA repair; Hedgehog; sphingolipids; cell junctions",
+            "Barrier injury may include a broader loss of tissue maintenance and coordination.",
+            ORANGE,
+            PALE_GOLD,
+        ),
+        (
+            "Liver",
+            "197 samples | 9 projects",
+            "MHC class II antigen presentation; T-cell receptor signaling",
+            "Metabolic heterogeneity coexisted with lower adaptive immune communication.",
+            TEAL,
+            PALE_TEAL,
+        ),
+        (
+            "Spleen",
+            "100 samples | 5 projects",
+            "T-cell receptor signaling; neutrophil degranulation; C-type lectin signaling",
+            "The most consistent multi-pathway result joined adaptive and innate immune changes.",
+            CORAL,
+            PALE_CORAL,
+        ),
+    ]
+    for index, (tissue, scope, pathways, interpretation, color, fill) in enumerate(rows):
+        y = 2.02 + index * 1.17
+        _add_panel(slide, 0.48, y, 12.38, 0.98, fill=fill, line=fill, radius=False)
+        _add_rule(slide, 0.48, y, 0.075, color, 0.98)
+        _add_text(slide, tissue, 0.76, y + 0.18, 1.42, 0.32, size=17.0, color=color, bold=True, margin=0)
+        _add_text(slide, scope, 0.76, y + 0.56, 1.58, 0.22, size=9.5, color=GRAY, margin=0)
+        _add_text(slide, "LOWER IN FLIGHT", 2.54, y + 0.16, 1.34, 0.22, size=9.0, color=BLUE, bold=True, margin=0)
+        _add_text(slide, pathways, 2.54, y + 0.43, 4.31, 0.40, size=11.7, color=DARK, bold=True, valign=MSO_ANCHOR.MIDDLE, margin=0)
+        _add_rule(slide, 7.02, y + 0.16, 0.012, "D3DBDF", 0.66)
+        _add_text(slide, interpretation, 7.30, y + 0.19, 5.18, 0.58, size=12.2, color=NAVY, valign=MSO_ANCHOR.MIDDLE, margin=0)
+    _add_source(slide, "Source: expiMap manuscript Figures 3 and 6. Lower latent scores do not by themselves prove biochemical inhibition.")
+
+
+def _slide_expimap_evidence(slide):
+    _add_slide_title(
+        slide,
+        "expiMap evidence",
+        "Cross-checks narrowed the biological interpretation",
+        "Blue cells mark directional support. Conventional GSEA FDR is reported separately.",
+    )
+    retained = pd.read_csv(
+        EXPIMAP_PAPER_DIR / "source_data/table_2_retained_pathway_evidence.tsv",
+        sep="\t",
+    )
+    evidence = pd.read_csv(
+        EXPIMAP_PAPER_DIR / "source_data/table_s24_pathway_robustness_evidence.tsv",
+        sep="\t",
+    )
+    kidney_spleen_evidence = pd.read_csv(
+        EXPIMAP_PAPER_DIR / "source_data/table_s27_kidney_spleen_pathway_evidence.tsv",
+        sep="\t",
+    )
+    retained = retained.loc[retained["analysis_role"].eq("main")]
+    columns = [
+        "tissue",
+        "term",
+        "ssgsea_direction_support",
+        "preranked_gsea_direction_support",
+        "heldout_direction_support",
+        "seed_direction_support",
+        "composition_proxy_support",
+    ]
+    evidence = pd.concat(
+        [evidence[columns], kidney_spleen_evidence[columns]],
+        ignore_index=True,
+    ).drop_duplicates(["tissue", "term"], keep="last")
+    data = retained.merge(evidence, on=["tissue", "term"], how="left", validate="one_to_one")
+    order = {"thymus": 0, "skin": 1, "liver": 2, "spleen": 3}
+    data = data.assign(_order=data["tissue"].map(order)).sort_values(["_order", "display_label"])
+    if len(data) != 13 or data[columns[2:]].isna().any().any():
+        raise ValueError("Unexpected retained expiMap evidence table")
+
+    label_x = 0.48
+    label_w = 3.10
+    check_x = 3.78
+    cell_w = 0.60
+    fdr_x = 6.93
+    headers = ["ssGSEA", "GSEA", "Held-out", "3 seeds", "Composition"]
+    _add_text(slide, "Tissue and pathway", label_x, 2.00, label_w, 0.24, size=9.5, color=GRAY, bold=True, margin=0)
+    for index, header in enumerate(headers):
+        _add_text(slide, header, check_x + index * cell_w - 0.05, 1.98, cell_w + 0.10, 0.32, size=8.2, color=GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "GSEA FDR", fdr_x, 2.00, 0.80, 0.24, size=8.8, color=GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_rule(slide, label_x, 2.34, 7.28, NAVY, 0.022)
+
+    tissue_colors = {"thymus": PURPLE, "skin": ORANGE, "liver": TEAL, "spleen": CORAL}
+    row_h = 0.31
+    start_y = 2.46
+    last_tissue = None
+    for index, row in enumerate(data.itertuples(index=False)):
+        y = start_y + index * row_h
+        if index % 2 == 0:
+            shade = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(label_x), Inches(y - 0.015), Inches(7.28), Inches(row_h - 0.01))
+            _set_fill(shade, "F6F8F9")
+            shade.line.fill.background()
+        if last_tissue is not None and row.tissue != last_tissue:
+            _add_rule(slide, label_x, y - 0.045, 7.28, "BBC7CE", 0.018)
+        color = tissue_colors[row.tissue]
+        label = f"{row.tissue.title()}: {row.display_label}"
+        _add_rule(slide, label_x + 0.03, y + 0.105, 0.12, color, 0.045)
+        _add_text(slide, label, label_x + 0.23, y + 0.035, label_w - 0.20, 0.23, size=8.8, color=DARK, margin=0)
+        values = [
+            row.ssgsea_direction_support,
+            row.preranked_gsea_direction_support,
+            row.heldout_direction_support,
+            row.seed_direction_support,
+            row.composition_proxy_support,
+        ]
+        for check_index, supported in enumerate(values):
+            x = check_x + check_index * cell_w + 0.13
+            box = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(x), Inches(y + 0.025), Inches(0.34), Inches(0.24))
+            _set_fill(box, BLUE if bool(supported) else "E7ECEF")
+            box.line.fill.background()
+            _add_text(slide, "+" if bool(supported) else "-", x, y + 0.025, 0.34, 0.24, size=9.0, color=WHITE if bool(supported) else MID_GRAY, bold=True, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE, margin=0)
+        fdr = float(row.gsea_fdr)
+        fdr_label = "<0.001" if fdr < 0.001 else f"{fdr:.3f}"
+        _add_text(slide, fdr_label, fdr_x, y + 0.035, 0.80, 0.22, size=8.8, color=NAVY if fdr < 0.05 else GRAY, bold=fdr < 0.05, align=PP_ALIGN.CENTER, margin=0)
+        last_tissue = row.tissue
+
+    _add_rule(slide, 8.02, 2.08, 0.015, "D5DDE2", 4.38)
+    _add_text(slide, "WHAT REMAINED", 8.38, 2.10, 1.62, 0.24, size=10.2, color=TEAL, bold=True, margin=0)
+    summaries = [
+        ("Spleen", "All three programs passed GSEA FDR < 0.05 and all five directional checks.", CORAL),
+        ("Skin", "Chromatin, DNA repair, and cell-junction programs passed GSEA FDR < 0.05.", ORANGE),
+        ("Thymus", "DNA repair passed GSEA FDR < 0.001; the cytoskeletal and niche programs had directional support.", PURPLE),
+        ("Liver", "MHC II and T-cell receptor scores were lower, but conventional FDR was 0.121 and 0.051.", TEAL),
+    ]
+    for index, (tissue, text, color) in enumerate(summaries):
+        y = 2.59 + index * 0.90
+        if index:
+            _add_rule(slide, 8.38, y - 0.16, 4.02, "E0E5E8", 0.012)
+        _add_text(slide, tissue, 8.38, y, 1.12, 0.26, size=13.5, color=color, bold=True, margin=0)
+        _add_text(slide, text, 9.56, y - 0.02, 2.84, 0.63, size=10.8, color=DARK, margin=0)
+    _add_panel(slide, 8.37, 6.19, 4.05, 0.46, fill=PALE_BLUE, line="C9DCE9", radius=False)
+    _add_text(slide, "Spleen was the strongest multi-pathway result.", 8.58, 6.29, 3.62, 0.24, size=11.5, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_source(slide, "Source: expiMap manuscript Table 2 and Table S24. Held-out checks are internal project-wise validation.")
 
 
 def _slide_why_synthetic(slide):
@@ -503,36 +820,36 @@ def _slide_why_synthetic(slide):
     ]
     for index, (x, number, heading, body, color, fill) in enumerate(columns):
         if index:
-            _add_arrow(slide, x - 0.47, 3.07, 0.34, 0.24, MID_GRAY)
+            _add_arrow(slide, x - 0.47, 4.00, 0.34, 0.28, MID_GRAY)
         _add_text(slide, number, x, 2.10, 0.42, 0.25, size=11, color=color, bold=True, margin=0)
         _add_text(slide, heading, x + 0.50, 2.04, 3.08, 0.38, size=17.2, color=NAVY, bold=True, margin=0)
-        _add_panel(slide, x, 2.58, 3.58, 1.26, fill=fill, line=fill, radius=False)
+        _add_panel(slide, x, 2.58, 3.58, 3.72, fill=fill, line=fill, radius=False)
 
         if index in (0, 2):
             cell_colors = [color, "AFC3D4", color, "D8E2E8", color]
-            for row in range(4):
-                for col in range(5):
+            for row in range(5):
+                for col in range(6):
                     cell_color = cell_colors[(row * 2 + col + index) % len(cell_colors)]
                     square = slide.shapes.add_shape(
                         MSO_SHAPE.RECTANGLE,
-                        Inches(x + 0.22 + col * 0.29),
-                        Inches(2.82 + row * 0.20),
+                        Inches(x + 0.36 + col * 0.40),
+                        Inches(3.03 + row * 0.31),
+                        Inches(0.29),
                         Inches(0.20),
-                        Inches(0.12),
                     )
                     _set_fill(square, cell_color)
                     square.line.fill.background()
-            _add_text(slide, "genes", x + 0.31, 3.61, 1.12, 0.16, size=8.2, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
-            _add_text(slide, "profiles", x + 1.73, 3.00, 0.62, 0.18, size=8.2, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+            _add_text(slide, "genes", x + 0.36, 4.72, 2.29, 0.20, size=9.5, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+            _add_text(slide, "profiles", x + 2.74, 3.62, 0.54, 0.22, size=9.5, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
         else:
             node_positions = [
-                (x + 0.38, 2.85),
-                (x + 1.03, 2.75),
-                (x + 1.03, 3.25),
-                (x + 1.72, 3.00),
-                (x + 2.40, 2.75),
-                (x + 2.40, 3.25),
-                (x + 3.02, 3.00),
+                (x + 0.36, 3.72),
+                (x + 1.03, 3.20),
+                (x + 1.03, 4.28),
+                (x + 1.76, 3.74),
+                (x + 2.48, 3.20),
+                (x + 2.48, 4.28),
+                (x + 3.08, 3.74),
             ]
             connections = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4), (3, 5), (4, 6), (5, 6)]
             for start, end in connections:
@@ -545,38 +862,12 @@ def _slide_why_synthetic(slide):
                     Inches(x2 + 0.08),
                     Inches(y2 + 0.08),
                 )
-                _set_line(line, "C6B07A", 1.1)
+                _set_line(line, "C6B07A", 1.5)
             for node_index, (node_x, node_y) in enumerate(node_positions):
-                _add_circle(slide, node_x, node_y, 0.16, ORANGE if node_index in (0, 3, 6) else GOLD)
+                _add_circle(slide, node_x, node_y, 0.20, ORANGE if node_index in (0, 3, 6) else GOLD)
 
-        _add_text(slide, body, x + 0.02, 4.03, 3.50, 0.66, size=13.2, color=DARK, margin=0)
-
-    _add_rule(slide, 0.53, 4.95, 12.20, "D6DEE3", 0.018)
-    _add_text(slide, "It can help", 0.55, 5.20, 1.60, 0.30, size=16, color=TEAL, bold=True, margin=0)
-    _add_text(
-        slide,
-        "test classifiers, rank candidate genes and compare matched FLT and GC profiles",
-        2.03,
-        5.16,
-        4.17,
-        0.55,
-        size=14,
-        color=DARK,
-        margin=0,
-    )
-    _add_rule(slide, 6.49, 5.18, 0.012, "D6DEE3", 0.70)
-    _add_text(slide, "It does not add", 6.82, 5.20, 1.85, 0.30, size=16, color=CORAL, bold=True, margin=0)
-    _add_text(
-        slide,
-        "new animals, new measurements or independent biological evidence",
-        8.51,
-        5.16,
-        3.93,
-        0.55,
-        size=14,
-        color=DARK,
-        margin=0,
-    )
+        _add_rule(slide, x + 0.28, 5.08, 3.02, "D3DCE1", 0.018)
+        _add_text(slide, body, x + 0.30, 5.30, 2.98, 0.72, size=14.2, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
 
 
 def _slide_scientific_objective(slide):
@@ -1136,8 +1427,8 @@ def _slide_guidance_boundary(slide):
     _add_slide_title(
         slide,
         "Analysis",
-        "Held-out real samples decide whether guidance helps",
-        "Opaque profiles train the classifier; transparent profiles are used only to score generalization.",
+        "Synthetic guidance can shift the FLT/GC boundary",
+        "Opaque points train the classifier; transparent points are the same held-out real profiles in both panels.",
     )
 
     def add_point(x: float, y: float, color: str, *, held_out: bool):
@@ -1155,14 +1446,14 @@ def _slide_guidance_boundary(slide):
         _set_line(shape, color, 1.2)
 
     def add_scatter(x: float, y: float, *, guided: bool):
-        plot_w = 4.35
-        plot_h = 1.95
+        plot_w = 4.75
+        plot_h = 3.40
         _add_rule(slide, x, y + plot_h, plot_w, MID_GRAY, 0.022)
         _add_rule(slide, x, y, 0.022, MID_GRAY, plot_h + 0.02)
-        train_flight = [(0.42, 0.34), (0.75, 1.27), (1.07, 0.78), (1.37, 1.66), (1.58, 0.43)]
-        train_ground = [(2.58, 0.36), (2.88, 1.28), (3.19, 0.76), (3.55, 1.65), (3.88, 0.46)]
-        held_flight = [(1.84, 0.86), (2.03, 1.42)]
-        held_ground = [(2.29, 0.59), (2.48, 1.55)]
+        train_flight = [(0.45, 0.52), (0.82, 2.25), (1.20, 1.35), (1.55, 2.95), (1.75, 0.70)]
+        train_ground = [(2.85, 0.55), (3.15, 2.25), (3.50, 1.30), (3.90, 2.95), (4.25, 0.75)]
+        held_flight = [(2.05, 1.55), (2.28, 2.55)]
+        held_ground = [(2.58, 1.00), (2.80, 2.75)]
         for px, py in train_flight:
             add_point(x + px, y + py, CORAL, held_out=False)
         for px, py in train_ground:
@@ -1172,11 +1463,11 @@ def _slide_guidance_boundary(slide):
         for px, py in held_ground:
             add_point(x + px, y + py, BLUE, held_out=True)
         if guided:
-            boundary = _add_rule(slide, x + 2.15, y + 0.12, 0.045, TEAL, 1.66)
+            _add_rule(slide, x + 2.42, y + 0.18, 0.045, TEAL, 2.98)
         else:
-            boundary = _add_rule(slide, x + 1.70, y + 0.12, 0.035, GRAY, 1.66)
-        _add_text(slide, "predicted FLT", x + 0.10, y + 2.04, 1.02, 0.18, size=8.4, color=CORAL, margin=0)
-        _add_text(slide, "predicted GC", x + 3.19, y + 2.04, 1.02, 0.18, size=8.4, color=BLUE, align=PP_ALIGN.RIGHT, margin=0)
+            _add_rule(slide, x + 1.85, y + 0.18, 0.035, GRAY, 2.98)
+        _add_text(slide, "predicted FLT", x + 0.12, y + 3.52, 1.12, 0.20, size=9.2, color=CORAL, margin=0)
+        _add_text(slide, "predicted GC", x + 3.48, y + 3.52, 1.12, 0.20, size=9.2, color=BLUE, align=PP_ALIGN.RIGHT, margin=0)
 
     _add_circle(slide, 8.79, 1.96, 0.13, CORAL)
     _add_text(slide, "FLT", 8.98, 1.92, 0.36, 0.21, size=9.2, color=GRAY, margin=0)
@@ -1189,26 +1480,14 @@ def _slide_guidance_boundary(slide):
     _set_line(held_legend, MID_GRAY, 1.0)
     _add_text(slide, "held-out", 11.52, 1.92, 0.72, 0.21, size=9.2, color=GRAY, margin=0)
 
-    _add_text(slide, "REAL-ONLY CLASSIFIER", 0.78, 2.22, 4.35, 0.27, size=13.0, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "SYNTHETIC-GUIDED CANDIDATE", 7.10, 2.22, 4.35, 0.27, size=13.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    add_scatter(0.78, 2.56, guided=False)
-    add_scatter(7.10, 2.56, guided=True)
-    _add_arrow(slide, 5.53, 3.20, 0.72, 0.40, MID_GRAY)
-    _add_text(slide, "same held-out profiles", 5.20, 3.73, 1.38, 0.37, size=9.4, color=GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "REAL-ONLY CLASSIFIER", 0.72, 2.23, 4.75, 0.27, size=13.0, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "SYNTHETIC-GUIDED CLASSIFIER", 7.85, 2.23, 4.75, 0.27, size=13.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    add_scatter(0.72, 2.62, guided=False)
+    add_scatter(7.85, 2.62, guided=True)
+    _add_arrow(slide, 5.87, 3.88, 0.82, 0.44, MID_GRAY)
+    _add_text(slide, "same held-out profiles", 5.57, 4.45, 1.42, 0.39, size=9.6, color=GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
 
-    _add_panel(slide, 0.57, 5.10, 12.08, 1.25, fill="F5F7F8", line="D5DDE2", radius=False)
-    _add_text(slide, "Compare on held-out real profiles", 0.84, 5.31, 2.42, 0.28, size=13.0, color=NAVY, bold=True, margin=0)
-    _add_text(slide, "Balanced accuracy", 3.47, 5.30, 1.32, 0.24, size=10.3, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_rule(slide, 4.91, 5.28, 0.015, "D1D9DE", 0.35)
-    _add_text(slide, "AUROC", 5.12, 5.30, 0.80, 0.24, size=10.3, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_rule(slide, 6.10, 5.28, 0.015, "D1D9DE", 0.35)
-    _add_text(slide, "Average precision", 6.31, 5.30, 1.34, 0.24, size=10.3, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_arrow(slide, 7.94, 5.32, 0.34, 0.20, MID_GRAY)
-    _add_text(slide, "Retain the better eligible arm for that tissue", 8.55, 5.25, 3.68, 0.36, size=12.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE, margin=0)
-    _add_rule(slide, 0.84, 5.77, 11.38, "D9E0E4", 0.015)
-    _add_text(slide, "Held-out profiles never enter gene ranking, classifier fitting, or k selection.", 0.84, 5.92, 11.38, 0.24, size=10.3, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
-
-    _add_source(slide, "Schematic nested evaluation. Observed tissue-specific held-out results follow on the next slide.")
+    _add_source(slide, "Schematic of the held-out evaluation used for each tissue-specific classifier candidate.")
 
 
 def _slide_8(slide, utility_chart: Path):
@@ -1978,9 +2257,9 @@ def _add_notes(slide, note: SlideNote) -> None:
 
 def _write_notes(notes: list[SlideNote]) -> None:
     lines = [
-        "# SLSTP 2026 generative transcriptomics speaker notes",
+        "# SLSTP 2026 mouse spaceflight transcriptomics speaker notes",
         "",
-        "Target length: 12-15 minutes. Planned speaking time: about 15 minutes.",
+        "Target length: 12-15 minutes. Planned speaking time: about 13 minutes.",
         "",
     ]
     for note in notes:
@@ -2005,16 +2284,15 @@ def build() -> Path:
     presentation = Presentation(TEMPLATE)
     _set_title_slide(presentation.slides[0])
     _prepare_content_slide(presentation.slides[1], 2)
-    while len(presentation.slides) < 22:
-        number = len(presentation.slides) + 1
-        slide = presentation.slides.add_slide(presentation.slide_layouts[3])
-        _prepare_content_slide(slide, number)
-
     builders = [
         None,
+        _slide_project_scope,
+        _slide_autoencoder_foundation,
+        _slide_expimap_workflow,
+        _slide_expimap_tissue_results,
+        _slide_expimap_evidence,
         _slide_why_synthetic,
         _slide_2,
-        _slide_scientific_objective,
         _slide_3,
         lambda slide: _slide_4(slide, architecture_figure),
         lambda slide: _slide_5(slide, trajectory),
@@ -2034,33 +2312,42 @@ def build() -> Path:
         _slide_15,
         _slide_16,
     ]
+    while len(presentation.slides) < len(builders):
+        number = len(presentation.slides) + 1
+        slide = presentation.slides.add_slide(presentation.slide_layouts[3])
+        _prepare_content_slide(slide, number)
+
     for index, builder in enumerate(builders):
         if builder is not None:
             builder(presentation.slides[index])
 
     notes = [
-        SlideNote(1, "Synthetic transcriptomics for mouse spaceflight", "0:20", "Introduce the central question: can generated expression help us find tissue-specific FLT versus GC biology? Synthetic profiles support the analysis, but they do not count as additional animals."),
-        SlideNote(2, "What is synthetic transcriptomics?", "0:40", "Synthetic transcriptomes are numeric gene-expression vectors sampled from a model trained on measured RNA-seq data. Conditioning lets us request a tissue and FLT or GC context. These profiles can stress-test a classifier and guide gene ranking. They do not add biological replicates or independent evidence."),
-        SlideNote(3, "Small studies and study effects complicate tissue comparisons", "0:45", "OSDR gives broad tissue coverage, but the profiles are spread across 75 accessions with different mission and assay contexts. ARCHS4 supplies a much larger mouse reference. The challenge is to use that reference without confusing study structure with spaceflight biology."),
-        SlideNote(4, "Match tissue distributions, then test FLT versus GC biology", "0:45", "The generator has two jobs. First, synthetic bulk RNA-seq should reproduce the tissue-defined distributions seen in real data. Second, it should preserve the smaller FLT versus GC signal within each tissue and improve prediction on held-out real samples. Gene effects and BH FDR are always calculated from observed OSDR profiles."),
-        SlideNote(5, "We built a configurable bulk RNA-seq generation pipeline", "1:00", "Each column shows the alternatives available at one pipeline stage; outlines identify the downstream branch. We used ARCHS4 and NASA OSDR across multiple studies and all tissues. The selected path used TPM, training-fitted MaxAbs scaling, 974 mouse landmarks, no global correction, ARCHS4 pretraining plus OSDR adaptation, and a DDIM conditioned on tissue, FLT/GC, accession and material. WGAN-GP and the other preprocessing and harmonization choices remained benchmark alternatives."),
-        SlideNote(6, "DDIM matched expression and reduced separability", "0:50", "The left image is Figure 1C from Lacan and colleagues. Their residual dense denoiser predicts the noise added to a sample using diffusion timestep and tissue. Our implementation adds FLT/GC, accession and material context during OSDR LoRA adaptation. Both generators had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution."),
-        SlideNote(7, "Diffusion learns tissue structure from noise", "0:40", "Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change does not come from rescaling each panel."),
-        SlideNote(8, "Generated profiles track the real OSDR PCA manifold", "0:40", "Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. Generated samples follow the tissue-defined branches. FLT and GC overlap more because condition effects are smaller than tissue effects. The numerical validation on the previous slide tests fidelity directly."),
-        SlideNote(9, "Five arms separate gene ranking from classifier fitting", "0:50", "Each arm makes two decisions: which profiles rank the genes and which profiles fit the classifier. In both guided arms, real and synthetic evidence jointly rank genes. Guided real fit then trains only on observed profiles. Guided 5% also uses condition-recentered synthetic profiles, but they contribute only 5% of total classifier weight. Held-out real profiles determine eligibility, and FLT/GC effects and BH FDR come from observed OSDR profiles only."),
-        SlideNote(10, "Consensus ranking chooses the classifier input genes", "0:35", "Each ranking orders the same 974 genes. Real-only, generated-only and consensus ranking can therefore produce different candidate gene sets. For each ranking, we test the top 10, 25, 50 and 100 genes, and held-out validation chooses the feature count and regularization. Logistic regression is then fitted using only those selected gene-expression columns. Ranking chooses which genes are available to the classifier; classifier training separately learns their coefficients and decision boundary."),
-        SlideNote(11, "Held-out real samples decide whether guidance helps", "0:25", "Opaque profiles belong to the training subset. Transparent profiles are held-out real OSDR samples that never enter gene ranking, classifier fitting or top-k selection. The same held-out profiles are scored by the real-only and synthetic-guided candidates. This schematic shows the intended outcome: a guided boundary that predicts more held-out labels correctly. Balanced accuracy, AUROC and average precision determine whether a synthetic arm is eligible for that tissue; the observed tissue-specific results follow on the next slide."),
-        SlideNote(12, "Pooling tissues hid useful signal", "0:50", "The pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
-        SlideNote(13, "Synthetic guidance changed ranking, not statistical evidence", "0:45", "The blue set contains genes selected stably by real-only ranking, and the teal set contains genes selected stably by the eligible synthetic-guided arm. Thirty-four were real-only, 23 were selected by both arms and classified as reinforced, and 26 were selected only with guidance and classified as promoted. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations passed BH FDR in observed OSDR profiles."),
-        SlideNote(14, "Selection and literature are separate dimensions", "0:50", "Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. Table S16 records the gene-level rationale and source IDs; Table S17 records the citations and evidence relationship."),
-        SlideNote(15, "The screen covered all 27 completed tissue analyses", "0:35", "This is the full analysis coverage: 22 canonical tissues and five anatomical muscle groups. Ten had a synthetic-informed BH-FDR association, five had real BH-FDR genes without synthetic-informed selection, and 12 had no BH-FDR gene in the landmark panel. Every completed tissue result remains visible here."),
-        SlideNote(16, "Ten tissue analyses contained synthetic-informed genes", "0:40", "This is the complete 49-association inventory. Separate rows show FLT-higher or FLT-lower direction and promoted or reinforced selection status. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT directions come from real-data meta-analysis."),
-        SlideNote(17, "Thymus points to lower proliferative renewal", "1:00", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. A matched sensitivity model without material-type conditioning preserved the cell-cycle interpretation. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
-        SlideNote(18, "Soleus reinforces a mitochondrial and lipid program", "0:55", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. In the no-material sensitivity model, the synthetic attribution disappeared. The real OSDR association remains, but the generated-profile contribution is conditioning-sensitive."),
-        SlideNote(19, "Additional tissues produced distinct hypotheses", "0:35", "Promoted and reinforced genes are shown on separate subrows for each tissue. Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. The rows share a slide for presentation space; each remains a separate hypothesis."),
-        SlideNote(20, "Eye, adrenal and muscle-group results remain tissue-specific", "0:35", "Promoted and reinforced genes remain separated here as well. Eye reinforces lower cytokinesis, adrenal contributes two unmatched candidates, gastrocnemius combines an NF-kappa-B stress signal with an autophagy or myogenesis candidate, and tibialis anterior spans stress, cell-cycle, ganglioside and mitophagy hypotheses."),
-        SlideNote(21, "Synthetic data worked best as a tissue-specific prior", "0:35", "Conditional DDIM generated realistic expression profiles. Tissue-specific consensus ranking and light synthetic regularization improved held-out prediction in selected tissues. Synthetic-informed selection prioritized promoted and reinforced genes, while literature annotation separated prior alignment from complementary hypotheses. Biological evidence and FDR remained grounded in observed OSDR profiles."),
-        SlideNote(22, "Thank you", "0:10", "Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions."),
+        SlideNote(1, "Interpretable and generative models for mouse spaceflight", "0:15", "This project uses machine learning to study mouse bulk RNA-seq from NASA spaceflight experiments. The first model asks which pathways change. The second asks whether realistic synthetic profiles can improve a tissue-specific FLT versus GC analysis."),
+        SlideNote(2, "One dataset, two machine-learning questions", "0:35", "Both parts begin with the same OSDR flight and ground-control data. expiMap organizes expression into interpretable Reactome programs. The generative pipeline models the expression distribution and then tests whether generated profiles improve classification and gene ranking."),
+        SlideNote(3, "Autoencoders compress expression into a latent space", "0:40", "An autoencoder takes a high-dimensional gene-expression profile, compresses it into a small set of latent variables, and reconstructs the original profile. Nearby points in latent space have similar expression. In a standard autoencoder those axes may have no clear biological meaning. expiMap constrains them with known gene programs."),
+        SlideNote(4, "Reactome pathways make the latent space interpretable", "0:45", "For each tissue, ARCHS4 supplies a non-spaceflight reference and Reactome supplies the gene-program mask. expiMap learns the reference, then maps OSDR flight and ground samples as an accession-conditioned query. The analysis used about two thousand highly variable genes and several hundred Reactome programs per tissue. The implementation is under src/expiMap_scarches/nasa_mouse_expimap."),
+        SlideNote(5, "Four tissues produced the clearest pathway patterns", "0:50", "Thymus showed lower repair, cytoskeletal, and stromal-interaction programs. Skin showed lower chromatin regulation, repair, Hedgehog, sphingolipid, and cell-junction programs. Liver showed lower MHC class II and T-cell receptor scores. Spleen combined lower T-cell receptor, neutrophil-degranulation, and C-type lectin programs."),
+        SlideNote(6, "Cross-checks narrowed the biological interpretation", "0:50", "The heatmap separates directional checks from conventional GSEA FDR. Spleen was the strongest multi-pathway result: all three programs passed FDR below 0.05 and all five checks. Skin had three FDR-supported programs, thymus had strong DNA-repair support, and the liver immune programs were consistent in direction but did not cross the 0.05 FDR threshold."),
+        SlideNote(7, "What is synthetic transcriptomics?", "0:25", "A generator learns the distribution of measured expression and samples new numeric profiles for a chosen tissue and FLT or GC context. We use those profiles to test classifiers and rank genes. They are model output, not new animals or independent biological measurements."),
+        SlideNote(8, "Small studies and study effects complicate tissue comparisons", "0:30", "OSDR covers many tissues, but its 1,610 profiles are spread across 75 accessions. ARCHS4 supplies a much larger mouse reference. The model must preserve tissue and condition structure without simply learning study identity."),
+        SlideNote(9, "We built a configurable bulk RNA-seq generation pipeline", "0:45", "The pipeline can change data scope, transformation, harmonization, model, training source, and conditioning. The branch used here applies TPM, MaxAbs scaling, 974 landmarks, ARCHS4 pretraining, OSDR adaptation, and conditioning on tissue, FLT or GC, accession, and material type."),
+        SlideNote(10, "DDIM matched expression and reduced separability", "0:40", "We compared WGAN-GP with the conditional diffusion model. Both matched expression well. DDIM had higher F1, adversarial accuracy close to chance, and lower distributional distance, so the remaining analysis uses DDIM."),
+        SlideNote(11, "Diffusion learns tissue structure from noise", "0:25", "The same generated profiles begin as noise, develop structure by timestep 200, and reach their tissue-conditioned regions at timestep zero. All three panels share PCA axes."),
+        SlideNote(12, "Generated profiles track the real OSDR PCA manifold", "0:25", "Real and generated profiles occupy the same broad tissue branches. FLT and GC remain much closer because the condition effect is smaller than the tissue effect."),
+        SlideNote(13, "Five arms separate gene ranking from classifier fitting", "0:40", "The five arms vary which profiles rank genes and which profiles fit the classifier. The guided arms use real and generated rankings together. One then fits on real profiles only; the other gives generated profiles five percent of the training weight. Association tests still use observed OSDR data."),
+        SlideNote(14, "Consensus ranking chooses the classifier input genes", "0:25", "Real and generated profiles rank the same 974 genes. Combining those rankings can move a gene into or out of the selected top set. The classifier is then trained using only the selected expression columns."),
+        SlideNote(15, "Synthetic guidance can shift the FLT/GC boundary", "0:15", "Opaque points are training profiles and transparent points are held-out real profiles. The panels use the same held-out samples. A useful synthetic-guided feature set changes the fitted boundary so that more held-out labels fall on the correct side."),
+        SlideNote(16, "Pooling tissues hid useful signal", "0:30", "One classifier across all tissues did not improve with generated profiles. Tissue-specific classifiers gave a different result because the useful synthetic arm varied by tissue."),
+        SlideNote(17, "Synthetic guidance changed ranking, not statistical evidence", "0:30", "Twenty-three associations were selected with and without guidance, so we call them reinforced. Twenty-six crossed the repeated selection threshold only with guidance, so we call them promoted. All 49 passed BH FDR in observed OSDR profiles."),
+        SlideNote(18, "Selection and literature are separate dimensions", "0:30", "Promoted or reinforced describes feature selection. Aligning, complementary, ambiguous, or unmatched describes the literature review. These labels answer different questions and can occur in any combination."),
+        SlideNote(19, "The screen covered all 27 completed tissue analyses", "0:20", "The full screen includes 22 canonical tissues and five anatomical muscle groups. Ten analyses had a synthetic-informed BH-FDR association, five had real-data BH-FDR genes without synthetic support, and 12 had no BH-FDR gene in the landmark panel."),
+        SlideNote(20, "Ten tissue analyses contained synthetic-informed genes", "0:20", "This slide lists all 49 synthetic-informed associations. Rows separate FLT direction and selection status. Gene color gives the independent literature classification."),
+        SlideNote(21, "Thymus points to lower proliferative renewal", "0:40", "Thymus produced the clearest promoted panel. Lower mitotic and DNA-replication genes fit prior reports of thymic involution. Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. Bulk RNA-seq cannot separate transcriptional regulation from cell-composition change."),
+        SlideNote(22, "Soleus reinforces a mitochondrial and lipid program", "0:35", "Soleus improved with real plus generated training. Lower Bdh1, Ech1, Bnip3, and Decr1 with higher Tpm1 support altered oxidative metabolism and contractile remodeling. The real association remains, but its synthetic reinforcement was sensitive to material conditioning."),
+        SlideNote(23, "Additional tissues produced distinct hypotheses", "0:20", "Pooled muscle, kidney, spleen, and skin each produced a separate result. Promoted and reinforced genes are kept on separate rows so the selection claim stays clear."),
+        SlideNote(24, "Eye, adrenal and muscle-group results remain tissue-specific", "0:20", "Eye, adrenal gland, gastrocnemius, and tibialis anterior add smaller tissue-specific candidates. These are follow-up hypotheses rather than one shared systemic signature."),
+        SlideNote(25, "Synthetic data worked best as a tissue-specific prior", "0:25", "Conditional DDIM produced realistic profiles. Tissue-specific ranking and light synthetic training improved held-out prediction in selected tissues. The final biological associations and FDR still come from observed OSDR samples."),
+        SlideNote(26, "Thank you", "0:10", "Acknowledge James Casaletto, SLSTP, NASA OSDR, ARCHS4, Reactome, and NASA Ames compute, then invite questions."),
     ]
     for note, slide in zip(notes, presentation.slides):
         _add_notes(slide, note)
