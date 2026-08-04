@@ -650,10 +650,21 @@ def _slide_scientific_objective(slide):
     for x, y in gc_points:
         _add_circle(slide, x, y, 0.17, BLUE)
     _add_text(slide, "vs", 8.38, 3.75, 0.42, 0.24, size=11.5, color=MID_GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_arrow(slide, 10.16, 3.67, 0.42, 0.28, MID_GRAY)
-    _add_text(slide, "genes", 10.82, 3.35, 1.16, 0.27, size=13.5, color=NAVY, bold=True, margin=0)
-    _add_text(slide, "+ pathways", 10.82, 3.75, 1.48, 0.27, size=13.5, color=NAVY, bold=True, margin=0)
-    _add_text(slide, "for each tissue", 10.82, 4.15, 1.55, 0.24, size=11, color=GRAY, margin=0)
+    _add_arrow(slide, 9.98, 3.67, 0.31, 0.28, MID_GRAY)
+    _add_panel(slide, 10.49, 3.30, 2.00, 1.14, fill=PALE_BLUE, line="D4E2EC", radius=False)
+    _add_text(slide, "OUTPUT", 10.68, 3.47, 1.63, 0.18, size=9.2, color=BLUE, bold=True, margin=0)
+    _add_text(
+        slide,
+        "Tissue-specific\ngenes and pathways",
+        10.68,
+        3.75,
+        1.63,
+        0.54,
+        size=12.2,
+        color=NAVY,
+        bold=True,
+        margin=0,
+    )
 
     _add_rule(slide, 0.60, 5.12, 12.08, TEAL, 0.035)
     _add_text(slide, "Model choice", 0.62, 5.43, 1.55, 0.30, size=16.5, color=TEAL, bold=True, margin=0)
