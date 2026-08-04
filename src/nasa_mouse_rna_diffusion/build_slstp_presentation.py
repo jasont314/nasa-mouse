@@ -691,25 +691,25 @@ def _slide_4(slide, architecture_figure: Path):
         "DDIM had lower separability and distributional distance",
         "Both generators matched expression. DDIM was harder to distinguish from real profiles and had higher F1.",
     )
-    _add_text(slide, "Architecture from Lacan et al.", 0.52, 2.08, 3.92, 0.32, size=16.5, color=NAVY, bold=True)
+    _add_text(slide, "Architecture from Lacan et al.", 0.52, 2.08, 6.02, 0.32, size=16.5, color=NAVY, bold=True)
     _add_picture_contain(
         slide,
         architecture_figure,
-        0.48,
+        0.38,
         2.45,
-        4.02,
-        2.42,
+        6.32,
+        2.36,
         alt="Lacan et al. Figure 1C residual diffusion generator architecture",
     )
-    _add_text(slide, "Residual dense denoiser conditioned on timestep and tissue.", 0.56, 4.93, 3.86, 0.28, size=10.8, color=DARK, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "OSDR adaptation adds FLT/GC, accession and material context through LoRA.", 0.56, 5.28, 3.86, 0.38, size=10.1, color=GRAY, align=PP_ALIGN.CENTER)
+    _add_text(slide, "Residual dense denoiser conditioned on timestep and tissue.", 0.56, 4.89, 5.96, 0.28, size=11.3, color=DARK, bold=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "OSDR adaptation adds FLT/GC, accession and material context through LoRA.", 0.56, 5.23, 5.96, 0.34, size=10.6, color=GRAY, align=PP_ALIGN.CENTER)
 
-    _add_rule(slide, 4.63, 2.05, 0.015, "D5DDE2", 3.75)
-    _add_text(slide, "Metric", 4.92, 2.17, 2.10, 0.28, size=11.5, color=GRAY, bold=True)
-    _add_text(slide, "WGAN-GP", 7.35, 2.17, 1.30, 0.28, size=11.5, color=CORAL, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "DDIM", 9.09, 2.17, 1.30, 0.28, size=11.5, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "How to read it", 10.76, 2.17, 1.78, 0.28, size=11.5, color=GRAY, bold=True)
-    _add_rule(slide, 4.92, 2.56, 7.72, NAVY, 0.022)
+    _add_rule(slide, 6.87, 2.05, 0.015, "D5DDE2", 4.32)
+    _add_text(slide, "Metric", 7.15, 2.17, 1.70, 0.28, size=10.5, color=GRAY, bold=True)
+    _add_text(slide, "WGAN-GP", 8.93, 2.17, 1.05, 0.28, size=10.5, color=CORAL, bold=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "DDIM", 10.13, 2.17, 0.88, 0.28, size=10.5, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "Read", 11.18, 2.17, 1.35, 0.28, size=10.5, color=GRAY, bold=True)
+    _add_rule(slide, 7.15, 2.56, 5.45, NAVY, 0.022)
     metrics = [
         ("Correlation", "0.976", "0.974", "similar"),
         ("F1", "0.985", "0.997", "higher"),
@@ -717,22 +717,24 @@ def _slide_4(slide, architecture_figure: Path):
         ("FD / real P95", "0.144", "0.074", "lower"),
     ]
     for index, (label, wgan, ddim, reading) in enumerate(metrics):
-        y = 2.82 + index * 0.64
+        y = 2.80 + index * 0.59
         if index % 2 == 0:
-            shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(4.90), Inches(y - 0.08), Inches(7.75), Inches(0.54))
+            shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(7.13), Inches(y - 0.07), Inches(5.49), Inches(0.50))
             _set_fill(shape, "F5F7F8")
             shape.line.fill.background()
-        _add_text(slide, label, 4.99, y, 2.10, 0.34, size=13.5, color=DARK, bold=index >= 2)
-        _add_text(slide, wgan, 7.31, y, 1.38, 0.34, size=15.5, color=CORAL, bold=True, align=PP_ALIGN.CENTER)
-        _add_text(slide, ddim, 9.05, y, 1.38, 0.34, size=15.5, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
-        _add_text(slide, reading, 10.78, y, 1.62, 0.34, size=13.0, color=GRAY)
+        _add_text(slide, label, 7.22, y, 1.63, 0.32, size=11.2, color=DARK, bold=index >= 2)
+        _add_text(slide, wgan, 8.93, y, 1.05, 0.32, size=13.3, color=CORAL, bold=True, align=PP_ALIGN.CENTER)
+        _add_text(slide, ddim, 10.12, y, 0.88, 0.32, size=13.3, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
+        _add_text(slide, reading, 11.18, y, 1.35, 0.32, size=10.7, color=GRAY)
 
-    _add_text(slide, "ARCHS4 tissue probe", 0.55, 5.94, 1.60, 0.24, size=10.0, color=BLUE, bold=True, margin=0)
-    _add_text(slide, "Real 0.781  |  Synthetic 0.781", 2.05, 5.92, 2.44, 0.27, size=10.0, color=DARK, align=PP_ALIGN.RIGHT, margin=0)
-    _add_rule(slide, 4.92, 5.76, 0.055, TEAL, 0.74)
-    _add_text(slide, "Use DDIM", 5.18, 5.86, 1.48, 0.31, size=17, color=NAVY, bold=True, margin=0)
-    _add_text(slide, "Comparable correlation, higher F1, and lower separability and FD.", 6.86, 5.85, 5.56, 0.32, size=13.3, color=DARK, margin=0)
-    _add_text(slide, "AA near 0.5 means real and generated profiles are difficult to separate.", 5.18, 6.28, 7.24, 0.25, size=10.7, color=GRAY, margin=0)
+    _add_rule(slide, 0.55, 5.70, 6.03, "D5DDE2", 0.015)
+    _add_text(slide, "ARCHS4 tissue probe", 0.55, 5.88, 1.75, 0.24, size=10.4, color=BLUE, bold=True, margin=0)
+    _add_text(slide, "Real 0.781  |  Synthetic 0.781", 3.40, 5.86, 3.12, 0.27, size=10.4, color=DARK, align=PP_ALIGN.RIGHT, margin=0)
+    _add_text(slide, "Balanced accuracy is preserved in generated tissue labels.", 0.55, 6.21, 5.97, 0.25, size=9.7, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+    _add_rule(slide, 7.15, 5.36, 0.055, TEAL, 0.78)
+    _add_text(slide, "Use DDIM", 7.40, 5.40, 1.42, 0.31, size=16, color=NAVY, bold=True, margin=0)
+    _add_text(slide, "Higher F1 with lower separability and FD.", 8.91, 5.38, 3.62, 0.47, size=11.8, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
+    _add_text(slide, "AA near 0.5 means real and generated profiles are difficult to separate.", 7.40, 5.97, 5.10, 0.40, size=9.8, color=GRAY, margin=0)
     _add_source(slide, "Architecture excerpt: Lacan et al. (2026), Fig. 1C, doi:10.1186/s12859-026-06470-8. Metrics use each model's stated split and are not paired.")
 
 
@@ -1320,7 +1322,7 @@ def _slide_12(slide):
         slide,
         "Thymus",
         "Thymus points to lower proliferative renewal",
-        "The core panel recovers cell-cycle biology; two flight-higher genes extend the hypothesis.",
+        "The cell-cycle program persisted without material conditioning; two FLT-higher genes extend the hypothesis.",
     )
     figure = PAPER_DIR / "figures/figure_3_thymus_biology.png"
     _add_picture_contain(slide, figure, 0.35, 1.93, 8.55, 4.78, alt="Thymus gene effects and Reactome processes")
@@ -1351,7 +1353,7 @@ def _slide_13(slide):
         slide,
         "Soleus",
         "Soleus reinforces a mitochondrial and lipid program",
-        "This result strengthens an existing real-data pattern rather than promoting a new soleus gene.",
+        "The real-data program is coherent, but its synthetic reinforcement required explicit material conditioning.",
     )
     figure = PAPER_DIR / "figures/figure_4_soleus_biology.png"
     _add_picture_contain(slide, figure, 0.34, 1.96, 9.15, 4.70, alt="Soleus gene effects and Reactome processes")
@@ -1495,7 +1497,7 @@ def _slide_15(slide):
     columns = [
         (0.42, "1", "Generate", "Conditional DDIM produced high-fidelity profiles with near-chance real-versus-synthetic separation.", BLUE, PALE_BLUE),
         (4.44, "2", "Use", "Pooled augmentation failed. Tissue-specific ranking and low-weight training were more useful.", TEAL, PALE_TEAL),
-        (8.46, "3", "Interpret", "Thymus and soleus were clearest. Literature review separated recovery from complementary hypotheses.", ORANGE, PALE_GOLD),
+        (8.46, "3", "Interpret", "Thymus was robust to material ablation; soleus was conditioning-sensitive. Literature review separated recovery from extension.", ORANGE, PALE_GOLD),
     ]
     for index, (x, number, heading, body, color, _fill) in enumerate(columns):
         if index:
@@ -1608,8 +1610,8 @@ def build() -> Path:
         SlideNote(10, "Selection and literature are separate dimensions", "0:55", "Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. Table S16 records the gene-level rationale, evidence scope and source IDs; Table S17 records citations, DOI or URL and whether the evidence is independent, overlapping or mechanistic context."),
         SlideNote(11, "The screen covered all 27 completed tissue analyses", "0:45", "This is the full analysis coverage: 22 canonical tissues and five anatomical muscle groups. Ten had a synthetic-informed BH-FDR association, five had real BH-FDR genes without synthetic-informed selection, and 12 had no BH-FDR gene in the landmark panel. The discussion focuses later, but every completed tissue result remains visible here."),
         SlideNote(12, "Ten tissue analyses contained synthetic-informed genes", "0:45", "This is the complete 49-association inventory. Separate rows show FLT-higher or FLT-lower direction and promoted or reinforced selection status. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT directions come from real-data meta-analysis."),
-        SlideNote(13, "Thymus points to lower proliferative renewal", "1:10", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
-        SlideNote(14, "Soleus reinforces a mitochondrial and lipid program", "1:00", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. The literature is mixed for Bnip3 and Tpm1, which is recorded explicitly."),
+        SlideNote(13, "Thymus points to lower proliferative renewal", "1:10", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. A matched sensitivity model without material-type conditioning preserved the cell-cycle interpretation, so the process-level result did not depend on that label. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
+        SlideNote(14, "Soleus reinforces a mitochondrial and lipid program", "1:00", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. In the matched no-material sensitivity model, soleus selected the real-only arm and the synthetic attribution disappeared. The real OSDR association remains, but the contribution attributed to generated profiles is conditioning-sensitive."),
         SlideNote(15, "Additional tissues produced distinct hypotheses", "0:40", "Promoted and reinforced genes are shown on separate subrows for each tissue. Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. The rows share a slide for presentation space; each remains a separate hypothesis. Pooled muscle is heterogeneous, kidney suggests phosphoinositide and glucose handling, spleen suggests adhesion and extracellular-matrix or immune organization, and skin contributes a single interferon-linked candidate."),
         SlideNote(16, "Eye, adrenal and muscle-group results remain tissue-specific", "0:40", "Promoted and reinforced genes remain separated here as well. Eye reinforces lower cytokinesis, adrenal contributes two unmatched candidates, gastrocnemius combines an NF-kappa-B stress signal with an autophagy or myogenesis candidate, and tibialis anterior spans stress, cell-cycle, ganglioside and mitophagy hypotheses."),
         SlideNote(17, "Synthetic data worked best as a tissue-specific prior", "0:40", "Synthetic data was useful for tissue-specific feature ranking and limited regularization. It did not increase biological sample size. Literature annotation separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests."),

@@ -52,11 +52,11 @@ This is the complete 49-association inventory. Separate rows show FLT-higher or 
 
 ## 13. Thymus points to lower proliferative renewal (1:10)
 
-Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both.
+Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. A matched sensitivity model without material-type conditioning preserved the cell-cycle interpretation, so the process-level result did not depend on that label. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both.
 
 ## 14. Soleus reinforces a mitochondrial and lipid program (1:00)
 
-Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. The literature is mixed for Bnip3 and Tpm1, which is recorded explicitly.
+Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. In the matched no-material sensitivity model, soleus selected the real-only arm and the synthetic attribution disappeared. The real OSDR association remains, but the contribution attributed to generated profiles is conditioning-sensitive.
 
 ## 15. Additional tissues produced distinct hypotheses (0:40)
 
