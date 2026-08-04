@@ -38,9 +38,9 @@ Circles are locked real OSDR profiles and crosses are matched DDIM profiles in t
 
 Each arm makes two decisions: which profiles rank the genes and which profiles fit the classifier. In both guided arms, real and synthetic evidence jointly rank genes. Guided real fit then trains only on observed profiles. Guided 5% also uses condition-recentered synthetic profiles, but they contribute only 5% of total classifier weight. Held-out real profiles determine eligibility, and FLT/GC effects and BH FDR come from observed OSDR profiles only.
 
-## 10. Consensus ranking combines real and generated evidence (0:45)
+## 10. Synthetic guidance keeps genes supported by both datasets (0:45)
 
-Each gene receives a real FLT/GC score and a generated score summarized across draws. We convert both to percentile ranks and take their geometric mean, so a gene ranks highly only when both sources support it. The effect-based version also rewards matching direction and stability across accessions and generated draws. The classifier sketches are schematic: changing the selected genes can move the boundary, and the low-weight arm can move it further. The thymus bars are observed results: Nusap1 and Cdk1 reached 100 percent stability with guidance, while Ube2c and Gmnn were reinforced. Real held-out profiles choose the arm, and real OSDR data supply the effect and FDR.
+Think of consensus ranking as two leaderboards over the same 974 genes. Real OSDR profiles rank genes by FLT versus GC separation. The generated profiles rank those genes again in each matched draw, and the middle generated position is used so one unusual draw cannot dominate. Genes near the top of both lists move up; a gene supported by only one source is held back. The geometric mean of the two rank positions implements that rule, while the effect-based version also checks direction and stability. The classifier panels show the consequence: the held-out real samples are the same, but changing the selected genes changes their feature space and decision boundary. In thymus, Cdk1 and Nusap1 went from zero of eight real-only selections to eight of eight guided selections. Effects and BH FDR still come from observed OSDR profiles.
 
 ## 11. Pooling tissues hid useful signal (0:50)
 
