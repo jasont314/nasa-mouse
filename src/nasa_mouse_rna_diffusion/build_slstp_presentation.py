@@ -1078,7 +1078,7 @@ def _slide_guidance_mechanism(slide):
     _add_text(slide, "Rank all 974 genes using real OSDR", 0.72, 2.61, 3.02, 0.23, size=10.4, color=DARK, margin=0)
     _add_text(slide, "lower-ranked", 1.59, 2.96, 0.82, 0.18, size=8.5, color=GRAY, margin=0)
     _add_text(slide, "top-ranked", 3.02, 2.96, 0.72, 0.18, size=8.5, color=GRAY, align=PP_ALIGN.RIGHT, margin=0)
-    example_genes = ["Gene 1", "Gene 2", "Gene 3", "Gene 4", "Gene n"]
+    example_genes = ["Gene 1", "Gene 2", "Gene 3", "Gene 4", "Gene 5"]
     real_positions = [0.90, 0.82, 0.72, 0.56, 0.35]
     for index, (gene, position) in enumerate(zip(example_genes, real_positions)):
         add_rank_track(0.72, 3.18 + index * 0.25, gene, position, BLUE)
@@ -1103,7 +1103,7 @@ def _slide_guidance_mechanism(slide):
         ("Gene 2", 0.61, MID_GRAY, "not selected"),
         ("Gene 3", 0.79, TEAL, "selected"),
         ("Gene 4", 0.62, MID_GRAY, "not selected"),
-        ("Gene n", 0.33, MID_GRAY, "not selected"),
+        ("Gene 5", 0.33, MID_GRAY, "not selected"),
     ]
     for index, (gene, position, color, outcome) in enumerate(shared_rows):
         y = 3.18 + index * 0.25
@@ -1136,69 +1136,79 @@ def _slide_guidance_boundary(slide):
     _add_slide_title(
         slide,
         "Analysis",
-        "Synthetic guidance shifts the FLT-GC decision boundary",
-        "The same held-out real samples are shown in both panels; guidance changes the selected genes and fitted boundary.",
+        "Held-out real samples decide whether guidance helps",
+        "Opaque profiles train the classifier; transparent profiles are used only to score generalization.",
     )
 
+    def add_point(x: float, y: float, color: str, *, held_out: bool):
+        if not held_out:
+            _add_circle(slide, x, y, 0.17, color)
+            return
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.OVAL,
+            Inches(x),
+            Inches(y),
+            Inches(0.20),
+            Inches(0.20),
+        )
+        _set_fill(shape, color, transparency=58)
+        _set_line(shape, color, 1.2)
+
     def add_scatter(x: float, y: float, *, guided: bool):
-        plot_w = 4.28
+        plot_w = 4.35
         plot_h = 1.95
         _add_rule(slide, x, y + plot_h, plot_w, MID_GRAY, 0.022)
         _add_rule(slide, x, y, 0.022, MID_GRAY, plot_h + 0.02)
-        flight = [(0.41, 0.28), (0.86, 0.91), (1.43, 1.38), (1.92, 0.50), (2.39, 1.19), (2.78, 0.31), (1.16, 1.67)]
-        ground = [(1.08, 0.35), (1.62, 1.08), (2.15, 0.61), (2.88, 1.48), (3.54, 0.43), (2.55, 1.76), (3.71, 1.22)]
-        for px, py in flight:
-            _add_circle(slide, x + px, y + py, 0.17, CORAL)
-        for px, py in ground:
-            _add_circle(slide, x + px, y + py, 0.17, BLUE)
+        train_flight = [(0.42, 0.34), (0.75, 1.27), (1.07, 0.78), (1.37, 1.66), (1.58, 0.43)]
+        train_ground = [(2.58, 0.36), (2.88, 1.28), (3.19, 0.76), (3.55, 1.65), (3.88, 0.46)]
+        held_flight = [(1.84, 0.86), (2.03, 1.42)]
+        held_ground = [(2.29, 0.59), (2.48, 1.55)]
+        for px, py in train_flight:
+            add_point(x + px, y + py, CORAL, held_out=False)
+        for px, py in train_ground:
+            add_point(x + px, y + py, BLUE, held_out=False)
+        for px, py in held_flight:
+            add_point(x + px, y + py, CORAL, held_out=True)
+        for px, py in held_ground:
+            add_point(x + px, y + py, BLUE, held_out=True)
         if guided:
-            boundary = _add_rule(slide, x + 2.28, y + 0.12, 0.045, TEAL, 1.66)
-            boundary.rotation = -12
+            boundary = _add_rule(slide, x + 2.15, y + 0.12, 0.045, TEAL, 1.66)
         else:
-            boundary = _add_rule(slide, x + 2.20, y + 0.12, 0.035, GRAY, 1.66)
-            boundary.rotation = 8
+            boundary = _add_rule(slide, x + 1.70, y + 0.12, 0.035, GRAY, 1.66)
+        _add_text(slide, "predicted FLT", x + 0.10, y + 2.04, 1.02, 0.18, size=8.4, color=CORAL, margin=0)
+        _add_text(slide, "predicted GC", x + 3.19, y + 2.04, 1.02, 0.18, size=8.4, color=BLUE, align=PP_ALIGN.RIGHT, margin=0)
 
-    _add_circle(slide, 10.49, 1.95, 0.13, CORAL)
-    _add_text(slide, "FLT", 10.68, 1.91, 0.40, 0.22, size=9.5, color=GRAY, margin=0)
-    _add_circle(slide, 11.20, 1.95, 0.13, BLUE)
-    _add_text(slide, "GC", 11.39, 1.91, 0.38, 0.22, size=9.5, color=GRAY, margin=0)
-    _add_text(slide, "REAL-ONLY CLASSIFIER", 0.89, 2.22, 4.28, 0.27, size=13.0, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "SYNTHETIC-GUIDED CLASSIFIER", 7.04, 2.22, 4.28, 0.27, size=13.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    add_scatter(0.89, 2.63, guided=False)
-    add_scatter(7.04, 2.63, guided=True)
-    _add_arrow(slide, 5.52, 3.24, 0.70, 0.39, MID_GRAY)
-    _add_text(slide, "guided model", 5.26, 3.74, 1.22, 0.22, size=9.5, color=GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "Dots are held fixed to isolate the boundary change", 0.89, 4.73, 10.43, 0.25, size=11.0, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_circle(slide, 8.79, 1.96, 0.13, CORAL)
+    _add_text(slide, "FLT", 8.98, 1.92, 0.36, 0.21, size=9.2, color=GRAY, margin=0)
+    _add_circle(slide, 9.50, 1.96, 0.13, BLUE)
+    _add_text(slide, "GC", 9.69, 1.92, 0.34, 0.21, size=9.2, color=GRAY, margin=0)
+    _add_circle(slide, 10.30, 1.96, 0.13, MID_GRAY)
+    _add_text(slide, "training", 10.49, 1.92, 0.62, 0.21, size=9.2, color=GRAY, margin=0)
+    held_legend = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(11.28), Inches(1.94), Inches(0.16), Inches(0.16))
+    _set_fill(held_legend, MID_GRAY, transparency=58)
+    _set_line(held_legend, MID_GRAY, 1.0)
+    _add_text(slide, "held-out", 11.52, 1.92, 0.72, 0.21, size=9.2, color=GRAY, margin=0)
 
-    _add_panel(slide, 0.57, 5.10, 12.08, 1.00, fill="F5F7F8", line="D5DDE2", radius=False)
-    _add_text(slide, "Thymus result", 0.82, 5.26, 1.82, 0.25, size=13.2, color=NAVY, bold=True, margin=0)
-    _add_text(slide, "8 repeated splits", 0.82, 5.57, 1.82, 0.20, size=9.2, color=GRAY, margin=0)
-    for row_index, gene in enumerate(("Cdk1", "Nusap1")):
-        y = 5.29 + row_index * 0.36
-        _add_text(slide, gene, 3.15, y - 0.04, 0.82, 0.21, size=10.8, color=NAVY, bold=True, margin=0)
-        _add_text(slide, "real only", 4.02, y - 0.04, 0.66, 0.20, size=8.2, color=BLUE, bold=True, margin=0)
-        for dot_index in range(8):
-            empty = slide.shapes.add_shape(
-                MSO_SHAPE.OVAL,
-                Inches(4.75 + dot_index * 0.17),
-                Inches(y),
-                Inches(0.10),
-                Inches(0.10),
-            )
-            _set_fill(empty, WHITE)
-            _set_line(empty, BLUE, 0.7)
-        _add_text(slide, "0/8", 6.14, y - 0.04, 0.38, 0.20, size=8.6, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-        _add_arrow(slide, 6.63, y - 0.005, 0.28, 0.14, MID_GRAY)
-        _add_text(slide, "guided", 7.04, y - 0.04, 0.57, 0.20, size=8.2, color=TEAL, bold=True, margin=0)
-        for dot_index in range(8):
-            _add_circle(slide, 7.69 + dot_index * 0.17, y, 0.10, TEAL)
-        _add_text(slide, "8/8", 9.08, y - 0.04, 0.38, 0.20, size=8.6, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "Cdk1 and Nusap1 crossed the stability rule only with guidance.", 9.72, 5.31, 2.50, 0.46, size=10.2, color=DARK, bold=True, valign=MSO_ANCHOR.MIDDLE, margin=0)
+    _add_text(slide, "REAL-ONLY CLASSIFIER", 0.78, 2.22, 4.35, 0.27, size=13.0, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "SYNTHETIC-GUIDED CANDIDATE", 7.10, 2.22, 4.35, 0.27, size=13.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    add_scatter(0.78, 2.56, guided=False)
+    add_scatter(7.10, 2.56, guided=True)
+    _add_arrow(slide, 5.53, 3.20, 0.72, 0.40, MID_GRAY)
+    _add_text(slide, "same held-out profiles", 5.20, 3.73, 1.38, 0.37, size=9.4, color=GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
 
-    _add_panel(slide, 0.47, 6.22, 12.20, 0.61, fill=NAVY, line=NAVY, radius=False)
-    _add_text(slide, "Synthetic profiles change feature priority, not biological sample size.", 0.70, 6.34, 5.76, 0.33, size=11.8, color=WHITE, bold=True, valign=MSO_ANCHOR.MIDDLE, margin=0)
-    _add_text(slide, "FLT-GC effects and BH FDR still use observed OSDR profiles.", 6.70, 6.34, 5.57, 0.33, size=11.5, color="DCE7F2", align=PP_ALIGN.RIGHT, valign=MSO_ANCHOR.MIDDLE, margin=0)
-    _add_source(slide, "Common 2D classifier view is schematic; underlying models use different selected genes. Thymus counts are observed results from Table S10.")
+    _add_panel(slide, 0.57, 5.10, 12.08, 1.25, fill="F5F7F8", line="D5DDE2", radius=False)
+    _add_text(slide, "Compare on held-out real profiles", 0.84, 5.31, 2.42, 0.28, size=13.0, color=NAVY, bold=True, margin=0)
+    _add_text(slide, "Balanced accuracy", 3.47, 5.30, 1.32, 0.24, size=10.3, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_rule(slide, 4.91, 5.28, 0.015, "D1D9DE", 0.35)
+    _add_text(slide, "AUROC", 5.12, 5.30, 0.80, 0.24, size=10.3, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_rule(slide, 6.10, 5.28, 0.015, "D1D9DE", 0.35)
+    _add_text(slide, "Average precision", 6.31, 5.30, 1.34, 0.24, size=10.3, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_arrow(slide, 7.94, 5.32, 0.34, 0.20, MID_GRAY)
+    _add_text(slide, "Retain the better eligible arm for that tissue", 8.55, 5.25, 3.68, 0.36, size=12.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE, margin=0)
+    _add_rule(slide, 0.84, 5.77, 11.38, "D9E0E4", 0.015)
+    _add_text(slide, "Held-out profiles never enter gene ranking, classifier fitting, or k selection.", 0.84, 5.92, 11.38, 0.24, size=10.3, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
+
+    _add_source(slide, "Schematic nested evaluation. Observed tissue-specific held-out results follow on the next slide.")
 
 
 def _slide_8(slide, utility_chart: Path):
@@ -1927,20 +1937,16 @@ def _slide_15(slide):
     )
     columns = [
         (0.42, "1", "Generate", "Conditional DDIM produced high-fidelity profiles with near-chance real-versus-synthetic separation.", BLUE, PALE_BLUE),
-        (4.44, "2", "Use", "Pooled augmentation failed. Tissue-specific ranking and low-weight training were more useful.", TEAL, PALE_TEAL),
-        (8.46, "3", "Interpret", "Thymus was robust to material ablation; soleus was conditioning-sensitive. Literature review separated recovery from extension.", ORANGE, PALE_GOLD),
+        (4.44, "2", "Use", "Tissue-specific consensus ranking and light synthetic regularization improved held-out prediction in selected tissues.", TEAL, PALE_TEAL),
+        (8.46, "3", "Interpret", "Promoted and reinforced genes supported tissue-specific hypotheses. Literature review separated prior alignment from complementary findings.", ORANGE, PALE_GOLD),
     ]
     for index, (x, number, heading, body, color, _fill) in enumerate(columns):
         if index:
-            _add_rule(slide, x - 0.20, 2.10, 0.012, "D8DFE3", 2.63)
+            _add_rule(slide, x - 0.20, 2.10, 0.012, "D8DFE3", 3.53)
         _add_rule(slide, x, 2.10, 3.55, color, 0.035)
         _add_text(slide, f"0{number}", x + 0.02, 2.33, 0.68, 0.40, size=21, color=color, bold=True, margin=0)
         _add_text(slide, heading, x + 0.86, 2.35, 2.46, 0.36, size=19, color=NAVY, bold=True, margin=0)
-        _add_text(slide, body, x + 0.03, 3.12, 3.28, 1.30, size=15, color=DARK, margin=0)
-    _add_rule(slide, 0.45, 5.12, 12.00, ORANGE, 0.035)
-    _add_text(slide, "Next test", 0.48, 5.39, 1.38, 0.34, size=17, color=ORANGE, bold=True, margin=0)
-    _add_text(slide, "Use independent samples and cell-resolved assays to test thymus proliferation, soleus metabolism and prioritized candidates from additional tissues.", 2.00, 5.29, 10.12, 0.62, size=16, color=NAVY, valign=MSO_ANCHOR.MIDDLE, margin=0)
-    _add_text(slide, "Generated profiles never enter the biological sample count or the BH-FDR test.", 2.00, 6.00, 10.12, 0.28, size=12.5, color=GRAY, margin=0)
+        _add_text(slide, body, x + 0.03, 3.12, 3.28, 2.10, size=16, color=DARK, margin=0)
 
 
 def _slide_16(slide):
@@ -2043,7 +2049,7 @@ def build() -> Path:
         SlideNote(8, "Generated profiles track the real OSDR PCA manifold", "0:40", "Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. Generated samples follow the tissue-defined branches. FLT and GC overlap more because condition effects are smaller than tissue effects. The numerical validation on the previous slide tests fidelity directly."),
         SlideNote(9, "Five arms separate gene ranking from classifier fitting", "0:50", "Each arm makes two decisions: which profiles rank the genes and which profiles fit the classifier. In both guided arms, real and synthetic evidence jointly rank genes. Guided real fit then trains only on observed profiles. Guided 5% also uses condition-recentered synthetic profiles, but they contribute only 5% of total classifier weight. Held-out real profiles determine eligibility, and FLT/GC effects and BH FDR come from observed OSDR profiles only."),
         SlideNote(10, "Consensus ranking chooses the classifier input genes", "0:35", "Each ranking orders the same 974 genes. Real-only, generated-only and consensus ranking can therefore produce different candidate gene sets. For each ranking, we test the top 10, 25, 50 and 100 genes, and held-out validation chooses the feature count and regularization. Logistic regression is then fitted using only those selected gene-expression columns. Ranking chooses which genes are available to the classifier; classifier training separately learns their coefficients and decision boundary."),
-        SlideNote(11, "Synthetic guidance shifts the FLT-GC decision boundary", "0:25", "The same held-out real samples appear in both schematic panels, so the dots are fixed and only the boundary changes. Under the hood, consensus ranking changes which genes enter the model, and the guided arm may also use low-weight generated profiles during fitting. In thymus, Cdk1 and Nusap1 went from zero of eight real-only selections to eight of eight guided selections. Effects and BH FDR still come from observed OSDR profiles."),
+        SlideNote(11, "Held-out real samples decide whether guidance helps", "0:25", "Opaque profiles belong to the training subset. Transparent profiles are held-out real OSDR samples that never enter gene ranking, classifier fitting or top-k selection. The same held-out profiles are scored by the real-only and synthetic-guided candidates. This schematic shows the intended outcome: a guided boundary that predicts more held-out labels correctly. Balanced accuracy, AUROC and average precision determine whether a synthetic arm is eligible for that tissue; the observed tissue-specific results follow on the next slide."),
         SlideNote(12, "Pooling tissues hid useful signal", "0:50", "The pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
         SlideNote(13, "Synthetic guidance changed ranking, not statistical evidence", "0:45", "The blue set contains genes selected stably by real-only ranking, and the teal set contains genes selected stably by the eligible synthetic-guided arm. Thirty-four were real-only, 23 were selected by both arms and classified as reinforced, and 26 were selected only with guidance and classified as promoted. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations passed BH FDR in observed OSDR profiles."),
         SlideNote(14, "Selection and literature are separate dimensions", "0:50", "Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. Table S16 records the gene-level rationale and source IDs; Table S17 records the citations and evidence relationship."),
@@ -2053,7 +2059,7 @@ def build() -> Path:
         SlideNote(18, "Soleus reinforces a mitochondrial and lipid program", "0:55", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. In the no-material sensitivity model, the synthetic attribution disappeared. The real OSDR association remains, but the generated-profile contribution is conditioning-sensitive."),
         SlideNote(19, "Additional tissues produced distinct hypotheses", "0:35", "Promoted and reinforced genes are shown on separate subrows for each tissue. Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. The rows share a slide for presentation space; each remains a separate hypothesis."),
         SlideNote(20, "Eye, adrenal and muscle-group results remain tissue-specific", "0:35", "Promoted and reinforced genes remain separated here as well. Eye reinforces lower cytokinesis, adrenal contributes two unmatched candidates, gastrocnemius combines an NF-kappa-B stress signal with an autophagy or myogenesis candidate, and tibialis anterior spans stress, cell-cycle, ganglioside and mitophagy hypotheses."),
-        SlideNote(21, "Synthetic data worked best as a tissue-specific prior", "0:35", "Synthetic data was useful for tissue-specific feature ranking and limited regularization. It did not increase biological sample size. Literature annotation separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests."),
+        SlideNote(21, "Synthetic data worked best as a tissue-specific prior", "0:35", "Conditional DDIM generated realistic expression profiles. Tissue-specific consensus ranking and light synthetic regularization improved held-out prediction in selected tissues. Synthetic-informed selection prioritized promoted and reinforced genes, while literature annotation separated prior alignment from complementary hypotheses. Biological evidence and FDR remained grounded in observed OSDR profiles."),
         SlideNote(22, "Thank you", "0:10", "Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions."),
     ]
     for note, slide in zip(notes, presentation.slides):

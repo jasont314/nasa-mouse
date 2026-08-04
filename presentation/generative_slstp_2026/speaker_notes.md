@@ -42,9 +42,9 @@ Each arm makes two decisions: which profiles rank the genes and which profiles f
 
 Each ranking orders the same 974 genes. Real-only, generated-only and consensus ranking can therefore produce different candidate gene sets. For each ranking, we test the top 10, 25, 50 and 100 genes, and held-out validation chooses the feature count and regularization. Logistic regression is then fitted using only those selected gene-expression columns. Ranking chooses which genes are available to the classifier; classifier training separately learns their coefficients and decision boundary.
 
-## 11. Synthetic guidance shifts the FLT-GC decision boundary (0:25)
+## 11. Held-out real samples decide whether guidance helps (0:25)
 
-The same held-out real samples appear in both schematic panels, so the dots are fixed and only the boundary changes. Under the hood, consensus ranking changes which genes enter the model, and the guided arm may also use low-weight generated profiles during fitting. In thymus, Cdk1 and Nusap1 went from zero of eight real-only selections to eight of eight guided selections. Effects and BH FDR still come from observed OSDR profiles.
+Opaque profiles belong to the training subset. Transparent profiles are held-out real OSDR samples that never enter gene ranking, classifier fitting or top-k selection. The same held-out profiles are scored by the real-only and synthetic-guided candidates. This schematic shows the intended outcome: a guided boundary that predicts more held-out labels correctly. Balanced accuracy, AUROC and average precision determine whether a synthetic arm is eligible for that tissue; the observed tissue-specific results follow on the next slide.
 
 ## 12. Pooling tissues hid useful signal (0:50)
 
@@ -84,7 +84,7 @@ Promoted and reinforced genes remain separated here as well. Eye reinforces lowe
 
 ## 21. Synthetic data worked best as a tissue-specific prior (0:35)
 
-Synthetic data was useful for tissue-specific feature ranking and limited regularization. It did not increase biological sample size. Literature annotation separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests.
+Conditional DDIM generated realistic expression profiles. Tissue-specific consensus ranking and light synthetic regularization improved held-out prediction in selected tissues. Synthetic-informed selection prioritized promoted and reinforced genes, while literature annotation separated prior alignment from complementary hypotheses. Biological evidence and FDR remained grounded in observed OSDR profiles.
 
 ## 22. Thank you (0:10)
 
