@@ -6,7 +6,7 @@ Target length: 12-15 minutes. Planned speaking time: about 14 minutes.
 
 Introduce the central question: can generated expression help us find tissue-specific FLT versus GC biology? Synthetic profiles support the analysis, but they do not count as additional animals.
 
-## 2. Synthetic transcriptomics creates model-generated expression profiles (0:40)
+## 2. What is synthetic transcriptomics? (0:40)
 
 Synthetic transcriptomes are numeric gene-expression vectors sampled from a model trained on measured RNA-seq data. Conditioning lets us request a tissue and FLT or GC context. These profiles can stress-test a classifier and guide gene ranking. They do not add biological replicates or independent evidence.
 

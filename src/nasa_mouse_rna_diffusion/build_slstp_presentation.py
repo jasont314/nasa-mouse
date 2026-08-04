@@ -471,7 +471,7 @@ def _slide_why_synthetic(slide):
     _add_slide_title(
         slide,
         "Background",
-        "Synthetic transcriptomics creates model-generated expression profiles",
+        "What is synthetic transcriptomics?",
         "A generator learns patterns in measured RNA-seq data, then samples new expression vectors under chosen conditions.",
     )
 
@@ -1887,7 +1887,7 @@ def build() -> Path:
 
     notes = [
         SlideNote(1, "Synthetic transcriptomics for mouse spaceflight", "0:20", "Introduce the central question: can generated expression help us find tissue-specific FLT versus GC biology? Synthetic profiles support the analysis, but they do not count as additional animals."),
-        SlideNote(2, "Synthetic transcriptomics creates model-generated expression profiles", "0:40", "Synthetic transcriptomes are numeric gene-expression vectors sampled from a model trained on measured RNA-seq data. Conditioning lets us request a tissue and FLT or GC context. These profiles can stress-test a classifier and guide gene ranking. They do not add biological replicates or independent evidence."),
+        SlideNote(2, "What is synthetic transcriptomics?", "0:40", "Synthetic transcriptomes are numeric gene-expression vectors sampled from a model trained on measured RNA-seq data. Conditioning lets us request a tissue and FLT or GC context. These profiles can stress-test a classifier and guide gene ranking. They do not add biological replicates or independent evidence."),
         SlideNote(3, "Small studies and study effects complicate tissue comparisons", "0:45", "OSDR gives broad tissue coverage, but the profiles are spread across 75 accessions with different mission and assay contexts. ARCHS4 supplies a much larger mouse reference. The challenge is to use that reference without confusing study structure with spaceflight biology."),
         SlideNote(4, "Match tissue distributions, then test FLT versus GC biology", "0:45", "The generator has two jobs. First, synthetic bulk RNA-seq should reproduce the tissue-defined distributions seen in real data. Second, it should preserve the smaller FLT versus GC signal within each tissue and improve prediction on held-out real samples. Gene effects and BH FDR are always calculated from observed OSDR profiles."),
         SlideNote(5, "We built a configurable bulk RNA-seq generation pipeline", "1:00", "Each column shows the alternatives available at one pipeline stage; outlines identify the downstream branch. We used ARCHS4 and NASA OSDR across multiple studies and all tissues. The selected path used TPM, training-fitted MaxAbs scaling, 974 mouse landmarks, no global correction, ARCHS4 pretraining plus OSDR adaptation, and a DDIM conditioned on tissue, FLT/GC, accession and material. WGAN-GP and the other preprocessing and harmonization choices remained benchmark alternatives."),
