@@ -26,9 +26,9 @@ Read the panels from left to right. The same generated profiles begin as noise, 
 
 Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. Generated samples track the tissue-defined branches. FLT and GC remain more interspersed because condition effects are smaller than tissue effects. Visual overlap complements the quantitative validation.
 
-## 7. Synthetic profiles entered the analysis in five different ways (0:55)
+## 7. Five arms separate gene ranking from classifier fitting (0:55)
 
-Synthetic data can be used for direct training, mixed training or feature guidance. Each tissue could choose among five arms. The eligibility check used held-out real profiles. Once features were nominated, FLT/GC effects and BH FDR were computed from observed OSDR samples only.
+Each arm makes two decisions: which profiles rank the genes and which profiles fit the classifier. In both guided arms, real and synthetic evidence jointly rank genes. Guided real fit then trains only on observed profiles. Guided 5% also uses condition-recentered synthetic profiles, but they contribute only 5% of total classifier weight. This is a weight, not a 5% increase in animal count. Held-out real profiles determine eligibility, and FLT/GC effects and BH FDR are computed from observed OSDR profiles only.
 
 ## 8. Pooling tissues hid useful signal (0:55)
 
@@ -36,7 +36,7 @@ The pooled augmentation test was negative: balanced accuracy fell from 0.754 to 
 
 ## 9. Synthetic guidance changed ranking, not statistical evidence (0:50)
 
-Reinforced genes were selected with and without synthetic guidance. Promoted genes crossed the stable-selection rule only with synthetic guidance. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations also had BH FDR below 0.05 in real data.
+The blue set contains genes selected stably by real-only ranking, and the teal set contains genes selected stably by the eligible synthetic-guided arm. Thirty-four were real-only, 23 were selected by both arms and classified as reinforced, and 26 were selected only with guidance and classified as promoted. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations passed BH FDR in observed OSDR profiles.
 
 ## 10. Selection and literature are separate dimensions (0:55)
 

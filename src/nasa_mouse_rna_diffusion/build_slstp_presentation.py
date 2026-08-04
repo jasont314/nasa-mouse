@@ -17,6 +17,7 @@ from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE, PP_PLACEHOLDER
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
+from pptx.oxml.xmlchemy import OxmlElement
 from pptx.util import Inches, Pt
 
 
@@ -67,7 +68,11 @@ def _set_fill(shape, color: str, transparency: int | None = None) -> None:
     shape.fill.solid()
     shape.fill.fore_color.rgb = _rgb(color)
     if transparency is not None:
-        shape.fill.transparency = transparency
+        color_nodes = shape._element.spPr.xpath("./a:solidFill/a:srgbClr")
+        if color_nodes:
+            alpha = OxmlElement("a:alpha")
+            alpha.set("val", str(int((100 - transparency) * 1000)))
+            color_nodes[0].append(alpha)
 
 
 def _set_line(shape, color: str, width: float = 1.0) -> None:
@@ -191,6 +196,24 @@ def _add_circle(slide, x: float, y: float, diameter: float, color: str):
     _set_fill(shape, color)
     shape.line.fill.background()
     return shape
+
+
+def _add_data_badge(slide, label: str, x: float, y: float, color: str, diameter: float = 0.24):
+    _add_circle(slide, x, y, diameter, color)
+    _add_text(
+        slide,
+        label,
+        x,
+        y + 0.005,
+        diameter,
+        diameter - 0.01,
+        size=8.2,
+        color=WHITE,
+        bold=True,
+        align=PP_ALIGN.CENTER,
+        valign=MSO_ANCHOR.MIDDLE,
+        margin=0,
+    )
 
 
 def _add_arrow(slide, x: float, y: float, w: float, h: float, color: str = MID_GRAY):
@@ -742,57 +765,78 @@ def _slide_7(slide):
     _add_slide_title(
         slide,
         "Analysis",
-        "Five analysis arms tested different uses of synthetic data",
-        "Held-out real profiles determined which arm, if any, was eligible within each tissue.",
+        "Five arms separate gene ranking from classifier fitting",
+        "Guided arms use synthetic profiles to help choose genes; they do not treat generated profiles as new animals.",
     )
-    _add_text(slide, "Inputs", 0.46, 2.02, 1.18, 0.23, size=9.2, color=GRAY, bold=True, margin=0)
-    _add_text(slide, "Real OSDR", 1.35, 2.00, 1.18, 0.25, size=11.5, color=BLUE, bold=True, margin=0)
-    _add_text(slide, "observed profiles", 2.38, 2.00, 1.40, 0.25, size=10.4, color=GRAY, margin=0)
-    _add_text(slide, "DDIM", 4.10, 2.00, 0.68, 0.25, size=11.5, color=CORAL, bold=True, margin=0)
-    _add_text(slide, "matched synthetic profiles", 4.78, 2.00, 2.05, 0.25, size=10.4, color=GRAY, margin=0)
+    _add_text(slide, "INPUTS", 0.47, 2.00, 0.66, 0.22, size=8.8, color=GRAY, bold=True, margin=0)
+    _add_data_badge(slide, "R", 1.20, 1.98, BLUE)
+    _add_text(slide, "real OSDR", 1.52, 1.98, 1.18, 0.24, size=10.8, color=BLUE, bold=True, margin=0)
+    _add_data_badge(slide, "S", 2.91, 1.98, CORAL)
+    _add_text(slide, "matched DDIM", 3.23, 1.98, 1.42, 0.24, size=10.8, color=CORAL, bold=True, margin=0)
+    _add_text(slide, "GUIDED", 6.10, 1.99, 0.70, 0.22, size=8.8, color=TEAL, bold=True, margin=0)
+    _add_text(slide, "R + S help rank genes", 6.85, 1.97, 2.05, 0.25, size=10.5, color=DARK, margin=0)
+    _add_text(slide, "5%", 9.41, 1.99, 0.38, 0.22, size=8.8, color=ORANGE, bold=True, margin=0)
+    _add_text(slide, "S carries 5% of total fit weight", 9.84, 1.97, 2.78, 0.25, size=10.5, color=DARK, margin=0)
 
-    stub_x = 0.46
-    table_x = 1.62
-    column_width = 2.22
     headers = [
-        ("Real only", BLUE),
-        ("Generated only", CORAL),
-        ("Real + generated", TEAL),
-        ("Guided, real fit", TEAL),
-        ("Guided, 5% synthetic", ORANGE),
+        ("ANALYSIS ARM", 0.66, 2.18),
+        ("GENE RANKING", 3.07, 2.90),
+        ("CLASSIFIER FIT", 6.43, 2.95),
+        ("WHAT IT TESTS", 9.82, 2.72),
     ]
-    for index, (heading, color) in enumerate(headers):
-        x = table_x + index * column_width
-        _add_rule(slide, x, 2.45, column_width - 0.10, color, 0.035)
-        _add_text(slide, heading, x + 0.04, 2.55, column_width - 0.18, 0.42, size=11.6, color=NAVY, bold=True, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE, margin=0)
+    for heading, x, width in headers:
+        _add_text(slide, heading, x, 2.38, width, 0.22, size=9.0, color=GRAY, bold=True, margin=0)
+    _add_rule(slide, 0.47, 2.64, 12.18, NAVY, 0.022)
 
-    rows = [
-        ("RANK", ["Real", "Generated", "Consensus", "Consensus", "Consensus"]),
-        ("FIT", ["Real", "Generated", "Equal weight", "Real", "Real + 5% synthetic"]),
-        ("ROLE", ["Baseline", "Stress test", "Augmentation", "Feature guidance", "Low-weight training"]),
+    arms = [
+        ("Real only", BLUE, ("R",), "Rank from real", ("R",), "Fit real", "Baseline"),
+        ("Generated only", CORAL, ("S",), "Rank from generated", ("S",), "Fit generated", "Synthetic-only stress test"),
+        ("Real + generated", TEAL, ("R", "S"), "Consensus rank", ("R", "S"), "Equal total weight", "Direct augmentation"),
+        ("Guided: real fit", TEAL, ("R", "S"), "Consensus rank", ("R",), "Fit real only", "Feature guidance only"),
+        ("Guided: 5% synthetic", ORANGE, ("R", "S"), "Consensus rank", ("R", "S"), "S = 5% weight", "Guidance + light regularization"),
     ]
-    for row_index, (label, values) in enumerate(rows):
-        y = 3.15 + row_index * 0.74
-        if row_index % 2 == 0:
-            shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(stub_x), Inches(y - 0.08), Inches(12.25), Inches(0.61))
+
+    def add_sources(tokens: tuple[str, ...], x: float, y: float) -> float:
+        if len(tokens) == 1:
+            color = BLUE if tokens[0] == "R" else CORAL
+            _add_data_badge(slide, tokens[0], x, y, color)
+            return x + 0.34
+        _add_data_badge(slide, "R", x, y, BLUE)
+        _add_text(slide, "+", x + 0.27, y + 0.01, 0.18, 0.20, size=9.5, color=GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+        _add_data_badge(slide, "S", x + 0.47, y, CORAL)
+        return x + 0.82
+
+    for index, (arm, color, rank_tokens, rank_label, fit_tokens, fit_label, purpose) in enumerate(arms):
+        top = 2.73 + index * 0.57
+        if index % 2 == 0:
+            shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.47), Inches(top), Inches(12.18), Inches(0.50))
             _set_fill(shape, "F4F6F7")
             shape.line.fill.background()
-        _add_text(slide, label, stub_x + 0.05, y + 0.07, 0.92, 0.24, size=9.2, color=GRAY, bold=True, margin=0)
-        for index, value in enumerate(values):
-            x = table_x + index * column_width
-            _add_text(slide, value, x + 0.05, y, column_width - 0.20, 0.40, size=11.2, color=DARK, bold=row_index < 2, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE, margin=0)
+        _add_rule(slide, 0.47, top, 0.055, color, 0.50)
+        _add_text(slide, arm, 0.67, top + 0.08, 2.17, 0.33, size=11.2, color=color, bold=True, valign=MSO_ANCHOR.MIDDLE, margin=0)
 
-    _add_rule(slide, 0.46, 5.40, 12.22, "CDD6DC", 0.018)
-    _add_text(slide, "Held-out real profiles", 0.58, 5.62, 2.05, 0.30, size=14.5, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
-    _add_arrow(slide, 2.78, 5.67, 0.40, 0.24, MID_GRAY)
-    _add_text(slide, "BA  |  AUROC  |  AP", 3.38, 5.62, 2.12, 0.30, size=13.3, color=DARK, bold=True, align=PP_ALIGN.CENTER)
-    _add_arrow(slide, 5.68, 5.67, 0.40, 0.24, MID_GRAY)
-    _add_text(slide, "Choose an eligible arm within each tissue", 6.28, 5.59, 3.85, 0.34, size=14.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
+        rank_end = add_sources(rank_tokens, 3.08, top + 0.13)
+        _add_arrow(slide, rank_end, top + 0.17, 0.26, 0.14, MID_GRAY)
+        _add_text(slide, rank_label, rank_end + 0.37, top + 0.08, 1.78, 0.33, size=10.4, color=DARK, bold=True, valign=MSO_ANCHOR.MIDDLE, margin=0)
 
-    _add_panel(slide, 0.46, 6.16, 12.22, 0.62, fill=NAVY, line=NAVY, radius=False)
-    _add_text(slide, "Biology check", 0.74, 6.32, 1.45, 0.27, size=14.5, color=WHITE, bold=True, margin=0)
-    _add_text(slide, "FLT vs GC effects and BH FDR use observed OSDR profiles only.", 2.38, 6.30, 6.75, 0.29, size=13.6, color="DCE7F2", margin=0)
-    _add_text(slide, "Animal n stays unchanged.", 9.18, 6.30, 3.14, 0.29, size=11.8, color="FFD69A", bold=True, align=PP_ALIGN.RIGHT, margin=0)
+        fit_end = add_sources(fit_tokens, 6.45, top + 0.13)
+        _add_arrow(slide, fit_end, top + 0.17, 0.26, 0.14, MID_GRAY)
+        _add_text(slide, fit_label, fit_end + 0.37, top + 0.08, 1.71, 0.33, size=10.4, color=DARK, bold=True, valign=MSO_ANCHOR.MIDDLE, margin=0)
+        _add_text(slide, purpose, 9.83, top + 0.08, 2.70, 0.33, size=10.5, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
+
+    _add_rule(slide, 0.47, 5.64, 12.18, "CDD6DC", 0.018)
+    _add_text(slide, "All five arms", 0.62, 5.83, 1.36, 0.27, size=12.5, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_arrow(slide, 2.13, 5.87, 0.34, 0.19, MID_GRAY)
+    _add_text(slide, "Held-out real profiles", 2.66, 5.82, 2.00, 0.30, size=12.5, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_arrow(slide, 4.83, 5.87, 0.34, 0.19, MID_GRAY)
+    _add_text(slide, "BA  |  AUROC  |  AP", 5.37, 5.83, 1.88, 0.27, size=12.2, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_arrow(slide, 7.41, 5.87, 0.34, 0.19, MID_GRAY)
+    _add_text(slide, "Choose an eligible arm within each tissue", 7.92, 5.80, 4.40, 0.34, size=12.8, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
+
+    _add_panel(slide, 0.46, 6.25, 12.22, 0.58, fill=NAVY, line=NAVY, radius=False)
+    _add_text(slide, "Association test", 0.74, 6.40, 1.56, 0.25, size=13.5, color=WHITE, bold=True, margin=0)
+    _add_text(slide, "FLT vs GC effects and BH FDR use real OSDR profiles only.", 2.47, 6.39, 6.40, 0.27, size=12.9, color="DCE7F2", margin=0)
+    _add_text(slide, "Animal n stays unchanged.", 9.19, 6.39, 3.13, 0.27, size=11.5, color="FFD69A", bold=True, align=PP_ALIGN.RIGHT, margin=0)
 
 
 def _slide_8(slide, utility_chart: Path):
@@ -804,20 +848,34 @@ def _slide_8(slide, utility_chart: Path):
     )
     _add_rule(slide, 0.48, 2.05, 3.30, GOLD, 0.035)
     _add_text(slide, "Pooled across tissues", 0.67, 2.25, 2.90, 0.35, size=17, color=NAVY, bold=True)
-    labels = ["Real only", "Generated only", "Real + synth."]
+    labels = ["Real\nonly", "Generated\nonly", "Real +\nsynth."]
     values = [0.754, 0.695, 0.737]
     colors = [BLUE, CORAL, TEAL]
     baseline = 6.00
     chart_height = 3.00
-    chart_left = 0.70
-    chart_right = 3.58
+    chart_left = 0.96
+    chart_right = 3.62
+    axis_title = _add_text(
+        slide,
+        "Balanced accuracy",
+        -0.28,
+        4.35,
+        1.55,
+        0.28,
+        size=10.5,
+        color=GRAY,
+        bold=True,
+        align=PP_ALIGN.CENTER,
+        margin=0,
+    )
+    axis_title.rotation = 270
     for tick, label in [(0.0, "0"), (0.5, "0.5"), (1.0, "1.0")]:
         tick_y = baseline - tick * chart_height
         _add_rule(slide, chart_left, tick_y, chart_right - chart_left, "D8DEE2", 0.012)
         _add_text(
             slide,
             label,
-            0.43,
+            0.69,
             tick_y - 0.10,
             0.22,
             0.20,
@@ -827,15 +885,14 @@ def _slide_8(slide, utility_chart: Path):
             margin=0,
         )
     for index, (label, value, color) in enumerate(zip(labels, values, colors)):
-        x = 0.78 + index * 0.96
+        x = 1.04 + index * 0.86
         bar_h = value * chart_height
         shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(x), Inches(baseline - bar_h), Inches(0.62), Inches(bar_h))
         _set_fill(shape, color)
         shape.line.fill.background()
         _add_text(slide, f"{value:.3f}", x - 0.08, baseline - bar_h - 0.35, 0.78, 0.28, size=14, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
-        _add_text(slide, label, x - 0.20, baseline + 0.08, 1.05, 0.55, size=10.5, color=DARK, align=PP_ALIGN.CENTER)
+        _add_text(slide, label, x - 0.10, baseline + 0.08, 0.82, 0.55, size=9.6, color=DARK, align=PP_ALIGN.CENTER)
     _add_rule(slide, chart_left, baseline, chart_right - chart_left, "86949D", 0.02)
-    _add_text(slide, "Balanced accuracy (0-1)", 0.72, 2.78, 2.78, 0.25, size=12.5, color=GRAY)
 
     _add_rule(slide, 3.98, 2.05, 0.015, "D5DDE2", 4.55)
     _add_rule(slide, 4.25, 2.05, 8.48, TEAL, 0.035)
@@ -858,30 +915,35 @@ def _slide_9(slide):
         slide,
         "Feature analysis",
         "Synthetic guidance changed ranking, not statistical evidence",
-        "Promoted and reinforced describe repeated feature selection; both require a supporting effect in real OSDR data.",
+        "Blue marks real-only selection; teal marks synthetic-guided selection. Every displayed association has real OSDR support.",
     )
-    _add_text(slide, "Repeated stable selection", 0.62, 2.02, 4.86, 0.34, size=16, color=GRAY, bold=True, align=PP_ALIGN.CENTER)
-    left = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.62), Inches(2.52), Inches(3.00), Inches(2.35))
-    left.fill.background()
-    _set_line(left, BLUE, 2.4)
-    right = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2.48), Inches(2.52), Inches(3.00), Inches(2.35))
-    right.fill.background()
-    _set_line(right, TEAL, 2.4)
-    # Separate line boxes prevent PowerPoint from wrapping one Venn label
-    # differently from the other when fonts are substituted during rendering.
-    _add_text(slide, "Real-only", 0.71, 3.08, 1.76, 0.29, size=16, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "ranking", 0.71, 3.40, 1.76, 0.29, size=16, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "Synthetic-guided", 3.61, 3.08, 1.88, 0.29, size=13.5, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "ranking", 3.61, 3.40, 1.88, 0.29, size=16, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "23", 2.52, 3.28, 1.06, 0.24, size=12, color=ORANGE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "reinforced", 2.52, 3.54, 1.06, 0.24, size=12, color=ORANGE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_panel(slide, 3.52, 4.96, 1.86, 0.78, fill=PALE_TEAL, line=TEAL, radius=False)
-    _add_text(slide, "26 promoted", 3.66, 5.06, 1.58, 0.24, size=13.5, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "selected only with\nsynthetic guidance", 3.68, 5.34, 1.54, 0.32, size=9.5, color=GRAY, align=PP_ALIGN.CENTER)
+    _add_text(slide, "Stable selection after real-data support", 0.62, 2.02, 4.30, 0.30, size=15.5, color=NAVY, bold=True, margin=0)
+    _add_circle(slide, 0.64, 2.42, 0.13, BLUE)
+    _add_text(slide, "Blue: stable in real-only ranking", 0.86, 2.36, 2.42, 0.25, size=10.5, color=BLUE, bold=True, margin=0)
+    _add_circle(slide, 3.43, 2.42, 0.13, TEAL)
+    _add_text(slide, "Teal: stable in synthetic-guided ranking", 3.65, 2.36, 2.98, 0.25, size=10.5, color=TEAL, bold=True, margin=0)
 
-    _add_arrow(slide, 5.78, 3.30, 0.65, 0.48, TEAL)
-    _add_rule(slide, 6.66, 2.21, 0.018, "D5DDE2", 3.70)
-    _add_text(slide, "Real OSDR association test", 7.02, 2.45, 5.30, 0.40, size=20, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
+    left = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.62), Inches(2.78), Inches(3.86), Inches(2.78))
+    _set_fill(left, BLUE, transparency=82)
+    _set_line(left, BLUE, 2.6)
+    right = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(3.00), Inches(2.78), Inches(3.86), Inches(2.78))
+    _set_fill(right, TEAL, transparency=80)
+    _set_line(right, TEAL, 2.6)
+
+    _add_text(slide, "34", 1.16, 3.42, 1.42, 0.48, size=29, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "real-only", 1.12, 3.93, 1.50, 0.30, size=14.5, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "stable only in\nreal ranking", 1.12, 4.28, 1.50, 0.52, size=10.3, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+
+    _add_text(slide, "23", 3.16, 3.42, 1.17, 0.48, size=29, color=ORANGE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "reinforced", 3.10, 3.93, 1.29, 0.30, size=13.2, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "stable in both", 3.07, 4.28, 1.34, 0.30, size=10.3, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+
+    _add_text(slide, "26", 4.89, 3.42, 1.50, 0.48, size=29, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "promoted", 4.89, 3.93, 1.50, 0.30, size=14.5, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "stable only with\nsynthetic guidance", 4.86, 4.28, 1.56, 0.52, size=10.3, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+
+    _add_rule(slide, 7.18, 2.10, 0.018, "D5DDE2", 3.98)
+    _add_text(slide, "Real OSDR evidence gate", 7.53, 2.43, 4.92, 0.40, size=20, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
     _add_bullet_rows(
         slide,
         [
@@ -889,18 +951,20 @@ def _slide_9(slide):
             "Combine accession effects with a random-effects model",
             "Apply BH FDR within each tissue",
         ],
-        7.22,
+        7.73,
         3.18,
-        4.95,
-        size=15,
+        4.43,
+        size=14.2,
         bullet_color=BLUE,
-        row_h=0.58,
+        row_h=0.61,
     )
-    _add_panel(slide, 7.16, 5.12, 5.00, 0.52, fill=NAVY, line=NAVY, radius=False)
-    _add_text(slide, "49 synthetic-informed associations", 7.34, 5.21, 4.65, 0.29, size=16, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
+    _add_panel(slide, 7.68, 5.14, 4.46, 0.78, fill=NAVY, line=NAVY, radius=False)
+    _add_text(slide, "23 reinforced + 26 promoted", 7.90, 5.26, 4.02, 0.24, size=11.5, color="BFD0E1", bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "49 synthetic-informed associations", 7.88, 5.52, 4.06, 0.28, size=15.5, color=WHITE, bold=True, align=PP_ALIGN.CENTER, margin=0)
 
-    _add_rule(slide, 0.52, 6.18, 12.15, "D6DEE3", 0.018)
-    _add_text(slide, "These are 49 tissue-gene associations among 459 BH-FDR rows. A gene can appear in more than one tissue.", 0.72, 6.31, 11.75, 0.30, size=13.5, color=GRAY, align=PP_ALIGN.CENTER)
+    _add_rule(slide, 0.52, 6.26, 12.15, "D6DEE3", 0.018)
+    _add_text(slide, "The 34 real-only associations remain real-data findings; synthetic guidance did not reinforce them.", 0.72, 6.39, 11.75, 0.26, size=12.6, color=GRAY, align=PP_ALIGN.CENTER)
+    _add_source(slide, "Counts are tissue-gene associations after BH FDR and compatible real-effect direction; genes may recur across tissues.")
 
 
 def _slide_10(slide):
@@ -1604,9 +1668,9 @@ def build() -> Path:
         SlideNote(4, "DDIM matched expression and reduced separability", "0:55", "The left image is Figure 1C from Lacan and colleagues. It shows their residual dense denoiser, conditioned on diffusion timestep and tissue, which predicts the noise added to a sample. Our implementation follows that architecture and adds FLT/GC, accession and material context during OSDR LoRA adaptation. Both generators had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution."),
         SlideNote(5, "Diffusion learns tissue structure from noise", "0:50", "Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel."),
         SlideNote(6, "Generated profiles track the real OSDR PCA manifold", "0:50", "Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. Generated samples track the tissue-defined branches. FLT and GC remain more interspersed because condition effects are smaller than tissue effects. Visual overlap complements the quantitative validation."),
-        SlideNote(7, "Synthetic profiles entered the analysis in five different ways", "0:55", "Synthetic data can be used for direct training, mixed training or feature guidance. Each tissue could choose among five arms. The eligibility check used held-out real profiles. Once features were nominated, FLT/GC effects and BH FDR were computed from observed OSDR samples only."),
+        SlideNote(7, "Five arms separate gene ranking from classifier fitting", "0:55", "Each arm makes two decisions: which profiles rank the genes and which profiles fit the classifier. In both guided arms, real and synthetic evidence jointly rank genes. Guided real fit then trains only on observed profiles. Guided 5% also uses condition-recentered synthetic profiles, but they contribute only 5% of total classifier weight. This is a weight, not a 5% increase in animal count. Held-out real profiles determine eligibility, and FLT/GC effects and BH FDR are computed from observed OSDR profiles only."),
         SlideNote(8, "Pooling tissues hid useful signal", "0:55", "The pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. The bars use a true zero-to-one balanced-accuracy scale. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
-        SlideNote(9, "Synthetic guidance changed ranking, not statistical evidence", "0:50", "Reinforced genes were selected with and without synthetic guidance. Promoted genes crossed the stable-selection rule only with synthetic guidance. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations also had BH FDR below 0.05 in real data."),
+        SlideNote(9, "Synthetic guidance changed ranking, not statistical evidence", "0:50", "The blue set contains genes selected stably by real-only ranking, and the teal set contains genes selected stably by the eligible synthetic-guided arm. Thirty-four were real-only, 23 were selected by both arms and classified as reinforced, and 26 were selected only with guidance and classified as promoted. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations passed BH FDR in observed OSDR profiles."),
         SlideNote(10, "Selection and literature are separate dimensions", "0:55", "Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. Table S16 records the gene-level rationale, evidence scope and source IDs; Table S17 records citations, DOI or URL and whether the evidence is independent, overlapping or mechanistic context."),
         SlideNote(11, "The screen covered all 27 completed tissue analyses", "0:45", "This is the full analysis coverage: 22 canonical tissues and five anatomical muscle groups. Ten had a synthetic-informed BH-FDR association, five had real BH-FDR genes without synthetic-informed selection, and 12 had no BH-FDR gene in the landmark panel. The discussion focuses later, but every completed tissue result remains visible here."),
         SlideNote(12, "Ten tissue analyses contained synthetic-informed genes", "0:45", "This is the complete 49-association inventory. Separate rows show FLT-higher or FLT-lower direction and promoted or reinforced selection status. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT directions come from real-data meta-analysis."),
