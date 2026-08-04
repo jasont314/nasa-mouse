@@ -38,9 +38,9 @@ Circles are locked real OSDR profiles and crosses are matched DDIM profiles in t
 
 Each arm makes two decisions: which profiles rank the genes and which profiles fit the classifier. In both guided arms, real and synthetic evidence jointly rank genes. Guided real fit then trains only on observed profiles. Guided 5% also uses condition-recentered synthetic profiles, but they contribute only 5% of total classifier weight. Held-out real profiles determine eligibility, and FLT/GC effects and BH FDR come from observed OSDR profiles only.
 
-## 10. Consensus ranking combines two gene leaderboards (0:35)
+## 10. Consensus ranking chooses the classifier input genes (0:35)
 
-The markers are positions in ranked gene lists, not expression values. Real OSDR profiles rank all 974 genes by FLT versus GC separation. A draw is one complete matched synthetic dataset sampled from the same trained DDIM checkpoint with a different random seed; it is not a model retraining. We used three draws to check whether the generated evidence repeated. Genes near the top of both the real and generated lists move up in the shared ranking; a gene supported by only one source is held back.
+Each ranking orders the same 974 genes. Real-only, generated-only and consensus ranking can therefore produce different candidate gene sets. For each ranking, we test the top 10, 25, 50 and 100 genes, and held-out validation chooses the feature count and regularization. Logistic regression is then fitted using only those selected gene-expression columns. Ranking chooses which genes are available to the classifier; classifier training separately learns their coefficients and decision boundary.
 
 ## 11. Synthetic guidance shifts the FLT-GC decision boundary (0:25)
 
