@@ -425,16 +425,18 @@ def _build_trajectory_crop() -> Path:
     return path
 
 
-def _build_accession_pca_chart() -> Path:
+def _build_pca_comparison_chart(primary: str) -> Path:
+    if primary not in {"tissue", "condition"}:
+        raise ValueError(f"Unsupported PCA comparison: {primary!r}")
     source = pd.read_csv(
         PACKAGE_DIR / "source_data/locked_pca_by_accession.tsv",
         sep="\t",
     )
-    required = {"source", "accession", "pc1", "pc2"}
+    required = {"source", primary, "accession", "pc1", "pc2"}
     missing = required.difference(source.columns)
     if missing:
         raise ValueError(
-            "Accession PCA source data are missing columns: "
+            "PCA source data are missing columns: "
             + ", ".join(sorted(missing))
         )
     accessions = sorted(
@@ -446,6 +448,27 @@ def _build_accession_pca_chart() -> Path:
         accession: matplotlib.colors.hsv_to_rgb((hue, 0.66, 0.82))
         for accession, hue in zip(accessions, hues)
     }
+    if primary == "condition":
+        primary_levels = ["flight", "ground_control"]
+        primary_palette = {
+            "flight": "#D96552",
+            "ground_control": "#2D6496",
+        }
+        primary_labels = {
+            "flight": "Flight",
+            "ground_control": "Ground control",
+        }
+    else:
+        primary_levels = sorted(source[primary].astype(str).unique())
+        tissue_cmap = plt.get_cmap("tab20", max(len(primary_levels), 1))
+        primary_palette = {
+            level: tissue_cmap(index)
+            for index, level in enumerate(primary_levels)
+        }
+        primary_labels = {
+            level: level.replace("_", " ").title()
+            for level in primary_levels
+        }
     x_pad = 0.04 * (source["pc1"].max() - source["pc1"].min())
     y_pad = 0.06 * (source["pc2"].max() - source["pc2"].min())
     x_limits = (source["pc1"].min() - x_pad, source["pc1"].max() + x_pad)
@@ -453,25 +476,73 @@ def _build_accession_pca_chart() -> Path:
 
     figure, axes = plt.subplots(1, 2, figsize=(12.4, 4.45), sharex=True, sharey=True)
     figure.patch.set_alpha(0)
-    panels = [
-        ("real", "Observed OSDR", "o", 27, 0.72),
-        ("synthetic", "Matched DDIM", "x", 31, 0.88),
-    ]
-    for axis, (kind, title, marker, size, alpha) in zip(axes, panels):
-        frame = source.loc[source["source"].eq(kind)]
-        axis.set_facecolor("none")
-        for accession in accessions:
-            points = frame.loc[frame["accession"].astype(str).eq(accession)]
+
+    def add_grouped_points(
+        axis,
+        *,
+        column: str,
+        levels: list[str],
+        colors: dict[str, object],
+        labels: dict[str, str],
+        legend: bool,
+    ) -> None:
+        for level in levels:
+            group = source.loc[source[column].astype(str).eq(level)]
+            real = group.loc[group["source"].eq("real")]
+            synthetic = group.loc[group["source"].eq("synthetic")]
             axis.scatter(
-                points["pc1"],
-                points["pc2"],
-                s=size,
-                marker=marker,
-                color=palette[accession],
-                alpha=alpha,
-                linewidths=1.0 if marker == "x" else 0,
-                edgecolors="none" if marker == "o" else None,
+                real["pc1"],
+                real["pc2"],
+                s=24,
+                marker="o",
+                color=colors[level],
+                alpha=0.42,
+                linewidths=0,
+                edgecolors="none",
             )
+            axis.scatter(
+                synthetic["pc1"],
+                synthetic["pc2"],
+                s=28,
+                marker="x",
+                color=colors[level],
+                alpha=0.82,
+                linewidths=1.0,
+                label=labels[level],
+            )
+        if legend:
+            axis.legend(
+                frameon=False,
+                fontsize=6.0 if column == "tissue" else 8.5,
+                ncol=2 if column == "tissue" else 1,
+                loc="upper right",
+                borderaxespad=0.25,
+                handletextpad=0.3,
+                columnspacing=0.7,
+            )
+
+    add_grouped_points(
+        axes[0],
+        column=primary,
+        levels=primary_levels,
+        colors=primary_palette,
+        labels=primary_labels,
+        legend=True,
+    )
+    add_grouped_points(
+        axes[1],
+        column="accession",
+        levels=accessions,
+        colors=palette,
+        labels={accession: accession for accession in accessions},
+        legend=False,
+    )
+    titles = {
+        "tissue": "Colored by tissue",
+        "condition": "Colored by condition",
+    }
+    for axis, title in zip(axes, [titles[primary], "Colored by OSDR accession"]):
+        axis.set_facecolor("none")
         axis.set_title(title, fontsize=14, color="#082B55", weight="bold", pad=9)
         axis.set_xlabel("PC1", fontsize=11, color="#263746")
         axis.set_xlim(x_limits)
@@ -482,7 +553,7 @@ def _build_accession_pca_chart() -> Path:
         axis.spines[["left", "bottom"]].set_color("#AEB9BF")
     axes[0].set_ylabel("PC2", fontsize=11, color="#263746")
     figure.subplots_adjust(left=0.06, right=0.99, top=0.90, bottom=0.13, wspace=0.16)
-    path = ASSET_DIR / "locked_real_vs_synthetic_pca_by_accession.png"
+    path = ASSET_DIR / f"locked_pca_{primary}_vs_accession.png"
     figure.savefig(path, dpi=240, transparent=True)
     plt.close(figure)
     return path
@@ -1267,59 +1338,26 @@ def _slide_5(slide, trajectory: Path):
     _add_source(slide, "Gray points are real ARCHS4 profiles; colors identify generated tissue conditions. PC1 and PC2 limits are shared across panels.")
 
 
-def _slide_6(slide):
+def _slide_6(slide, tissue_accession_pca: Path):
     _add_slide_title(
         slide,
         "Diffusion output",
-        "Generated profiles track the real OSDR PCA manifold",
-        "Circles are locked real OSDR profiles; crosses are matched DDIM profiles from generation seed 5020.",
-    )
-    figure = PAPER_DIR / "figures/figure_2b_locked_real_vs_synthetic_pca.png"
-    _add_picture_contain(
-        slide,
-        figure,
-        0.34,
-        1.86,
-        12.64,
-        4.56,
-        alt="PCA of locked real and matched DDIM OSDR profiles by tissue and condition",
-    )
-    _add_panel(slide, 0.48, 6.46, 12.37, 0.48, fill=PALE_BLUE, line="C9DCE9", radius=False)
-    _add_text(
-        slide,
-        "Tissues separate clearly here. Flight and ground-control samples overlap much more, so we test that difference statistically.",
-        0.73,
-        6.55,
-        11.86,
-        0.27,
-        size=13.3,
-        color=NAVY,
-        bold=True,
-        align=PP_ALIGN.CENTER,
-    )
-    _add_source(slide, "PCA was fitted in the common locked OSDR expression space. This is PCA, not UMAP.")
-
-
-def _slide_pca_by_study(slide, study_pca: Path):
-    _add_slide_title(
-        slide,
-        "Diffusion output",
-        "DDIM preserves study-specific structure",
-        "The same locked PCA coordinates are recolored by OSDR accession, with one shared color per study.",
+        "Tissue and study structure dominate the PCA space",
+        "Left: tissue. Right: OSDR accession. Circles are observed profiles; crosses are matched DDIM profiles.",
     )
     _add_picture_contain(
         slide,
-        study_pca,
+        tissue_accession_pca,
         0.38,
         1.79,
         12.52,
         4.66,
-        alt="Aligned PCA panels of observed and matched DDIM profiles colored by OSDR accession",
+        alt="PCA of observed and matched DDIM profiles colored by tissue and OSDR accession",
     )
     _add_panel(slide, 0.48, 6.47, 12.37, 0.47, fill=PALE_BLUE, line="C9DCE9", radius=False)
     _add_text(
         slide,
-        "Each color is one of 74 OSDR studies. Similar patterns across panels show that the generated profiles retain accession context.",
+        "Tissue and accession clusters are visible across both observed and generated profiles.",
         0.76,
         6.56,
         11.80,
@@ -1329,7 +1367,39 @@ def _slide_pca_by_study(slide, study_pca: Path):
         bold=True,
         align=PP_ALIGN.CENTER,
     )
-    _add_source(slide, "Accession was an explicit model condition; this figure checks preservation of study context, not batch removal.")
+    _add_source(slide, "Same 293 observed and 293 seed-5020 generated profiles; PCA was fitted once to the combined locked expression space.")
+
+
+def _slide_condition_accession_pca(slide, condition_accession_pca: Path):
+    _add_slide_title(
+        slide,
+        "Diffusion output",
+        "Flight condition is subtler than study structure",
+        "Left: FLT or GC. Right: OSDR accession. Circles are observed profiles; crosses are matched DDIM profiles.",
+    )
+    _add_picture_contain(
+        slide,
+        condition_accession_pca,
+        0.38,
+        1.79,
+        12.52,
+        4.66,
+        alt="PCA of observed and matched DDIM profiles colored by condition and OSDR accession",
+    )
+    _add_panel(slide, 0.48, 6.47, 12.37, 0.47, fill=PALE_BLUE, line="C9DCE9", radius=False)
+    _add_text(
+        slide,
+        "Flight and ground-control profiles overlap within the larger accession-defined structure.",
+        0.76,
+        6.56,
+        11.80,
+        0.26,
+        size=13.0,
+        color=NAVY,
+        bold=True,
+        align=PP_ALIGN.CENTER,
+    )
+    _add_source(slide, "The 74 accession colors are shared across slides 11 and 12; FLT-GC effects are evaluated within study.")
 
 
 def _slide_4(slide, architecture_figure: Path):
@@ -2393,7 +2463,8 @@ def build() -> Path:
     ASSET_DIR.mkdir(parents=True, exist_ok=True)
     utility_chart = _build_tissue_utility_chart()
     trajectory = _build_trajectory_crop()
-    study_pca = _build_accession_pca_chart()
+    tissue_accession_pca = _build_pca_comparison_chart("tissue")
+    condition_accession_pca = _build_pca_comparison_chart("condition")
     architecture_figure = ASSET_DIR / "lacan_figure1c_generator_architecture.png"
     if not architecture_figure.exists():
         raise FileNotFoundError(
@@ -2413,8 +2484,8 @@ def build() -> Path:
         _slide_3,
         lambda slide: _slide_4(slide, architecture_figure),
         lambda slide: _slide_5(slide, trajectory),
-        _slide_6,
-        lambda slide: _slide_pca_by_study(slide, study_pca),
+        lambda slide: _slide_6(slide, tissue_accession_pca),
+        lambda slide: _slide_condition_accession_pca(slide, condition_accession_pca),
         _slide_7,
         _slide_guidance_mechanism,
         _slide_guidance_boundary,
@@ -2450,8 +2521,8 @@ def build() -> Path:
         SlideNote(8, "We built a configurable bulk RNA-seq generation pipeline", "0:45", "The pipeline can change data scope, transformation, harmonization, model, training source, and conditioning. The branch used here applies TPM, MaxAbs scaling, 974 landmarks, ARCHS4 pretraining, OSDR adaptation, and conditioning on tissue, FLT or GC, accession, and material type."),
         SlideNote(9, "DDIM matched expression and reduced separability", "0:40", "We compared WGAN-GP with the conditional diffusion model. Both matched expression well. DDIM had higher F1, adversarial accuracy close to chance, and lower distributional distance, so the remaining analysis uses DDIM."),
         SlideNote(10, "Diffusion learns tissue structure from noise", "0:25", "The same generated profiles begin as noise, develop structure by timestep 200, and reach their tissue-conditioned regions at timestep zero. All three panels share PCA axes."),
-        SlideNote(11, "Generated profiles track the real OSDR PCA manifold", "0:25", "Real and generated profiles occupy the same broad tissue branches. FLT and GC remain much closer because the condition effect is smaller than the tissue effect."),
-        SlideNote(12, "DDIM preserves study-specific structure", "0:25", "Here the same locked PCA coordinates are colored by accession rather than tissue or condition. Each of the 74 studies has one color shared between the observed and generated panels. Similar clusters show that the accession-conditioned model retained study context. This is a conditional-fidelity check, not evidence that batch effects were removed."),
+        SlideNote(11, "Tissue and study structure dominate the PCA space", "0:25", "These panels use the same locked coordinates. The left panel colors each profile by tissue, while the right colors it by OSDR accession. Circles are observed profiles and crosses are matched DDIM profiles. Both tissue and study structure are reproduced in the generated data."),
+        SlideNote(12, "Flight condition is subtler than study structure", "0:25", "The left panel now colors the same profiles by flight or ground-control condition, while the right repeats the accession view. FLT and GC overlap much more than the study clusters. This is why the downstream analysis estimates FLT-GC effects within accession rather than treating the pooled separation as biology."),
         SlideNote(13, "Five arms separate gene ranking from classifier fitting", "0:40", "The five arms vary which profiles rank genes and which profiles fit the classifier. The guided arms use real and generated rankings together. One then fits on real profiles only; the other gives generated profiles five percent of the training weight. Association tests still use observed OSDR data."),
         SlideNote(14, "Consensus ranking chooses the classifier input genes", "0:25", "Real and generated profiles rank the same 974 genes. Combining those rankings can move a gene into or out of the selected top set. The classifier is then trained using only the selected expression columns."),
         SlideNote(15, "Synthetic guidance can shift the FLT/GC boundary", "0:15", "Opaque points are training profiles and transparent points are held-out real profiles. The panels use the same held-out samples. A useful synthetic-guided feature set changes the fitted boundary so that more held-out labels fall on the correct side."),

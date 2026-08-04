@@ -42,13 +42,13 @@ We compared WGAN-GP with the conditional diffusion model. Both matched expressio
 
 The same generated profiles begin as noise, develop structure by timestep 200, and reach their tissue-conditioned regions at timestep zero. All three panels share PCA axes.
 
-## 11. Generated profiles track the real OSDR PCA manifold (0:25)
+## 11. Tissue and study structure dominate the PCA space (0:25)
 
-Real and generated profiles occupy the same broad tissue branches. FLT and GC remain much closer because the condition effect is smaller than the tissue effect.
+These panels use the same locked coordinates. The left panel colors each profile by tissue, while the right colors it by OSDR accession. Circles are observed profiles and crosses are matched DDIM profiles. Both tissue and study structure are reproduced in the generated data.
 
-## 12. DDIM preserves study-specific structure (0:25)
+## 12. Flight condition is subtler than study structure (0:25)
 
-Here the same locked PCA coordinates are colored by accession rather than tissue or condition. Each of the 74 studies has one color shared between the observed and generated panels. Similar clusters show that the accession-conditioned model retained study context. This is a conditional-fidelity check, not evidence that batch effects were removed.
+The left panel now colors the same profiles by flight or ground-control condition, while the right repeats the accession view. FLT and GC overlap much more than the study clusters. This is why the downstream analysis estimates FLT-GC effects within accession rather than treating the pooled separation as biology.
 
 ## 13. Five arms separate gene ranking from classifier fitting (0:40)
 

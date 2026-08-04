@@ -60,8 +60,8 @@ Therefore, another device can edit the deck and rebuild its current figures and 
 8. Configurable preprocessing, harmonization, model, training, and conditioning pipeline.
 9. WGAN-GP versus DDIM validation metrics and DDIM architecture.
 10. DDIM reverse-diffusion PCA trajectory.
-11. Real versus generated OSDR PCA comparison.
-12. The same locked PCA coordinates colored by OSDR study/accession.
+11. Locked PCA colored by tissue beside the same PCA colored by OSDR accession.
+12. Locked PCA colored by FLT/GC condition beside the same PCA colored by OSDR accession.
 13. Five tissue-specific analysis arms.
 14. Real, generated, and consensus gene ranking with top-k classifier inputs.
 15. Schematic real-only versus synthetic-guided FLT/GC classifier boundaries.
@@ -84,7 +84,7 @@ Therefore, another device can edit the deck and rebuild its current figures and 
 - GLARE is omitted from the short project review.
 - The title slide follows the supplied NASA template.
 - Slide 6 keeps only the enlarged three-stage synthetic-transcriptomics diagram. The explanation that generated profiles are not new biological evidence is in the speaker notes.
-- Slide 12 uses the exact locked PCA coordinates from slide 11 and colors all 293 real and 293 matched DDIM profiles by 74 OSDR accessions. The model was conditioned on accession, so this is a conditional-fidelity check rather than batch removal.
+- Slides 11 and 12 use the same locked coordinates for all 293 observed and 293 matched DDIM profiles. Slide 11 pairs tissue and accession coloring; slide 12 pairs FLT/GC condition and accession coloring. Circles are observed profiles and crosses are DDIM profiles. The model was conditioned on accession, so the accession panels check conditional fidelity rather than batch removal.
 - Slide 15 contains only the two classifier diagrams and their legend. The removed comparison panel and detailed leakage-control sentence remain explained verbally.
 - The same transparent held-out profiles appear in both slide 15 panels. They are scored, not fitted.
 - Slide 16 shows both gains and declines. Cecum, colon, and liver are the displayed non-improving synthetic-informed candidates; non-worse performance across BA, AUROC, and AP remains the retention rule.
