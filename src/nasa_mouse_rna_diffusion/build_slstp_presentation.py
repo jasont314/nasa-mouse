@@ -694,7 +694,7 @@ def _slide_6(slide):
     _add_panel(slide, 0.48, 6.46, 12.37, 0.48, fill=PALE_BLUE, line="C9DCE9", radius=False)
     _add_text(
         slide,
-        "Interpretation: tissue structure dominates; FLT and GC are subtler. PCA is descriptive, so quantitative metrics determine validation.",
+        "Tissues separate clearly here. Flight and ground-control samples overlap much more, so we test that difference statistically.",
         0.73,
         6.55,
         11.86,
@@ -848,7 +848,7 @@ def _slide_8(slide, utility_chart: Path):
     )
     _add_rule(slide, 0.48, 2.05, 3.30, GOLD, 0.035)
     _add_text(slide, "Pooled across tissues", 0.67, 2.25, 2.90, 0.35, size=17, color=NAVY, bold=True)
-    labels = ["Real\nonly", "Generated\nonly", "Real +\nsynth."]
+    labels = ["Real", "Generated", "Real + synth."]
     values = [0.754, 0.695, 0.737]
     colors = [BLUE, CORAL, TEAL]
     baseline = 6.00
@@ -885,13 +885,13 @@ def _slide_8(slide, utility_chart: Path):
             margin=0,
         )
     for index, (label, value, color) in enumerate(zip(labels, values, colors)):
-        x = 1.04 + index * 0.86
+        x = 0.99 + index * 0.89
         bar_h = value * chart_height
         shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(x), Inches(baseline - bar_h), Inches(0.62), Inches(bar_h))
         _set_fill(shape, color)
         shape.line.fill.background()
         _add_text(slide, f"{value:.3f}", x - 0.08, baseline - bar_h - 0.35, 0.78, 0.28, size=14, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
-        _add_text(slide, label, x - 0.10, baseline + 0.08, 0.82, 0.55, size=9.6, color=DARK, align=PP_ALIGN.CENTER)
+        _add_text(slide, label, x - 0.13, baseline + 0.08, 0.88, 0.32, size=9.0, color=DARK, align=PP_ALIGN.CENTER, margin=0)
     _add_rule(slide, chart_left, baseline, chart_right - chart_left, "86949D", 0.02)
 
     _add_rule(slide, 3.98, 2.05, 0.015, "D5DDE2", 4.55)
