@@ -16,7 +16,7 @@ Each column shows the alternatives available at one pipeline stage; outlines ide
 
 ## 4. DDIM matched expression and reduced separability (0:55)
 
-The left diagram shows the model used downstream: a 974-to-8192-to-8192-to-974 noise predictor, adapted to OSDR with rank-512 LoRA and tissue, condition, accession and material context. Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split.
+The left image is Figure 1C from Lacan and colleagues. It shows their residual dense denoiser, conditioned on diffusion timestep and tissue, which predicts the noise added to a sample. Our implementation follows that architecture and adds FLT/GC, accession and material context during OSDR LoRA adaptation. Both generators had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution.
 
 ## 5. Diffusion learns tissue structure from noise (0:50)
 

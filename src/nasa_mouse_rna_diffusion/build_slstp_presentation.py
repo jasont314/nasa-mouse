@@ -399,84 +399,23 @@ def _build_trajectory_crop() -> Path:
     return path
 
 
-def _build_title_photo() -> Path:
-    path = ASSET_DIR / "nasa_rodent_research_title_crop.jpg"
-    if path.exists():
-        return path
-
-    source = ASSET_DIR / "nasa_rodent_research_iss.png"
-    if not source.exists():
-        raise FileNotFoundError(
-            "Missing NASA title image; see presentation/generative_slstp_2026/assets/SOURCES.md"
-        )
-    with Image.open(source) as image:
-        # The NASA source is a 3:2 photograph centered on a 16:9 black canvas.
-        content = image.crop((300, 0, image.width - 300, image.height))
-        target_height = int(content.width / (16 / 9))
-        top = max(0, (content.height - target_height) // 2)
-        content.crop((0, top, content.width, top + target_height)).save(
-            path,
-            quality=94,
-            subsampling=0,
-        )
-    return path
-
-
-def _set_title_slide(slide, title_photo: Path):
-    picture = slide.shapes.add_picture(
-        str(title_photo),
-        Inches(0),
-        Inches(0),
-        Inches(SLIDE_W),
-        Inches(SLIDE_H),
-    )
-    picture.name = "NASA Rodent Research-1 hardware aboard the ISS"
-    picture._element.nvPicPr.cNvPr.set(
-        "descr",
-        "NASA astronaut Barry Wilmore sets up Rodent Research-1 hardware aboard the International Space Station.",
-    )
-    shape_tree = slide.shapes._spTree
-    shape_tree.remove(picture._element)
-    shape_tree.insert(2, picture._element)
-
-    overlay = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE,
-        Inches(0),
-        Inches(0),
-        Inches(5.65),
-        Inches(SLIDE_H),
-    )
-    overlay.name = "Title readability overlay"
-    _set_fill(overlay, NAVY, transparency=8)
-    overlay.line.fill.background()
-    shape_tree.remove(overlay._element)
-    shape_tree.insert(3, overlay._element)
-    _add_rule(slide, 5.62, 0.82, 0.045, ORANGE, 6.05)
-
+def _set_title_slide(slide):
     main = next(
         placeholder
         for placeholder in slide.placeholders
         if placeholder.placeholder_format.type == PP_PLACEHOLDER.BODY
     )
-    main.left = Inches(0.62)
-    main.top = Inches(2.12)
-    main.width = Inches(4.70)
-    main.height = Inches(1.70)
     main.text_frame.clear()
     main.text_frame.word_wrap = True
-    main.text_frame.margin_left = Inches(0)
-    main.text_frame.margin_right = Inches(0)
-    main.text_frame.margin_top = Inches(0)
-    main.text_frame.margin_bottom = Inches(0)
-    main.text_frame.vertical_anchor = MSO_ANCHOR.TOP
+    main.text_frame.vertical_anchor = MSO_ANCHOR.BOTTOM
     paragraph = main.text_frame.paragraphs[0]
     paragraph.space_before = Pt(0)
     paragraph.space_after = Pt(0)
     paragraph.line_spacing = 1.0
     run = paragraph.add_run()
-    run.text = "Synthetic transcriptomics for mouse spaceflight"
+    run.text = "Synthetic transcriptomics\nfor mouse spaceflight"
     run.font.name = FONT
-    run.font.size = Pt(32)
+    run.font.size = Pt(29)
     run.font.bold = True
     run.font.color.rgb = _rgb(WHITE)
 
@@ -488,11 +427,10 @@ def _set_title_slide(slide, title_photo: Path):
     subtitle.text_frame.clear()
     subtitle.text_frame.word_wrap = True
     entries = [
-        ("Can generated RNA-seq improve FLT vs GC analysis within each tissue?", 16, False, "D8E1EB"),
-        ("", 5, False, WHITE),
-        ("Jason Trinh", 18, True, WHITE),
-        ("EECS | UC Berkeley", 12, False, "B9C7D5"),
-        ("Mentor: James Casaletto | August 2026", 12, False, "B9C7D5"),
+        ("Jason Trinh", 21, True, WHITE),
+        ("EECS | UC Berkeley", 14, False, WHITE),
+        ("", 6, False, WHITE),
+        ("Mentor: James Casaletto | August 2026", 13, False, WHITE),
     ]
     for index, (text, size, bold, color) in enumerate(entries):
         paragraph = subtitle.text_frame.paragraphs[0] if index == 0 else subtitle.text_frame.add_paragraph()
@@ -503,18 +441,6 @@ def _set_title_slide(slide, title_photo: Path):
         run.font.size = Pt(size)
         run.font.bold = bold
         run.font.color.rgb = _rgb(color)
-    _add_text(slide, "Biological & Physical Sciences", 0.62, 7.12, 3.30, 0.22, size=10.5, color="B9C7D5")
-    _add_text(
-        slide,
-        "NASA astronaut Barry Wilmore with Rodent Research-1 hardware aboard the ISS. Credit: NASA Johnson.",
-        6.15,
-        7.11,
-        6.55,
-        0.20,
-        size=7.5,
-        color="E2E8EE",
-        align=PP_ALIGN.RIGHT,
-    )
 
 
 def _slide_2(slide):
@@ -758,42 +684,25 @@ def _slide_6(slide):
     _add_source(slide, "PCA was fitted in the common locked OSDR expression space. This is PCA, not UMAP.")
 
 
-def _slide_4(slide):
+def _slide_4(slide, architecture_figure: Path):
     _add_slide_title(
         slide,
         "Validation",
         "DDIM had lower separability and distributional distance",
         "Both generators matched expression. DDIM was harder to distinguish from real profiles and had higher F1.",
     )
-    _add_text(slide, "Conditional DDIM", 0.52, 2.08, 3.65, 0.32, size=17, color=NAVY, bold=True)
-    _add_text(slide, "The diagram matches the model used downstream.", 0.52, 2.43, 3.65, 0.24, size=11.2, color=GRAY)
-    _add_text(slide, "OSDR CONTEXT", 0.55, 2.86, 0.92, 0.18, size=7.7, color=TEAL, bold=True, margin=0)
-    _add_text(slide, "timestep + tissue + FLT/GC + accession + material", 1.50, 2.81, 2.96, 0.24, size=9.0, color=DARK, bold=True, margin=0)
-    _add_rule(slide, 2.48, 3.10, 0.018, TEAL, 0.30)
-
-    architecture = [
-        (0.55, 0.76, 3.52, 0.86, "x_t\n974", BLUE, "noisy genes"),
-        (1.57, 0.82, 3.37, 1.16, "8192", TEAL, "hidden"),
-        (2.67, 0.82, 3.37, 1.16, "8192", TEAL, "hidden"),
-        (3.77, 0.76, 3.52, 0.86, "epsilon\n974", ORANGE, "predicted noise"),
-    ]
-    for x, width, y, height, label, color, caption in architecture:
-        shape = slide.shapes.add_shape(
-            MSO_SHAPE.RECTANGLE,
-            Inches(x),
-            Inches(y),
-            Inches(width),
-            Inches(height),
-        )
-        _set_fill(shape, WHITE)
-        _set_line(shape, color, 1.8)
-        _add_text(slide, label, x + 0.04, y + 0.16, width - 0.08, height - 0.25, size=12.2, color=NAVY, bold=True, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE, margin=0)
-        _add_text(slide, caption, x - 0.10, 4.62, width + 0.20, 0.22, size=8.2, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
-    for x in [1.34, 2.44, 3.54]:
-        _add_arrow(slide, x, 3.76, 0.18, 0.22, MID_GRAY)
-    _add_rule(slide, 1.57, 5.00, 1.92, TEAL, 0.025)
-    _add_text(slide, "OSDR LoRA adapter: rank 512", 1.54, 5.08, 2.00, 0.23, size=9.2, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "100 reverse steps at evaluation", 0.55, 5.43, 3.98, 0.24, size=10.2, color=GRAY, align=PP_ALIGN.CENTER)
+    _add_text(slide, "Architecture from Lacan et al.", 0.52, 2.08, 3.92, 0.32, size=16.5, color=NAVY, bold=True)
+    _add_picture_contain(
+        slide,
+        architecture_figure,
+        0.48,
+        2.45,
+        4.02,
+        2.42,
+        alt="Lacan et al. Figure 1C residual diffusion generator architecture",
+    )
+    _add_text(slide, "Residual dense denoiser conditioned on timestep and tissue.", 0.56, 4.93, 3.86, 0.28, size=10.8, color=DARK, bold=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "OSDR adaptation adds FLT/GC, accession and material context through LoRA.", 0.56, 5.28, 3.86, 0.38, size=10.1, color=GRAY, align=PP_ALIGN.CENTER)
 
     _add_rule(slide, 4.63, 2.05, 0.015, "D5DDE2", 3.75)
     _add_text(slide, "Metric", 4.92, 2.17, 2.10, 0.28, size=11.5, color=GRAY, bold=True)
@@ -824,7 +733,7 @@ def _slide_4(slide):
     _add_text(slide, "Use DDIM", 5.18, 5.86, 1.48, 0.31, size=17, color=NAVY, bold=True, margin=0)
     _add_text(slide, "Comparable correlation, higher F1, and lower separability and FD.", 6.86, 5.85, 5.56, 0.32, size=13.3, color=DARK, margin=0)
     _add_text(slide, "AA near 0.5 means real and generated profiles are difficult to separate.", 5.18, 6.28, 7.24, 0.25, size=10.7, color=GRAY, margin=0)
-    _add_source(slide, "WGAN values use validation data and DDIM values use the stated OSDR test; they are not paired on one common split.")
+    _add_source(slide, "Architecture excerpt: Lacan et al. (2026), Fig. 1C, doi:10.1186/s12859-026-06470-8. Metrics use each model's stated split and are not paired.")
 
 
 def _slide_7(slide):
@@ -1649,9 +1558,13 @@ def build() -> Path:
     ASSET_DIR.mkdir(parents=True, exist_ok=True)
     utility_chart = _build_tissue_utility_chart()
     trajectory = _build_trajectory_crop()
-    title_photo = _build_title_photo()
+    architecture_figure = ASSET_DIR / "lacan_figure1c_generator_architecture.png"
+    if not architecture_figure.exists():
+        raise FileNotFoundError(
+            "Missing Lacan et al. architecture excerpt; see presentation/generative_slstp_2026/assets/SOURCES.md"
+        )
     presentation = Presentation(TEMPLATE)
-    _set_title_slide(presentation.slides[0], title_photo)
+    _set_title_slide(presentation.slides[0])
     _prepare_content_slide(presentation.slides[1], 2)
     while len(presentation.slides) < 18:
         number = len(presentation.slides) + 1
@@ -1662,7 +1575,7 @@ def build() -> Path:
         None,
         _slide_2,
         _slide_3,
-        _slide_4,
+        lambda slide: _slide_4(slide, architecture_figure),
         lambda slide: _slide_5(slide, trajectory),
         _slide_6,
         _slide_7,
@@ -1686,7 +1599,7 @@ def build() -> Path:
         SlideNote(1, "Synthetic transcriptomics for mouse spaceflight", "0:25", "Introduce the question. This talk asks whether generated expression can help analyze tissue-specific FLT versus GC biology without counting synthetic profiles as additional animals."),
         SlideNote(2, "Small studies and study effects complicate tissue comparisons", "0:50", "OSDR gives broad tissue coverage, but the data are spread across 75 accessions with different mission and assay contexts. ARCHS4 supplies a much larger mouse reference. The challenge is to use that reference without letting study structure masquerade as spaceflight biology."),
         SlideNote(3, "We built a configurable bulk RNA-seq generation pipeline", "1:10", "Each column shows the alternatives available at one pipeline stage; outlines identify the downstream branch. We used both ARCHS4 and NASA OSDR across multiple studies and all tissues. The selected path used TPM, training-fitted MaxAbs scaling, 974 mouse landmarks, no global correction, ARCHS4 pretraining plus OSDR adaptation, and a DDIM conditioned on tissue, FLT/GC, accession and material. WGAN-GP and the other preprocessing and harmonization choices remained benchmark alternatives."),
-        SlideNote(4, "DDIM matched expression and reduced separability", "0:55", "The left diagram shows the model used downstream: a 974-to-8192-to-8192-to-974 noise predictor, adapted to OSDR with rank-512 LoRA and tissue, condition, accession and material context. Both WGAN-GP and DDIM had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution. The metrics use each model's stated evaluation split."),
+        SlideNote(4, "DDIM matched expression and reduced separability", "0:55", "The left image is Figure 1C from Lacan and colleagues. It shows their residual dense denoiser, conditioned on diffusion timestep and tissue, which predicts the noise added to a sample. Our implementation follows that architecture and adds FLT/GC, accession and material context during OSDR LoRA adaptation. Both generators had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution."),
         SlideNote(5, "Diffusion learns tissue structure from noise", "0:50", "Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel."),
         SlideNote(6, "Generated profiles track the real OSDR PCA manifold", "0:50", "Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. Generated samples track the tissue-defined branches. FLT and GC remain more interspersed because condition effects are smaller than tissue effects. Visual overlap complements the quantitative validation."),
         SlideNote(7, "Synthetic profiles entered the analysis in five different ways", "0:55", "Synthetic data can be used for direct training, mixed training or feature guidance. Each tissue could choose among five arms. The eligibility check used held-out real profiles. Once features were nominated, FLT/GC effects and BH FDR were computed from observed OSDR samples only."),
