@@ -13,8 +13,7 @@ This file transfers the working context and decisions. It does not contain the c
 ## Git state
 
 - Branch: `main`
-- Current presentation commit: `d4006f1`
-- At handoff creation, `main`, `origin/main`, and `origin/HEAD` all pointed to `d4006f1`.
+- Current presentation commit: use `git log -1 --oneline`; the latest deck and handoff are pushed to `origin/main`.
 - The worktree contains many unrelated modified and untracked files. They belong to other project work and must not be reset, deleted, or included in presentation commits.
 - User preference: create checkpoint commits for meaningful progress and push after every commit.
 
@@ -27,7 +26,7 @@ This file transfers the working context and decisions. It does not contain the c
 - NASA template: `presentation/SLSTP_template_2026.pptx`
 - Midpoint reference: `presentation/Biomedical_Foundation_Models_SLSTP_Midpoint_portable (2).pptx`
 
-The current deck has 26 slides, 26 embedded note pages, and a planned runtime of 13:05. All slides were rendered and visually checked after the most recent rebuild.
+The current deck has 25 slides, 25 embedded note pages, and a planned runtime of 12:15. All slides were rendered and visually checked after the most recent rebuild.
 
 ## Working on another device
 
@@ -56,27 +55,26 @@ Therefore, another device can edit the deck and rebuild its current figures and 
 3. Neural-network and autoencoder introduction.
 4. expiMap architecture using tissue-matched ARCHS4 references and mouse Reactome programs.
 5. expiMap pathway findings in thymus, skin, liver, and spleen.
-6. expiMap evidence heatmap with conventional GSEA FDR shown separately.
-7. Synthetic transcriptomics introduction.
-8. OSDR and ARCHS4 data scope.
-9. Configurable preprocessing, harmonization, model, training, and conditioning pipeline.
-10. WGAN-GP versus DDIM validation metrics and DDIM architecture.
-11. DDIM reverse-diffusion PCA trajectory.
-12. Real versus generated OSDR PCA comparison.
-13. Five tissue-specific analysis arms.
-14. Real, generated, and consensus gene ranking with top-k classifier inputs.
-15. Schematic real-only versus synthetic-guided FLT/GC classifier boundaries.
-16. Pooled and tissue-specific classifier utility results.
-17. Reinforced, promoted, and real-only feature-selection sets.
-18. Independent literature-interpretation categories.
-19. Coverage across 27 completed tissue analyses.
-20. Complete 49-association synthetic-informed gene inventory.
-21. Thymus biological interpretation.
-22. Soleus biological interpretation.
-23. Additional findings in pooled muscle, kidney, spleen, and skin.
-24. Additional findings in eye, adrenal gland, gastrocnemius, and tibialis anterior.
-25. Takeaways.
-26. Acknowledgments and questions.
+6. Synthetic transcriptomics introduction.
+7. OSDR and ARCHS4 data scope.
+8. Configurable preprocessing, harmonization, model, training, and conditioning pipeline.
+9. WGAN-GP versus DDIM validation metrics and DDIM architecture.
+10. DDIM reverse-diffusion PCA trajectory.
+11. Real versus generated OSDR PCA comparison.
+12. Five tissue-specific analysis arms.
+13. Real, generated, and consensus gene ranking with top-k classifier inputs.
+14. Schematic real-only versus synthetic-guided FLT/GC classifier boundaries.
+15. Pooled and tissue-specific classifier utility results.
+16. Reinforced, promoted, and real-only feature-selection sets.
+17. Independent literature-interpretation categories.
+18. Coverage across 27 completed tissue analyses.
+19. Complete 49-association synthetic-informed gene inventory.
+20. Thymus biological interpretation.
+21. Soleus biological interpretation.
+22. Additional findings in pooled muscle, kidney, spleen, and skin.
+23. Additional findings in eye, adrenal gland, gastrocnemius, and tibialis anterior.
+24. Takeaways.
+25. Acknowledgments and questions.
 
 ## Presentation decisions
 
@@ -84,10 +82,10 @@ Therefore, another device can edit the deck and rebuild its current figures and 
 - Roughly the first quarter introduces neural networks, autoencoders, and expiMap. The remaining slides cover the generative pipeline and analysis.
 - GLARE is omitted from the short project review.
 - The title slide follows the supplied NASA template.
-- Slide 7 keeps only the enlarged three-stage synthetic-transcriptomics diagram. The explanation that generated profiles are not new biological evidence is in the speaker notes.
-- Slide 15 contains only the two classifier diagrams and their legend. The removed comparison panel and detailed leakage-control sentence remain explained verbally.
-- The same transparent held-out profiles appear in both slide 15 panels. They are scored, not fitted.
-- Slide 25 has only Generate, Use, and Interpret. It has no next-test section and does not mention pooled augmentation.
+- Slide 6 keeps only the enlarged three-stage synthetic-transcriptomics diagram. The explanation that generated profiles are not new biological evidence is in the speaker notes.
+- Slide 14 contains only the two classifier diagrams and their legend. The removed comparison panel and detailed leakage-control sentence remain explained verbally.
+- The same transparent held-out profiles appear in both slide 14 panels. They are scored, not fitted.
+- Slide 24 has only Generate, Use, and Interpret. It has no next-test section and does not mention pooled augmentation.
 - Wording was reviewed using the local humanizer guidance. Avoid formulaic phrasing, promotional claims, em dashes, and unnecessary technical caveats on the slides.
 
 ## expiMap summary used in the deck
@@ -101,7 +99,7 @@ The expiMap manuscript is under `paper/asgsr_expimap_hvg/`.
 - Skin: lower chromatin regulation, DNA repair, Hedgehog signaling, sphingolipid metabolism, and cell-junction organization.
 - Liver: lower MHC class II antigen presentation and T-cell receptor signaling, with heterogeneous metabolic responses.
 - Spleen: lower T-cell receptor signaling, neutrophil degranulation, and C-type lectin receptor signaling. All three passed conventional GSEA FDR below 0.05 and all five directional checks.
-- The slide 6 evidence matrix is rebuilt from `table_2_retained_pathway_evidence.tsv`, `table_s24_pathway_robustness_evidence.tsv`, and `table_s27_kidney_spleen_pathway_evidence.tsv`.
+- The supporting evidence tables remain checked in, but the dedicated expiMap evidence-matrix slide was removed from the presentation.
 - expiMap implementation code is under `src/expiMap_scarches/nasa_mouse_expimap/`.
 
 ## Generative summary used in the deck
@@ -139,7 +137,7 @@ Minimum checks before committing:
 git diff --check
 ```
 
-Render every PDF page with `pdftoppm`, inspect a contact sheet, and inspect changed slides at full resolution. The most recent verified state had 26 PPTX slides, 26 embedded note pages, and 26 PDF pages.
+Render every PDF page with `pdftoppm`, inspect a contact sheet, and inspect changed slides at full resolution. The most recent verified state had 25 PPTX slides, 25 embedded note pages, and 25 PDF pages.
 
 Only stage these files for presentation-only changes unless the task explicitly requires more:
 
@@ -154,6 +152,7 @@ PRESENTATION_HANDOFF.md
 ## Recent presentation commits
 
 ```text
+9a70a76 Add presentation transfer handoff
 d4006f1 Expand presentation to full project scope
 2b5f257 Clarify held-out evaluation visualization
 a825023 Show five-gene consensus selection example
