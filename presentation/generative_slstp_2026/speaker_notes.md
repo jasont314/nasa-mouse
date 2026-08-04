@@ -38,9 +38,9 @@ Circles are locked real OSDR profiles and crosses are matched DDIM profiles in t
 
 Each arm makes two decisions: which profiles rank the genes and which profiles fit the classifier. In both guided arms, real and synthetic evidence jointly rank genes. Guided real fit then trains only on observed profiles. Guided 5% also uses condition-recentered synthetic profiles, but they contribute only 5% of total classifier weight. Held-out real profiles determine eligibility, and FLT/GC effects and BH FDR come from observed OSDR profiles only.
 
-## 10. Synthetic guidance can change which genes define FLT versus GC (0:45)
+## 10. Consensus ranking combines real and generated evidence (0:45)
 
-The scatterplots are schematic. Synthetic profiles first contribute to a consensus gene ranking. The classifier is then refit on real profiles, or on real profiles plus a small synthetic weight, so the selected features and sometimes the boundary can change. The thymus bars are observed workflow results: Nusap1 and Cdk1 were not stable in repeated real-only selection but reached 100 percent with guidance, while Ube2c and Gmnn were reinforced. Held-out real profiles choose the arm, and real OSDR data supply the biological effect and FDR.
+Each gene receives a real FLT/GC score and a generated score summarized across draws. We convert both to percentile ranks and take their geometric mean, so a gene ranks highly only when both sources support it. The effect-based version also rewards matching direction and stability across accessions and generated draws. The classifier sketches are schematic: changing the selected genes can move the boundary, and the low-weight arm can move it further. The thymus bars are observed results: Nusap1 and Cdk1 reached 100 percent stability with guidance, while Ube2c and Gmnn were reinforced. Real held-out profiles choose the arm, and real OSDR data supply the effect and FDR.
 
 ## 11. Pooling tissues hid useful signal (0:50)
 
