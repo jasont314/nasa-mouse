@@ -1072,17 +1072,16 @@ def _slide_guidance_mechanism(slide):
         _add_circle(slide, track_x + track_w * position - 0.075, y - 0.025, 0.15, color)
 
     panel_y = 2.05
-    panel_h = 2.42
+    panel_h = 2.60
     _add_panel(slide, 0.48, panel_y, 3.61, panel_h, fill=PALE_BLUE, line="C9DCE9", radius=False)
     _add_text(slide, "1  REAL RANKING", 0.72, 2.27, 1.86, 0.25, size=14.0, color=BLUE, bold=True, margin=0)
     _add_text(slide, "Rank all 974 genes using real OSDR", 0.72, 2.61, 3.02, 0.23, size=10.4, color=DARK, margin=0)
     _add_text(slide, "lower-ranked", 1.59, 2.96, 0.82, 0.18, size=8.5, color=GRAY, margin=0)
     _add_text(slide, "top-ranked", 3.02, 2.96, 0.72, 0.18, size=8.5, color=GRAY, align=PP_ALIGN.RIGHT, margin=0)
-    add_rank_track(0.72, 3.28, "Cdk1", 0.72, BLUE)
-    add_rank_track(0.72, 3.69, "Nusap1", 0.68, BLUE)
-    cutoff_x = 0.72 + 0.90 + 1.92 * 0.79
-    _add_rule(slide, cutoff_x, 3.16, 0.022, BLUE, 0.80)
-    _add_text(slide, "selection cutoff", 2.68, 4.08, 1.05, 0.18, size=8.5, color=BLUE, italic=True, align=PP_ALIGN.RIGHT, margin=0)
+    example_genes = ["Gene 1", "Gene 2", "Gene 3", "Gene 4", "Gene n"]
+    real_positions = [0.90, 0.82, 0.72, 0.56, 0.35]
+    for index, (gene, position) in enumerate(zip(example_genes, real_positions)):
+        add_rank_track(0.72, 3.18 + index * 0.25, gene, position, BLUE)
 
     _add_arrow(slide, 4.16, 2.93, 0.27, 0.20, MID_GRAY)
     _add_panel(slide, 4.50, panel_y, 3.61, panel_h, fill=PALE_CORAL, line="E6CEC8", radius=False)
@@ -1090,47 +1089,47 @@ def _slide_guidance_mechanism(slide):
     _add_text(slide, "Rank the same 974 genes using generated profiles", 4.74, 2.61, 3.07, 0.23, size=10.4, color=DARK, margin=0)
     _add_text(slide, "lower-ranked", 5.61, 2.96, 0.82, 0.18, size=8.5, color=GRAY, margin=0)
     _add_text(slide, "top-ranked", 7.04, 2.96, 0.72, 0.18, size=8.5, color=GRAY, align=PP_ALIGN.RIGHT, margin=0)
-    add_rank_track(4.74, 3.28, "Cdk1", 0.95, CORAL)
-    add_rank_track(4.74, 3.69, "Nusap1", 0.90, CORAL)
+    generated_positions = [0.88, 0.45, 0.86, 0.68, 0.32]
+    for index, (gene, position) in enumerate(zip(example_genes, generated_positions)):
+        add_rank_track(4.74, 3.18 + index * 0.25, gene, position, CORAL)
     _add_arrow(slide, 8.18, 2.93, 0.27, 0.20, MID_GRAY)
     _add_panel(slide, 8.52, panel_y, 4.13, panel_h, fill=PALE_TEAL, line="C9DFDB", radius=False)
-    _add_text(slide, "3  SHARED RANKING", 8.76, 2.27, 2.23, 0.25, size=14.0, color=TEAL, bold=True, margin=0)
+    _add_text(slide, "3  CONSENSUS RANKING", 8.76, 2.27, 2.55, 0.25, size=14.0, color=TEAL, bold=True, margin=0)
     _add_text(slide, "Genes supported by both move upward", 8.76, 2.61, 2.82, 0.23, size=10.4, color=DARK, margin=0)
     _add_text(slide, "lower-ranked", 9.66, 2.96, 0.82, 0.18, size=8.5, color=GRAY, margin=0)
     _add_text(slide, "top-ranked", 11.61, 2.96, 0.72, 0.18, size=8.5, color=GRAY, align=PP_ALIGN.RIGHT, margin=0)
     shared_rows = [
-        ("Cdk1", 0.87, TEAL, "selected"),
-        ("Nusap1", 0.83, TEAL, "selected"),
-        ("one-sided", 0.45, MID_GRAY, "held back"),
+        ("Gene 1", 0.89, TEAL, "selected"),
+        ("Gene 2", 0.61, MID_GRAY, "not selected"),
+        ("Gene 3", 0.79, TEAL, "selected"),
+        ("Gene 4", 0.62, MID_GRAY, "not selected"),
+        ("Gene n", 0.33, MID_GRAY, "not selected"),
     ]
     for index, (gene, position, color, outcome) in enumerate(shared_rows):
-        y = 3.25 + index * 0.36
+        y = 3.18 + index * 0.25
         add_rank_track(8.76, y, gene, position, color)
-        _add_text(slide, outcome, 11.84, y - 0.055, 0.61, 0.21, size=8.4, color=color, bold=True, align=PP_ALIGN.RIGHT, margin=0)
+        _add_text(slide, outcome, 11.72, y - 0.055, 0.80, 0.21, size=7.8, color=color, bold=True, align=PP_ALIGN.RIGHT, margin=0)
     shared_cutoff_x = 8.76 + 0.90 + 1.92 * 0.75
-    _add_rule(slide, shared_cutoff_x, 3.15, 0.022, TEAL, 1.05)
-    _add_text(slide, "selection cutoff", 11.15, 4.20, 1.20, 0.18, size=8.5, color=TEAL, italic=True, align=PP_ALIGN.RIGHT, margin=0)
+    _add_rule(slide, shared_cutoff_x, 3.10, 0.022, TEAL, 1.27)
+    _add_text(slide, "selection cutoff", 11.15, 4.42, 1.20, 0.18, size=8.5, color=TEAL, italic=True, align=PP_ALIGN.RIGHT, margin=0)
 
-    _add_text(slide, "Top-ranked genes become classifier inputs", 0.52, 4.72, 4.65, 0.28, size=16.0, color=NAVY, bold=True, margin=0)
-    _add_panel(slide, 0.51, 5.05, 3.37, 1.03, fill="F4F8FA", line="D5E1E7", radius=False)
-    _add_text(slide, "Rank 974 genes", 0.77, 5.23, 2.84, 0.25, size=13.0, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "real, generated, or consensus", 0.77, 5.60, 2.84, 0.22, size=10.0, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
-    _add_arrow(slide, 3.99, 5.39, 0.31, 0.20, MID_GRAY)
+    _add_text(slide, "Top-ranked genes become classifier inputs", 0.52, 4.84, 4.65, 0.28, size=16.0, color=NAVY, bold=True, margin=0)
+    _add_panel(slide, 0.51, 5.18, 3.37, 1.28, fill="F4F8FA", line="D5E1E7", radius=False)
+    _add_text(slide, "Rank 974 genes", 0.77, 5.45, 2.84, 0.25, size=13.0, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "real, generated, or consensus", 0.77, 5.88, 2.84, 0.22, size=10.0, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+    _add_arrow(slide, 3.99, 5.68, 0.31, 0.20, MID_GRAY)
 
-    _add_panel(slide, 4.41, 5.05, 3.37, 1.03, fill=PALE_TEAL, line="C9DFDB", radius=False)
-    _add_text(slide, "Keep the top k", 4.67, 5.23, 2.84, 0.25, size=13.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "k = 10, 25, 50, or 100", 4.67, 5.55, 2.84, 0.22, size=10.2, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "validation chooses k", 4.67, 5.79, 2.84, 0.18, size=8.8, color=GRAY, italic=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_arrow(slide, 7.89, 5.39, 0.31, 0.20, MID_GRAY)
+    _add_panel(slide, 4.41, 5.18, 3.37, 1.28, fill=PALE_TEAL, line="C9DFDB", radius=False)
+    _add_text(slide, "Keep the top k", 4.67, 5.39, 2.84, 0.25, size=13.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "k = 10, 25, 50, or 100", 4.67, 5.76, 2.84, 0.22, size=10.2, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "validation chooses k", 4.67, 6.06, 2.84, 0.18, size=8.8, color=GRAY, italic=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_arrow(slide, 7.89, 5.68, 0.31, 0.20, MID_GRAY)
 
-    _add_panel(slide, 8.31, 5.05, 4.34, 1.03, fill="F6F7F8", line="D9DFE3", radius=False)
-    _add_text(slide, "Fit FLT-GC classifier", 8.57, 5.23, 3.82, 0.25, size=13.0, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "using only the selected gene columns", 8.57, 5.60, 3.82, 0.22, size=10.0, color=DARK, align=PP_ALIGN.CENTER, margin=0)
+    _add_panel(slide, 8.31, 5.18, 4.34, 1.28, fill="F6F7F8", line="D9DFE3", radius=False)
+    _add_text(slide, "Fit FLT-GC classifier", 8.57, 5.45, 3.82, 0.25, size=13.0, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "using only the selected gene columns", 8.57, 5.88, 3.82, 0.22, size=10.0, color=DARK, align=PP_ALIGN.CENTER, margin=0)
 
-    _add_panel(slide, 0.47, 6.22, 12.20, 0.61, fill=NAVY, line=NAVY, radius=False)
-    _add_text(slide, "Ranking chooses the input genes.", 0.70, 6.34, 5.66, 0.33, size=11.8, color=WHITE, bold=True, valign=MSO_ANCHOR.MIDDLE, margin=0)
-    _add_text(slide, "Classifier training learns their weights and the boundary.", 6.70, 6.34, 5.57, 0.33, size=11.5, color="DCE7F2", align=PP_ALIGN.RIGHT, valign=MSO_ANCHOR.MIDDLE, margin=0)
-    _add_source(slide, "Rank positions are schematic. The implementation combines normalized real and generated ranks.")
+    _add_source(slide, "Five genes are schematic examples from the 974-gene ranking. Real and generated normalized ranks are combined.")
 
 
 def _slide_guidance_boundary(slide):
