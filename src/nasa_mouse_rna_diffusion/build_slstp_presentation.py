@@ -691,50 +691,50 @@ def _slide_4(slide, architecture_figure: Path):
         "DDIM had lower separability and distributional distance",
         "Both generators matched expression. DDIM was harder to distinguish from real profiles and had higher F1.",
     )
-    _add_text(slide, "Architecture from Lacan et al.", 0.52, 2.08, 6.02, 0.32, size=16.5, color=NAVY, bold=True)
+    _add_text(slide, "Architecture from Lacan et al.", 0.52, 2.08, 7.12, 0.32, size=16.5, color=NAVY, bold=True)
     _add_picture_contain(
         slide,
         architecture_figure,
-        0.38,
-        2.45,
-        6.32,
-        2.36,
+        0.20,
+        2.39,
+        7.48,
+        2.73,
         alt="Lacan et al. Figure 1C residual diffusion generator architecture",
     )
-    _add_text(slide, "Residual dense denoiser conditioned on timestep and tissue.", 0.56, 4.89, 5.96, 0.28, size=11.3, color=DARK, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "OSDR adaptation adds FLT/GC, accession and material context through LoRA.", 0.56, 5.23, 5.96, 0.34, size=10.6, color=GRAY, align=PP_ALIGN.CENTER)
+    _add_text(slide, "Residual dense denoiser conditioned on timestep and tissue.", 0.56, 5.17, 6.90, 0.28, size=11.3, color=DARK, bold=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "OSDR adaptation adds FLT/GC, accession and material context through LoRA.", 0.56, 5.51, 6.90, 0.34, size=10.6, color=GRAY, align=PP_ALIGN.CENTER)
 
-    _add_rule(slide, 6.87, 2.05, 0.015, "D5DDE2", 4.32)
-    _add_text(slide, "Metric", 7.15, 2.17, 1.70, 0.28, size=10.5, color=GRAY, bold=True)
-    _add_text(slide, "WGAN-GP", 8.93, 2.17, 1.05, 0.28, size=10.5, color=CORAL, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "DDIM", 10.13, 2.17, 0.88, 0.28, size=10.5, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "Read", 11.18, 2.17, 1.35, 0.28, size=10.5, color=GRAY, bold=True)
-    _add_rule(slide, 7.15, 2.56, 5.45, NAVY, 0.022)
+    _add_rule(slide, 7.83, 2.05, 0.015, "D5DDE2", 4.32)
+    _add_text(slide, "Metric", 8.04, 2.17, 1.42, 0.28, size=10.0, color=GRAY, bold=True)
+    _add_text(slide, "WGAN-GP", 9.57, 2.17, 0.85, 0.28, size=10.0, color=CORAL, bold=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "DDIM", 10.52, 2.17, 0.76, 0.28, size=10.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "Read", 11.43, 2.17, 1.10, 0.28, size=10.0, color=GRAY, bold=True)
+    _add_rule(slide, 8.04, 2.56, 4.58, NAVY, 0.022)
     metrics = [
         ("Correlation", "0.976", "0.974", "similar"),
         ("F1", "0.985", "0.997", "higher"),
-        ("Adversarial accuracy", "0.636", "0.475", "closer to 0.5"),
+        ("Adversarial acc.", "0.636", "0.475", "near 0.5"),
         ("FD / real P95", "0.144", "0.074", "lower"),
     ]
     for index, (label, wgan, ddim, reading) in enumerate(metrics):
         y = 2.80 + index * 0.59
         if index % 2 == 0:
-            shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(7.13), Inches(y - 0.07), Inches(5.49), Inches(0.50))
+            shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.02), Inches(y - 0.07), Inches(4.61), Inches(0.50))
             _set_fill(shape, "F5F7F8")
             shape.line.fill.background()
-        _add_text(slide, label, 7.22, y, 1.63, 0.32, size=11.2, color=DARK, bold=index >= 2)
-        _add_text(slide, wgan, 8.93, y, 1.05, 0.32, size=13.3, color=CORAL, bold=True, align=PP_ALIGN.CENTER)
-        _add_text(slide, ddim, 10.12, y, 0.88, 0.32, size=13.3, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
-        _add_text(slide, reading, 11.18, y, 1.35, 0.32, size=10.7, color=GRAY)
+        _add_text(slide, label, 8.10, y, 1.39, 0.32, size=10.3, color=DARK, bold=index >= 2)
+        _add_text(slide, wgan, 9.57, y, 0.85, 0.32, size=12.6, color=CORAL, bold=True, align=PP_ALIGN.CENTER)
+        _add_text(slide, ddim, 10.52, y, 0.76, 0.32, size=12.6, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
+        _add_text(slide, reading, 11.43, y, 1.10, 0.32, size=10.2, color=GRAY)
 
-    _add_rule(slide, 0.55, 5.70, 6.03, "D5DDE2", 0.015)
-    _add_text(slide, "ARCHS4 tissue probe", 0.55, 5.88, 1.75, 0.24, size=10.4, color=BLUE, bold=True, margin=0)
-    _add_text(slide, "Real 0.781  |  Synthetic 0.781", 3.40, 5.86, 3.12, 0.27, size=10.4, color=DARK, align=PP_ALIGN.RIGHT, margin=0)
-    _add_text(slide, "Balanced accuracy is preserved in generated tissue labels.", 0.55, 6.21, 5.97, 0.25, size=9.7, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
-    _add_rule(slide, 7.15, 5.36, 0.055, TEAL, 0.78)
-    _add_text(slide, "Use DDIM", 7.40, 5.40, 1.42, 0.31, size=16, color=NAVY, bold=True, margin=0)
-    _add_text(slide, "Higher F1 with lower separability and FD.", 8.91, 5.38, 3.62, 0.47, size=11.8, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
-    _add_text(slide, "AA near 0.5 means real and generated profiles are difficult to separate.", 7.40, 5.97, 5.10, 0.40, size=9.8, color=GRAY, margin=0)
+    _add_rule(slide, 0.55, 5.91, 7.03, "D5DDE2", 0.015)
+    _add_text(slide, "ARCHS4 tissue probe", 0.55, 6.08, 1.75, 0.24, size=10.4, color=BLUE, bold=True, margin=0)
+    _add_text(slide, "Real 0.781  |  Synthetic 0.781", 4.30, 6.06, 3.12, 0.27, size=10.4, color=DARK, align=PP_ALIGN.RIGHT, margin=0)
+    _add_text(slide, "Balanced accuracy is preserved in generated tissue labels.", 0.55, 6.39, 6.87, 0.25, size=9.7, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+    _add_rule(slide, 8.04, 5.36, 0.055, TEAL, 0.78)
+    _add_text(slide, "Use DDIM", 8.29, 5.40, 1.32, 0.31, size=16, color=NAVY, bold=True, margin=0)
+    _add_text(slide, "Higher F1 with lower separability and FD.", 9.73, 5.38, 2.78, 0.47, size=11.3, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
+    _add_text(slide, "AA near 0.5 means real and generated profiles are difficult to separate.", 8.29, 5.97, 4.22, 0.40, size=9.5, color=GRAY, margin=0)
     _add_source(slide, "Architecture excerpt: Lacan et al. (2026), Fig. 1C, doi:10.1186/s12859-026-06470-8. Metrics use each model's stated split and are not paired.")
 
 
