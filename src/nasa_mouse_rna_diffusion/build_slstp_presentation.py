@@ -15,7 +15,7 @@ import pandas as pd
 from PIL import Image
 from pptx import Presentation
 from pptx.dml.color import RGBColor
-from pptx.enum.shapes import MSO_SHAPE, PP_PLACEHOLDER
+from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, PP_PLACEHOLDER
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
 from pptx.oxml.xmlchemy import OxmlElement
 from pptx.util import Inches, Pt
@@ -239,17 +239,18 @@ def _add_bullet_rows(
 ):
     for index, row in enumerate(rows):
         top = y + index * row_h
-        _add_circle(slide, x, top + 0.12, 0.10, bullet_color)
+        _add_circle(slide, x, top + 0.10, 0.10, bullet_color)
         _add_text(
             slide,
             row,
-            x + 0.18,
+            x + 0.20,
             top,
-            w - 0.18,
+            w - 0.20,
             row_h,
             size=size,
             color=color,
-            valign=MSO_ANCHOR.MIDDLE,
+            valign=MSO_ANCHOR.TOP,
+            margin=0,
         )
 
 
@@ -464,6 +465,211 @@ def _set_title_slide(slide):
         run.font.size = Pt(size)
         run.font.bold = bold
         run.font.color.rgb = _rgb(color)
+
+
+def _slide_why_synthetic(slide):
+    _add_slide_title(
+        slide,
+        "Background",
+        "Synthetic transcriptomics creates model-generated expression profiles",
+        "A generator learns patterns in measured RNA-seq data, then samples new expression vectors under chosen conditions.",
+    )
+
+    columns = [
+        (
+            0.50,
+            "01",
+            "Observed profiles",
+            "Measured gene expression from real mouse tissue",
+            BLUE,
+            PALE_BLUE,
+        ),
+        (
+            4.62,
+            "02",
+            "Learn the distribution",
+            "Capture gene relationships and variation by tissue and FLT/GC condition",
+            ORANGE,
+            PALE_GOLD,
+        ),
+        (
+            8.74,
+            "03",
+            "Synthetic profiles",
+            "Sample new numeric expression vectors for a selected context",
+            TEAL,
+            PALE_TEAL,
+        ),
+    ]
+    for index, (x, number, heading, body, color, fill) in enumerate(columns):
+        if index:
+            _add_arrow(slide, x - 0.47, 3.07, 0.34, 0.24, MID_GRAY)
+        _add_text(slide, number, x, 2.10, 0.42, 0.25, size=11, color=color, bold=True, margin=0)
+        _add_text(slide, heading, x + 0.50, 2.04, 3.08, 0.38, size=17.2, color=NAVY, bold=True, margin=0)
+        _add_panel(slide, x, 2.58, 3.58, 1.26, fill=fill, line=fill, radius=False)
+
+        if index in (0, 2):
+            cell_colors = [color, "AFC3D4", color, "D8E2E8", color]
+            for row in range(4):
+                for col in range(5):
+                    cell_color = cell_colors[(row * 2 + col + index) % len(cell_colors)]
+                    square = slide.shapes.add_shape(
+                        MSO_SHAPE.RECTANGLE,
+                        Inches(x + 0.22 + col * 0.29),
+                        Inches(2.82 + row * 0.20),
+                        Inches(0.20),
+                        Inches(0.12),
+                    )
+                    _set_fill(square, cell_color)
+                    square.line.fill.background()
+            _add_text(slide, "genes", x + 0.31, 3.61, 1.12, 0.16, size=8.2, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+            _add_text(slide, "profiles", x + 1.73, 3.00, 0.62, 0.18, size=8.2, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+        else:
+            node_positions = [
+                (x + 0.38, 2.85),
+                (x + 1.03, 2.75),
+                (x + 1.03, 3.25),
+                (x + 1.72, 3.00),
+                (x + 2.40, 2.75),
+                (x + 2.40, 3.25),
+                (x + 3.02, 3.00),
+            ]
+            connections = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4), (3, 5), (4, 6), (5, 6)]
+            for start, end in connections:
+                x1, y1 = node_positions[start]
+                x2, y2 = node_positions[end]
+                line = slide.shapes.add_connector(
+                    MSO_CONNECTOR.STRAIGHT,
+                    Inches(x1 + 0.08),
+                    Inches(y1 + 0.08),
+                    Inches(x2 + 0.08),
+                    Inches(y2 + 0.08),
+                )
+                _set_line(line, "C6B07A", 1.1)
+            for node_index, (node_x, node_y) in enumerate(node_positions):
+                _add_circle(slide, node_x, node_y, 0.16, ORANGE if node_index in (0, 3, 6) else GOLD)
+
+        _add_text(slide, body, x + 0.02, 4.03, 3.50, 0.66, size=13.2, color=DARK, margin=0)
+
+    _add_rule(slide, 0.53, 4.95, 12.20, "D6DEE3", 0.018)
+    _add_text(slide, "It can help", 0.55, 5.20, 1.60, 0.30, size=16, color=TEAL, bold=True, margin=0)
+    _add_text(
+        slide,
+        "test classifiers, rank candidate genes and compare matched FLT and GC profiles",
+        2.03,
+        5.16,
+        4.17,
+        0.55,
+        size=14,
+        color=DARK,
+        margin=0,
+    )
+    _add_rule(slide, 6.49, 5.18, 0.012, "D6DEE3", 0.70)
+    _add_text(slide, "It does not add", 6.82, 5.20, 1.85, 0.30, size=16, color=CORAL, bold=True, margin=0)
+    _add_text(
+        slide,
+        "new animals, new measurements or independent biological evidence",
+        8.51,
+        5.16,
+        3.93,
+        0.55,
+        size=14,
+        color=DARK,
+        margin=0,
+    )
+
+
+def _slide_scientific_objective(slide):
+    _add_slide_title(
+        slide,
+        "Study goals",
+        "Match tissue distributions, then test FLT versus GC biology",
+        "The first goal validates the generator. The second asks whether synthetic data improves a real-data analysis.",
+    )
+
+    _add_text(slide, "01", 0.58, 2.08, 0.42, 0.26, size=11, color=TEAL, bold=True, margin=0)
+    _add_text(slide, "Reproduce tissue structure", 1.08, 2.02, 4.50, 0.38, size=18, color=NAVY, bold=True, margin=0)
+    _add_text(
+        slide,
+        "Synthetic bulk RNA-seq should occupy the same tissue-defined expression space as real profiles.",
+        0.58,
+        2.49,
+        5.58,
+        0.56,
+        size=13.4,
+        color=DARK,
+        margin=0,
+    )
+
+    _add_rule(slide, 0.83, 4.58, 4.92, MID_GRAY, 0.018)
+    _add_rule(slide, 0.83, 3.14, 0.018, MID_GRAY, 1.46)
+
+    def add_cross(x, y, color):
+        first = _add_rule(slide, x, y + 0.06, 0.18, color, 0.025)
+        first.rotation = 45
+        second = _add_rule(slide, x, y + 0.06, 0.18, color, 0.025)
+        second.rotation = -45
+
+    clusters = [
+        (1.52, 3.98, TEAL, "Liver"),
+        (3.12, 3.43, ORANGE, "Muscle"),
+        (4.77, 4.03, PURPLE, "Thymus"),
+    ]
+    offsets = [(-0.23, -0.10), (0.05, -0.19), (0.22, 0.02), (-0.08, 0.18)]
+    for center_x, center_y, color, label in clusters:
+        for point_index, (dx, dy) in enumerate(offsets):
+            _add_circle(slide, center_x + dx, center_y + dy, 0.13, color)
+            add_cross(center_x + dx + 0.10, center_y + dy + (0.08 if point_index % 2 else -0.03), color)
+        _add_text(slide, label, center_x - 0.37, center_y + 0.40, 0.98, 0.22, size=9.2, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+    _add_circle(slide, 0.93, 3.05, 0.12, NAVY)
+    _add_text(slide, "Real", 1.10, 3.02, 0.55, 0.20, size=9.2, color=GRAY, margin=0)
+    add_cross(1.70, 3.03, NAVY)
+    _add_text(slide, "Generated", 1.95, 3.02, 0.90, 0.20, size=9.2, color=GRAY, margin=0)
+
+    _add_rule(slide, 6.50, 2.05, 0.015, "D6DEE3", 2.72)
+
+    _add_text(slide, "02", 6.86, 2.08, 0.42, 0.26, size=11, color=CORAL, bold=True, margin=0)
+    _add_text(slide, "Preserve the FLT/GC difference", 7.36, 2.02, 4.96, 0.38, size=18, color=NAVY, bold=True, margin=0)
+    _add_text(
+        slide,
+        "Within each tissue, generated profiles should retain the smaller condition signal.",
+        6.86,
+        2.49,
+        5.60,
+        0.56,
+        size=13.4,
+        color=DARK,
+        margin=0,
+    )
+    _add_text(slide, "FLT", 7.18, 3.24, 0.72, 0.28, size=14, color=CORAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "GC", 9.08, 3.24, 0.72, 0.28, size=14, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    flt_points = [(7.18, 3.73), (7.52, 3.58), (7.79, 3.81), (7.37, 4.04)]
+    gc_points = [(9.09, 3.73), (9.43, 3.58), (9.70, 3.81), (9.28, 4.04)]
+    for x, y in flt_points:
+        _add_circle(slide, x, y, 0.17, CORAL)
+    for x, y in gc_points:
+        _add_circle(slide, x, y, 0.17, BLUE)
+    _add_text(slide, "vs", 8.38, 3.75, 0.42, 0.24, size=11.5, color=MID_GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_arrow(slide, 10.16, 3.67, 0.42, 0.28, MID_GRAY)
+    _add_text(slide, "genes", 10.82, 3.35, 1.16, 0.27, size=13.5, color=NAVY, bold=True, margin=0)
+    _add_text(slide, "+ pathways", 10.82, 3.75, 1.48, 0.27, size=13.5, color=NAVY, bold=True, margin=0)
+    _add_text(slide, "for each tissue", 10.82, 4.15, 1.55, 0.24, size=11, color=GRAY, margin=0)
+
+    _add_rule(slide, 0.60, 5.12, 12.08, TEAL, 0.035)
+    _add_text(slide, "Model choice", 0.62, 5.43, 1.55, 0.30, size=16.5, color=TEAL, bold=True, margin=0)
+    _add_text(
+        slide,
+        "Use the pipeline that matches tissue structure and performs best on held-out real FLT/GC samples.",
+        2.18,
+        5.34,
+        7.40,
+        0.58,
+        size=15,
+        color=NAVY,
+        valign=MSO_ANCHOR.MIDDLE,
+        margin=0,
+    )
+    _add_text(slide, "Gene effects and BH FDR use observed OSDR data.", 9.88, 5.42, 2.57, 0.46, size=11.5, color=GRAY, margin=0)
 
 
 def _slide_2(slide):
@@ -1040,7 +1246,7 @@ def _slide_10(slide):
             shade = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(4.82), Inches(y - 0.04), Inches(7.54), Inches(0.42))
             _set_fill(shade, "F5F7F8")
             shade.line.fill.background()
-        _add_rule(slide, 4.86, y + 0.07, 0.12, color, 0.12)
+        _add_rule(slide, 4.86, y + 0.11, 0.12, color, 0.12)
         _add_text(slide, label, 5.10, y, 1.68, 0.34, size=12.6, color=color, bold=True, valign=MSO_ANCHOR.MIDDLE, margin=0)
         _add_text(slide, str(count), 6.87, y, 0.66, 0.34, size=14.0, color=DARK, bold=True, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE, margin=0)
         _add_text(slide, detail, 7.69, y, 4.41, 0.34, size=11.8, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
@@ -1612,7 +1818,7 @@ def _write_notes(notes: list[SlideNote]) -> None:
     lines = [
         "# SLSTP 2026 generative transcriptomics speaker notes",
         "",
-        "Target length: 12-15 minutes. Planned speaking time: about 14 minutes 30 seconds.",
+        "Target length: 12-15 minutes. Planned speaking time: about 14 minutes.",
         "",
     ]
     for note in notes:
@@ -1637,14 +1843,16 @@ def build() -> Path:
     presentation = Presentation(TEMPLATE)
     _set_title_slide(presentation.slides[0])
     _prepare_content_slide(presentation.slides[1], 2)
-    while len(presentation.slides) < 18:
+    while len(presentation.slides) < 20:
         number = len(presentation.slides) + 1
         slide = presentation.slides.add_slide(presentation.slide_layouts[3])
         _prepare_content_slide(slide, number)
 
     builders = [
         None,
+        _slide_why_synthetic,
         _slide_2,
+        _slide_scientific_objective,
         _slide_3,
         lambda slide: _slide_4(slide, architecture_figure),
         lambda slide: _slide_5(slide, trajectory),
@@ -1667,24 +1875,26 @@ def build() -> Path:
             builder(presentation.slides[index])
 
     notes = [
-        SlideNote(1, "Synthetic transcriptomics for mouse spaceflight", "0:25", "Introduce the question. This talk asks whether generated expression can help analyze tissue-specific FLT versus GC biology without counting synthetic profiles as additional animals."),
-        SlideNote(2, "Small studies and study effects complicate tissue comparisons", "0:50", "OSDR gives broad tissue coverage, but the data are spread across 75 accessions with different mission and assay contexts. ARCHS4 supplies a much larger mouse reference. The challenge is to use that reference without letting study structure masquerade as spaceflight biology."),
-        SlideNote(3, "We built a configurable bulk RNA-seq generation pipeline", "1:10", "Each column shows the alternatives available at one pipeline stage; outlines identify the downstream branch. We used both ARCHS4 and NASA OSDR across multiple studies and all tissues. The selected path used TPM, training-fitted MaxAbs scaling, 974 mouse landmarks, no global correction, ARCHS4 pretraining plus OSDR adaptation, and a DDIM conditioned on tissue, FLT/GC, accession and material. WGAN-GP and the other preprocessing and harmonization choices remained benchmark alternatives."),
-        SlideNote(4, "DDIM matched expression and reduced separability", "0:55", "The left image is Figure 1C from Lacan and colleagues. It shows their residual dense denoiser, conditioned on diffusion timestep and tissue, which predicts the noise added to a sample. Our implementation follows that architecture and adds FLT/GC, accession and material context during OSDR LoRA adaptation. Both generators had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution."),
-        SlideNote(5, "Diffusion learns tissue structure from noise", "0:50", "Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change is not caused by rescaling each panel."),
-        SlideNote(6, "Generated profiles track the real OSDR PCA manifold", "0:50", "Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. Generated samples track the tissue-defined branches. FLT and GC remain more interspersed because condition effects are smaller than tissue effects. Visual overlap complements the quantitative validation."),
-        SlideNote(7, "Five arms separate gene ranking from classifier fitting", "0:55", "Each arm makes two decisions: which profiles rank the genes and which profiles fit the classifier. In both guided arms, real and synthetic evidence jointly rank genes. Guided real fit then trains only on observed profiles. Guided 5% also uses condition-recentered synthetic profiles, but they contribute only 5% of total classifier weight. This is a weight, not a 5% increase in animal count. Held-out real profiles determine eligibility, and FLT/GC effects and BH FDR are computed from observed OSDR profiles only."),
-        SlideNote(8, "Pooling tissues hid useful signal", "0:55", "The pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. The bars use a true zero-to-one balanced-accuracy scale. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
-        SlideNote(9, "Synthetic guidance changed ranking, not statistical evidence", "0:50", "The blue set contains genes selected stably by real-only ranking, and the teal set contains genes selected stably by the eligible synthetic-guided arm. Thirty-four were real-only, 23 were selected by both arms and classified as reinforced, and 26 were selected only with guidance and classified as promoted. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations passed BH FDR in observed OSDR profiles."),
-        SlideNote(10, "Selection and literature are separate dimensions", "0:55", "Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. Table S16 records the gene-level rationale, evidence scope and source IDs; Table S17 records citations, DOI or URL and whether the evidence is independent, overlapping or mechanistic context."),
-        SlideNote(11, "The screen covered all 27 completed tissue analyses", "0:45", "This is the full analysis coverage: 22 canonical tissues and five anatomical muscle groups. Ten had a synthetic-informed BH-FDR association, five had real BH-FDR genes without synthetic-informed selection, and 12 had no BH-FDR gene in the landmark panel. The discussion focuses later, but every completed tissue result remains visible here."),
-        SlideNote(12, "Ten tissue analyses contained synthetic-informed genes", "0:45", "This is the complete 49-association inventory. Separate rows show FLT-higher or FLT-lower direction and promoted or reinforced selection status. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT directions come from real-data meta-analysis."),
-        SlideNote(13, "Thymus points to lower proliferative renewal", "1:10", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. A matched sensitivity model without material-type conditioning preserved the cell-cycle interpretation, so the process-level result did not depend on that label. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
-        SlideNote(14, "Soleus reinforces a mitochondrial and lipid program", "1:00", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. In the matched no-material sensitivity model, soleus selected the real-only arm and the synthetic attribution disappeared. The real OSDR association remains, but the contribution attributed to generated profiles is conditioning-sensitive."),
-        SlideNote(15, "Additional tissues produced distinct hypotheses", "0:40", "Promoted and reinforced genes are shown on separate subrows for each tissue. Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. The rows share a slide for presentation space; each remains a separate hypothesis. Pooled muscle is heterogeneous, kidney suggests phosphoinositide and glucose handling, spleen suggests adhesion and extracellular-matrix or immune organization, and skin contributes a single interferon-linked candidate."),
-        SlideNote(16, "Eye, adrenal and muscle-group results remain tissue-specific", "0:40", "Promoted and reinforced genes remain separated here as well. Eye reinforces lower cytokinesis, adrenal contributes two unmatched candidates, gastrocnemius combines an NF-kappa-B stress signal with an autophagy or myogenesis candidate, and tibialis anterior spans stress, cell-cycle, ganglioside and mitophagy hypotheses."),
-        SlideNote(17, "Synthetic data worked best as a tissue-specific prior", "0:40", "Synthetic data was useful for tissue-specific feature ranking and limited regularization. It did not increase biological sample size. Literature annotation separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests."),
-        SlideNote(18, "Thank you", "0:10", "Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions."),
+        SlideNote(1, "Synthetic transcriptomics for mouse spaceflight", "0:20", "Introduce the central question: can generated expression help us find tissue-specific FLT versus GC biology? Synthetic profiles support the analysis, but they do not count as additional animals."),
+        SlideNote(2, "Synthetic transcriptomics creates model-generated expression profiles", "0:40", "Synthetic transcriptomes are numeric gene-expression vectors sampled from a model trained on measured RNA-seq data. Conditioning lets us request a tissue and FLT or GC context. These profiles can stress-test a classifier and guide gene ranking. They do not add biological replicates or independent evidence."),
+        SlideNote(3, "Small studies and study effects complicate tissue comparisons", "0:45", "OSDR gives broad tissue coverage, but the profiles are spread across 75 accessions with different mission and assay contexts. ARCHS4 supplies a much larger mouse reference. The challenge is to use that reference without confusing study structure with spaceflight biology."),
+        SlideNote(4, "Match tissue distributions, then test FLT versus GC biology", "0:45", "The generator has two jobs. First, synthetic bulk RNA-seq should reproduce the tissue-defined distributions seen in real data. Second, it should preserve the smaller FLT versus GC signal within each tissue and improve prediction on held-out real samples. Gene effects and BH FDR are always calculated from observed OSDR profiles."),
+        SlideNote(5, "We built a configurable bulk RNA-seq generation pipeline", "1:00", "Each column shows the alternatives available at one pipeline stage; outlines identify the downstream branch. We used ARCHS4 and NASA OSDR across multiple studies and all tissues. The selected path used TPM, training-fitted MaxAbs scaling, 974 mouse landmarks, no global correction, ARCHS4 pretraining plus OSDR adaptation, and a DDIM conditioned on tissue, FLT/GC, accession and material. WGAN-GP and the other preprocessing and harmonization choices remained benchmark alternatives."),
+        SlideNote(6, "DDIM matched expression and reduced separability", "0:50", "The left image is Figure 1C from Lacan and colleagues. Their residual dense denoiser predicts the noise added to a sample using diffusion timestep and tissue. Our implementation adds FLT/GC, accession and material context during OSDR LoRA adaptation. Both generators had high correlation and F1. DDIM had adversarial accuracy near 0.5 and a lower Frechet-distance ratio, so it was harder to separate from real profiles and closer in distribution."),
+        SlideNote(7, "Diffusion learns tissue structure from noise", "0:40", "Read the panels from left to right. The same generated profiles begin as noise, develop structure by timestep 200 and approach tissue-conditioned regions at timestep zero. The axes are shared, so the visual change does not come from rescaling each panel."),
+        SlideNote(8, "Generated profiles track the real OSDR PCA manifold", "0:40", "Circles are locked real OSDR profiles and crosses are matched DDIM profiles in the same PCA space. Generated samples follow the tissue-defined branches. FLT and GC overlap more because condition effects are smaller than tissue effects. The numerical validation on the previous slide tests fidelity directly."),
+        SlideNote(9, "Five arms separate gene ranking from classifier fitting", "0:50", "Each arm makes two decisions: which profiles rank the genes and which profiles fit the classifier. In both guided arms, real and synthetic evidence jointly rank genes. Guided real fit then trains only on observed profiles. Guided 5% also uses condition-recentered synthetic profiles, but they contribute only 5% of total classifier weight. Held-out real profiles determine eligibility, and FLT/GC effects and BH FDR come from observed OSDR profiles only."),
+        SlideNote(10, "Pooling tissues hid useful signal", "0:50", "The pooled augmentation test was negative: balanced accuracy fell from 0.754 to 0.737 with real plus synthetic training. Tissue-specific analysis changed the result. Different tissues benefited from different synthetic uses, which argues against one global augmentation policy."),
+        SlideNote(11, "Synthetic guidance changed ranking, not statistical evidence", "0:45", "The blue set contains genes selected stably by real-only ranking, and the teal set contains genes selected stably by the eligible synthetic-guided arm. Thirty-four were real-only, 23 were selected by both arms and classified as reinforced, and 26 were selected only with guidance and classified as promoted. Promoted does not mean biologically novel. All 49 synthetic-informed tissue-gene associations passed BH FDR in observed OSDR profiles."),
+        SlideNote(12, "Selection and literature are separate dimensions", "0:50", "Every association has two labels. Promoted or reinforced describes repeated feature selection. Aligning, complementary, ambiguous or unmatched describes prior literature. Across all 49 associations, 22 aligned, 19 were complementary, four were ambiguous and four were unmatched. Table S16 records the gene-level rationale and source IDs; Table S17 records the citations and evidence relationship."),
+        SlideNote(13, "The screen covered all 27 completed tissue analyses", "0:35", "This is the full analysis coverage: 22 canonical tissues and five anatomical muscle groups. Ten had a synthetic-informed BH-FDR association, five had real BH-FDR genes without synthetic-informed selection, and 12 had no BH-FDR gene in the landmark panel. Every completed tissue result remains visible here."),
+        SlideNote(14, "Ten tissue analyses contained synthetic-informed genes", "0:40", "This is the complete 49-association inventory. Separate rows show FLT-higher or FLT-lower direction and promoted or reinforced selection status. Gene color independently shows aligning, complementary, ambiguous or unmatched literature. FLT directions come from real-data meta-analysis."),
+        SlideNote(15, "Thymus points to lower proliferative renewal", "1:00", "Thymus produced the clearest promoted panel. The lower mitotic and DNA-replication genes agree with prior reports of thymic involution and altered cell-cycle expression after flight. Higher Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. A matched sensitivity model without material-type conditioning preserved the cell-cycle interpretation. Because this is bulk RNA-seq, the pattern may reflect transcription, cell composition or both."),
+        SlideNote(16, "Soleus reinforces a mitochondrial and lipid program", "0:55", "Soleus improved with real plus generated training. The selected genes were already stable in real-only analysis, so synthetic data reinforced rather than introduced the panel. Lower Bdh1, Ech1, Bnip3 and Decr1, with higher Tpm1, support altered oxidative metabolism and contractile remodeling. In the no-material sensitivity model, the synthetic attribution disappeared. The real OSDR association remains, but the generated-profile contribution is conditioning-sensitive."),
+        SlideNote(17, "Additional tissues produced distinct hypotheses", "0:35", "Promoted and reinforced genes are shown on separate subrows for each tissue. Pooled muscle, kidney, spleen and skin each produced a distinct synthetic-informed result. The rows share a slide for presentation space; each remains a separate hypothesis."),
+        SlideNote(18, "Eye, adrenal and muscle-group results remain tissue-specific", "0:35", "Promoted and reinforced genes remain separated here as well. Eye reinforces lower cytokinesis, adrenal contributes two unmatched candidates, gastrocnemius combines an NF-kappa-B stress signal with an autophagy or myogenesis candidate, and tibialis anterior spans stress, cell-cycle, ganglioside and mitophagy hypotheses."),
+        SlideNote(19, "Synthetic data worked best as a tissue-specific prior", "0:35", "Synthetic data was useful for tissue-specific feature ranking and limited regularization. It did not increase biological sample size. Literature annotation separated exact recovery, process-level agreement and complementary hypotheses. Independent samples and cell-resolved experiments are the next tests."),
+        SlideNote(20, "Thank you", "0:10", "Acknowledge the mentor, SLSTP, NASA OSDR, ARCHS4, Reactome and NASA Ames compute. Invite questions."),
     ]
     for note, slide in zip(notes, presentation.slides):
         _add_notes(slide, note)
