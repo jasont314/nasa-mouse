@@ -104,6 +104,35 @@ def test_comparison_pattern_requires_real_transfer_for_emergent_gene():
     )
 
 
+def test_shared_pattern_requires_positive_real_importance():
+    assert (
+        _comparison_pattern(
+            real_stable=True,
+            arm_stable=True,
+            coefficient_match=True,
+            real_importance=-0.02,
+            arm_real_importance=-0.01,
+            arm_real_positive_fraction=0.25,
+            arm_synthetic_importance=0.05,
+            arm_synthetic_positive_fraction=0.75,
+        )
+        == "shared_synthetic_domain_only"
+    )
+    assert (
+        _comparison_pattern(
+            real_stable=True,
+            arm_stable=True,
+            coefficient_match=True,
+            real_importance=0.01,
+            arm_real_importance=0.02,
+            arm_real_positive_fraction=0.75,
+            arm_synthetic_importance=0.05,
+            arm_synthetic_positive_fraction=0.75,
+        )
+        == "shared_reinforced"
+    )
+
+
 def test_importance_aggregation_keeps_positive_fraction_keyed():
     rows = []
     for gene, values in {"gene_b": [-0.1, -0.2], "gene_a": [0.1, -0.1]}.items():

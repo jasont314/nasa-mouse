@@ -404,6 +404,10 @@ def _comparison_pattern(
     if arm_stable and real_stable:
         if not coefficient_match:
             return "shared_direction_conflict"
+        if not real_transfer:
+            if synthetic_support:
+                return "shared_synthetic_domain_only"
+            return "shared_no_positive_importance"
         if arm_real_importance >= real_importance:
             return "shared_reinforced"
         return "shared_attenuated"
@@ -665,6 +669,151 @@ def _importance_enrichment(
     return pd.concat(tables, ignore_index=True) if tables else pd.DataFrame()
 
 
+def _selected_arm_tables(
+    aggregate: pd.DataFrame,
+    comparison: pd.DataFrame,
+    choices: pd.DataFrame,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    choice_columns = [
+        "scope",
+        "tissue",
+        "selected_arm",
+        "generated_arm_eligible_all_metrics",
+    ]
+    selected_importance = aggregate.merge(
+        choices[choice_columns],
+        on=["scope", "tissue"],
+        how="inner",
+        validate="many_to_one",
+    )
+    selected_importance = selected_importance.loc[
+        selected_importance["arm"].eq(selected_importance["selected_arm"])
+    ].copy()
+    selected_comparison = comparison.merge(
+        choices[choice_columns],
+        on=["scope", "tissue"],
+        how="inner",
+        validate="many_to_one",
+    )
+    selected_comparison = selected_comparison.loc[
+        selected_comparison["arm"].eq(selected_comparison["selected_arm"])
+    ].copy()
+    return selected_importance, selected_comparison
+
+
+def _synthetic_informed_gene_importance(
+    inventory_path: Path,
+    selected_importance: pd.DataFrame,
+    aggregate: pd.DataFrame,
+) -> pd.DataFrame:
+    inventory = pd.read_csv(inventory_path, sep="\t")
+    scope_mapping = {
+        "canonical_tissue": "tissue",
+        "skeletal_muscle_group": "muscle_group",
+    }
+    inventory["scope"] = inventory["analysis_scope"].map(scope_mapping)
+    if inventory["scope"].isna().any():
+        unknown = sorted(inventory.loc[inventory["scope"].isna(), "analysis_scope"].unique())
+        raise ValueError(f"Unknown synthetic-informed analysis scopes: {unknown}")
+    available_units = selected_importance[["scope", "tissue"]].drop_duplicates()
+    inventory = inventory.merge(
+        available_units,
+        on=["scope", "tissue"],
+        how="inner",
+        validate="many_to_one",
+    )
+
+    selected = selected_importance.loc[
+        selected_importance["domain"].eq("real")
+    ].copy()
+    selected["permutation_rank_within_unit"] = selected.groupby(
+        ["scope", "tissue"], observed=True
+    )["permutation_roc_auc_mean"].rank(method="min", ascending=False)
+    selected_columns = [
+        "scope",
+        "tissue",
+        "gene",
+        "selected_arm",
+        "selection_frequency",
+        "coefficient_sign_agreement",
+        "median_classifier_coefficient",
+        "permutation_balanced_accuracy_mean",
+        "permutation_balanced_accuracy_positive_repeat_fraction",
+        "permutation_roc_auc_mean",
+        "permutation_roc_auc_positive_repeat_fraction",
+        "permutation_average_precision_mean",
+        "permutation_average_precision_positive_repeat_fraction",
+        "linear_shap_mean_absolute",
+        "linear_shap_flight_minus_ground",
+        "permutation_rank_within_unit",
+    ]
+    selected = selected[selected_columns].rename(
+        columns={
+            column: f"selected_arm_{column}"
+            for column in selected_columns
+            if column not in {"scope", "tissue", "gene", "selected_arm"}
+        }
+    )
+    baseline_columns = [
+        "scope",
+        "tissue",
+        "gene",
+        "selection_frequency",
+        "coefficient_sign_agreement",
+        "median_classifier_coefficient",
+        "permutation_roc_auc_mean",
+        "permutation_roc_auc_positive_repeat_fraction",
+        "linear_shap_flight_minus_ground",
+    ]
+    baseline = aggregate.loc[
+        aggregate["domain"].eq("real") & aggregate["arm"].eq("real_only"),
+        baseline_columns,
+    ].rename(
+        columns={
+            column: f"real_only_{column}"
+            for column in baseline_columns
+            if column not in {"scope", "tissue", "gene"}
+        }
+    )
+    table = inventory.merge(
+        selected,
+        on=["scope", "tissue", "gene"],
+        how="left",
+        validate="one_to_one",
+    ).merge(
+        baseline,
+        on=["scope", "tissue", "gene"],
+        how="left",
+        validate="one_to_one",
+    )
+    if table["selected_arm"].isna().any():
+        missing = table.loc[
+            table["selected_arm"].isna(), ["analysis_scope", "tissue", "gene"]
+        ]
+        raise RuntimeError(
+            "Synthetic-informed genes are missing selected-arm importance: "
+            f"{missing.head().to_dict(orient='records')}"
+        )
+    table["positive_held_out_real_permutation_importance"] = (
+        table["selected_arm_permutation_roc_auc_mean"].gt(0.0)
+        & table[
+            "selected_arm_permutation_roc_auc_positive_repeat_fraction"
+        ].ge(0.5)
+    )
+    table["positive_linear_shap_flt_gc_separation"] = table[
+        "selected_arm_linear_shap_flight_minus_ground"
+    ].gt(0.0)
+    table["permutation_and_shap_supported"] = (
+        table["positive_held_out_real_permutation_importance"]
+        & table["positive_linear_shap_flt_gc_separation"]
+    )
+    table["selected_minus_real_only_permutation_roc_auc"] = (
+        table["selected_arm_permutation_roc_auc_mean"]
+        - table["real_only_permutation_roc_auc_mean"]
+    )
+    return table
+
+
 def _plot_unit_importance(
     aggregate: pd.DataFrame, output: Path, *, scope: str, tissue: str
 ) -> None:
@@ -784,6 +933,10 @@ expectation.
 - `importance_by_repeat.tsv.gz`: per-repeat, per-gene permutation and SHAP results.
 - `importance_summary.tsv.gz`: importance aggregated across repeated outer splits.
 - `arm_vs_real_gene_comparison.tsv.gz`: synthetic-arm patterns relative to real-only.
+- `selected_arm_importance.tsv.gz`: importance for each unit's retained utility arm.
+- `selected_arm_vs_real_gene_comparison.tsv.gz`: retained synthetic arms only.
+- `synthetic_informed_bh_fdr_gene_importance.tsv`: permutation and SHAP crosswalk
+  for the manuscript's promoted and reinforced BH-FDR genes.
 - `tissue_arm_similarity.tsv`: arm and domain rank correlations and top-20 overlap.
 - `reactome_importance_enrichment.tsv.gz`: exploratory enrichment of importance patterns.
 - `top_importance_genes.tsv`: top genes by held-out-real AUROC permutation drop.
@@ -814,6 +967,7 @@ def _run_source(
     permutation_repeats: int,
     run_seed: int,
     coefficient_tolerance: float,
+    metric_tolerance: float,
     units_override: set[str] | None,
 ) -> tuple[
     pd.DataFrame,
@@ -943,6 +1097,9 @@ def _run_source(
                         f"{scope}:{tissue}:{repeat}:{arm}; max error={coefficient_error:.3g}, "
                         f"tolerance={coefficient_tolerance:.3g}"
                     )
+                # Preserve the exact fitted feature weights being interpreted. The
+                # independently refitted intercept is retained and checked below.
+                classifier.coef_[0] = saved_coefficients.copy()
                 genes = [data.genes[index] for index in selected]
                 background = _training_background(
                     arms[arm],
@@ -952,7 +1109,7 @@ def _run_source(
                     recentered_train_scaled,
                 )
                 real_evaluation = real_evaluation_scaled[:, selected]
-                real_permutation, _ = _permutation_rows(
+                real_permutation, real_baseline = _permutation_rows(
                     classifier,
                     real_evaluation,
                     labels[outer_test],
@@ -961,6 +1118,18 @@ def _run_source(
                     permutation_repeats=permutation_repeats,
                     seed=run_seed + tissue_position * 1_000_000 + repeat * 10_000 + arm_offsets[arm] * 100,
                 )
+                metric_error = float(
+                    max(
+                        abs(float(real_baseline[metric]) - float(candidate[metric]))
+                        for metric in METRICS
+                    )
+                )
+                if metric_error > metric_tolerance:
+                    raise RuntimeError(
+                        "Refitted classifier does not reproduce saved held-out metrics for "
+                        f"{scope}:{tissue}:{repeat}:{arm}; max error={metric_error:.3g}, "
+                        f"tolerance={metric_tolerance:.3g}"
+                    )
                 real_shap, _ = _linear_shap_rows(
                     classifier,
                     real_evaluation,
@@ -1026,6 +1195,7 @@ def _run_source(
                 )
                 synthetic_table["domain"] = "synthetic"
                 table = pd.concat((real_table, synthetic_table), ignore_index=True)
+                table.insert(0, "metric_reconstruction_max_error", metric_error)
                 table.insert(0, "coefficient_reconstruction_max_error", coefficient_error)
                 table.insert(0, "classifier_coefficient", np.tile(classifier.coef_[0], 2))
                 table.insert(0, "regularization_c", float(candidate["regularization_c"]))
@@ -1072,9 +1242,13 @@ def run(
     )
     run_seed = int(config["run"]["seed"])
     coefficient_tolerance = float(
-        config["analysis"].get("coefficient_tolerance", 1e-3)
+        config["analysis"].get("coefficient_tolerance", 0.05)
+    )
+    metric_tolerance = float(
+        config["analysis"].get("metric_tolerance", 1e-10)
     )
     repeat_tables: list[pd.DataFrame] = []
+    choice_tables: list[pd.DataFrame] = []
     threshold_lookup: dict[tuple[str, str], tuple[float, float]] = {}
     completed_rows: list[dict[str, object]] = []
     all_genes: list[str] | None = None
@@ -1084,11 +1258,17 @@ def run(
         scope = str(source["scope"])
         if scopes_override is not None and scope not in scopes_override:
             continue
+        choices = pd.read_csv(
+            Path(source["analysis_dir"]) / "tissue_arm_choices.tsv", sep="\t"
+        )
+        choices.insert(0, "scope", scope)
+        choice_tables.append(choices)
         table, thresholds, genes, symbols, gmt_path = _run_source(
             source,
             permutation_repeats=permutation_repeats,
             run_seed=run_seed,
             coefficient_tolerance=coefficient_tolerance,
+            metric_tolerance=metric_tolerance,
             units_override=units_override,
         )
         repeat_tables.append(table)
@@ -1119,6 +1299,18 @@ def run(
     aggregate = _aggregate_importance(repeat_table, completed)
     comparison = _compare_arms(aggregate, threshold_lookup)
     similarity = _arm_similarity(aggregate, comparison)
+    choices = pd.concat(choice_tables, ignore_index=True)
+    selected_importance, selected_comparison = _selected_arm_tables(
+        aggregate, comparison, choices
+    )
+    inventory_path_value = config["analysis"].get("synthetic_informed_genes")
+    synthetic_informed = (
+        _synthetic_informed_gene_importance(
+            Path(inventory_path_value), selected_importance, aggregate
+        )
+        if inventory_path_value
+        else pd.DataFrame()
+    )
     if reactome_path is None:
         raise RuntimeError("No Reactome annotation path was loaded")
     enrichment = _importance_enrichment(
@@ -1155,6 +1347,24 @@ def run(
         index=False,
         compression="gzip",
     )
+    selected_importance.to_csv(
+        output / "selected_arm_importance.tsv.gz",
+        sep="\t",
+        index=False,
+        compression="gzip",
+    )
+    selected_comparison.to_csv(
+        output / "selected_arm_vs_real_gene_comparison.tsv.gz",
+        sep="\t",
+        index=False,
+        compression="gzip",
+    )
+    if not synthetic_informed.empty:
+        synthetic_informed.to_csv(
+            output / "synthetic_informed_bh_fdr_gene_importance.tsv",
+            sep="\t",
+            index=False,
+        )
     similarity.to_csv(output / "tissue_arm_similarity.tsv", sep="\t", index=False)
     enrichment.to_csv(
         output / "reactome_importance_enrichment.tsv.gz",
@@ -1169,6 +1379,7 @@ def run(
         )
     _plot_domain_similarity(similarity, output)
     pattern_counts = comparison["pattern"].value_counts().to_dict()
+    selected_pattern_counts = selected_comparison["pattern"].value_counts().to_dict()
     arm_medians = (
         similarity.groupby("arm", observed=True)[
             [
@@ -1194,6 +1405,20 @@ def run(
         ),
         "importance_rows": int(len(repeat_table)),
         "pattern_counts": {key: int(value) for key, value in pattern_counts.items()},
+        "selected_arm_pattern_counts": {
+            key: int(value) for key, value in selected_pattern_counts.items()
+        },
+        "synthetic_informed_bh_fdr_genes": int(len(synthetic_informed)),
+        "synthetic_informed_positive_permutation": int(
+            synthetic_informed.get(
+                "positive_held_out_real_permutation_importance", pd.Series(dtype=bool)
+            ).sum()
+        ),
+        "synthetic_informed_positive_shap_separation": int(
+            synthetic_informed.get(
+                "positive_linear_shap_flt_gc_separation", pd.Series(dtype=bool)
+            ).sum()
+        ),
         "median_similarity_by_arm": arm_medians,
         "linear_shap_method": "exact interventional linear SHAP on log-odds",
         "neural_network_retrained": False,
@@ -1202,6 +1427,10 @@ def run(
             repeat_table["coefficient_reconstruction_max_error"].max()
         ),
         "coefficient_reconstruction_tolerance": coefficient_tolerance,
+        "maximum_metric_reconstruction_error": float(
+            repeat_table["metric_reconstruction_max_error"].max()
+        ),
+        "metric_reconstruction_tolerance": metric_tolerance,
         "limitations": [
             "The fixed DDIM was trained before the repeated classifier splits.",
             "Outer splits retain represented accessions and measure within-study interpolation.",

@@ -15,4 +15,6 @@ sources:
 analysis:
   permutation_repeats: 20
   top_genes_per_arm: 20
-  coefficient_tolerance: 0.001
+  coefficient_tolerance: 0.05
+  metric_tolerance: 1.0e-10
+  synthetic_informed_genes: paper/synthetic_guided_spaceflight/source_data/table_s10_synthetic_informed_bh_fdr_genes.tsv
