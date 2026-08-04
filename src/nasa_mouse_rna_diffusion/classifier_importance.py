@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import yaml
+from scipy.stats import rankdata
 from sklearn.preprocessing import StandardScaler
 
 from .generated_feature_guidance import _fit_classifier, _reactome_enrichment
@@ -176,27 +177,33 @@ def _permutation_rows(
         raise ValueError("Permutation expression and labels differ")
     probability = classifier.predict_proba(expression)[:, 1]
     baseline = _metric_set(labels, probability)
+    baseline_logit = np.asarray(classifier.decision_function(expression), dtype=float)
+    coefficients = np.asarray(classifier.coef_[0], dtype=float)
     shuffle_blocks = blocks or [np.arange(len(expression), dtype=np.int64)]
     if sorted(np.concatenate(shuffle_blocks).tolist()) != list(range(len(expression))):
         raise ValueError("Permutation blocks must partition evaluation rows")
     rng = np.random.default_rng(int(seed))
     rows: list[dict[str, object]] = []
     for column, gene in enumerate(genes):
-        drops = {metric: [] for metric in METRICS}
-        for _ in range(int(permutation_repeats)):
-            permuted = expression.copy()
-            for block in shuffle_blocks:
-                shuffled = rng.permutation(block)
-                permuted[block, column] = expression[shuffled, column]
-            metrics = _metric_set(labels, classifier.predict_proba(permuted)[:, 1])
-            for metric in METRICS:
-                drops[metric].append(float(baseline[metric] - metrics[metric]))
+        original = expression[:, column]
+        permuted = np.tile(original, (int(permutation_repeats), 1))
+        for block in shuffle_blocks:
+            orders = np.argsort(
+                rng.random((int(permutation_repeats), len(block))),
+                axis=1,
+                kind="stable",
+            )
+            permuted[:, block] = original[block][orders]
+        logits = baseline_logit.reshape(1, -1) + coefficients[column] * (
+            permuted - original.reshape(1, -1)
+        )
+        permuted_metrics = _metric_matrix_from_logits(labels, logits)
         row: dict[str, object] = {
             "gene": gene,
             "symbol": symbols.get(gene, gene),
         }
-        for metric, values in drops.items():
-            array = np.asarray(values, dtype=float)
+        for metric in METRICS:
+            array = baseline[metric] - permuted_metrics[metric]
             row[f"baseline_{metric}"] = float(baseline[metric])
             row[f"permutation_{metric}_mean"] = float(array.mean())
             row[f"permutation_{metric}_sd"] = float(
@@ -207,6 +214,65 @@ def _permutation_rows(
             )
         rows.append(row)
     return pd.DataFrame(rows), baseline
+
+
+def _metric_matrix_from_logits(
+    labels: np.ndarray, logits: np.ndarray
+) -> dict[str, np.ndarray]:
+    """Evaluate rows of logits with tie-aware vectorized binary metrics."""
+
+    labels = np.asarray(labels, dtype=np.int64)
+    logits = np.asarray(logits, dtype=float)
+    if logits.ndim == 1:
+        logits = logits.reshape(1, -1)
+    if logits.ndim != 2 or logits.shape[1] != len(labels):
+        raise ValueError("Logit rows and labels differ")
+    positive = labels == 1
+    negative = labels == 0
+    positive_count = int(positive.sum())
+    negative_count = int(negative.sum())
+    if positive_count == 0 or negative_count == 0:
+        nan = np.full(logits.shape[0], np.nan, dtype=float)
+        return {metric: nan.copy() for metric in METRICS}
+
+    predicted = logits >= 0.0
+    true_positive_rate = predicted[:, positive].mean(axis=1)
+    true_negative_rate = (~predicted[:, negative]).mean(axis=1)
+    balanced_accuracy = 0.5 * (true_positive_rate + true_negative_rate)
+
+    ranks = rankdata(logits, method="average", axis=1)
+    roc_auc = (
+        ranks[:, positive].sum(axis=1)
+        - positive_count * (positive_count + 1) / 2.0
+    ) / (positive_count * negative_count)
+
+    order = np.argsort(-logits, axis=1, kind="stable")
+    sorted_scores = np.take_along_axis(logits, order, axis=1)
+    sorted_labels = labels[order]
+    cumulative_positive = np.cumsum(sorted_labels, axis=1)
+    group_end = np.ones_like(sorted_scores, dtype=bool)
+    group_end[:, :-1] = sorted_scores[:, :-1] != sorted_scores[:, 1:]
+    cumulative_at_end = np.maximum.accumulate(
+        np.where(group_end, cumulative_positive, 0), axis=1
+    )
+    previous_end = np.concatenate(
+        (
+            np.zeros((len(logits), 1), dtype=int),
+            cumulative_at_end[:, :-1],
+        ),
+        axis=1,
+    )
+    group_positive = cumulative_positive - previous_end
+    precision = cumulative_positive / np.arange(1, logits.shape[1] + 1)
+    average_precision = (
+        np.where(group_end, group_positive * precision, 0.0).sum(axis=1)
+        / positive_count
+    )
+    return {
+        "balanced_accuracy": balanced_accuracy,
+        "roc_auc": roc_auc,
+        "average_precision": average_precision,
+    }
 
 
 def _linear_shap_rows(

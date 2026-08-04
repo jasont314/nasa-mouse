@@ -1,10 +1,12 @@
 import numpy as np
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import average_precision_score, balanced_accuracy_score, roc_auc_score
 
 from nasa_mouse_rna_diffusion.classifier_importance import (
     _aggregate_importance,
     _comparison_pattern,
     _linear_shap_rows,
+    _metric_matrix_from_logits,
     _permutation_rows,
 )
 
@@ -34,6 +36,27 @@ def test_permutation_importance_identifies_informative_feature():
     assert baseline["roc_auc"] > 0.95
     assert importance["gene_1"] > 0.25
     assert importance["gene_1"] > importance[["gene_2", "gene_3"]].max()
+
+
+def test_vectorized_metrics_match_sklearn_with_score_ties():
+    labels = np.array([0, 1, 0, 1, 0, 1])
+    logits = np.array(
+        [
+            [-1.0, 0.5, -1.0, 0.5, 0.5, 2.0],
+            [0.2, -0.1, 0.2, 1.0, -0.1, 1.0],
+        ]
+    )
+    observed = _metric_matrix_from_logits(labels, logits)
+    for row, scores in enumerate(logits):
+        assert np.isclose(
+            observed["balanced_accuracy"][row],
+            balanced_accuracy_score(labels, scores >= 0.0),
+        )
+        assert np.isclose(observed["roc_auc"][row], roc_auc_score(labels, scores))
+        assert np.isclose(
+            observed["average_precision"][row],
+            average_precision_score(labels, scores),
+        )
 
 
 def test_linear_shap_reconstructs_linear_log_odds():
