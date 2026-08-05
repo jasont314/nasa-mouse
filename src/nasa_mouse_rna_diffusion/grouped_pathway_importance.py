@@ -686,7 +686,104 @@ def _plot_unit(
     plt.close(figure)
 
 
-def _write_readme(output: Path, summary: dict[str, Any]) -> None:
+def _plot_eligible_summary(pathways: pd.DataFrame, output: Path) -> None:
+    if pathways.empty:
+        return
+    frame = pathways.sort_values(
+        ["scope", "tissue", "meta_fdr", "arm", "description"], kind="stable"
+    ).reset_index(drop=True)
+    arm_abbreviation = {
+        "generated_only": "synthetic",
+        "real_plus_generated": "real + synthetic",
+    }
+    labels = [
+        f"{row.tissue.replace('_', ' ').title()}: {row.description} "
+        f"[{arm_abbreviation.get(row.arm, row.arm)}]"
+        for row in frame.itertuples()
+    ]
+    labels = [label if len(label) <= 82 else label[:79] + "..." for label in labels]
+    colors = [
+        "#D37B00" if direction == "FLT_higher" else "#2D6496"
+        for direction in frame["flt_gc_direction"]
+    ]
+    positions = np.arange(len(frame))
+    figure, axes = plt.subplots(
+        1,
+        3,
+        figsize=(16.0, max(6.4, 0.56 * len(frame))),
+        sharey=True,
+        gridspec_kw={"width_ratios": [1.0, 1.0, 1.0]},
+    )
+    panels = [
+        (
+            "arm_permutation_roc_auc_mean",
+            "Held-out AUROC loss\nafter group permutation",
+            False,
+        ),
+        (
+            "arm_group_shap_flight_minus_ground",
+            "Grouped SHAP\nFLT - GC contribution",
+            False,
+        ),
+        (
+            "meta_effect",
+            "Observed pathway score\nFLT - GC effect",
+            True,
+        ),
+    ]
+    for axis, (column, xlabel, diverging) in zip(axes, panels):
+        axis.barh(positions, frame[column], color=colors, alpha=0.90)
+        axis.axvline(0.0, color="#333333", linewidth=0.8)
+        axis.set_xlabel(xlabel)
+        axis.grid(axis="x", color="#E4E8EB", linewidth=0.7)
+        axis.set_axisbelow(True)
+        if diverging:
+            limit = max(abs(float(frame[column].min())), abs(float(frame[column].max())))
+            axis.set_xlim(-1.12 * limit, 1.12 * limit)
+    axes[0].set_yticks(positions, labels, fontsize=8)
+    axes[0].invert_yaxis()
+    figure.suptitle(
+        "Synthetic-supported grouped Reactome pathways",
+        fontsize=15,
+        weight="bold",
+    )
+    figure.text(
+        0.52,
+        0.02,
+        "Blue: lower pathway score in FLT. Orange: higher pathway score in FLT. "
+        "All association FDR values are below 0.05 in observed OSDR profiles.",
+        ha="center",
+        fontsize=9,
+    )
+    figure.subplots_adjust(left=0.39, right=0.98, top=0.90, bottom=0.14, wspace=0.24)
+    figure.savefig(output / "eligible_grouped_pathway_evidence.png", dpi=220)
+    figure.savefig(output / "eligible_grouped_pathway_evidence.pdf")
+    plt.close(figure)
+
+
+def _write_readme(
+    output: Path,
+    summary: dict[str, Any],
+    top_pathways: pd.DataFrame,
+) -> None:
+    result_rows: list[str] = []
+    for row in top_pathways.itertuples():
+        result_rows.append(
+            "| "
+            + " | ".join(
+                [
+                    str(row.tissue).replace("_", " "),
+                    MATCHED_ARM_LABELS.get(str(row.arm), str(row.arm)),
+                    str(row.description),
+                    str(row.flt_gc_direction).replace("_", " "),
+                    f"{float(row.arm_permutation_roc_auc_mean):.4f}",
+                    f"{float(row.arm_group_shap_flight_minus_ground):.4f}",
+                    f"{float(row.meta_fdr):.4g}",
+                ]
+            )
+            + " |"
+        )
+    result_table = "\n".join(result_rows) if result_rows else "No pathway passed every gate."
     text = f"""# Grouped Reactome importance
 
 This analysis refits the completed matched all-gene classifiers and evaluates
@@ -719,6 +816,16 @@ association test.
 - Minimum AUROC permutation loss: {summary['minimum_permutation_roc_auc']}
 - Minimum positive outer-repeat fraction: {summary['minimum_positive_outer_fraction']}
 
+## Main results
+
+Eligible pathway groups occurred in {', '.join(unit.split(':', 1)[1].replace('_', ' ') for unit in summary['eligible_units']) or 'no analysis unit'}.
+Reactome contains overlapping parent and child terms, so the rows below are a
+Jaccard-filtered interpretation set rather than independent discoveries.
+
+| Tissue | Classifier arm | Reactome pathway | Observed direction | AUROC loss | Grouped SHAP FLT-GC | Real BH FDR |
+|---|---|---|---|---:|---:|---:|
+{result_table}
+
 ## Outputs
 
 - `pathway_importance_by_repeat.tsv.gz`: pathway permutation and grouped SHAP for every fit.
@@ -728,6 +835,7 @@ association test.
 - `pathway_arm_comparison.tsv.gz`: matched real-only versus synthetic-arm results.
 - `eligible_synthetic_pathways.tsv.gz`: pathways passing utility, grouped importance, SHAP-direction, and real BH-FDR gates.
 - `top_nonredundant_pathways.tsv`: a Jaccard-filtered interpretation table.
+- `eligible_grouped_pathway_evidence.png`: grouped permutation, SHAP, and observed-effect summary.
 - `<scope>/<tissue>/grouped_pathway_importance.png`: top pathway importance by arm.
 
 ## Interpretation limits
@@ -953,7 +1061,8 @@ def run(
     (output / "summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"
     )
-    _write_readme(output, summary)
+    _plot_eligible_summary(nonredundant, output)
+    _write_readme(output, summary, nonredundant)
     print(json.dumps(summary, indent=2), flush=True)
     return output / "summary.json"
 
