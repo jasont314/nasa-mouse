@@ -669,7 +669,12 @@ def _plot_utility(utility: pd.DataFrame, output: Path) -> None:
     units = sorted(
         utility.assign(unit=utility["scope"] + ":" + utility["tissue"])["unit"].unique()
     )
-    figure, axes = plt.subplots(1, 2, figsize=(11.5, max(7.0, 0.31 * len(units))))
+    figure, axes = plt.subplots(
+        1,
+        2,
+        figsize=(13.5, max(7.0, 0.31 * len(units))),
+        sharey=True,
+    )
     for axis, arm in zip(axes, SYNTHETIC_ARMS):
         frame = utility.loc[utility["arm"].eq(arm)].assign(
             unit=lambda values: values["scope"] + ":" + values["tissue"]
@@ -693,16 +698,27 @@ def _plot_utility(utility: pd.DataFrame, output: Path) -> None:
             rotation=30,
             ha="right",
         )
-        axis.set_yticks(np.arange(len(units)), units, fontsize=7)
+        axis.set_yticks(np.arange(len(units)))
+        if axis is axes[0]:
+            axis.set_yticklabels(units, fontsize=7)
+        else:
+            axis.tick_params(axis="y", labelleft=False, left=False)
         axis.set_title(MATCHED_ARM_LABELS[arm], weight="bold")
-        figure.colorbar(image, ax=axis, fraction=0.035, pad=0.02)
+        colorbar = figure.colorbar(image, ax=axis, fraction=0.035, pad=0.02)
+        colorbar.set_label("Mean change")
     axes[0].set_ylabel("Analysis unit")
     figure.suptitle(
         "Matched all-gene classifier change from real-only",
         fontsize=14,
         weight="bold",
     )
-    figure.subplots_adjust(left=0.18, right=0.96, top=0.92, bottom=0.15, wspace=0.28)
+    figure.subplots_adjust(
+        left=0.18,
+        right=0.92,
+        top=0.92,
+        bottom=0.15,
+        wspace=0.20,
+    )
     figure.savefig(output / "matched_classifier_metric_deltas.png", dpi=220)
     figure.savefig(output / "matched_classifier_metric_deltas.pdf")
     plt.close(figure)
@@ -937,6 +953,7 @@ background for every arm.
 - `importance_summary.tsv.gz`: all-gene permutation and SHAP summaries.
 - `arm_gene_comparison.tsv.gz`: matched real-only versus synthetic-arm importance.
 - `bh_fdr_matched_importance.tsv.gz`: real BH-FDR genes joined to matched importance.
+- `eligible_bh_fdr_candidates.tsv`: compact synthetic-supported BH-FDR candidates.
 - `matched_classifier_metric_deltas.png`: tissue-level performance changes.
 - `<scope>/<tissue>/matched_classifier_importance.png`: importance comparison.
 
@@ -1109,6 +1126,12 @@ def run(
         index=False,
         compression="gzip",
     )
+    eligible = crosswalk.loc[
+        crosswalk["eligible_synthetic_biological_candidate"]
+    ].copy()
+    eligible.to_csv(
+        output / "eligible_bh_fdr_candidates.tsv", sep="\t", index=False
+    )
     top = (
         aggregate.loc[aggregate["domain"].eq("real")]
         .sort_values(
@@ -1161,6 +1184,13 @@ def run(
         "eligible_bh_fdr_candidates_by_arm": {
             key: int(value) for key, value in eligible_counts.items()
         },
+        "eligible_bh_fdr_arm_rows": int(len(eligible)),
+        "eligible_bh_fdr_unique_associations": int(
+            eligible[["scope", "tissue", "gene"]].drop_duplicates().shape[0]
+        ),
+        "eligible_bh_fdr_units": sorted(
+            (eligible["scope"] + ":" + eligible["tissue"]).unique().tolist()
+        ),
         "joint_utility_units_by_arm": {
             arm: int(
                 utility.loc[
