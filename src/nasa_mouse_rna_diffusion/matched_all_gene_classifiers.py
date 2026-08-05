@@ -611,9 +611,10 @@ def _bh_fdr_crosswalk(
     )
     if inventory["scope"].isna().any():
         raise ValueError("BH-FDR inventory has unknown analysis scopes")
+    importance = comparison.rename(columns={"symbol": "importance_symbol"})
     table = inventory.merge(
-        comparison,
-        on=["scope", "tissue", "gene", "symbol"],
+        importance,
+        on=["scope", "tissue", "gene"],
         how="inner",
         validate="one_to_many",
     ).merge(
@@ -630,6 +631,9 @@ def _bh_fdr_crosswalk(
         on=["scope", "tissue", "arm"],
         how="left",
         validate="many_to_one",
+    )
+    table["symbol_matches_importance_annotation"] = table["symbol"].eq(
+        table["importance_symbol"]
     )
     table["arm_coefficient_matches_real_effect"] = np.sign(
         table["arm_real_median_classifier_coefficient"]

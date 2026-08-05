@@ -3,6 +3,7 @@ import pandas as pd
 
 from nasa_mouse_rna_diffusion.matched_all_gene_classifiers import (
     _accession_blocks,
+    _bh_fdr_crosswalk,
     _fit_matched_arm,
     _importance_pattern,
     _metric_summary,
@@ -103,6 +104,46 @@ def test_positive_importance_requires_practical_loss_and_repeat_consistency():
         minimum_importance=0.001,
         minimum_fraction=0.5,
     ).tolist() == [False, True, False, True]
+
+
+def test_bh_crosswalk_joins_by_stable_gene_id_when_symbols_differ(tmp_path):
+    inventory_path = tmp_path / "bh.tsv"
+    pd.DataFrame(
+        {
+            "analysis_scope": ["canonical_tissue"],
+            "tissue": ["thymus"],
+            "gene": ["ENSMUSG1"],
+            "symbol": ["OldName"],
+            "meta_effect": [0.2],
+        }
+    ).to_csv(inventory_path, sep="\t", index=False)
+    comparison = pd.DataFrame(
+        {
+            "scope": ["tissue"],
+            "tissue": ["thymus"],
+            "arm": ["real_plus_generated"],
+            "gene": ["ENSMUSG1"],
+            "symbol": ["NewName"],
+            "arm_real_median_classifier_coefficient": [0.4],
+            "arm_real_linear_shap_flight_minus_ground": [0.1],
+            "pattern": ["synthetic_promoted_real_transfer"],
+        }
+    )
+    utility = pd.DataFrame(
+        {
+            "scope": ["tissue"],
+            "tissue": ["thymus"],
+            "arm": ["real_plus_generated"],
+            "pooled_mean_all_metrics_nonworse": [True],
+            "macro_mean_all_metrics_nonworse": [True],
+            "joint_mean_all_metrics_nonworse": [True],
+        }
+    )
+    result = _bh_fdr_crosswalk(inventory_path, comparison, utility)
+    assert result.loc[0, "symbol"] == "OldName"
+    assert result.loc[0, "importance_symbol"] == "NewName"
+    assert not bool(result.loc[0, "symbol_matches_importance_annotation"])
+    assert bool(result.loc[0, "eligible_synthetic_biological_candidate"])
 
 
 def test_metric_summary_requires_pooled_and_macro_nonworse():
