@@ -25,7 +25,9 @@ from .matched_all_gene_classifiers import (
     MATCHED_ARM_LABELS,
     SYNTHETIC_ARMS,
     _accession_blocks,
+    _evaluate_classifier,
     _fit_matched_arm,
+    _metric_summary,
     _select_shared_regularization,
 )
 from .within_study_feature_stability import (
@@ -395,6 +397,17 @@ def _run_unit(
             table.insert(0, "tissue", tissue)
             table.insert(0, "scope", scope)
             pathway_tables.append(table)
+            evaluation_metrics = _evaluate_classifier(
+                classifier,
+                real_test,
+                labels[outer_test],
+                real_test_samples,
+            )
+            for metric in METRICS:
+                if not np.isclose(evaluation_metrics[metric], baseline[metric]):
+                    raise RuntimeError(
+                        f"Grouped and classifier {metric} baselines differ"
+                    )
             metric_rows.append(
                 {
                     "scope": scope,
@@ -402,7 +415,7 @@ def _run_unit(
                     "repeat": repeat,
                     "arm": arm,
                     "regularization_c": selected_c,
-                    **baseline,
+                    **evaluation_metrics,
                 }
             )
     if not pathway_tables:
@@ -710,6 +723,7 @@ association test.
 
 - `pathway_importance_by_repeat.tsv.gz`: pathway permutation and grouped SHAP for every fit.
 - `pathway_importance_summary.tsv.gz`: values aggregated over outer repeats.
+- `arm_utility.tsv`: same-run synthetic-arm changes from the real-only classifier.
 - `real_pathway_random_effects.tsv.gz`: observed-data pathway-score association and BH FDR.
 - `pathway_arm_comparison.tsv.gz`: matched real-only versus synthetic-arm results.
 - `eligible_synthetic_pathways.tsv.gz`: pathways passing utility, grouped importance, SHAP-direction, and real BH-FDR gates.
@@ -840,12 +854,7 @@ def run(
         .reset_index()
     )
     aggregate = _aggregate_pathways(rows, completed)
-    utility = pd.read_csv(
-        Path(config["matched_output"]) / "arm_utility.tsv", sep="\t"
-    )
-    if units_override is not None or scopes_override is not None:
-        selected = pd.DataFrame(completed_units, columns=["scope", "tissue"])
-        utility = utility.merge(selected, on=["scope", "tissue"], how="inner")
+    _, utility = _metric_summary(metrics)
     comparison = _compare_arms(
         aggregate,
         utility,
@@ -867,6 +876,7 @@ def run(
         compression="gzip",
     )
     metrics.to_csv(output / "classifier_metrics.tsv.gz", sep="\t", index=False)
+    utility.to_csv(output / "arm_utility.tsv", sep="\t", index=False)
     aggregate.to_csv(
         output / "pathway_importance_summary.tsv.gz",
         sep="\t",
