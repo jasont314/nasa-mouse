@@ -50,57 +50,57 @@ These panels use the same locked coordinates. The left panel colors each profile
 
 The left panel now colors the same profiles by flight or ground-control condition, while the right repeats the accession view. FLT and GC overlap much more than the study clusters. This is why the downstream analysis estimates FLT-GC effects within accession rather than treating the pooled separation as biology.
 
-## 13. Five arms separate gene ranking from classifier fitting (0:40)
+## 13. The primary comparison changes only the training source (0:40)
 
-The five arms vary which profiles rank genes and which profiles fit the classifier. The guided arms use real and generated rankings together. One then fits on real profiles only; the other gives generated profiles five percent of the training weight. Association tests still use observed OSDR data.
+Every matched classifier uses all 974 genes, the same real-fitted scaler, the same outer split, and one regularization value selected from real training data. Real-only, synthetic-only, and real-plus-synthetic models are evaluated on the same held-out real profiles. This isolates training source within the classifier analysis.
 
-## 14. Consensus ranking chooses the classifier input genes (0:25)
+## 14. Consensus ranking is a secondary panel analysis (0:25)
 
-Real and generated profiles rank the same 974 genes. Combining those rankings can move a gene into or out of the selected top set. The classifier is then trained using only the selected expression columns.
+Real and generated profiles rank the same 974 genes. Combining those rankings can move a gene into or out of a compact top-k panel. This is useful for pathway interpretation, but it does not isolate training source as directly as the matched all-gene comparison.
 
-## 15. Synthetic guidance can shift the FLT/GC boundary (0:15)
+## 15. Correlated genes dilute marginal importance (0:35)
 
-Opaque points are training profiles and transparent points are held-out real profiles. The panels use the same held-out samples. A useful synthetic-guided feature set changes the fitted boundary so that more held-out labels fall on the correct side.
+Suppose several genes carry the same pathway signal. Ridge can divide weight among them. If I shuffle Gene A, Genes B and C remain, so held-out performance changes little and Gene A receives low permutation importance. Consensus ranking can still retain the group. Low individual importance means replaceable in this classifier, not biologically irrelevant.
 
-## 16. Synthetic use helped some tissues and hurt others (0:35)
+## 16. Matched augmentation helped many tissues, but not all (0:35)
 
-The pooled classifier declined with generated profiles. Within tissues, the best synthetic-informed candidate improved balanced accuracy in examples such as spleen, thymus, and skin, but declined in cecum, colon, and slightly in liver. The selection rule retained a synthetic arm only when balanced accuracy, AUROC, and average precision were all non-worse than real-only training.
+The pooled multi-tissue classifier declined with augmentation. In separate tissue models, real plus synthetic passed all pooled and accession-macro balanced-accuracy, AUROC, and average-precision checks in 18 of 27 analyses. The coral examples show why a balanced-accuracy gain alone is not enough when another metric declines.
 
-## 17. Synthetic guidance changed ranking, not statistical evidence (0:30)
+## 17. Matched and consensus results overlap only partly (0:30)
 
-Twenty-three associations were selected with and without guidance, so we call them reinforced. Twenty-six crossed the repeated selection threshold only with guidance, so we call them promoted. All 49 passed BH FDR in observed OSDR profiles.
+The matched analysis retained 21 BH-FDR tissue-gene associations, and consensus ranking retained 49. Eleven appear in both. Matched results are primary evidence that synthetic training changes classifier behavior. Consensus-only results are secondary panel evidence.
 
-## 18. Selection and literature are separate dimensions (0:30)
+## 18. Consensus selection and literature are separate dimensions (0:30)
 
-Promoted or reinforced describes feature selection. Aligning, complementary, ambiguous, or unmatched describes the literature review. These labels answer different questions and can occur in any combination.
+For the 49 consensus associations, promoted or reinforced describes feature selection. Aligning, complementary, ambiguous, or unmatched describes the literature review. These labels answer different questions and can occur in any combination.
 
-## 19. The screen covered all 27 completed tissue analyses (0:20)
+## 19. The matched screen covered all 27 tissue analyses (0:25)
 
-The full screen includes 22 canonical tissues and five anatomical muscle groups. Ten analyses had a synthetic-informed BH-FDR association, five had real-data BH-FDR genes without synthetic support, and 12 had no BH-FDR gene in the landmark panel.
+Four tissues had both matched utility and retained BH-FDR genes. Fourteen more passed the utility gate without a retained gene. Nine failed at least one mean metric. Predictive improvement does not automatically produce a biological candidate.
 
-## 20. Ten tissue analyses contained synthetic-informed genes (0:20)
+## 20. The secondary consensus inventory spans ten tissue analyses (0:20)
 
-This slide lists all 49 synthetic-informed associations. Rows separate FLT direction and selection status. Gene color gives the independent literature classification.
+This slide lists all 49 consensus associations. Rows separate FLT direction and selection status. Gene color gives the independent literature classification.
 
-## 21. Thymus points to lower proliferative renewal (0:40)
+## 21. Thymus is strongest across both analyses (0:45)
 
-Thymus produced the clearest promoted panel. Lower mitotic and DNA-replication genes fit prior reports of thymic involution. Hsd17b11 and Etv1 add lipid-handling and T-cell-state hypotheses. Bulk RNA-seq cannot separate transcriptional regulation from cell-composition change.
+The matched analysis retained 15 thymus genes, seven promoted after augmentation, and 26 significant Reactome terms led by mitotic cell cycle. Nine genes overlap the 16-gene consensus panel, which adds correlated cell-cycle members. Together they support lower proliferative renewal or fewer cycling thymocytes in flight.
 
-## 22. Soleus reinforces a mitochondrial and lipid program (0:35)
+## 22. Soleus remains a secondary consensus result (0:35)
 
-Soleus improved with real plus generated training. Lower Bdh1, Ech1, Bnip3, and Decr1 with higher Tpm1 support altered oxidative metabolism and contractile remodeling. The real association remains, but its synthetic reinforcement was sensitive to material conditioning.
+The consensus analysis reinforces lower Bdh1, Ech1, Bnip3, and Decr1 with higher Tpm1, a coherent mitochondrial and lipid-metabolism panel. In the fixed all-gene comparison, balanced accuracy rose slightly but AUROC and average precision fell, so the matched gate did not pass.
 
-## 23. Additional tissues produced distinct hypotheses (0:20)
+## 23. Three additional tissues have matched genes (0:25)
 
-Pooled muscle, kidney, spleen, and skin each produced a separate result. Promoted and reinforced genes are kept on separate rows so the selection claim stays clear.
+Liver contributes four flight-lower shared-importance genes without pathway enrichment. Skin Plscr1 and spleen Loxl1 are supported by both analyses. Pooled muscle improves prediction in the matched classifier, but its individual gene interpretation remains consensus-level.
 
-## 24. Eye, adrenal and muscle-group results remain tissue-specific (0:20)
+## 24. Additional panels remain consensus-only (0:20)
 
-Eye, adrenal gland, gastrocnemius, and tibialis anterior add smaller tissue-specific candidates. These are follow-up hypotheses rather than one shared systemic signature.
+Kidney, adrenal gland, gastrocnemius, and tibialis anterior add smaller tissue-specific consensus candidates. They did not pass the matched gene gate, so they remain exploratory panel-level hypotheses.
 
-## 25. Synthetic data worked best as a tissue-specific prior (0:25)
+## 25. Use matched tests for contribution and consensus for programs (0:30)
 
-Conditional DDIM produced realistic profiles. Tissue-specific ranking and light synthetic training improved held-out prediction in selected tissues. The final biological associations and FDR still come from observed OSDR samples.
+Conditional DDIM produced realistic profiles. Matched classifiers show where synthetic training changes held-out-real prediction and gene importance. Consensus ranking organizes correlated biological panels. Thymus is strongest across both; all association statistics still come from observed OSDR samples.
 
 ## 26. Thank you (0:10)
 
