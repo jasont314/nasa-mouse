@@ -420,13 +420,13 @@ def _build_tissue_utility_chart() -> Path:
     ax.set_yticks(y, [display[value] for value in data["tissue"]])
     ax.invert_yaxis()
     ax.set_xlim(0.45, 1.04)
-    ax.set_xlabel("Balanced accuracy on held-out real profiles", fontsize=10)
+    ax.set_xlabel("Balanced accuracy on unseen real samples", fontsize=10)
     ax.grid(axis="x", color="#DDE4E8", lw=0.8)
     ax.spines[["top", "right", "left"]].set_visible(False)
     ax.tick_params(axis="y", length=0, labelsize=10)
     ax.tick_params(axis="x", labelsize=9)
-    ax.scatter([], [], s=70, color="#178681", label="Passed all six metrics")
-    ax.scatter([], [], s=70, color="#D96552", label="Did not pass")
+    ax.scatter([], [], s=70, color="#178681", label="Improved all checks")
+    ax.scatter([], [], s=70, color="#D96552", label="Mixed result")
     ax.legend(
         frameon=False,
         ncol=3,
@@ -568,7 +568,7 @@ def _build_pca_comparison_chart(primary: str) -> Path:
         "tissue": "Colored by tissue",
         "condition": "Colored by condition",
     }
-    for axis, title in zip(axes, [titles[primary], "Colored by OSDR accession"]):
+    for axis, title in zip(axes, [titles[primary], "Colored by study"]):
         axis.set_facecolor("none")
         axis.set_title(title, fontsize=14, color="#082B55", weight="bold", pad=9)
         axis.set_xlabel("PC1", fontsize=11, color="#263746")
@@ -669,7 +669,7 @@ def _slide_project_scope(slide):
             "02",
             "Can synthetic profiles sharpen the analysis?",
             "Conditional generation",
-            "Generate matched expression profiles by tissue, study context, and FLT or GC condition.",
+            "Generate condition-specific expression profiles by tissue, study, and FLT or GC condition.",
             "Output: validated profiles and gene ranking",
             TEAL,
             PALE_TEAL,
@@ -690,7 +690,7 @@ def _slide_autoencoder_foundation(slide):
     _add_slide_title(
         slide,
         "Neural networks",
-        "Autoencoders compress expression into a latent space",
+        "Autoencoders compress thousands of genes into a few features",
         "The encoder summarizes a gene profile; the decoder learns enough structure to reconstruct it.",
     )
 
@@ -744,7 +744,7 @@ def _slide_autoencoder_foundation(slide):
 
     for index, (center_x, center_y) in enumerate(latent_positions):
         _add_circle(slide, center_x - 0.10, center_y - 0.10, 0.20, ORANGE if index == 1 else GOLD)
-    _add_text(slide, "latent\nvariables", 4.56, 4.88, 0.84, 0.48, size=10.2, color=ORANGE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "compressed\nfeatures", 4.51, 4.88, 0.94, 0.48, size=9.8, color=ORANGE, bold=True, align=PP_ALIGN.CENTER, margin=0)
 
     for col_index, positions in enumerate(decoder_positions):
         for center_x, center_y in positions:
@@ -753,7 +753,7 @@ def _slide_autoencoder_foundation(slide):
     _add_arrow(slide, 6.82, 3.86, 0.30, 0.25, MID_GRAY)
     _add_text(slide, "output\nprofile", 7.30, 3.72, 0.48, 0.56, size=10.0, color=GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
 
-    _add_text(slide, "LATENT SPACE", 8.30, 2.05, 1.34, 0.24, size=10.2, color=TEAL, bold=True, margin=0)
+    _add_text(slide, "COMPRESSED SPACE", 8.30, 2.05, 1.78, 0.24, size=10.2, color=TEAL, bold=True, margin=0)
     _add_panel(slide, 8.22, 2.36, 4.58, 3.88, fill=PALE_TEAL, line="C9DFDB", radius=False)
     _add_rule(slide, 8.72, 5.55, 3.43, MID_GRAY, 0.018)
     _add_rule(slide, 8.72, 2.86, 0.018, MID_GRAY, 2.71)
@@ -770,7 +770,7 @@ def _slide_autoencoder_foundation(slide):
 
     _add_panel(slide, 0.50, 6.40, 12.30, 0.52, fill=NAVY, line=NAVY, radius=False)
     _add_text(slide, "expiMap:", 0.82, 6.54, 0.92, 0.23, size=12.2, color=WHITE, bold=True, margin=0)
-    _add_text(slide, "each constrained latent variable corresponds to a Reactome gene program.", 1.81, 6.54, 10.40, 0.23, size=12.2, color="DCE7F2", margin=0)
+    _add_text(slide, "each compressed feature corresponds to a Reactome gene program.", 1.81, 6.54, 10.40, 0.23, size=12.2, color="DCE7F2", margin=0)
     _add_source(slide, "Concept adapted from the midpoint presentation. expiMap: Lotfollahi et al., Nature Cell Biology (2023).")
 
 
@@ -779,7 +779,7 @@ def _slide_expimap_program_scores(slide):
         slide,
         "expiMap scores",
         "Program scores turn expression into pathway-level changes",
-        "Each sample receives a Reactome program score; FLT minus GC gives the direction of change.",
+        "Each sample receives a Reactome program score; FLT minus GC shows whether the score rises or falls in flight.",
     )
     scores = pd.read_csv(
         EXPIMAP_PAPER_DIR
@@ -871,9 +871,9 @@ def _slide_expimap_program_scores(slide):
     _add_rule(slide, 9.62, 2.12, 0.015, "D5DDE2", 4.37)
     _add_text(slide, "HOW TO READ IT", 9.92, 2.24, 2.08, 0.24, size=10.2, color=BLUE, bold=True, margin=0)
     steps = [
-        ("1", "Score each sample", "The constrained latent value represents one Reactome program."),
-        ("2", "Compare within project", "Flight samples are compared with ground controls from the same study."),
-        ("3", "Combine project shifts", "Project-level changes are integrated across the available missions."),
+        ("1", "Score each sample", "One score summarizes the genes in a Reactome program."),
+        ("2", "Compare within study", "Flight samples are compared with ground controls from the same study."),
+        ("3", "Combine study results", "The study-level changes are combined across missions."),
     ]
     for index, (number, heading, body) in enumerate(steps):
         y = 2.75 + index * 1.03
@@ -883,7 +883,7 @@ def _slide_expimap_program_scores(slide):
         _add_text(slide, body, 10.39, y + 0.34, 2.20, 0.54, size=10.2, color=GRAY, margin=0)
     _add_panel(slide, 9.91, 5.92, 2.66, 0.53, fill=PALE_BLUE, line="CBDDE9", radius=False)
     _add_text(slide, "Negative change = lower program score in flight", 10.08, 6.03, 2.32, 0.28, size=10.5, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_source(slide, "Observed example scores: expiMap manuscript Table S33. Formal effects are estimated within project; lower scores do not prove biochemical inhibition.")
+    _add_source(slide, "Measured example scores: expiMap manuscript Table S33. Effects are estimated within study; lower scores do not prove biochemical inhibition.")
 
 
 def _slide_expimap_tissue_results(slide):
@@ -891,7 +891,7 @@ def _slide_expimap_tissue_results(slide):
         slide,
         "expiMap results",
         "Four tissues produced the clearest pathway patterns",
-        "Effects were estimated within each project before the project-level shifts were combined.",
+        "FLT and GC were compared within each study before the study-level changes were combined.",
     )
     rows = [
         (
@@ -937,7 +937,7 @@ def _slide_expimap_tissue_results(slide):
         _add_text(slide, pathways, 2.54, y + 0.43, 4.31, 0.40, size=11.7, color=DARK, bold=True, valign=MSO_ANCHOR.MIDDLE, margin=0)
         _add_rule(slide, 7.02, y + 0.16, 0.012, "D3DBDF", 0.66)
         _add_text(slide, interpretation, 7.30, y + 0.19, 5.18, 0.58, size=12.2, color=NAVY, valign=MSO_ANCHOR.MIDDLE, margin=0)
-    _add_source(slide, "Source: expiMap manuscript Figures 3 and 6. Lower latent scores do not by themselves prove biochemical inhibition.")
+    _add_source(slide, "Source: expiMap manuscript Figures 3 and 6. Lower program scores do not by themselves prove biochemical inhibition.")
 
 
 def _slide_expimap_evidence(slide):
@@ -1064,7 +1064,7 @@ def _slide_why_synthetic(slide):
         (
             4.62,
             "02",
-            "Learn the distribution",
+            "Learn expression patterns",
             "Capture gene relationships and variation by tissue and FLT/GC condition",
             ORANGE,
             PALE_GOLD,
@@ -1231,7 +1231,7 @@ def _slide_scientific_objective(slide):
         valign=MSO_ANCHOR.MIDDLE,
         margin=0,
     )
-    _add_text(slide, "Gene effects and BH FDR use observed OSDR data.", 9.88, 5.42, 2.57, 0.46, size=11.5, color=GRAY, margin=0)
+    _add_text(slide, "Gene effects and significance use observed OSDR data.", 9.88, 5.42, 2.57, 0.46, size=11.5, color=GRAY, margin=0)
 
 
 def _slide_2(slide):
@@ -1246,7 +1246,7 @@ def _slide_2(slide):
     _add_text(slide, "1,610", 0.58, 2.64, 2.25, 0.69, size=42, color=NAVY, bold=True)
     _add_text(slide, "profiles", 0.64, 3.29, 1.15, 0.25, size=12.5, color=GRAY)
     _add_text(slide, "75", 3.01, 2.72, 1.20, 0.54, size=31, color=NAVY, bold=True)
-    _add_text(slide, "accessions", 3.04, 3.26, 1.40, 0.25, size=12.5, color=GRAY)
+    _add_text(slide, "OSDR studies", 3.04, 3.26, 1.40, 0.25, size=12.5, color=GRAY)
 
     bar_x = 0.64
     bar_y = 4.03
@@ -1369,7 +1369,7 @@ def _slide_3(slide):
         slide,
         "Method",
         "We built a configurable bulk RNA-seq generation pipeline",
-        "The downstream analysis used the outlined options; the remaining choices stay configurable.",
+        "We tested alternative processing, study correction, training, and conditioning choices.",
     )
 
     def option_tile(label, x, y, w, color, selected=False, *, size=9.1):
@@ -1429,13 +1429,13 @@ def _slide_3(slide):
     segmented_row(xs[0], 3.48, "Studies", [("Single", False), ("Multiple", True)], BLUE)
     segmented_row(xs[0], 4.24, "Tissues", [("Per tissue", False), ("All tissues", True)], BLUE)
 
-    stage_panel(xs[1], "02", "Transform", TEAL, WHITE)
+    stage_panel(xs[1], "02", "Processing", TEAL, WHITE)
     segmented_row(xs[1], 2.72, "Expression", [("Raw", False), ("CPM", False), ("TPM", True)], TEAL)
-    segmented_row(xs[1], 3.48, "Scaling", [("None", False), ("Z-score", False), ("MaxAbs", True)], TEAL)
-    segmented_row(xs[1], 4.24, "Features", [("All", False), ("HVG", False), ("L1000", True)], TEAL)
+    segmented_row(xs[1], 3.48, "Scaling", [("None", False), ("Z-score", False), ("Range scale", True)], TEAL)
+    segmented_row(xs[1], 4.24, "Features", [("All", False), ("Variable", False), ("974 genes", True)], TEAL)
 
-    stage_panel(xs[2], "03", "Harmonization", TEAL, WHITE)
-    _add_text(slide, "Global or study correction", xs[2] + 0.16, 2.72, 2.02, 0.18, size=8.4, color=GRAY, bold=True, margin=0)
+    stage_panel(xs[2], "03", "Study effects", TEAL, WHITE)
+    _add_text(slide, "Alternative methods", xs[2] + 0.16, 2.72, 2.02, 0.18, size=8.4, color=GRAY, bold=True, margin=0)
     for index, (label, selected) in enumerate([
         ("None", True),
         ("Within-study z-score", False),
@@ -1450,7 +1450,7 @@ def _slide_3(slide):
     for index, (label, selected) in enumerate([
         ("OSDR only", False),
         ("ARCHS4 only", False),
-        ("Pretrain + adapt", True),
+        ("ARCHS4 then OSDR", True),
     ]):
         option_tile(label, xs[3] + 0.16, 3.70 + index * 0.50, 2.03, ORANGE, selected, size=9.2)
 
@@ -1459,7 +1459,7 @@ def _slide_3(slide):
     for index, (label, selected) in enumerate([
         ("Tissue", True),
         ("FLT / GC", True),
-        ("Accession", True),
+        ("Study", True),
         ("Material type", True),
         ("Sex / age", False),
     ]):
@@ -1476,7 +1476,7 @@ def _slide_3(slide):
         _add_text(slide, value, x + 0.10, 5.94, width - 0.20, 0.19, size=9.1, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
 
     selected_path = [
-        (2.10, 2.15, "PREPROCESS", "TPM / MaxAbs / 974 landmarks", TEAL),
+        (2.10, 2.15, "PROCESS", "TPM / scaled / 974 genes", TEAL),
         (4.65, 1.85, "PRETRAIN", "ARCHS4", TEAL),
         (6.90, 1.85, "ADAPT", "OSDR", BLUE),
         (9.15, 2.45, "GENERATE", "Conditional DDIM", ORANGE),
@@ -1490,7 +1490,7 @@ def _slide_3(slide):
     condition_tiles = [
         (2.88, 0.90, "Tissue"),
         (3.85, 1.00, "FLT / GC"),
-        (4.92, 1.14, "Accession"),
+        (4.92, 1.14, "Study"),
         (6.13, 1.38, "Material type"),
     ]
     for x, width, label in condition_tiles:
@@ -1500,7 +1500,7 @@ def _slide_3(slide):
     option_tile("None", 8.65, 6.27, 0.78, TEAL, True, size=7.8)
     _add_text(slide, "SCOPE", 9.70, 6.37, 0.46, 0.16, size=7.3, color=BLUE, bold=True, margin=0)
     option_tile("All tissues", 10.24, 6.27, 1.20, BLUE, True, size=7.8)
-    _add_source(slide, "Screen: 463 planned configurations and nine matched liver harmonization arms. Models: Vinas et al. (2022); Lacan et al. (2026).")
+    _add_source(slide, "Screen: 463 planned configurations and nine controlled liver correction comparisons. Models: Vinas et al. (2022); Lacan et al. (2026).")
 
 
 def _slide_5(slide, trajectory: Path):
@@ -1555,7 +1555,7 @@ def _slide_6(slide, tissue_accession_pca: Path):
         slide,
         "Diffusion output",
         "Tissue and study structure dominate the PCA space",
-        "Left: tissue. Right: OSDR accession. Circles are observed profiles; crosses are matched DDIM profiles.",
+        "Left: tissue. Right: study. Circles are measured samples; crosses are generated samples.",
     )
     _add_picture_contain(
         slide,
@@ -1564,12 +1564,12 @@ def _slide_6(slide, tissue_accession_pca: Path):
         1.79,
         12.52,
         4.66,
-        alt="PCA of observed and matched DDIM profiles colored by tissue and OSDR accession",
+        alt="PCA of measured and generated profiles colored by tissue and study",
     )
     _add_panel(slide, 0.48, 6.47, 12.37, 0.47, fill=PALE_BLUE, line="C9DCE9", radius=False)
     _add_text(
         slide,
-        "Tissue and accession clusters are visible across both observed and generated profiles.",
+        "Generated samples reproduce the tissue and study patterns in the measured data.",
         0.76,
         6.56,
         11.80,
@@ -1579,7 +1579,7 @@ def _slide_6(slide, tissue_accession_pca: Path):
         bold=True,
         align=PP_ALIGN.CENTER,
     )
-    _add_source(slide, "Same 293 observed and 293 seed-5020 generated profiles; PCA was fitted once to the combined locked expression space.")
+    _add_source(slide, "Same 293 measured and 293 generated samples; both panels use one PCA fit to the combined data.")
 
 
 def _slide_condition_accession_pca(slide, condition_accession_pca: Path):
@@ -1587,7 +1587,7 @@ def _slide_condition_accession_pca(slide, condition_accession_pca: Path):
         slide,
         "Diffusion output",
         "Flight condition is subtler than study structure",
-        "Left: FLT or GC. Right: OSDR accession. Circles are observed profiles; crosses are matched DDIM profiles.",
+        "Left: FLT or GC. Right: study. Circles are measured samples; crosses are generated samples.",
     )
     _add_picture_contain(
         slide,
@@ -1596,12 +1596,12 @@ def _slide_condition_accession_pca(slide, condition_accession_pca: Path):
         1.79,
         12.52,
         4.66,
-        alt="PCA of observed and matched DDIM profiles colored by condition and OSDR accession",
+        alt="PCA of measured and generated profiles colored by condition and study",
     )
     _add_panel(slide, 0.48, 6.47, 12.37, 0.47, fill=PALE_BLUE, line="C9DCE9", radius=False)
     _add_text(
         slide,
-        "Flight and ground-control profiles overlap within the larger accession-defined structure.",
+        "FLT and GC overlap more than samples from different studies do.",
         0.76,
         6.56,
         11.80,
@@ -1611,15 +1611,15 @@ def _slide_condition_accession_pca(slide, condition_accession_pca: Path):
         bold=True,
         align=PP_ALIGN.CENTER,
     )
-    _add_source(slide, "The accession colors are shared across the two PCA slides; FLT-GC effects are evaluated within study.")
+    _add_source(slide, "Study colors are shared across the two PCA slides. FLT-GC differences are estimated within each study.")
 
 
 def _slide_4(slide, architecture_figure: Path):
     _add_slide_title(
         slide,
         "Validation",
-        "DDIM had lower separability and distributional distance",
-        "Both generators matched expression. DDIM was harder to distinguish from real profiles and had higher F1.",
+        "Diffusion best reproduced the measured expression distribution",
+        "Both models reproduced gene expression. Diffusion samples were harder to distinguish from measured samples.",
     )
     _add_text(slide, "Architecture from Lacan et al.", 0.52, 2.08, 7.12, 0.32, size=16.5, color=NAVY, bold=True)
     _add_picture_contain(
@@ -1631,8 +1631,8 @@ def _slide_4(slide, architecture_figure: Path):
         2.73,
         alt="Lacan et al. Figure 1C residual diffusion generator architecture",
     )
-    _add_text(slide, "Residual dense denoiser conditioned on timestep and tissue.", 0.56, 5.17, 6.90, 0.28, size=11.3, color=DARK, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "OSDR adaptation adds FLT/GC, accession and material context through LoRA.", 0.56, 5.51, 6.90, 0.34, size=10.6, color=GRAY, align=PP_ALIGN.CENTER)
+    _add_text(slide, "The network repeatedly predicts and removes noise using tissue and time information.", 0.56, 5.17, 6.90, 0.28, size=11.3, color=DARK, bold=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "For OSDR, the model also receives FLT/GC, study, and sample-material information.", 0.56, 5.51, 6.90, 0.34, size=10.6, color=GRAY, align=PP_ALIGN.CENTER)
 
     _add_rule(slide, 7.83, 2.05, 0.015, "D5DDE2", 4.32)
     _add_text(slide, "Metric", 8.04, 2.17, 1.42, 0.28, size=10.0, color=GRAY, bold=True)
@@ -1641,10 +1641,10 @@ def _slide_4(slide, architecture_figure: Path):
     _add_text(slide, "Read", 11.43, 2.17, 1.10, 0.28, size=10.0, color=GRAY, bold=True)
     _add_rule(slide, 8.04, 2.56, 4.58, NAVY, 0.022)
     metrics = [
-        ("Correlation", "0.976", "0.974", "similar"),
-        ("F1", "0.985", "0.997", "higher"),
-        ("Adversarial acc.", "0.636", "0.475", "near 0.5"),
-        ("FD / real P95", "0.144", "0.074", "lower"),
+        ("Expression corr.", "0.976", "0.974", "higher"),
+        ("Coverage (F1)", "0.985", "0.997", "higher"),
+        ("Real-vs-synth. acc.", "0.636", "0.475", "0.5 is ideal"),
+        ("Distribution distance", "0.144", "0.074", "lower"),
     ]
     for index, (label, wgan, ddim, reading) in enumerate(metrics):
         y = 2.80 + index * 0.59
@@ -1658,14 +1658,14 @@ def _slide_4(slide, architecture_figure: Path):
         _add_text(slide, reading, 11.43, y, 1.10, 0.32, size=10.2, color=GRAY)
 
     _add_rule(slide, 0.55, 5.91, 7.03, "D5DDE2", 0.015)
-    _add_text(slide, "ARCHS4 tissue probe", 0.55, 6.08, 1.75, 0.24, size=10.4, color=BLUE, bold=True, margin=0)
+    _add_text(slide, "Tissue identity retained", 0.55, 6.08, 1.90, 0.24, size=10.4, color=BLUE, bold=True, margin=0)
     _add_text(slide, "Real 0.781  |  Synthetic 0.781", 4.30, 6.06, 3.12, 0.27, size=10.4, color=DARK, align=PP_ALIGN.RIGHT, margin=0)
     _add_text(slide, "Balanced accuracy is preserved in generated tissue labels.", 0.55, 6.39, 6.87, 0.25, size=9.7, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
     _add_rule(slide, 8.04, 5.36, 0.055, TEAL, 0.78)
-    _add_text(slide, "Use DDIM", 8.29, 5.40, 1.32, 0.31, size=16, color=NAVY, bold=True, margin=0)
-    _add_text(slide, "Higher F1 with lower separability and FD.", 9.73, 5.38, 2.78, 0.47, size=11.3, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
-    _add_text(slide, "AA near 0.5 means real and generated profiles are difficult to separate.", 8.29, 5.97, 4.22, 0.40, size=9.5, color=GRAY, margin=0)
-    _add_source(slide, "Architecture excerpt: Lacan et al. (2026), Fig. 1C, doi:10.1186/s12859-026-06470-8. Metrics use each model's stated split and are not paired.")
+    _add_text(slide, "Use diffusion", 8.29, 5.40, 1.55, 0.31, size=16, color=NAVY, bold=True, margin=0)
+    _add_text(slide, "Better coverage and closer to the real distribution.", 9.94, 5.38, 2.57, 0.47, size=10.8, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
+    _add_text(slide, "A score near 0.5 means a prediction model cannot reliably tell measured and generated samples apart.", 8.29, 5.97, 4.22, 0.40, size=9.1, color=GRAY, margin=0)
+    _add_source(slide, "Architecture: Lacan et al. (2026), Fig. 1C, doi:10.1186/s12859-026-06470-8. Each model was evaluated on its own fixed test split.")
 
 
 def _slide_7(slide):
@@ -1750,16 +1750,16 @@ def _slide_matched_classifier_design(slide):
     _add_slide_title(
         slide,
         "Primary analysis",
-        "Change the training source; hold the classifier fixed",
-        "All arms use the same 974 genes, data splits, preprocessing, and ridge regularization.",
+        "A fair test changes only the training data",
+        "Each prediction model uses the same genes, processing, train/test splits, and settings.",
     )
 
     _add_panel(slide, 0.47, 1.98, 12.18, 0.72, fill="F2F5F7", line="D3DDE2", radius=False)
     shared = [
-        (0.73, "974 genes"),
-        (3.27, "Same outer splits"),
-        (6.14, "Real-fitted scaler"),
-        (9.18, "Same ridge penalty"),
+        (0.73, "Same 974 genes"),
+        (3.27, "Same train/test splits"),
+        (6.14, "Same scaling"),
+        (9.18, "Same model settings"),
     ]
     for index, (x, label) in enumerate(shared):
         if index:
@@ -1779,9 +1779,9 @@ def _slide_matched_classifier_design(slide):
         )
 
     arms = [
-        (0.48, "REAL ONLY", BLUE, ("R",), "Reference classifier"),
-        (4.50, "SYNTHETIC ONLY", CORAL, ("S",), "Generator transfer test"),
-        (8.52, "REAL + SYNTHETIC", TEAL, ("R", "S"), "Synthetic augmentation"),
+        (0.48, "REAL ONLY", BLUE, ("R",), "Baseline"),
+        (4.50, "SYNTHETIC ONLY", CORAL, ("S",), "Learn from generated samples"),
+        (8.52, "REAL + SYNTHETIC", TEAL, ("R", "S"), "Add generated samples to training"),
     ]
     for x, heading, color, tokens, purpose in arms:
         _add_panel(slide, x, 2.93, 3.64, 1.38, fill=WHITE, line=color, radius=False)
@@ -1820,28 +1820,28 @@ def _slide_matched_classifier_design(slide):
         _add_arrow(slide, x + 1.56, 4.38, 0.42, 0.24, MID_GRAY)
 
     _add_panel(slide, 0.47, 4.76, 12.18, 0.86, fill=PALE_BLUE, line="C9DCE9", radius=False)
-    _add_text(slide, "Same held-out real profiles", 0.80, 4.97, 3.30, 0.30, size=16.0, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "Same unseen real samples", 0.80, 4.97, 3.30, 0.30, size=16.0, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_rule(slide, 4.27, 4.93, 0.012, "AFC0CB", 0.50)
-    _add_text(slide, "Pooled metrics", 4.61, 4.92, 2.25, 0.25, size=12.6, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "BA  |  AUROC  |  AP", 4.61, 5.20, 2.25, 0.22, size=10.4, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "Overall prediction", 4.61, 4.92, 2.25, 0.25, size=12.6, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "accuracy | ranking | precision", 4.46, 5.20, 2.55, 0.22, size=9.6, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
     _add_rule(slide, 7.07, 4.93, 0.012, "AFC0CB", 0.50)
-    _add_text(slide, "Accession-macro metrics", 7.39, 4.92, 2.65, 0.25, size=12.6, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "BA  |  AUROC  |  AP", 7.39, 5.20, 2.65, 0.22, size=10.4, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "Pass only if all six means are nonworse", 10.13, 4.92, 2.22, 0.48, size=11.2, color=TEAL, bold=True, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE, margin=0)
+    _add_text(slide, "Average across studies", 7.39, 4.92, 2.65, 0.25, size=12.6, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "accuracy | ranking | precision", 7.34, 5.20, 2.75, 0.22, size=9.6, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "Keep only if none of the six checks worsens", 10.13, 4.92, 2.22, 0.48, size=10.8, color=TEAL, bold=True, align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE, margin=0)
 
     _add_panel(slide, 0.47, 5.91, 12.18, 0.80, fill=NAVY, line=NAVY, radius=False)
-    _add_text(slide, "Gene-level follow-up", 0.75, 6.12, 2.15, 0.28, size=14.2, color=WHITE, bold=True, margin=0)
-    _add_text(slide, "Blocked permutation + linear SHAP on held-out real profiles", 3.03, 6.10, 5.42, 0.30, size=12.4, color="DCE7F2", margin=0)
-    _add_text(slide, "BH FDR still uses real OSDR only", 8.71, 6.10, 3.58, 0.30, size=12.4, color="FFD69A", bold=True, align=PP_ALIGN.RIGHT, margin=0)
-    _add_source(slide, "Primary matched analysis: 27 tissue units, eight outer splits, 648 fitted classifiers; generated profiles do not increase animal n.")
+    _add_text(slide, "Which genes helped?", 0.75, 6.12, 2.15, 0.28, size=14.2, color=WHITE, bold=True, margin=0)
+    _add_text(slide, "Measure each gene's contribution on unseen real samples", 3.03, 6.10, 5.42, 0.30, size=12.4, color="DCE7F2", margin=0)
+    _add_text(slide, "Significance comes from real OSDR data", 8.71, 6.10, 3.58, 0.30, size=11.8, color="FFD69A", bold=True, align=PP_ALIGN.RIGHT, margin=0)
+    _add_source(slide, "Controlled comparison: 27 tissue analyses, eight train/test repeats, and 648 fitted prediction models. Generated profiles do not add animals.")
 
 
 def _slide_guidance_mechanism(slide):
     _add_slide_title(
         slide,
         "Analysis",
-        "Consensus ranking chooses the classifier input genes",
-        "Real and generated rankings combine, then only the top k genes are used for FLT-GC classification.",
+        "Combine real and synthetic rankings to choose a small gene panel",
+        "Genes supported by both datasets rise in the combined ranking; only the highest-ranked genes enter the FLT-GC model.",
     )
 
     def add_rank_track(x: float, y: float, label: str, position: float, color: str):
@@ -1854,7 +1854,7 @@ def _slide_guidance_mechanism(slide):
     panel_y = 2.05
     panel_h = 2.60
     _add_panel(slide, 0.48, panel_y, 3.61, panel_h, fill=PALE_BLUE, line="C9DCE9", radius=False)
-    _add_text(slide, "1  REAL RANKING", 0.72, 2.27, 1.86, 0.25, size=14.0, color=BLUE, bold=True, margin=0)
+    _add_text(slide, "1  REAL-DATA RANKING", 0.72, 2.27, 2.35, 0.25, size=13.1, color=BLUE, bold=True, margin=0)
     _add_text(slide, "Rank all 974 genes using real OSDR", 0.72, 2.61, 3.02, 0.23, size=10.4, color=DARK, margin=0)
     _add_text(slide, "lower-ranked", 1.59, 2.96, 0.82, 0.18, size=8.5, color=GRAY, margin=0)
     _add_text(slide, "top-ranked", 3.02, 2.96, 0.72, 0.18, size=8.5, color=GRAY, align=PP_ALIGN.RIGHT, margin=0)
@@ -1865,7 +1865,7 @@ def _slide_guidance_mechanism(slide):
 
     _add_arrow(slide, 4.16, 2.93, 0.27, 0.20, MID_GRAY)
     _add_panel(slide, 4.50, panel_y, 3.61, panel_h, fill=PALE_CORAL, line="E6CEC8", radius=False)
-    _add_text(slide, "2  GENERATED RANKING", 4.74, 2.27, 2.48, 0.25, size=14.0, color=CORAL, bold=True, margin=0)
+    _add_text(slide, "2  SYNTHETIC-DATA RANKING", 4.74, 2.27, 3.02, 0.25, size=12.3, color=CORAL, bold=True, margin=0)
     _add_text(slide, "Rank the same 974 genes using generated profiles", 4.74, 2.61, 3.07, 0.23, size=10.4, color=DARK, margin=0)
     _add_text(slide, "lower-ranked", 5.61, 2.96, 0.82, 0.18, size=8.5, color=GRAY, margin=0)
     _add_text(slide, "top-ranked", 7.04, 2.96, 0.72, 0.18, size=8.5, color=GRAY, align=PP_ALIGN.RIGHT, margin=0)
@@ -1874,8 +1874,8 @@ def _slide_guidance_mechanism(slide):
         add_rank_track(4.74, 3.18 + index * 0.25, gene, position, CORAL)
     _add_arrow(slide, 8.18, 2.93, 0.27, 0.20, MID_GRAY)
     _add_panel(slide, 8.52, panel_y, 4.13, panel_h, fill=PALE_TEAL, line="C9DFDB", radius=False)
-    _add_text(slide, "3  CONSENSUS RANKING", 8.76, 2.27, 2.55, 0.25, size=14.0, color=TEAL, bold=True, margin=0)
-    _add_text(slide, "Genes supported by both move upward", 8.76, 2.61, 2.82, 0.23, size=10.4, color=DARK, margin=0)
+    _add_text(slide, "3  COMBINED RANKING", 8.76, 2.27, 2.55, 0.25, size=13.4, color=TEAL, bold=True, margin=0)
+    _add_text(slide, "Agreement moves genes upward", 8.76, 2.61, 2.82, 0.23, size=10.4, color=DARK, margin=0)
     _add_text(slide, "lower-ranked", 9.66, 2.96, 0.82, 0.18, size=8.5, color=GRAY, margin=0)
     _add_text(slide, "top-ranked", 11.61, 2.96, 0.72, 0.18, size=8.5, color=GRAY, align=PP_ALIGN.RIGHT, margin=0)
     shared_rows = [
@@ -1893,37 +1893,37 @@ def _slide_guidance_mechanism(slide):
     _add_rule(slide, shared_cutoff_x, 3.10, 0.022, TEAL, 1.27)
     _add_text(slide, "selection cutoff", 11.15, 4.42, 1.20, 0.18, size=8.5, color=TEAL, italic=True, align=PP_ALIGN.RIGHT, margin=0)
 
-    _add_text(slide, "Top-ranked genes become classifier inputs", 0.52, 4.84, 4.65, 0.28, size=16.0, color=NAVY, bold=True, margin=0)
+    _add_text(slide, "Top-ranked genes become model inputs", 0.52, 4.84, 4.65, 0.28, size=16.0, color=NAVY, bold=True, margin=0)
     _add_panel(slide, 0.51, 5.18, 3.37, 1.28, fill="F4F8FA", line="D5E1E7", radius=False)
     _add_text(slide, "Rank 974 genes", 0.77, 5.45, 2.84, 0.25, size=13.0, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "real, generated, or consensus", 0.77, 5.88, 2.84, 0.22, size=10.0, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "real, synthetic, or combined", 0.77, 5.88, 2.84, 0.22, size=10.0, color=GRAY, align=PP_ALIGN.CENTER, margin=0)
     _add_arrow(slide, 3.99, 5.68, 0.31, 0.20, MID_GRAY)
 
     _add_panel(slide, 4.41, 5.18, 3.37, 1.28, fill=PALE_TEAL, line="C9DFDB", radius=False)
     _add_text(slide, "Keep the top k", 4.67, 5.39, 2.84, 0.25, size=13.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "k = 10, 25, 50, or 100", 4.67, 5.76, 2.84, 0.22, size=10.2, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "validation chooses k", 4.67, 6.06, 2.84, 0.18, size=8.8, color=GRAY, italic=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "real-data tests choose panel size", 4.67, 6.06, 2.84, 0.18, size=8.8, color=GRAY, italic=True, align=PP_ALIGN.CENTER, margin=0)
     _add_arrow(slide, 7.89, 5.68, 0.31, 0.20, MID_GRAY)
 
     _add_panel(slide, 8.31, 5.18, 4.34, 1.28, fill="F6F7F8", line="D9DFE3", radius=False)
-    _add_text(slide, "Fit FLT-GC classifier", 8.57, 5.45, 3.82, 0.25, size=13.0, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "Fit FLT-GC prediction model", 8.57, 5.45, 3.82, 0.25, size=13.0, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "using only the selected gene columns", 8.57, 5.88, 3.82, 0.22, size=10.0, color=DARK, align=PP_ALIGN.CENTER, margin=0)
 
-    _add_source(slide, "Five genes are schematic examples from the 974-gene ranking. Real and generated normalized ranks are combined.")
+    _add_source(slide, "Five genes illustrate the method. The real-data and synthetic-data positions are combined into one ranking.")
 
 
 def _slide_correlated_gene_dilution(slide):
     _add_slide_title(
         slide,
         "Interpretation",
-        "Correlated genes dilute one-at-a-time importance",
-        "A pathway can matter even when no single member causes a large permutation loss.",
+        "Correlated genes can hide one another in one-at-a-time tests",
+        "A pathway can matter even when shuffling one gene causes only a small drop in prediction.",
     )
 
     panels = [
         (0.46, "1", "CORRELATED MODULE", BLUE, PALE_BLUE),
         (4.48, "2", "SHUFFLE ONE GENE", CORAL, PALE_CORAL),
-        (8.50, "3", "CONSENSUS PANEL", TEAL, PALE_TEAL),
+        (8.50, "3", "COMBINED PANEL", TEAL, PALE_TEAL),
     ]
     for x, number, heading, color, fill in panels:
         _add_panel(slide, x, 2.03, 3.65, 3.86, fill=fill, line=color, radius=False)
@@ -1937,7 +1937,7 @@ def _slide_correlated_gene_dilution(slide):
         _add_text(slide, f"Gene {chr(65 + index)}", 0.90, y + 0.09, 0.89, 0.22, size=11.2, color=color, bold=True, align=PP_ALIGN.CENTER, margin=0)
         _add_arrow(slide, 2.02, y + 0.10, 0.52, 0.23, color)
     _add_panel(slide, 2.70, 3.45, 1.00, 0.72, fill=WHITE, line=NAVY, radius=False)
-    _add_text(slide, "FLT/GC\nclassifier", 2.79, 3.57, 0.82, 0.45, size=10.8, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "FLT/GC\nmodel", 2.79, 3.57, 0.82, 0.45, size=10.8, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "Similar expression lets these genes share predictive weight.", 0.78, 5.15, 3.08, 0.47, size=11.2, color=DARK, align=PP_ALIGN.CENTER, margin=0)
 
     for index, y in enumerate(gene_y):
@@ -1948,11 +1948,11 @@ def _slide_correlated_gene_dilution(slide):
             _add_arrow(slide, 6.04, y + 0.10, 0.52, 0.23, color)
     _add_text(slide, "x", 5.20, 2.82, 0.32, 0.30, size=20, color=CORAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_panel(slide, 6.72, 3.45, 1.00, 0.72, fill=WHITE, line=NAVY, radius=False)
-    _add_text(slide, "FLT/GC\nclassifier", 6.81, 3.57, 0.82, 0.45, size=10.8, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "FLT/GC\nmodel", 6.81, 3.57, 0.82, 0.45, size=10.8, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "Genes B and C retain the shared signal, so the score changes little.", 4.78, 5.15, 3.18, 0.47, size=11.2, color=DARK, align=PP_ALIGN.CENTER, margin=0)
 
     _add_text(slide, "Real rank", 8.86, 2.91, 0.91, 0.23, size=10.3, color=BLUE, bold=True, margin=0)
-    _add_text(slide, "Generated rank", 10.30, 2.91, 1.21, 0.23, size=10.3, color=CORAL, bold=True, margin=0)
+    _add_text(slide, "Synthetic rank", 10.30, 2.91, 1.21, 0.23, size=10.3, color=CORAL, bold=True, margin=0)
     consensus_rows = [
         ("Gene A", 0.90, 0.84),
         ("Gene B", 0.83, 0.88),
@@ -1972,7 +1972,7 @@ def _slide_correlated_gene_dilution(slide):
     _add_panel(slide, 0.47, 6.13, 12.18, 0.58, fill=NAVY, line=NAVY, radius=False)
     _add_text(
         slide,
-        "Low marginal importance means a gene was replaceable in this classifier; it does not make the gene or pathway biologically irrelevant.",
+        "A low one-gene score can mean that another correlated gene carries the same information. It does not make the gene irrelevant.",
         0.76,
         6.29,
         11.60,
@@ -1983,7 +1983,7 @@ def _slide_correlated_gene_dilution(slide):
         align=PP_ALIGN.CENTER,
         margin=0,
     )
-    _add_source(slide, "Schematic explanation of permutation importance in a correlated expression feature space.")
+    _add_source(slide, "Illustration of why testing one gene at a time can miss members of a correlated gene group.")
 
 
 def _slide_guidance_boundary(slide):
@@ -2056,12 +2056,12 @@ def _slide_guidance_boundary(slide):
 def _slide_8(slide, utility_chart: Path):
     _add_slide_title(
         slide,
-        "Utility",
-        "Matched augmentation helped many tissues, but not all",
-        "One pooled classifier declined; tissue-specific real-plus-synthetic models were compared with fixed all-gene baselines.",
+        "Prediction",
+        "Adding synthetic samples helped many tissues, but not all",
+        "We kept the genes and model settings fixed. Only the training data changed.",
     )
     _add_rule(slide, 0.48, 2.05, 3.30, GOLD, 0.035)
-    _add_text(slide, "Pooled across tissues", 0.67, 2.25, 2.90, 0.35, size=17, color=NAVY, bold=True)
+    _add_text(slide, "One model across all tissues", 0.67, 2.25, 2.90, 0.35, size=16.0, color=NAVY, bold=True)
     labels = ["Real", "Generated", "Real + synth."]
     values = [0.754, 0.695, 0.737]
     colors = [BLUE, CORAL, TEAL]
@@ -2110,7 +2110,7 @@ def _slide_8(slide, utility_chart: Path):
 
     _add_rule(slide, 3.98, 2.05, 0.015, "D5DDE2", 4.55)
     _add_rule(slide, 4.25, 2.05, 8.48, TEAL, 0.035)
-    _add_text(slide, "Matched real + synthetic by tissue", 4.42, 2.25, 5.0, 0.34, size=17, color=NAVY, bold=True)
+    _add_text(slide, "Real + synthetic, analyzed by tissue", 4.42, 2.25, 5.0, 0.34, size=17, color=NAVY, bold=True)
     _add_picture_contain(
         slide,
         utility_chart,
@@ -2118,10 +2118,10 @@ def _slide_8(slide, utility_chart: Path):
         2.65,
         8.32,
         3.70,
-        alt="Balanced accuracy before and after matched real-plus-synthetic training",
+        alt="Balanced accuracy before and after adding synthetic samples to training",
     )
-    _add_text(slide, "Teal passed all pooled and accession-macro metrics; coral did not.", 4.44, 6.25, 7.2, 0.27, size=11.7, color=GRAY, italic=True)
-    _add_source(slide, "Matched analysis on held-out real profiles from represented accessions; all arms use the same 974 genes and ridge setting.")
+    _add_text(slide, "Teal improved every overall and study-average check; coral had mixed results.", 4.44, 6.25, 7.2, 0.27, size=11.5, color=GRAY, italic=True)
+    _add_source(slide, "Controlled comparison on unseen real samples. Every model used the same 974 genes and prediction settings.")
 
 
 def _slide_9(slide):
@@ -2190,33 +2190,33 @@ def _slide_matched_consensus_crosswalk(slide):
     _add_slide_title(
         slide,
         "Feature analysis",
-        "Matched and consensus analyses answer different questions",
-        "Matched importance tests synthetic contribution; consensus ranking organizes compact correlated panels.",
+        "All-gene tests and compact gene panels answer different questions",
+        "Both require FDR < 0.05 in measured data. FDR controls false positives when many genes are tested.",
     )
 
-    _add_text(slide, "BH-FDR tissue-gene associations", 0.63, 2.05, 5.75, 0.31, size=16.0, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "Genes significant in measured OSDR data (FDR < 0.05)", 0.63, 2.05, 5.75, 0.31, size=14.0, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
     matched = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.72), Inches(2.62), Inches(3.78), Inches(2.70))
     _set_fill(matched, CORAL, transparency=78)
     _set_line(matched, CORAL, 2.4)
     consensus = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2.93), Inches(2.62), Inches(3.78), Inches(2.70))
     _set_fill(consensus, BLUE, transparency=80)
     _set_line(consensus, BLUE, 2.4)
-    _add_text(slide, "Matched all-gene", 0.82, 2.38, 2.15, 0.27, size=12.2, color=CORAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "Consensus panels", 4.42, 2.38, 2.15, 0.27, size=12.2, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "Controlled all-gene test", 0.72, 2.38, 2.45, 0.27, size=11.7, color=CORAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "Combined gene panels", 4.32, 2.38, 2.35, 0.27, size=11.7, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "10", 1.25, 3.47, 1.20, 0.50, size=29, color=CORAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "matched only", 1.15, 4.03, 1.40, 0.28, size=11.0, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "all-gene only", 1.15, 4.03, 1.40, 0.28, size=11.0, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "11", 3.10, 3.47, 1.20, 0.50, size=29, color=NAVY, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "both", 3.10, 4.03, 1.20, 0.28, size=11.0, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "38", 4.97, 3.47, 1.20, 0.50, size=29, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "consensus only", 4.81, 4.03, 1.52, 0.28, size=11.0, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "panel only", 4.81, 4.03, 1.52, 0.28, size=11.0, color=DARK, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "21 total", 1.57, 5.05, 1.55, 0.28, size=12.0, color=CORAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
     _add_text(slide, "49 total", 4.32, 5.05, 1.55, 0.28, size=12.0, color=BLUE, bold=True, align=PP_ALIGN.CENTER, margin=0)
 
     _add_rule(slide, 7.10, 2.05, 0.015, "D5DDE2", 4.40)
     rows = [
-        (2.17, "PRIMARY", "Matched all-gene", "Same genes and classifier; asks whether training source changes held-out-real utility or importance.", CORAL, PALE_CORAL),
-        (3.50, "SECONDARY", "Consensus panel", "Ranks compact top-k panels; preserves groups of correlated genes that can replace one another.", BLUE, PALE_BLUE),
-        (4.83, "SHARED", "Real association gate", "FLT-GC effects and BH FDR are estimated from observed OSDR profiles only.", TEAL, PALE_TEAL),
+        (2.17, "PRIMARY", "Controlled all-gene test", "Only the training data change. Prediction and gene importance are tested on unseen real samples.", CORAL, PALE_CORAL),
+        (3.50, "SECONDARY", "Combined gene panel", "Combines real and synthetic rankings to retain small groups of correlated genes.", BLUE, PALE_BLUE),
+        (4.83, "SHARED", "Measured-data significance", "FLT-GC differences and false-discovery correction use measured OSDR samples only.", TEAL, PALE_TEAL),
     ]
     for y, label, heading, detail, color, fill in rows:
         _add_panel(slide, 7.42, y, 5.10, 1.06, fill=fill, line=color, radius=False)
@@ -2225,16 +2225,16 @@ def _slide_matched_consensus_crosswalk(slide):
         _add_text(slide, detail, 7.68, y + 0.51, 4.49, 0.39, size=10.5, color=DARK, margin=0)
 
     _add_panel(slide, 0.58, 5.87, 12.02, 0.64, fill=NAVY, line=NAVY, radius=False)
-    _add_text(slide, "Thymus is strongest because matched importance and the consensus cell-cycle panel converge.", 0.85, 6.05, 11.48, 0.28, size=13.5, color=WHITE, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_source(slide, "Crosswalk: 21 matched associations, 49 consensus associations, and 11 supported by both analyses.")
+    _add_text(slide, "Thymus is strongest because both methods identify the same cell-cycle signal.", 0.85, 6.05, 11.48, 0.28, size=13.5, color=WHITE, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_source(slide, "Overlap: 21 all-gene associations, 49 combined-panel associations, and 11 found by both methods.")
 
 
 def _slide_10(slide):
     _add_slide_title(
         slide,
         "Literature interpretation",
-        "Consensus selection and literature are separate dimensions",
-        "All 49 secondary consensus associations received a selection status and an independent literature interpretation.",
+        "How a gene was selected and what the literature says are separate",
+        "We labeled all 49 combined-panel associations by selection pattern and by prior biological evidence.",
     )
 
     steps = [
@@ -2268,8 +2268,8 @@ def _slide_10(slide):
 
     _add_text(slide, "Selection status", 0.55, 3.35, 3.58, 0.34, size=17, color=NAVY, bold=True)
     selection_rows = [
-        ("Promoted", selection_counts.get("promoted", 0), "Stable only with synthetic guidance", CORAL),
-        ("Reinforced", selection_counts.get("reinforced", 0), "Stable with and without guidance", TEAL),
+        ("Promoted", selection_counts.get("promoted", 0), "Selected only after adding the synthetic ranking", CORAL),
+        ("Reinforced", selection_counts.get("reinforced", 0), "Selected by both real-only and combined rankings", TEAL),
     ]
     for index, (label, count, detail, color) in enumerate(selection_rows):
         y = 4.02 + index * 1.05
@@ -2305,7 +2305,7 @@ def _slide_10(slide):
     _add_rule(slide, 0.55, 6.35, 12.02, "CED7DD", 0.018)
     _add_text(
         slide,
-        "A reinforced gene can be complementary, ambiguous, or unmatched; an aligning gene can be promoted.",
+        "Selection describes our analysis. The literature label describes previous biological evidence.",
         0.65,
         6.49,
         11.82,
@@ -2540,7 +2540,7 @@ def _slide_all_tissue_coverage(slide):
         _add_text(slide, heading, x + 0.84, 2.27, 2.72, 0.38, size=16.0, color=NAVY, bold=True, valign=MSO_ANCHOR.MIDDLE, margin=0)
         _add_text(slide, detail, x + 0.02, 2.92, 3.48, 0.42, size=10.5, color=GRAY, valign=MSO_ANCHOR.MIDDLE, margin=0)
         _add_rule(slide, x, 3.50, 3.58, "D7DEE2", 0.014)
-        _add_text(slide, "ANALYSIS UNITS", x + 0.02, 3.66, 1.20, 0.19, size=8.8, color=GRAY, bold=True, margin=0)
+        _add_text(slide, "TISSUES / MUSCLE GROUPS", x + 0.02, 3.66, 1.80, 0.19, size=8.3, color=GRAY, bold=True, margin=0)
 
         list_top = 3.96
         list_height = 2.42
@@ -2567,9 +2567,9 @@ def _slide_all_tissue_coverage(slide):
 def _slide_matched_coverage(slide):
     _add_slide_title(
         slide,
-        "Primary analysis coverage",
-        "The matched screen covered all 27 tissue analyses",
-        "Predictive utility and gene-level support are separate outcomes.",
+        "Controlled-test coverage",
+        "We ran the same controlled test in all 27 tissue analyses",
+        "Better FLT-GC prediction and interpretable genes did not always occur together.",
     )
     utility = pd.read_csv(
         PAPER_DIR / "source_data/table_s18_matched_all_gene_utility.tsv",
@@ -2606,9 +2606,9 @@ def _slide_matched_coverage(slide):
         ]
 
     columns = [
-        (0.43, "4", "Matched genes", names(with_genes), CORAL, PALE_CORAL, "Utility passed + BH-FDR gene importance"),
-        (4.49, "14", "Utility only", names(utility_only), TEAL, PALE_TEAL, "All six metrics passed; no retained gene"),
-        (8.55, "9", "Gate not passed", names(did_not_pass), BLUE, PALE_BLUE, "At least one mean metric was worse"),
+        (0.43, "4", "Prediction + genes", names(with_genes), CORAL, PALE_CORAL, "All six checks improved; at least one significant gene helped prediction"),
+        (4.49, "14", "Prediction only", names(utility_only), TEAL, PALE_TEAL, "All six checks improved; no gene met both criteria"),
+        (8.55, "9", "Mixed result", names(did_not_pass), BLUE, PALE_BLUE, "At least one prediction check worsened"),
     ]
     for column_index, (x, count, heading, tissue_names, color, _fill, detail) in enumerate(columns):
         if column_index:
@@ -2618,7 +2618,7 @@ def _slide_matched_coverage(slide):
         _add_text(slide, heading, x + 0.84, 2.27, 2.72, 0.38, size=16.0, color=NAVY, bold=True, valign=MSO_ANCHOR.MIDDLE, margin=0)
         _add_text(slide, detail, x + 0.02, 2.92, 3.48, 0.42, size=10.5, color=GRAY, valign=MSO_ANCHOR.MIDDLE, margin=0)
         _add_rule(slide, x, 3.50, 3.58, "D7DEE2", 0.014)
-        _add_text(slide, "ANALYSIS UNITS", x + 0.02, 3.66, 1.20, 0.19, size=8.8, color=GRAY, bold=True, margin=0)
+        _add_text(slide, "TISSUES / MUSCLE GROUPS", x + 0.02, 3.66, 1.80, 0.19, size=8.3, color=GRAY, bold=True, margin=0)
         list_top = 3.96
         list_height = 2.42
         row_height = min(0.36, list_height / len(tissue_names))
@@ -2627,15 +2627,15 @@ def _slide_matched_coverage(slide):
             row_y = list_top + row_index * row_height
             _add_rule(slide, x + 0.03, row_y + (row_height - 0.045) / 2, 0.13, color, 0.045)
             _add_text(slide, tissue_name, x + 0.25, row_y, 3.25, row_height, size=list_size, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
-    _add_source(slide, "Real-plus-synthetic matched arm across 22 canonical tissues and five anatomical muscle groups.")
+    _add_source(slide, "Real-plus-synthetic comparison across 22 tissue categories and five anatomical muscle groups.")
 
 
 def _slide_11(slide):
     _add_slide_title(
         slide,
-        "Secondary consensus inventory",
-        "Ten tissue analyses contained consensus-selected genes",
-        "All 49 associations passed BH FDR in real OSDR data; consensus ranking affected prioritization, not the statistical test.",
+        "Combined-ranking gene inventory",
+        "Ten tissue analyses had genes prioritized by the combined ranking",
+        "All 49 associations were significant in real OSDR data (FDR < 0.05). Synthetic data changed priority, not significance.",
     )
     inventory = pd.read_csv(
         PAPER_DIR / "source_data/table_s10_synthetic_informed_bh_fdr_genes.tsv",
@@ -2654,7 +2654,7 @@ def _slide_11(slide):
         for row in annotations.itertuples(index=False)
     }
 
-    _add_text(slide, "Rows: FLT direction + status", 0.45, 1.86, 2.42, 0.25, size=9.8, color=NAVY, bold=True)
+    _add_text(slide, "Rows: FLT direction + selection status", 0.45, 1.86, 2.66, 0.25, size=9.5, color=NAVY, bold=True)
     legend = [
         ("aligning", GREEN, 3.02, 0.84),
         ("complementary", BLUE, 4.02, 1.15),
@@ -2706,7 +2706,7 @@ def _slide_11(slide):
             w=6.15,
             h=h,
         )
-    _add_source(slide, "Secondary consensus set: rows report FLT direction and selection status; gene color independently reports literature interpretation.")
+    _add_source(slide, "Rows show FLT direction and selection status. Gene color separately shows the literature interpretation.")
 
 
 def _slide_12(slide):
@@ -2714,21 +2714,34 @@ def _slide_12(slide):
         slide,
         "Thymus",
         "Thymus is strongest across both analyses",
-        "Matched importance supports synthetic contribution; consensus ranking expands the correlated cell-cycle panel.",
+        "The controlled test supports a synthetic contribution; the combined ranking adds related cell-cycle genes.",
     )
     figure = PAPER_DIR / "figures/figure_3_thymus_biology.png"
     _add_picture_contain(slide, figure, 0.35, 1.93, 8.55, 4.78, alt="Thymus gene effects and Reactome processes")
+    _add_panel(slide, 0.35, 1.93, 8.55, 0.48, fill=WHITE, line=WHITE, radius=False)
+    _add_text(
+        slide,
+        "Thymus genes point to lower cell-cycle activity in flight",
+        0.58,
+        2.08,
+        8.02,
+        0.24,
+        size=11.5,
+        color=DARK,
+        bold=True,
+        margin=0,
+    )
     _add_panel(slide, 9.10, 2.02, 3.82, 4.57, fill=PALE_CORAL, line="E8C9C2", radius=False)
-    _add_text(slide, "MATCHED ALL-GENE", 9.43, 2.27, 2.95, 0.23, size=9.5, color=CORAL, bold=True, margin=0)
+    _add_text(slide, "CONTROLLED ALL-GENE TEST", 9.43, 2.27, 2.95, 0.23, size=9.2, color=CORAL, bold=True, margin=0)
     _add_text(slide, "15", 9.43, 2.56, 1.10, 0.65, size=35, color=CORAL, bold=True)
-    _add_text(slide, "BH-FDR genes with\nsynthetic-supported importance", 10.38, 2.58, 2.12, 0.62, size=12.7, color=DARK, bold=True)
-    _add_text(slide, "7 promoted | 8 shared", 9.44, 3.34, 3.05, 0.30, size=14, color=TEAL, bold=True)
+    _add_text(slide, "significant genes that also\nhelped FLT-GC prediction", 10.38, 2.58, 2.12, 0.62, size=12.7, color=DARK, bold=True)
+    _add_text(slide, "7 synthetic-added | 8 shared", 9.44, 3.34, 3.05, 0.30, size=13.2, color=TEAL, bold=True)
     _add_bullet_rows(
         slide,
         [
             "26 significant Reactome terms; mitotic cell cycle leads",
-            "Nine genes overlap the 16-gene consensus panel",
-            "Consensus adds correlated Cdk1, Top2a, Aurka, Ccne2, Pcna and Ccnf",
+            "Nine genes overlap the 16-gene combined panel",
+            "The combined ranking adds Cdk1, Top2a, Aurka, Ccne2, Pcna and Ccnf",
             "Lower mitotic renewal or fewer cycling thymocytes in flight",
         ],
         9.44,
@@ -2738,31 +2751,31 @@ def _slide_12(slide):
         bullet_color=CORAL,
         row_h=0.61,
     )
-    _add_source(slide, "Figure shows the secondary consensus panel; matched genes and Reactome crosswalk are in Tables S19-S20. Context: Gridley et al. (2013); Horie et al. (2019).")
+    _add_source(slide, "Figure shows the combined panel; controlled-test genes and Reactome results are in Tables S19-S20. Context: Gridley et al. (2013); Horie et al. (2019).")
 
 
 def _slide_13(slide):
     _add_slide_title(
         slide,
         "Soleus",
-        "Soleus is a coherent secondary consensus result",
-        "The five-gene program is biologically interpretable, but the matched all-gene gate did not pass.",
+        "Soleus has a coherent secondary gene panel",
+        "The five genes form a biological story, but adding synthetic samples did not improve every prediction check.",
     )
     figure = PAPER_DIR / "figures/figure_4_soleus_biology.png"
     _add_picture_contain(slide, figure, 0.34, 1.96, 9.15, 4.70, alt="Soleus gene effects and Reactome processes")
     _add_panel(slide, 9.63, 2.04, 3.25, 4.52, fill=PALE_TEAL, line="C7DDD8", radius=False)
-    _add_text(slide, "5-gene consensus panel", 9.87, 2.30, 2.77, 0.62, size=17, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
-    _add_text(slide, "reinforced in real and consensus rankings", 9.90, 2.96, 2.70, 0.36, size=10.8, color=GRAY, align=PP_ALIGN.CENTER)
+    _add_text(slide, "5-gene combined panel", 9.87, 2.30, 2.77, 0.62, size=17, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
+    _add_text(slide, "selected by both real and combined rankings", 9.90, 2.96, 2.70, 0.36, size=10.4, color=GRAY, align=PP_ALIGN.CENTER)
     _add_panel(slide, 9.92, 3.39, 2.65, 0.74, fill=WHITE, line=CORAL, radius=False)
-    _add_text(slide, "Matched gate not passed", 10.10, 3.50, 2.30, 0.25, size=12.2, color=CORAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_text(slide, "BA +0.013 | AUROC -0.015 | AP -0.009", 10.03, 3.79, 2.44, 0.20, size=8.5, color=DARK, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "Prediction criteria not met", 10.10, 3.50, 2.30, 0.25, size=11.8, color=CORAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
+    _add_text(slide, "1 measure improved; 2 declined", 10.03, 3.79, 2.44, 0.20, size=9.0, color=DARK, align=PP_ALIGN.CENTER, margin=0)
     _add_bullet_rows(
         slide,
         [
             "Lower Bdh1, Ech1, Bnip3 and Decr1",
             "Higher Tpm1",
             "Mitochondrial turnover and fatty-acid metabolism",
-            "Panel-level hypothesis, not matched synthetic contribution",
+            "Panel-level hypothesis; no confirmed synthetic benefit",
         ],
         9.94,
         4.31,
@@ -2783,8 +2796,8 @@ def _add_additional_finding_rows(
     selection_heading: str = "Selection",
 ):
     _add_text(slide, "Analysis unit", 0.72, 2.00, 1.70, 0.28, size=11.5, color=GRAY, bold=True)
-    _add_text(slide, selection_heading, 2.48, 2.00, 1.15, 0.28, size=11.5, color=GRAY, bold=True)
-    _add_text(slide, "Genes and FLT direction", 3.78, 2.00, 3.15, 0.28, size=11.5, color=GRAY, bold=True)
+    _add_text(slide, selection_heading, 2.48, 2.00, 1.35, 0.28, size=11.2, color=GRAY, bold=True)
+    _add_text(slide, "Genes and FLT direction", 3.93, 2.00, 3.00, 0.28, size=11.5, color=GRAY, bold=True)
     _add_text(slide, "Interpretation", 7.20, 2.00, 5.10, 0.28, size=11.5, color=GRAY, bold=True)
     for index, (tissue, promoted, reinforced, interpretation, color, fill) in enumerate(rows):
         y = 2.35 + index * 1.06
@@ -2792,19 +2805,19 @@ def _add_additional_finding_rows(
         _add_rule(slide, 0.43, y, 0.08, color, 0.88)
         _add_text(slide, tissue, 0.72, y + 0.20, 1.62, 0.44, size=15.0, color=color, bold=True, valign=MSO_ANCHOR.MIDDLE)
         _add_rule(slide, 2.42, y + 0.44, 4.42, "DDE4E8", 0.012)
-        _add_text(slide, first_label, 2.48, y + 0.08, 1.12, 0.25, size=10.5, color=CORAL, bold=True, valign=MSO_ANCHOR.MIDDLE)
-        _add_text(slide, promoted, 3.78, y + 0.05, 3.08, 0.35, size=10.5, color=DARK, valign=MSO_ANCHOR.MIDDLE)
-        _add_text(slide, second_label, 2.48, y + 0.52, 1.12, 0.25, size=10.5, color=TEAL, bold=True, valign=MSO_ANCHOR.MIDDLE)
-        _add_text(slide, reinforced, 3.78, y + 0.48, 3.08, 0.35, size=10.5, color=DARK, valign=MSO_ANCHOR.MIDDLE)
+        _add_text(slide, first_label, 2.48, y + 0.08, 1.33, 0.25, size=9.8, color=CORAL, bold=True, valign=MSO_ANCHOR.MIDDLE)
+        _add_text(slide, promoted, 3.93, y + 0.05, 2.93, 0.35, size=10.3, color=DARK, valign=MSO_ANCHOR.MIDDLE)
+        _add_text(slide, second_label, 2.48, y + 0.52, 1.33, 0.25, size=9.8, color=TEAL, bold=True, valign=MSO_ANCHOR.MIDDLE)
+        _add_text(slide, reinforced, 3.93, y + 0.48, 2.93, 0.35, size=10.3, color=DARK, valign=MSO_ANCHOR.MIDDLE)
         _add_text(slide, interpretation, 7.20, y + 0.10, 5.20, 0.66, size=12.2, color=DARK, valign=MSO_ANCHOR.MIDDLE)
 
 
 def _slide_14(slide):
     _add_slide_title(
         slide,
-        "Additional matched findings",
+        "Additional controlled-test findings",
         "Liver, skin and spleen add narrower gene-level results",
-        "Pooled muscle improves prediction, while its gene panel remains secondary consensus evidence.",
+        "Pooled muscle improves prediction, while its gene panel remains a secondary result.",
     )
     rows = [
         (
@@ -2819,7 +2832,7 @@ def _slide_14(slide):
             "Skin",
             "Higher: Plscr1",
             "Higher: Plscr1 plus broader selected pathways",
-            "Matched and consensus support the same gene; broader cell-cycle and DNA-repair context is panel-level.",
+            "Both analyses support Plscr1; broader cell-cycle and DNA-repair context comes from the gene panel.",
             PURPLE,
             "F0ECF6",
         ),
@@ -2827,15 +2840,15 @@ def _slide_14(slide):
             "Spleen",
             "Higher: Loxl1",
             "Higher: Loxl1, Rai14, Ptprk, Myl9",
-            "Loxl1 is the matched anchor; the four-gene adhesion and cytoskeletal panel is tentative.",
+            "Loxl1 appears in the controlled test; the four-gene adhesion and cytoskeletal panel is tentative.",
             TEAL,
             PALE_TEAL,
         ),
         (
             "Pooled muscle",
-            "All six metrics passed; no gene passed the full gate",
+            "All six checks improved; no single gene met both criteria",
             "12-gene interferon and sialic-acid panel",
-            "Predictive utility is matched; individual gene interpretation comes from the secondary consensus analysis.",
+            "Adding synthetic samples improves prediction; individual genes come from the secondary ranking analysis.",
             ORANGE,
             PALE_GOLD,
         ),
@@ -2843,18 +2856,18 @@ def _slide_14(slide):
     _add_additional_finding_rows(
         slide,
         rows,
-        first_label="Matched",
-        second_label="Consensus",
-        selection_heading="Evidence",
+        first_label="All-gene test",
+        second_label="Combined ranking",
+        selection_heading="Evidence source",
     )
-    _add_source(slide, "Matched genes pass real-data BH FDR and synthetic-supported marginal importance; consensus rows provide secondary panel context.")
+    _add_source(slide, "All-gene candidates are significant in real data and help prediction. Combined-ranking rows provide secondary panel context.")
 
 
 def _slide_additional_2(slide):
     _add_slide_title(
         slide,
-        "Additional consensus findings",
-        "Several narrower panels did not pass the matched gene gate",
+        "Additional combined-ranking findings",
+        "Several smaller panels did not pass the controlled all-gene criteria",
         "These remain tissue-specific hypotheses from the secondary ranking analysis.",
     )
     rows = [
@@ -2870,7 +2883,7 @@ def _slide_additional_2(slide):
             "Adrenal gland",
             "Psmb8 lower",
             "Tspan4 lower",
-            "Literature-unmatched immune, proteostasis or tissue-composition candidates; no adrenal mechanism is established.",
+            "No close prior match was found for these immune, proteostasis, or tissue-composition candidates.",
             MID_GRAY,
             "F2F4F5",
         ),
@@ -2892,20 +2905,20 @@ def _slide_additional_2(slide):
         ),
     ]
     _add_additional_finding_rows(slide, rows)
-    _add_source(slide, "Secondary consensus results and independent literature annotations are reported in Tables S10 and S16.")
+    _add_source(slide, "Secondary combined-ranking results and independent literature annotations are reported in Tables S10 and S16.")
 
 
 def _slide_15(slide):
     _add_slide_title(
         slide,
         "Takeaways",
-        "Use matched tests for contribution; consensus for biology",
-        "Matched classifiers test utility; consensus ranking explains correlated programs; biological claims still use OSDR profiles.",
+        "Use controlled tests to measure benefit; combined rankings to interpret biology",
+        "Synthetic profiles can help prediction and gene prioritization, but biological significance still comes from measured OSDR samples.",
     )
     columns = [
-        (0.42, "1", "Generate", "Conditional DDIM produced high-fidelity profiles with near-chance real-versus-synthetic separation.", BLUE, PALE_BLUE),
-        (4.44, "2", "Test", "Matched real-plus-synthetic classifiers passed all six metric checks in 18 of 27 tissue analyses and retained 21 BH-FDR associations.", TEAL, PALE_TEAL),
-        (8.46, "3", "Interpret", "Consensus ranking recovered broader correlated panels. Thymus was strongest across both analyses; soleus remained secondary.", ORANGE, PALE_GOLD),
+        (0.42, "1", "Generate", "Conditional diffusion produced realistic expression profiles that were difficult to distinguish from measured samples.", BLUE, PALE_BLUE),
+        (4.44, "2", "Test", "Adding synthetic profiles improved all six checks in 18 of 27 tissue analyses and retained 21 significant gene associations.", TEAL, PALE_TEAL),
+        (8.46, "3", "Interpret", "The combined ranking recovered broader groups of correlated genes. Thymus was strongest across both analyses; soleus remained secondary.", ORANGE, PALE_GOLD),
     ]
     for index, (x, number, heading, body, color, _fill) in enumerate(columns):
         if index:
@@ -3034,34 +3047,34 @@ def build() -> Path:
             builder(presentation.slides[index])
 
     notes = [
-        SlideNote(1, "Interpretable and generative models for mouse spaceflight", "0:15", "This project uses machine learning to study mouse bulk RNA-seq from NASA spaceflight experiments. The first model asks which pathways change. The second asks whether realistic synthetic profiles can improve a tissue-specific FLT versus GC analysis."),
-        SlideNote(2, "One dataset, two machine-learning questions", "0:35", "Both parts begin with the same OSDR flight and ground-control data. expiMap organizes expression into interpretable Reactome programs. The generative pipeline models the expression distribution and then tests whether generated profiles improve classification and gene ranking."),
-        SlideNote(3, "Autoencoders compress expression into a latent space", "0:40", "An autoencoder takes a high-dimensional gene-expression profile, compresses it into a small set of latent variables, and reconstructs the original profile. Nearby points in latent space have similar expression. In a standard autoencoder those axes may have no clear biological meaning. expiMap constrains them with known gene programs."),
-        SlideNote(4, "Program scores become pathway-level changes", "0:45", "These are observed OSDR examples from the expiMap analysis. Each sample receives a latent score for each Reactome program. The table shows project-centered mean scores for flight and ground control, followed by flight minus ground. The formal analysis estimates the change inside each project and then combines project effects. All four examples are lower in flight; a lower latent score does not by itself prove biochemical inhibition."),
+        SlideNote(1, "Interpretable and generative models for mouse spaceflight", "0:15", "This project uses machine learning to study mouse bulk RNA-seq from NASA spaceflight experiments. One model asks which pathways change. The other asks whether realistic synthetic samples can improve a tissue-specific comparison of flight and ground control."),
+        SlideNote(2, "One dataset, two machine-learning questions", "0:35", "Both parts start with the same OSDR flight and ground-control data. expiMap summarizes expression as Reactome pathways. The generative pipeline learns the broader expression patterns and tests whether generated samples improve FLT-GC prediction and gene ranking."),
+        SlideNote(3, "Autoencoders compress thousands of genes into a few features", "0:40", "An autoencoder compresses thousands of gene measurements into a smaller set of features and then reconstructs the original profile. This compressed representation is often called latent space. Samples with similar expression sit near one another. expiMap gives each compressed feature a biological meaning by connecting it to a known Reactome gene program."),
+        SlideNote(4, "Program scores become pathway-level changes", "0:45", "Each OSDR sample receives one score per Reactome program. The table shows average flight and ground-control scores, followed by flight minus ground control. We first compare FLT and GC within each study, where the samples share the same experimental setting, and then combine those study-level changes. A lower program score in flight does not by itself prove that the pathway is biochemically inhibited."),
         SlideNote(5, "Four tissues produced the clearest pathway patterns", "0:50", "Thymus showed lower repair, cytoskeletal, and stromal-interaction programs. Skin showed lower chromatin regulation, repair, Hedgehog, sphingolipid, and cell-junction programs. Liver showed lower MHC class II and T-cell receptor scores. Spleen combined lower T-cell receptor, neutrophil-degranulation, and C-type lectin programs."),
-        SlideNote(6, "What is synthetic transcriptomics?", "0:25", "A generator learns the distribution of measured expression and samples new numeric profiles for a chosen tissue and FLT or GC context. We use those profiles to test classifiers and rank genes. They are model output, not new animals or independent biological measurements."),
-        SlideNote(7, "Small studies and study effects complicate tissue comparisons", "0:30", "OSDR covers many tissues, but its 1,610 profiles are spread across 75 accessions. ARCHS4 supplies a much larger mouse reference. The model must preserve tissue and condition structure without simply learning study identity."),
-        SlideNote(8, "Diffusion: denoise from noise", "0:30", "The left animation shows the familiar image version: begin with visual noise and repeatedly denoise until an image appears. The right animation applies the same idea to expression data. Random gene values are denoised toward the region requested by the FLT or GC condition."),
-        SlideNote(9, "Conditional WGAN-GP: generator versus critic", "0:30", "The face sequence on the left shows the familiar GAN idea: generated examples improve during adversarial training. On the right, our generator makes expression profiles while a critic compares them with measured OSDR profiles. Tissue, FLT or GC, accession, and material type specify which profile the generator should make."),
-        SlideNote(10, "We built a configurable bulk RNA-seq generation pipeline", "0:45", "The pipeline can change data scope, transformation, harmonization, model, training source, and conditioning. The branch used here applies TPM, MaxAbs scaling, 974 landmarks, ARCHS4 pretraining, OSDR adaptation, and conditioning on tissue, FLT or GC, accession, and material type."),
-        SlideNote(10, "DDIM matched expression and reduced separability", "0:40", "We compared WGAN-GP with the conditional diffusion model. Both matched expression well. DDIM had higher F1, adversarial accuracy close to chance, and lower distributional distance, so the remaining analysis uses DDIM."),
-        SlideNote(11, "Diffusion learns tissue structure from noise", "0:25", "The same generated profiles begin as noise, develop structure by timestep 200, and reach their tissue-conditioned regions at timestep zero. All three panels share PCA axes."),
-        SlideNote(12, "Tissue and study structure dominate the PCA space", "0:25", "These panels use the same locked coordinates. The left panel colors each profile by tissue, while the right colors it by OSDR accession. Circles are observed profiles and crosses are matched DDIM profiles. Both tissue and study structure are reproduced in the generated data."),
-        SlideNote(13, "Flight condition is subtler than study structure", "0:25", "The left panel now colors the same profiles by flight or ground-control condition, while the right repeats the accession view. FLT and GC overlap much more than the study clusters. This is why the downstream analysis estimates FLT-GC effects within accession rather than treating the pooled separation as biology."),
-        SlideNote(14, "The primary comparison changes only the training source", "0:40", "Every matched classifier uses all 974 genes, the same real-fitted scaler, the same outer split, and one regularization value selected from real training data. Real-only, synthetic-only, and real-plus-synthetic models are evaluated on the same held-out real profiles. This isolates training source within the classifier analysis."),
-        SlideNote(15, "Consensus ranking is a secondary panel analysis", "0:25", "Real and generated profiles rank the same 974 genes. Combining those rankings can move a gene into or out of a compact top-k panel. This is useful for pathway interpretation, but it does not isolate training source as directly as the matched all-gene comparison."),
-        SlideNote(16, "Correlated genes dilute marginal importance", "0:35", "Suppose several genes carry the same pathway signal. Ridge can divide weight among them. If I shuffle Gene A, Genes B and C remain, so held-out performance changes little and Gene A receives low permutation importance. Consensus ranking can still retain the group. Low individual importance means replaceable in this classifier, not biologically irrelevant."),
-        SlideNote(17, "Matched augmentation helped many tissues, but not all", "0:35", "The pooled multi-tissue classifier declined with augmentation. In separate tissue models, real plus synthetic passed all pooled and accession-macro balanced-accuracy, AUROC, and average-precision checks in 18 of 27 analyses. The coral examples show why a balanced-accuracy gain alone is not enough when another metric declines."),
-        SlideNote(18, "Matched and consensus results overlap only partly", "0:30", "The matched analysis retained 21 BH-FDR tissue-gene associations, and consensus ranking retained 49. Eleven appear in both. Matched results are primary evidence that synthetic training changes classifier behavior. Consensus-only results are secondary panel evidence."),
-        SlideNote(19, "Consensus selection and literature are separate dimensions", "0:30", "For the 49 consensus associations, promoted or reinforced describes feature selection. Aligning, complementary, ambiguous, or unmatched describes the literature review. These labels answer different questions and can occur in any combination."),
-        SlideNote(20, "The matched screen covered all 27 tissue analyses", "0:25", "Four tissues had both matched utility and retained BH-FDR genes. Fourteen more passed the utility gate without a retained gene. Nine failed at least one mean metric. Predictive improvement does not automatically produce a biological candidate."),
-        SlideNote(21, "The secondary consensus inventory spans ten tissue analyses", "0:20", "This slide lists all 49 consensus associations. Rows separate FLT direction and selection status. Gene color gives the independent literature classification."),
-        SlideNote(22, "Thymus is strongest across both analyses", "0:45", "The matched analysis retained 15 thymus genes, seven promoted after augmentation, and 26 significant Reactome terms led by mitotic cell cycle. Nine genes overlap the 16-gene consensus panel, which adds correlated cell-cycle members. Together they support lower proliferative renewal or fewer cycling thymocytes in flight."),
-        SlideNote(23, "Soleus remains a secondary consensus result", "0:35", "The consensus analysis reinforces lower Bdh1, Ech1, Bnip3, and Decr1 with higher Tpm1, a coherent mitochondrial and lipid-metabolism panel. In the fixed all-gene comparison, balanced accuracy rose slightly but AUROC and average precision fell, so the matched gate did not pass."),
-        SlideNote(24, "Three additional tissues have matched genes", "0:25", "Liver contributes four flight-lower shared-importance genes without pathway enrichment. Skin Plscr1 and spleen Loxl1 are supported by both analyses. Pooled muscle improves prediction in the matched classifier, but its individual gene interpretation remains consensus-level."),
-        SlideNote(25, "Additional panels remain consensus-only", "0:20", "Kidney, adrenal gland, gastrocnemius, and tibialis anterior add smaller tissue-specific consensus candidates. They did not pass the matched gene gate, so they remain exploratory panel-level hypotheses."),
-        SlideNote(26, "Use matched tests for contribution and consensus for programs", "0:30", "Conditional DDIM produced realistic profiles. Matched classifiers show where synthetic training changes held-out-real prediction and gene importance. Consensus ranking organizes correlated biological panels. Thymus is strongest across both; all association statistics still come from observed OSDR samples."),
-        SlideNote(27, "Thank you", "0:10", "Acknowledge James Casaletto, SLSTP, NASA OSDR, ARCHS4, Reactome, and NASA Ames compute, then invite questions."),
+        SlideNote(6, "What is synthetic transcriptomics?", "0:25", "A generator learns patterns from measured RNA-seq and creates new numeric expression profiles for a chosen tissue and FLT or GC condition. These profiles are useful model outputs, but they are not new animals or independent biological measurements."),
+        SlideNote(7, "Small studies and study effects complicate tissue comparisons", "0:30", "OSDR contains 1,610 profiles from 75 studies. NASA identifiers for those studies are sometimes called accessions. ARCHS4 supplies a much larger mouse reference. The generator must reproduce tissue and condition patterns without mistaking differences between studies for spaceflight biology."),
+        SlideNote(8, "Diffusion: denoise from noise", "0:30", "The left animation shows diffusion for images: start with random noise and remove it step by step until an image appears. The right side applies the same idea to gene expression. The phrase data manifold on the slide means the region occupied by real expression profiles."),
+        SlideNote(9, "Conditional WGAN-GP: generator versus critic", "0:30", "A GAN trains two networks against each other. The generator makes expression profiles. The critic, which is similar to a discriminator, scores how much each profile resembles measured data. Tissue, FLT or GC, study, and sample material tell the generator what type of profile to make."),
+        SlideNote(10, "We built a configurable bulk RNA-seq generation pipeline", "0:45", "We tested different data sources, processing methods, study corrections, models, and conditioning variables. The selected branch converts expression to TPM, rescales each gene to a common range, and uses 974 informative genes. It first learns general mouse tissue patterns from ARCHS4, then adapts to OSDR and receives tissue, FLT or GC, study, and sample-material labels."),
+        SlideNote(11, "Diffusion best reproduced the measured expression distribution", "0:45", "We compared WGAN-GP with diffusion. Correlation measures gene-expression agreement. Coverage F1 asks whether generated samples cover the same regions as measured samples. Real-versus-synthetic accuracy asks whether a prediction model can tell the two apart, where 0.5 is ideal. Distribution distance measures overall separation, so lower is better. Diffusion had better coverage, near-chance discrimination, and the smaller distance, so we used it for the biological analysis."),
+        SlideNote(12, "Diffusion learns tissue structure from noise", "0:25", "The same 1,024 generated samples begin as noise, develop tissue structure by step 200, and reach their final expression profiles at step zero. PCA compresses the 974 gene values to two axes so the movement can be plotted."),
+        SlideNote(13, "Tissue and study structure dominate the PCA space", "0:25", "The left panel colors each sample by tissue and the right colors it by study. Circles are measured samples and crosses are generated samples. Their overlap shows that the generator reproduced both tissue differences and study-related variation."),
+        SlideNote(14, "Flight condition is subtler than study structure", "0:25", "The left panel colors the same samples by FLT or GC. The right repeats the study view. FLT and GC overlap much more than the study clusters, so we estimate the FLT-GC difference separately within each study before combining the evidence."),
+        SlideNote(15, "A fair test changes only the training data", "0:45", "This is a controlled comparison, not a claim that individual animals were matched. Every prediction model uses the same 974 genes, processing, train-test splits, and settings. We train it on real samples, synthetic samples, or both, then test all three versions on the same unseen real samples. Balanced accuracy gives equal weight to FLT and GC accuracy. AUROC measures ranking, and average precision focuses on correct FLT predictions."),
+        SlideNote(16, "Combine real and synthetic rankings to choose a small gene panel", "0:30", "We also rank genes separately in the real and synthetic data. A gene that ranks well in both moves upward in the combined ranking. We then test small panels containing the top 10, 25, 50, or 100 genes. This analysis is useful for finding related gene groups, but the controlled all-gene test is the clearer test of whether synthetic training helps."),
+        SlideNote(17, "Correlated genes can hide one another in one-at-a-time tests", "0:35", "Several genes in one pathway can carry nearly the same information. If we shuffle Gene A, Genes B and C may still support the prediction, so performance changes little. The one-gene score can therefore be small even when the group matters. The combined ranking helps keep these correlated genes together as a panel."),
+        SlideNote(18, "Adding synthetic samples helped many tissues, but not all", "0:40", "A single prediction model across all tissues became slightly worse after synthetic samples were added. Separate tissue models worked better: 18 of 27 analyses improved or held steady on all six checks. The checks cover overall prediction and the average result across studies. Teal marks tissues that passed every check; coral marks mixed results."),
+        SlideNote(19, "All-gene tests and compact panels answer different questions", "0:35", "The controlled all-gene test retained 21 tissue-gene associations. The combined ranking retained 49, and 11 appeared in both. Every association had FDR below 0.05 in measured OSDR data. FDR is the expected fraction of false positives among results called significant after testing many genes."),
+        SlideNote(20, "Selection and literature evidence are separate", "0:35", "Promoted means a gene entered the selected panel only after the synthetic ranking was added. Reinforced means the real-only and combined rankings both selected it. The literature label asks a different question: does prior work directly agree, support a related mechanism, give mixed evidence, or provide no close match?"),
+        SlideNote(21, "The controlled test covered all 27 tissue analyses", "0:30", "Four tissue analyses improved prediction and retained at least one significant gene that helped classification. Fourteen more improved prediction but did not retain a gene under both criteria. Nine had a mixed prediction result. Better classification does not automatically produce a biological finding."),
+        SlideNote(22, "The combined ranking spans ten tissue analyses", "0:25", "This slide lists all 49 combined-ranking associations. Rows separate genes that were higher or lower in flight and whether they were promoted or reinforced. Gene color shows the separate literature interpretation."),
+        SlideNote(23, "Thymus is strongest across both analyses", "0:45", "The controlled test retained 15 thymus genes, including seven added after synthetic training. Reactome analysis found 26 significant terms led by mitotic cell cycle. Nine of those genes also appear in the 16-gene combined panel, which adds related cell-cycle genes. Together they suggest less proliferative renewal or fewer cycling thymocytes in flight."),
+        SlideNote(24, "Soleus has a coherent secondary gene panel", "0:35", "The combined ranking found lower Bdh1, Ech1, Bnip3, and Decr1 with higher Tpm1. That pattern suggests changes in mitochondrial turnover and fatty-acid metabolism. However, only one of the three prediction measures improved when synthetic samples were added, so soleus remains a biological hypothesis rather than confirmed synthetic benefit."),
+        SlideNote(25, "Liver, skin, spleen, and pooled muscle add narrower results", "0:30", "Liver contributes four flight-lower genes without pathway enrichment. Skin Plscr1 and spleen Loxl1 appear in both analyses. Pooled muscle prediction improved after adding synthetic samples, but the individual genes come from the secondary combined ranking."),
+        SlideNote(26, "Additional panels remain exploratory", "0:25", "Kidney, adrenal gland, gastrocnemius, and tibialis anterior produced smaller tissue-specific panels. These panels did not meet the controlled all-gene criteria, so we treat them as hypotheses for follow-up rather than firm evidence of synthetic benefit."),
+        SlideNote(27, "Takeaways", "0:30", "Diffusion generated realistic tissue-specific expression profiles. Adding those profiles improved all six prediction checks in 18 of 27 tissue analyses. The controlled and combined-ranking analyses both point most strongly to a lower cell-cycle signal in thymus. All statistical claims about FLT-GC biology still come from measured OSDR samples."),
+        SlideNote(28, "Thank you", "0:10", "Acknowledge James Casaletto, SLSTP, NASA OSDR, ARCHS4, Reactome, and NASA Ames compute, then invite questions."),
     ]
     notes = [
         SlideNote(index, note.title, note.time, note.text)
