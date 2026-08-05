@@ -11,6 +11,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 import numpy as np
 import pandas as pd
 import yaml
@@ -911,6 +912,94 @@ def _plot_domain_similarity(similarity: pd.DataFrame, output: Path) -> None:
     plt.close(figure)
 
 
+def _plot_synthetic_informed_importance(
+    table: pd.DataFrame, output: Path
+) -> None:
+    if table.empty:
+        return
+    colors = {
+        "synthetic_promoted": "#E76F51",
+        "reinforced_real_and_synthetic": "#2A9D8F",
+    }
+    frame = table.sort_values(
+        ["analysis_scope", "tissue", "selected_arm_permutation_roc_auc_mean"],
+        ascending=[True, True, False],
+        kind="stable",
+    ).copy()
+    frame["label"] = (
+        frame["tissue"].astype(str).str.replace("_", " ")
+        + "  |  "
+        + frame["symbol"].astype(str)
+    )
+    bar_colors = []
+    for row in frame.itertuples(index=False):
+        color = matplotlib.colors.to_rgba(
+            colors[str(row.selection_interpretation)],
+            alpha=(
+                0.95
+                if bool(row.positive_held_out_real_permutation_importance)
+                else 0.32
+            ),
+        )
+        bar_colors.append(color)
+    positions = np.arange(len(frame))
+    height = max(12.0, 0.32 * len(frame))
+    figure, axes = plt.subplots(1, 2, figsize=(13.5, height), sharey=True)
+    axes[0].barh(
+        positions,
+        frame["selected_arm_permutation_roc_auc_mean"],
+        color=bar_colors,
+    )
+    axes[1].barh(
+        positions,
+        frame["selected_arm_linear_shap_flight_minus_ground"],
+        color=bar_colors,
+    )
+    for axis in axes:
+        axis.axvline(0.0, color="#333333", linewidth=0.8)
+        axis.grid(axis="x", color="#D9D9D9", linewidth=0.6, alpha=0.7)
+        axis.set_axisbelow(True)
+        axis.spines[["top", "right"]].set_visible(False)
+    axes[0].set_yticks(positions, frame["label"], fontsize=8)
+    axes[0].invert_yaxis()
+    axes[0].set_xlabel("Mean AUROC loss after gene permutation")
+    axes[0].set_title("Marginal importance on held-out real profiles", weight="bold")
+    axes[1].set_xlabel("Mean FLT-GC log-odds contribution")
+    axes[1].set_title("Linear SHAP contribution", weight="bold")
+    legend = [
+        Patch(color=colors["synthetic_promoted"], label="Synthetic-promoted"),
+        Patch(
+            color=colors["reinforced_real_and_synthetic"],
+            label="Reinforced",
+        ),
+        Patch(
+            facecolor="#FFFFFF",
+            edgecolor="#777777",
+            alpha=0.35,
+            label="Faded: no repeat-consistent positive permutation loss",
+        ),
+    ]
+    figure.legend(
+        handles=legend,
+        loc="upper center",
+        ncol=3,
+        frameon=False,
+        bbox_to_anchor=(0.58, 0.965),
+    )
+    figure.suptitle(
+        "Predictive contribution of synthetic-informed BH-FDR genes",
+        fontsize=15,
+        weight="bold",
+        y=0.995,
+    )
+    figure.subplots_adjust(
+        left=0.22, right=0.98, top=0.925, bottom=0.055, wspace=0.20
+    )
+    figure.savefig(output / "synthetic_informed_gene_importance.png", dpi=220)
+    figure.savefig(output / "synthetic_informed_gene_importance.pdf")
+    plt.close(figure)
+
+
 def _write_readme(output: Path, summary: dict[str, Any]) -> None:
     text = f"""# Classifier importance analysis
 
@@ -937,6 +1026,7 @@ expectation.
 - `selected_arm_vs_real_gene_comparison.tsv.gz`: retained synthetic arms only.
 - `synthetic_informed_bh_fdr_gene_importance.tsv`: permutation and SHAP crosswalk
   for the manuscript's promoted and reinforced BH-FDR genes.
+- `synthetic_informed_gene_importance.png`: crosswalk figure for all 49 genes.
 - `tissue_arm_similarity.tsv`: arm and domain rank correlations and top-20 overlap.
 - `reactome_importance_enrichment.tsv.gz`: exploratory enrichment of importance patterns.
 - `top_importance_genes.tsv`: top genes by held-out-real AUROC permutation drop.
@@ -947,6 +1037,8 @@ expectation.
 - Completed analysis units: {summary['completed_units']}
 - Permutation repeats per fitted classifier: {summary['permutation_repeats']}
 - Reconstructed fitted classifiers: {summary['fitted_classifiers']}
+- Synthetic-informed BH-FDR genes with positive permutation importance:
+  {summary['synthetic_informed_positive_permutation']} / {summary['synthetic_informed_bh_fdr_genes']}
 - Neural-network retraining: no
 
 ## Interpretation
@@ -1365,6 +1457,7 @@ def run(
             sep="\t",
             index=False,
         )
+        _plot_synthetic_informed_importance(synthetic_informed, output)
     similarity.to_csv(output / "tissue_arm_similarity.tsv", sep="\t", index=False)
     enrichment.to_csv(
         output / "reactome_importance_enrichment.tsv.gz",
