@@ -1281,58 +1281,87 @@ def _slide_2(slide):
     _add_source(slide, "Sources: NASA OSDR Biological Data API; ARCHS4 mouse v2.5.")
 
 
-def _slide_wgan_explainer(slide, wgan_gif: Path):
-    _add_slide_title(
-        slide,
-        "WGAN-GP",
-        "A generator learns by competing with a critic",
-        "The generator makes conditioned expression profiles; the critic compares them with measured RNA-seq.",
+def _add_midpoint_generator_slide(
+    slide,
+    tile_prefix: str,
+    overlays: list[tuple[Path, tuple[int, int, int, int], str]],
+    slide_number: int,
+) -> None:
+    source_width = 18_288_000
+    source_height = 10_287_000
+    tile_boxes = [
+        (0, 0, 9_144_000, 5_143_500),
+        (9_124_950, 0, 9_163_050, 5_143_500),
+        (0, 5_124_450, 9_144_000, 5_162_550),
+        (9_124_950, 5_124_450, 9_163_050, 5_162_550),
+    ]
+
+    def scaled_box(box: tuple[int, int, int, int]) -> tuple[float, float, float, float]:
+        left, top, width, height = box
+        return (
+            left / source_width * SLIDE_W,
+            top / source_height * SLIDE_H,
+            width / source_width * SLIDE_W,
+            height / source_height * SLIDE_H,
+        )
+
+    for index, box in enumerate(tile_boxes, start=1):
+        path = ASSET_DIR / f"image-{tile_prefix}-{index}.jpeg"
+        left, top, width, height = scaled_box(box)
+        picture = slide.shapes.add_picture(
+            str(path), Inches(left), Inches(top), Inches(width), Inches(height)
+        )
+        picture.name = f"Midpoint slide {tile_prefix} tile {index}"
+        picture._element.nvPicPr.cNvPr.set(
+            "descr", f"Original midpoint slide {tile_prefix}, quadrant {index}"
+        )
+
+    for path, box, alt in overlays:
+        left, top, width, height = scaled_box(box)
+        picture = slide.shapes.add_picture(
+            str(path), Inches(left), Inches(top), Inches(width), Inches(height)
+        )
+        picture.name = path.name
+        picture._element.nvPicPr.cNvPr.set("descr", alt)
+
+    badge = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        Inches(12.54),
+        Inches(0.10),
+        Inches(0.52),
+        Inches(0.30),
     )
-    _add_panel(slide, 0.48, 1.94, 5.40, 4.88, fill="EEF2F6", line="D9E1E5", radius=False)
-    _add_picture_contain(
+    _set_fill(badge, "082768")
+    badge.line.fill.background()
+    _add_text(
         slide,
-        wgan_gif,
-        0.73,
-        2.03,
-        4.90,
-        4.67,
-        alt="Animated teaching diagram of a WGAN generator competing with a critic",
+        str(slide_number),
+        12.54,
+        0.135,
+        0.52,
+        0.21,
+        size=11.5,
+        color=WHITE,
+        bold=True,
+        align=PP_ALIGN.CENTER,
+        valign=MSO_ANCHOR.MIDDLE,
+        margin=0,
     )
 
-    _add_text(slide, "TRAINING LOOP", 6.30, 2.03, 1.55, 0.24, size=10.2, color=BLUE, bold=True, margin=0)
-    stages = [
-        (2.50, "01", "Generate", "Noise and a requested condition become one synthetic expression profile.", ORANGE),
-        (3.78, "02", "Score", "The critic scores measured and generated profiles without seeing their labels.", BLUE),
-        (5.06, "03", "Update", "The critic sharpens the comparison; the generator learns to close the gap.", TEAL),
-    ]
-    for y, number, heading, body, color in stages:
-        _add_text(slide, number, 6.30, y + 0.02, 0.40, 0.25, size=10.5, color=color, bold=True, margin=0)
-        _add_rule(slide, 6.82, y + 0.07, 0.055, color, 0.72)
-        _add_text(slide, heading, 7.10, y, 1.55, 0.30, size=16.0, color=NAVY, bold=True, margin=0)
-        _add_text(slide, body, 8.66, y - 0.02, 3.78, 0.68, size=11.4, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
-        if y < 5.0:
-            arrow = slide.shapes.add_shape(
-                MSO_SHAPE.DOWN_ARROW,
-                Inches(7.54),
-                Inches(y + 0.83),
-                Inches(0.22),
-                Inches(0.28),
+
+def _slide_wgan_explainer(slide, wgan_gif: Path, slide_number: int):
+    _add_midpoint_generator_slide(
+        slide,
+        "21",
+        [
+            (
+                wgan_gif,
+                (10_434_638, 3_146_108, 5_895_023, 6_550_343),
+                "Animated WGAN comparison between real OSDR and generated expression profiles",
             )
-            _set_fill(arrow, MID_GRAY)
-            arrow.line.fill.background()
-
-    _add_rule(slide, 6.28, 6.18, 6.22, "D5DDE2", 0.015)
-    _add_text(slide, "CONDITION", 6.31, 6.39, 0.92, 0.18, size=8.5, color=TEAL, bold=True, margin=0)
-    condition_tiles = [
-        (7.34, 1.03, "Tissue"),
-        (8.48, 1.12, "FLT / GC"),
-        (9.71, 1.15, "Accession"),
-        (10.97, 1.42, "Material type"),
-    ]
-    for x, width, label in condition_tiles:
-        _add_panel(slide, x, 6.29, width, 0.38, fill=PALE_TEAL, line="C9DFDB", radius=False)
-        _add_text(slide, label, x, 6.39, width, 0.16, size=8.5, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-    _add_source(slide, "Animation reused from the project midpoint presentation. WGAN-GP follows the adversarial RNA-seq framework of Vinas et al. (2022).")
+        ],
+        slide_number,
+    )
 
 
 def _slide_3(slide):
@@ -1496,68 +1525,29 @@ def _slide_5(slide, trajectory: Path):
     _add_source(slide, "Gray points are real ARCHS4 profiles; colors identify generated tissue conditions. PC1 and PC2 limits are shared across panels.")
 
 
-def _slide_diffusion_explainer(slide, diffusion_gif: Path):
-    _add_slide_title(
+def _slide_diffusion_explainer(
+    slide,
+    diffusion_image_gif: Path,
+    diffusion_data_gif: Path,
+    slide_number: int,
+):
+    _add_midpoint_generator_slide(
         slide,
-        "Diffusion",
-        "Diffusion turns noise into a conditioned sample",
-        "The model repeatedly removes predicted noise while following the requested biological context.",
+        "20",
+        [
+            (
+                diffusion_image_gif,
+                (3_076_575, 5_393_055, 3_657_600, 2_057_400),
+                "Animated image denoising example",
+            ),
+            (
+                diffusion_data_gif,
+                (10_487_978, 3_146_108, 5_788_343, 6_550_343),
+                "Animated FLT- and GC-conditioned expression diffusion example",
+            ),
+        ],
+        slide_number,
     )
-    _add_panel(slide, 0.48, 1.98, 5.30, 4.76, fill="EEF2F6", line="D9E1E5", radius=False)
-    _add_picture_contain(
-        slide,
-        diffusion_gif,
-        0.76,
-        2.07,
-        4.74,
-        4.55,
-        alt="Animated two-dimensional teaching example of FLT- and GC-conditioned reverse diffusion",
-    )
-    _add_text(slide, "FOR RNA-SEQ", 6.18, 2.06, 1.52, 0.24, size=10.2, color=BLUE, bold=True, margin=0)
-    stages = [
-        (2.54, "t = 1000", "Random noise", "974 unconstrained gene values", MID_GRAY, "noise"),
-        (3.78, "reverse steps", "Conditional denoising", "Tissue + FLT/GC + accession + material", TEAL, "denoise"),
-        (5.15, "t = 0", "Synthetic expression", "One generated 974-gene profile", ORANGE, "profile"),
-    ]
-    for y, tag, heading, body, color, kind in stages:
-        _add_rule(slide, 6.29, y + 0.07, 0.07, color, 0.68)
-        _add_text(slide, tag.upper(), 6.58, y, 1.34, 0.20, size=8.5, color=color, bold=True, margin=0)
-        _add_text(slide, heading, 6.58, y + 0.26, 2.32, 0.30, size=15.0, color=NAVY, bold=True, margin=0)
-        if body and kind != "denoise":
-            _add_text(slide, body, 9.05, y + 0.21, 2.10, 0.43, size=11.2, color=DARK, valign=MSO_ANCHOR.MIDDLE, margin=0)
-        if kind == "noise":
-            rng = np.random.default_rng(2026)
-            for dx, dy in rng.uniform((0.0, 0.0), (1.18, 0.45), size=(13, 2)):
-                _add_circle(slide, 11.07 + dx, y + 0.16 + dy, 0.06, MID_GRAY)
-        elif kind == "denoise":
-            for index, label in enumerate(("Tissue", "FLT / GC", "Study", "Material")):
-                x = 9.23 + (index % 2) * 1.52
-                yy = y + 0.08 + (index // 2) * 0.34
-                _add_panel(slide, x, yy, 1.35, 0.26, fill=PALE_TEAL, line="C9DFDB", radius=False)
-                _add_text(slide, label, x, yy + 0.05, 1.35, 0.15, size=8.0, color=TEAL, bold=True, align=PP_ALIGN.CENTER, margin=0)
-        else:
-            profile_values = [0.28, 0.51, 0.36, 0.62, 0.44, 0.22, 0.55, 0.31]
-            for index, height in enumerate(profile_values):
-                bar = slide.shapes.add_shape(
-                    MSO_SHAPE.RECTANGLE,
-                    Inches(11.45 + index * 0.16),
-                    Inches(y + 0.64 - height),
-                    Inches(0.10),
-                    Inches(height),
-                )
-                _set_fill(bar, ORANGE if index % 2 == 0 else "E0A24D")
-                bar.line.fill.background()
-    first_arrow = slide.shapes.add_shape(
-        MSO_SHAPE.DOWN_ARROW, Inches(6.72), Inches(3.37), Inches(0.22), Inches(0.31)
-    )
-    _set_fill(first_arrow, MID_GRAY)
-    first_arrow.line.fill.background()
-    arrow = slide.shapes.add_shape(
-        MSO_SHAPE.DOWN_ARROW, Inches(6.72), Inches(4.73), Inches(0.22), Inches(0.31)
-    )
-    _set_fill(arrow, MID_GRAY)
-    arrow.line.fill.background()
-    _add_source(slide, "Animation reused from the project midpoint presentation. The 2-D spiral is explanatory; the trained model generates 974-gene vectors.")
 
 
 def _slide_6(slide, tissue_accession_pca: Path):
@@ -2978,18 +2968,26 @@ def build() -> Path:
     condition_accession_pca = _build_pca_comparison_chart("condition")
     architecture_figure = ASSET_DIR / "lacan_figure1c_generator_architecture.png"
     diffusion_gif = ASSET_DIR / "anim_diffdata.gif"
+    diffusion_image_gif = ASSET_DIR / "anim_diffimg.gif"
     wgan_gif = ASSET_DIR / "anim_wgan.gif"
-    if not architecture_figure.exists():
+    midpoint_tiles = [
+        ASSET_DIR / f"image-{slide_number}-{tile}.jpeg"
+        for slide_number in (20, 21)
+        for tile in range(1, 5)
+    ]
+    required_assets = [
+        architecture_figure,
+        diffusion_gif,
+        diffusion_image_gif,
+        wgan_gif,
+        *midpoint_tiles,
+    ]
+    missing_assets = [path for path in required_assets if not path.exists()]
+    if missing_assets:
         raise FileNotFoundError(
-            "Missing Lacan et al. architecture excerpt; see presentation/generative_slstp_2026/assets/SOURCES.md"
-        )
-    if not diffusion_gif.exists():
-        raise FileNotFoundError(
-            "Missing midpoint reverse-diffusion animation; see presentation/generative_slstp_2026/assets/SOURCES.md"
-        )
-    if not wgan_gif.exists():
-        raise FileNotFoundError(
-            "Missing midpoint WGAN animation; see presentation/generative_slstp_2026/assets/SOURCES.md"
+            "Missing presentation assets: "
+            + ", ".join(path.name for path in missing_assets)
+            + ". See presentation/generative_slstp_2026/assets/SOURCES.md"
         )
     presentation = Presentation(TEMPLATE)
     _set_title_slide(presentation.slides[0])
@@ -3002,9 +3000,11 @@ def build() -> Path:
         _slide_expimap_tissue_results,
         _slide_why_synthetic,
         _slide_2,
-        lambda slide: _slide_wgan_explainer(slide, wgan_gif),
+        lambda slide: _slide_diffusion_explainer(
+            slide, diffusion_image_gif, diffusion_gif, 8
+        ),
+        lambda slide: _slide_wgan_explainer(slide, wgan_gif, 9),
         _slide_3,
-        lambda slide: _slide_diffusion_explainer(slide, diffusion_gif),
         lambda slide: _slide_4(slide, architecture_figure),
         lambda slide: _slide_5(slide, trajectory),
         lambda slide: _slide_6(slide, tissue_accession_pca),
@@ -3041,9 +3041,9 @@ def build() -> Path:
         SlideNote(5, "Four tissues produced the clearest pathway patterns", "0:50", "Thymus showed lower repair, cytoskeletal, and stromal-interaction programs. Skin showed lower chromatin regulation, repair, Hedgehog, sphingolipid, and cell-junction programs. Liver showed lower MHC class II and T-cell receptor scores. Spleen combined lower T-cell receptor, neutrophil-degranulation, and C-type lectin programs."),
         SlideNote(6, "What is synthetic transcriptomics?", "0:25", "A generator learns the distribution of measured expression and samples new numeric profiles for a chosen tissue and FLT or GC context. We use those profiles to test classifiers and rank genes. They are model output, not new animals or independent biological measurements."),
         SlideNote(7, "Small studies and study effects complicate tissue comparisons", "0:30", "OSDR covers many tissues, but its 1,610 profiles are spread across 75 accessions. ARCHS4 supplies a much larger mouse reference. The model must preserve tissue and condition structure without simply learning study identity."),
-        SlideNote(8, "A generator learns by competing with a critic", "0:30", "A WGAN-GP alternates between two updates. The generator turns noise and biological conditions into an expression profile. The critic compares measured and generated profiles. Their competition teaches the generator to match the observed distribution while retaining the requested tissue, flight or ground-control, accession, and material context."),
-        SlideNote(8, "We built a configurable bulk RNA-seq generation pipeline", "0:45", "The pipeline can change data scope, transformation, harmonization, model, training source, and conditioning. The branch used here applies TPM, MaxAbs scaling, 974 landmarks, ARCHS4 pretraining, OSDR adaptation, and conditioning on tissue, FLT or GC, accession, and material type."),
-        SlideNote(9, "Diffusion turns noise into a conditioned sample", "0:25", "This teaching animation starts from random points. During reverse diffusion, the model repeatedly predicts and removes noise while receiving the requested condition. In the RNA-seq model, the output is a vector of 974 gene values conditioned on tissue, flight or ground control, accession, and material type."),
+        SlideNote(8, "Diffusion: denoise from noise", "0:30", "The left animation shows the familiar image version: begin with visual noise and repeatedly denoise until an image appears. The right animation applies the same idea to expression data. Random gene values are denoised toward the region requested by the FLT or GC condition."),
+        SlideNote(9, "Conditional WGAN-GP: generator versus critic", "0:30", "The face sequence on the left shows the familiar GAN idea: generated examples improve during adversarial training. On the right, our generator makes expression profiles while a critic compares them with measured OSDR profiles. Tissue, FLT or GC, accession, and material type specify which profile the generator should make."),
+        SlideNote(10, "We built a configurable bulk RNA-seq generation pipeline", "0:45", "The pipeline can change data scope, transformation, harmonization, model, training source, and conditioning. The branch used here applies TPM, MaxAbs scaling, 974 landmarks, ARCHS4 pretraining, OSDR adaptation, and conditioning on tissue, FLT or GC, accession, and material type."),
         SlideNote(10, "DDIM matched expression and reduced separability", "0:40", "We compared WGAN-GP with the conditional diffusion model. Both matched expression well. DDIM had higher F1, adversarial accuracy close to chance, and lower distributional distance, so the remaining analysis uses DDIM."),
         SlideNote(11, "Diffusion learns tissue structure from noise", "0:25", "The same generated profiles begin as noise, develop structure by timestep 200, and reach their tissue-conditioned regions at timestep zero. All three panels share PCA axes."),
         SlideNote(12, "Tissue and study structure dominate the PCA space", "0:25", "These panels use the same locked coordinates. The left panel colors each profile by tissue, while the right colors it by OSDR accession. Circles are observed profiles and crosses are matched DDIM profiles. Both tissue and study structure are reproduced in the generated data."),

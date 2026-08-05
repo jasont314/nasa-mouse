@@ -30,17 +30,17 @@ A generator learns the distribution of measured expression and samples new numer
 
 OSDR covers many tissues, but its 1,610 profiles are spread across 75 accessions. ARCHS4 supplies a much larger mouse reference. The model must preserve tissue and condition structure without simply learning study identity.
 
-## 8. A generator learns by competing with a critic (0:30)
+## 8. Diffusion: denoise from noise (0:30)
 
-A WGAN-GP alternates between two updates. The generator turns noise and biological conditions into an expression profile. The critic compares measured and generated profiles. Their competition teaches the generator to match the observed distribution while retaining the requested tissue, flight or ground-control, accession, and material context.
+The left animation shows the familiar image version: begin with visual noise and repeatedly denoise until an image appears. The right animation applies the same idea to expression data. Random gene values are denoised toward the region requested by the FLT or GC condition.
 
-## 9. We built a configurable bulk RNA-seq generation pipeline (0:45)
+## 9. Conditional WGAN-GP: generator versus critic (0:30)
+
+The face sequence on the left shows the familiar GAN idea: generated examples improve during adversarial training. On the right, our generator makes expression profiles while a critic compares them with measured OSDR profiles. Tissue, FLT or GC, accession, and material type specify which profile the generator should make.
+
+## 10. We built a configurable bulk RNA-seq generation pipeline (0:45)
 
 The pipeline can change data scope, transformation, harmonization, model, training source, and conditioning. The branch used here applies TPM, MaxAbs scaling, 974 landmarks, ARCHS4 pretraining, OSDR adaptation, and conditioning on tissue, FLT or GC, accession, and material type.
-
-## 10. Diffusion turns noise into a conditioned sample (0:25)
-
-This teaching animation starts from random points. During reverse diffusion, the model repeatedly predicts and removes noise while receiving the requested condition. In the RNA-seq model, the output is a vector of 974 gene values conditioned on tissue, flight or ground control, accession, and material type.
 
 ## 11. DDIM matched expression and reduced separability (0:40)
 
