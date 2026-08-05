@@ -25,6 +25,7 @@ from .classifier_importance import (
     _permutation_rows,
     _safe_spearman,
 )
+from .generated_feature_guidance import _reactome_enrichment
 from .within_study_feature_stability import (
     METRICS,
     WorkflowData,
@@ -669,6 +670,41 @@ def _bh_fdr_crosswalk(
     return table
 
 
+def _candidate_reactome_enrichment(
+    eligible: pd.DataFrame,
+    *,
+    background: list[str],
+    gmt_path: Path,
+    symbols: dict[str, str],
+) -> pd.DataFrame:
+    unique = eligible.drop_duplicates(["scope", "tissue", "gene"])
+    tables: list[pd.DataFrame] = []
+    for (scope, tissue), frame in unique.groupby(
+        ["scope", "tissue"], sort=True, observed=True
+    ):
+        gene_sets = {
+            "all": frame,
+            "flt_higher": frame.loc[frame["flt_gc_direction"].eq("FLT_higher")],
+            "flt_lower": frame.loc[frame["flt_gc_direction"].eq("FLT_lower")],
+        }
+        for gene_set, subset in gene_sets.items():
+            if len(subset) < 2:
+                continue
+            table = _reactome_enrichment(
+                subset["gene"].astype(str).tolist(),
+                background,
+                gmt_path,
+                symbols,
+            )
+            if table.empty:
+                continue
+            table.insert(0, "gene_set", gene_set)
+            table.insert(0, "tissue", tissue)
+            table.insert(0, "scope", scope)
+            tables.append(table)
+    return pd.concat(tables, ignore_index=True) if tables else pd.DataFrame()
+
+
 def _plot_utility(utility: pd.DataFrame, output: Path) -> None:
     units = sorted(
         utility.assign(unit=utility["scope"] + ":" + utility["tissue"])["unit"].unique()
@@ -958,6 +994,7 @@ background for every arm.
 - `arm_gene_comparison.tsv.gz`: matched real-only versus synthetic-arm importance.
 - `bh_fdr_matched_importance.tsv.gz`: real BH-FDR genes joined to matched importance.
 - `eligible_bh_fdr_candidates.tsv`: compact synthetic-supported BH-FDR candidates.
+- `eligible_bh_fdr_reactome.tsv.gz`: Reactome enrichment of retained candidates.
 - `matched_classifier_metric_deltas.png`: tissue-level performance changes.
 - `<scope>/<tissue>/matched_classifier_importance.png`: importance comparison.
 
@@ -1136,6 +1173,25 @@ def run(
     eligible.to_csv(
         output / "eligible_bh_fdr_candidates.tsv", sep="\t", index=False
     )
+    gene_symbols = (
+        aggregate[["gene", "symbol"]]
+        .drop_duplicates("gene")
+        .set_index("gene")["symbol"]
+        .astype(str)
+        .to_dict()
+    )
+    candidate_enrichment = _candidate_reactome_enrichment(
+        eligible,
+        background=sorted(aggregate["gene"].astype(str).unique()),
+        gmt_path=Path(config["annotations"]["reactome_gmt"]),
+        symbols=gene_symbols,
+    )
+    candidate_enrichment.to_csv(
+        output / "eligible_bh_fdr_reactome.tsv.gz",
+        sep="\t",
+        index=False,
+        compression="gzip",
+    )
     top = (
         aggregate.loc[aggregate["domain"].eq("real")]
         .sort_values(
@@ -1194,6 +1250,11 @@ def run(
         ),
         "eligible_bh_fdr_units": sorted(
             (eligible["scope"] + ":" + eligible["tissue"]).unique().tolist()
+        ),
+        "significant_candidate_reactome_terms": int(
+            candidate_enrichment["fdr"].lt(0.05).sum()
+            if not candidate_enrichment.empty
+            else 0
         ),
         "joint_utility_units_by_arm": {
             arm: int(

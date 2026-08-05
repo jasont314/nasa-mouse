@@ -4,6 +4,7 @@ import pandas as pd
 from nasa_mouse_rna_diffusion.matched_all_gene_classifiers import (
     _accession_blocks,
     _bh_fdr_crosswalk,
+    _candidate_reactome_enrichment,
     _fit_matched_arm,
     _importance_pattern,
     _metric_summary,
@@ -144,6 +145,30 @@ def test_bh_crosswalk_joins_by_stable_gene_id_when_symbols_differ(tmp_path):
     assert result.loc[0, "importance_symbol"] == "NewName"
     assert not bool(result.loc[0, "symbol_matches_importance_annotation"])
     assert bool(result.loc[0, "eligible_synthetic_biological_candidate"])
+
+
+def test_candidate_reactome_enrichment_reports_all_and_direction_sets(tmp_path):
+    gmt_path = tmp_path / "reactome.gmt"
+    gmt_path.write_text(
+        "TERM\tdescription\tG1\tG2\tG3\n",
+        encoding="utf-8",
+    )
+    eligible = pd.DataFrame(
+        {
+            "scope": ["tissue", "tissue"],
+            "tissue": ["thymus", "thymus"],
+            "gene": ["G1", "G2"],
+            "flt_gc_direction": ["FLT_lower", "FLT_lower"],
+        }
+    )
+    result = _candidate_reactome_enrichment(
+        eligible,
+        background=["G1", "G2", "G3", "G4", "G5"],
+        gmt_path=gmt_path,
+        symbols={"G1": "One", "G2": "Two"},
+    )
+    assert set(result["gene_set"]) == {"all", "flt_lower"}
+    assert set(result["overlap_symbols"]) == {"One,Two"}
 
 
 def test_metric_summary_requires_pooled_and_macro_nonworse():
