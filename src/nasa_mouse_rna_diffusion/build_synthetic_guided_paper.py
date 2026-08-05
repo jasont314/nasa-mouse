@@ -19,7 +19,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch
+from matplotlib.patches import Circle, FancyBboxPatch
 import numpy as np
 import pandas as pd
 
@@ -110,6 +110,11 @@ TISSUE_DIR = (
     ROOT
     / "outputs/generative_benchmark/analyses/"
     "within_study_generated_feature_stability_osdr_disjoint_v1"
+)
+MATCHED_DIR = (
+    ROOT
+    / "outputs/generative_benchmark/analyses/"
+    "matched_all_gene_classifiers_osdr_disjoint_v1"
 )
 WGAN_DIR = (
     ROOT
@@ -546,6 +551,13 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     )
     tissue_reactome = _read_tsv(TISSUE_DIR / "reactome_enrichment.tsv.gz")
     tissue_random_effects = _read_tsv(TISSUE_DIR / "real_random_effects.tsv.gz")
+    matched_utility = _read_tsv(MATCHED_DIR / "arm_utility.tsv")
+    matched_candidates_raw = _read_tsv(
+        MATCHED_DIR / "eligible_bh_fdr_candidates.tsv"
+    )
+    matched_reactome = _read_tsv(
+        MATCHED_DIR / "eligible_bh_fdr_reactome.tsv.gz"
+    )
     landmark_panel = _read_tsv(LANDMARK_PANEL)
 
     _assert_close(
@@ -1077,6 +1089,86 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
             f"muscle groups, found {len(bh_fdr_tissue_summary)}"
         )
 
+    matched_candidate_columns = [
+        "analysis_scope",
+        "scope",
+        "tissue",
+        "arm",
+        "gene",
+        "symbol",
+        "importance_symbol",
+        "flt_gc_direction",
+        "n_accessions",
+        "meta_effect",
+        "meta_fdr",
+        "pattern",
+        "matched_importance_interpretation",
+        "real_only_permutation_roc_auc_mean",
+        "arm_real_permutation_roc_auc_mean",
+        "arm_real_linear_shap_flight_minus_ground",
+        "joint_mean_all_metrics_nonworse",
+    ]
+    matched_candidates = matched_candidates_raw[matched_candidate_columns].copy()
+    matched_candidates["matched_status"] = np.where(
+        matched_candidates["pattern"].eq("synthetic_promoted_real_transfer"),
+        "promoted",
+        "shared_importance",
+    )
+    matched_candidates = matched_candidates.sort_values(
+        ["analysis_scope", "tissue", "meta_fdr", "gene", "arm"],
+        ignore_index=True,
+    )
+    if len(matched_utility) != 54:
+        raise ValueError(
+            f"Expected 54 matched utility rows, found {len(matched_utility)}"
+        )
+    matched_unique = matched_candidates.drop_duplicates(
+        ["analysis_scope", "tissue", "gene"]
+    )
+    if len(matched_candidates) != 23 or len(matched_unique) != 21:
+        raise ValueError(
+            "Expected 23 matched candidate rows and 21 unique associations, "
+            f"found {len(matched_candidates)} and {len(matched_unique)}"
+        )
+    consensus_keys = ordinary_fdr_genes[
+        ["analysis_scope", "tissue", "gene"]
+    ].drop_duplicates()
+    matched_keys = matched_unique[["analysis_scope", "tissue", "gene"]]
+    overlap = consensus_keys.merge(
+        matched_keys,
+        on=["analysis_scope", "tissue", "gene"],
+        how="inner",
+    )
+    matched_consensus_comparison = pd.DataFrame(
+        [
+            {
+                "consensus_associations": int(len(consensus_keys)),
+                "matched_associations": int(len(matched_keys)),
+                "supported_by_both": int(len(overlap)),
+                "consensus_only": int(len(consensus_keys) - len(overlap)),
+                "matched_only": int(len(matched_keys) - len(overlap)),
+            }
+        ]
+    )
+    expected_comparison = {
+        "consensus_associations": 49,
+        "matched_associations": 21,
+        "supported_by_both": 11,
+        "consensus_only": 38,
+        "matched_only": 10,
+    }
+    if matched_consensus_comparison.iloc[0].to_dict() != expected_comparison:
+        raise ValueError(
+            "Unexpected matched/consensus overlap: "
+            f"{matched_consensus_comparison.iloc[0].to_dict()}"
+        )
+    if int(
+        matched_reactome.loc[
+            matched_reactome["gene_set"].eq("all"), "fdr"
+        ].lt(0.05).sum()
+    ) != 26:
+        raise ValueError("Expected 26 significant all-candidate Reactome rows")
+
     tissue_summary = tissue_choices.merge(
         tissue_repeats,
         on=["tissue", "selected_arm"],
@@ -1270,6 +1362,10 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "all_bh_fdr_genes": all_bh_fdr_genes,
         "bh_fdr_tissue_summary": bh_fdr_tissue_summary,
         "evidence": evidence,
+        "matched_utility": matched_utility,
+        "matched_candidates": matched_candidates,
+        "matched_reactome": matched_reactome,
+        "matched_consensus_comparison": matched_consensus_comparison,
     }
 
     names = {
@@ -1292,6 +1388,10 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         "harmonization_summary": "table_s13_liver_harmonization_benchmark.tsv",
         "harmonization_full": "table_s14_liver_harmonization_full_metrics.tsv",
         "wgan_repeats": "table_s15_wgan_validation_repeats.tsv",
+        "matched_utility": "table_s18_matched_all_gene_utility.tsv",
+        "matched_candidates": "table_s19_matched_all_gene_candidates.tsv",
+        "matched_reactome": "table_s20_matched_candidate_reactome.tsv",
+        "matched_consensus_comparison": "table_s21_matched_consensus_comparison.tsv",
     }
     for key, name in names.items():
         _write_tsv(tables[key], name)
@@ -2087,42 +2187,40 @@ def figure_4_soleus(tables: dict[str, pd.DataFrame]) -> None:
 
 
 def figure_5_evidence(tables: dict[str, pd.DataFrame]) -> None:
-    evidence = tables["evidence"].copy()
-    scores = evidence["tier_score"].to_numpy()
-    palette = {
-        0: "#B8C0C5",
-        1: COLORS["gold"],
-        2: COLORS["teal"],
-        3: COLORS["coral"],
-    }
+    utility = tables["matched_utility"].copy()
+    candidates = tables["matched_candidates"].copy()
+    comparison = tables["matched_consensus_comparison"].iloc[0]
 
-    fig = plt.figure(figsize=(7.4, 7.6))
+    fig = plt.figure(figsize=(8.0, 7.4))
     grid = fig.add_gridspec(
         2,
         2,
-        height_ratios=[0.92, 1.2],
-        width_ratios=[1.12, 0.88],
-        hspace=0.58,
-        wspace=0.42,
+        height_ratios=[1.05, 0.95],
+        width_ratios=[1.08, 0.92],
+        hspace=0.48,
+        wspace=0.38,
     )
 
     ax = fig.add_subplot(grid[0, 0])
-    performance = pd.concat(
-        [tables["tissue_summary"], tables["muscle_summary"]],
-        ignore_index=True,
-        sort=False,
-    ).drop_duplicates("tissue", keep="last")
     performance_order = [
-        "soleus",
-        "kidney",
-        "skeletal_muscle",
-        "spleen",
+        "eye",
+        "retina",
+        "lung",
         "skin",
-        "adrenal_gland",
+        "thymus",
+        "spleen",
+        "liver",
+        "skeletal_muscle",
     ]
-    performance = (
-        performance.set_index("tissue").loc[performance_order].reset_index()
+    performance = utility.loc[
+        utility["arm"].eq("real_plus_generated")
+        & utility["scope"].eq("tissue")
+        & utility["tissue"].isin(performance_order)
+    ].copy()
+    performance["_order"] = performance["tissue"].map(
+        {value: index for index, value in enumerate(performance_order)}
     )
+    performance = performance.sort_values("_order")
     y_performance = np.arange(len(performance))
     metric_columns = [
         ("mean_delta_balanced_accuracy", "Balanced accuracy", COLORS["teal"]),
@@ -2143,41 +2241,48 @@ def figure_5_evidence(tables: dict[str, pd.DataFrame]) -> None:
     ax.grid(axis="x", color="#E5E9EB", linewidth=0.8)
     ax.set_yticks(
         y_performance,
-        [name.replace("_", " ").title() for name in performance["tissue"]],
+        [
+            "Skeletal muscle" if name == "skeletal_muscle"
+            else name.replace("_", " ").title()
+            for name in performance["tissue"]
+        ],
     )
     ax.invert_yaxis()
-    ax.set_xlabel("Selected arm - real-only")
-    ax.set_title("A  Repeated development-screen gains", loc="left", fontsize=9)
+    ax.set_xlabel("Real + synthetic minus real only")
+    ax.set_title(
+        "A  Matched classifier utility on held-out real profiles",
+        loc="left",
+        fontsize=9,
+    )
     ax.legend(frameon=False, fontsize=6.8, ncol=1, loc="lower right")
 
     ax = fig.add_subplot(grid[0, 1])
-    genes = tables["ordinary_fdr_genes"]
-    gene_order = [
-        "thymus",
-        "skeletal_muscle",
-        "soleus",
-        "kidney",
-        "spleen",
-        "skin",
-        "adrenal_gland",
-    ]
+    candidate_status = (
+        candidates.groupby(
+            ["analysis_scope", "tissue", "gene"], observed=True
+        )["matched_status"]
+        .agg(
+            lambda values: (
+                "promoted" if "promoted" in set(values) else "shared_importance"
+            )
+        )
+        .rename("matched_status")
+        .reset_index()
+    )
+    gene_order = ["thymus", "liver", "skin", "spleen"]
     gene_counts = (
-        genes.loc[genes["tissue"].isin(gene_order)]
-        .groupby(["tissue", "selection_interpretation"], observed=True)
+        candidate_status.groupby(["tissue", "matched_status"], observed=True)
         .size()
         .unstack(fill_value=0)
         .reindex(gene_order, fill_value=0)
     )
-    promoted = gene_counts.get(
-        "synthetic_promoted",
-        pd.Series(0, index=gene_counts.index),
-    )
+    promoted = gene_counts.get("promoted", pd.Series(0, index=gene_counts.index))
     reinforced = gene_counts.get(
-        "reinforced_real_and_synthetic",
+        "shared_importance",
         pd.Series(0, index=gene_counts.index),
     )
     y_genes = np.arange(len(gene_counts))
-    ax.barh(y_genes, reinforced, color=COLORS["teal"], label="Reinforced")
+    ax.barh(y_genes, reinforced, color=COLORS["teal"], label="Shared importance")
     ax.barh(
         y_genes,
         promoted,
@@ -2191,44 +2296,131 @@ def figure_5_evidence(tables: dict[str, pd.DataFrame]) -> None:
     )
     ax.invert_yaxis()
     ax.set_xlabel("BH-FDR genes")
-    ax.set_title("B  Synthetic-informed genes", loc="left", fontsize=9)
+    ax.set_title("B  Matched synthetic-supported genes", loc="left", fontsize=9)
     ax.legend(frameon=False, fontsize=7, loc="lower right")
     ax.grid(axis="x", color="#E5E9EB", linewidth=0.8)
 
-    ax = fig.add_subplot(grid[1, :])
-    y = np.arange(len(evidence))
-    ax.scatter(scores, y, s=135, color=[palette[int(score)] for score in scores], zorder=3)
-    for yi, score, theme in zip(y, scores, evidence["interpretation"]):
-        ax.plot([score, 3.25], [yi, yi], color="#D9DEE1", lw=0.8, zorder=1)
-        ax.text(3.35, yi, theme, va="center", fontsize=7.4, color=COLORS["dark"])
-    ax.set_yticks(
-        y,
-        [name.replace("_", " ").title() for name in evidence["tissue"]],
-    )
-    ax.invert_yaxis()
-    ax.set_xlim(-0.25, 6.6)
-    ax.set_xticks(
-        [0, 1, 2],
-        ["No synthetic\nclaim", "Additional\nfinding", "Coherent\nprogram"],
-    )
-    ax.tick_params(axis="x", top=True, labeltop=True, bottom=False, labelbottom=False)
-    ax.grid(axis="x", color="#E5E9EB", linewidth=0.8)
-    ax.spines[["top", "right", "bottom"]].set_visible(False)
-    ax.spines["left"].set_color("#D9DEE1")
+    ax = fig.add_subplot(grid[1, 0])
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
     ax.set_title(
-        "C  Tissue-level biological interpretation",
+        "C  Analysis overlap",
         loc="left",
-        pad=14,
         fontsize=9,
     )
+    ax.add_patch(Circle((0.43, 0.56), 0.29, color=COLORS["blue"], alpha=0.24))
+    ax.add_patch(Circle((0.61, 0.56), 0.29, color=COLORS["coral"], alpha=0.24))
+    ax.text(
+        0.26,
+        0.82,
+        "Consensus panels",
+        color=COLORS["blue"],
+        fontsize=8,
+        weight="bold",
+        ha="center",
+    )
+    ax.text(
+        0.77,
+        0.82,
+        "Matched all-gene",
+        color=COLORS["coral"],
+        fontsize=8,
+        weight="bold",
+        ha="center",
+    )
+    for x, value, color in [
+        (0.29, comparison.consensus_only, COLORS["blue"]),
+        (0.52, comparison.supported_by_both, COLORS["dark"]),
+        (0.75, comparison.matched_only, COLORS["coral"]),
+    ]:
+        ax.text(
+            x,
+            0.55,
+            f"{int(value)}",
+            fontsize=18,
+            color=color,
+            weight="bold",
+            ha="center",
+            va="center",
+        )
+    ax.text(0.29, 0.28, "panel only", fontsize=7, color=COLORS["gray"], ha="center")
+    ax.text(0.52, 0.28, "both", fontsize=7, color=COLORS["gray"], ha="center")
+    ax.text(0.75, 0.28, "matched only", fontsize=7, color=COLORS["gray"], ha="center")
+
+    ax = fig.add_subplot(grid[1, 1])
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
+    ax.set_title(
+        "D  Correlated-gene dilution",
+        loc="left",
+        fontsize=9,
+    )
+    box = dict(boxstyle="round,pad=0.3", linewidth=1.0)
+    ax.text(
+        0.17,
+        0.71,
+        "Gene A",
+        ha="center",
+        va="center",
+        fontsize=8,
+        color=COLORS["blue"],
+        bbox={**box, "edgecolor": COLORS["blue"], "facecolor": "#E7F0F6"},
+    )
+    ax.text(
+        0.17,
+        0.40,
+        "Gene B",
+        ha="center",
+        va="center",
+        fontsize=8,
+        color=COLORS["teal"],
+        bbox={**box, "edgecolor": COLORS["teal"], "facecolor": "#E8F3F1"},
+    )
+    ax.text(
+        0.74,
+        0.55,
+        "FLT/GC\nclassifier",
+        ha="center",
+        va="center",
+        fontsize=8,
+        color=COLORS["dark"],
+        bbox={**box, "edgecolor": COLORS["gray"], "facecolor": "#F1F3F4"},
+    )
+    for start_y, color in [(0.71, COLORS["blue"]), (0.40, COLORS["teal"])]:
+        ax.annotate("", xy=(0.62, 0.55), xytext=(0.28, start_y), arrowprops={"arrowstyle": "->", "color": color, "lw": 1.2})
+    ax.plot([0.09, 0.25], [0.78, 0.64], color=COLORS["coral"], lw=2.0)
+    ax.plot([0.09, 0.25], [0.64, 0.78], color=COLORS["coral"], lw=2.0)
+    ax.text(0.17, 0.86, "shuffle A", ha="center", fontsize=7, color=COLORS["coral"], weight="bold")
+    ax.text(
+        0.50,
+        0.22,
+        "Gene B still carries the shared signal,\n"
+        "so shuffling A causes only a small score loss.",
+        ha="center",
+        va="center",
+        fontsize=7.2,
+        color=COLORS["dark"],
+    )
+    ax.text(
+        0.50,
+        0.06,
+        "Consensus ranking can retain A and B as one panel.",
+        ha="center",
+        fontsize=7.2,
+        color=COLORS["teal"],
+        weight="bold",
+    )
+
     fig.suptitle(
-        "Synthetic-informed results vary from coherent programs to narrower findings",
+        "Matched classifiers test synthetic contribution; consensus ranking organizes biology",
         x=0.02,
         ha="left",
         fontsize=11,
         weight="bold",
     )
-    fig.subplots_adjust(top=0.92, bottom=0.06, left=0.16, right=0.98)
+    fig.subplots_adjust(top=0.92, bottom=0.06, left=0.14, right=0.98)
     _save_figure(fig, "figure_5_tissue_evidence")
 
 
@@ -2264,6 +2456,10 @@ def build_manifest() -> None:
         TISSUE_DIR / "reactome_enrichment.tsv.gz",
         TISSUE_DIR / "real_accession_effects.tsv.gz",
         TISSUE_DIR / "real_random_effects.tsv.gz",
+        MATCHED_DIR / "arm_utility.tsv",
+        MATCHED_DIR / "eligible_bh_fdr_candidates.tsv",
+        MATCHED_DIR / "eligible_bh_fdr_reactome.tsv.gz",
+        MATCHED_DIR / "summary.json",
         LANDMARK_PANEL,
         WGAN_DIR / "summary.json",
         WGAN_DIR / "calibrated_repeat_metrics.tsv",
