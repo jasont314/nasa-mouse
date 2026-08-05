@@ -1,5 +1,11 @@
 # Classifier feature importance
 
+This document covers post-selection importance for the earlier consensus
+classifiers. The [matched all-gene analysis](matched_all_gene_classifier_analysis.md)
+is the primary comparison of real-only, synthetic-only, and augmented training
+because it fixes the feature space, regularization selection, splits, and model
+family across arms.
+
 ## Purpose
 
 The synthetic-guided analysis originally used consensus ranks to choose genes and
