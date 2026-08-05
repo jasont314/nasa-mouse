@@ -4,3 +4,5 @@
 - `ddim_trajectory_panels.png`: generated from `paper/synthetic_guided_spaceflight/figures/figure_2a_archs4_denoising_trajectory.png`.
 - `locked_pca_tissue_vs_accession.png` and `locked_pca_condition_vs_accession.png`: generated from `presentation/generative_slstp_2026/source_data/locked_pca_by_accession.tsv` by `build_slstp_presentation.py`.
 - `tissue_balanced_accuracy_dumbbell.png`: generated from `presentation/generative_slstp_2026/source_data/tissue_utility_examples.tsv` by `build_slstp_presentation.py`.
+- `anim_diffdata.gif`: reverse-diffusion teaching animation extracted from `presentation/Biomedical_Foundation_Models_SLSTP_Midpoint_portable (2).pptx`; created for the project midpoint presentation.
+- `anim_wgan.gif`: adversarial-training teaching animation extracted from `presentation/Biomedical_Foundation_Models_SLSTP_Midpoint_portable (2).pptx`; created for the project midpoint presentation.
