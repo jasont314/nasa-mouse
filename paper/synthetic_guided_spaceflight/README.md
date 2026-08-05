@@ -14,28 +14,33 @@ distance. WGAN-GP retained strong correlation and neighborhood metrics but
 remained more distinguishable from real profiles. Metrics are reported on each
 model's stated evaluation split rather than as a paired comparison.
 
-The downstream analysis compares pooled and tissue-specific uses of generated
-expression. Thymus provides a real-supported cell-cycle panel, and soleus
-provides a cross-accession metabolic program. Additional tissues provide
-narrower gene-level findings or negative results.
+The downstream analysis first compares real-only, synthetic-only, and
+real-plus-synthetic classifiers using the same 974 genes and classifier
+settings. It then uses consensus ranking as a secondary analysis of compact,
+correlated gene panels. Thymus has the strongest support across both analyses.
+Liver, skin, and spleen provide narrower matched findings, while soleus provides
+a coherent secondary consensus panel.
 
-A targeted literature review covers all 49 synthetic-informed associations.
+A targeted literature review covers all 49 associations from the secondary
+consensus analysis.
 Selection status records promoted or reinforced genes, while an independent
 literature field records aligning, complementary, ambiguous, or unmatched
 evidence. Evidence scope keeps exact gene-tissue-direction matches separate
 from process-level agreement.
 
-Using the DDIM generator, the paper follows a three-part downstream funnel:
+Using the DDIM generator, the paper follows a four-part downstream funnel:
 
 1. a pooled benchmark tests whether one synthetic-data policy works across
    tissues;
-2. tissue-specific development compares five synthetic-data uses;
-3. real-only random-effects testing evaluates prioritized genes.
+2. matched all-gene classifiers isolate the effect of training source;
+3. tissue-specific consensus ranking identifies compact gene panels;
+4. real-only random-effects testing evaluates prioritized genes.
 
-The pooled augmentation benchmark was negative, while several tissues improved
-during tissue-specific development. All BH-FDR effects use real OSDR samples
-only. Synthetic attribution is retained only where the selected generated arm
-passed the balanced-accuracy, AUROC, and average-precision eligibility gate.
+The pooled augmentation benchmark was negative. In matched tissue-specific
+analysis, real-plus-synthetic training passed all pooled and accession-macro
+metric checks in 18 of 27 analysis units and improved at least one metric in 16.
+Twenty-one BH-FDR associations also had synthetic-supported marginal
+importance. All BH-FDR effects use real OSDR samples only.
 
 Generated profiles are not treated as additional animals. Biological support is
 calculated from real NASA OSDR profiles using within-accession effects,
@@ -54,8 +59,8 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
   report the tissue biology.
 - `source_data/`: manuscript and supplementary data tables. SHA-256 manifests
   are retained for repository auditing but are not part of the formal supplement.
-  Tables S16-S17 contain the synthetic-informed literature annotations and source
-  inventory.
+  Tables S16-S17 contain the consensus-gene literature annotations and source
+  inventory. Tables S18-S21 contain the matched classifier results.
 
 ## Rebuild
 
@@ -85,12 +90,15 @@ provenance note whose cited commit is not present in this repository.
 
 ## Evidence interpretation
 
-- **Synthetic-informed development:** real-data BH-FDR genes were also repeatedly
-  synthetic-promoted or reinforced. This contains 49 tissue-gene results and
-  supports developmental hypotheses rather than independent biological evidence.
+- **Matched all-gene evidence:** 21 real-data BH-FDR associations had measurable
+  synthetic-supported importance in a fixed 974-gene classifier. This is the
+  primary analysis of synthetic contribution.
+- **Consensus panel evidence:** 49 real-data BH-FDR associations were repeatedly
+  promoted or reinforced in compact panels. This is the secondary analysis for
+  correlated genes and pathways.
 - **Complete real-data screen:** all 459 random-effects BH-FDR tissue-gene
   results, regardless of synthetic feature-selection status.
-- **Literature interpretation:** all 49 synthetic-informed associations receive
+- **Literature interpretation:** all 49 consensus associations receive
   one mutually exclusive literature label. Five have direct transcript-level
   same-gene, same-tissue, same-direction matches, and two soleus genes match
   across transcriptomic and proteomic assays. The tables distinguish those
@@ -98,11 +106,10 @@ provenance note whose cited commit is not present in this repository.
 
 ## Tissue evidence labels
 
-- **Coherent programs:** thymus and soleus provide the strongest process-level
-  interpretations in the current screen.
-- **Additional findings:** pooled skeletal muscle, kidney, spleen, skin, eye,
-  adrenal gland, gastrocnemius, and tibialis anterior provide narrower
-  synthetic-informed gene-level results.
-- **Real-data only or null results:** heart, liver, retina, EDL, and quadriceps
-  have BH-FDR genes without synthetic-informed selection. Twelve other analysis
-  units have no BH-FDR gene in the 974-gene panel; Table S12 lists all of them.
+- **Strongest joint result:** thymus combines matched gene importance, a coherent
+  cell-cycle program, and consensus support.
+- **Narrower matched findings:** liver, skin, and spleen have retained genes but
+  less pathway coherence.
+- **Secondary consensus findings:** soleus provides a coherent metabolic panel;
+  pooled muscle, kidney, adrenal gland, gastrocnemius, and tibialis anterior have
+  narrower panels that did not pass the matched gene gate.

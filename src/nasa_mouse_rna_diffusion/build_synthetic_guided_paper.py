@@ -187,7 +187,11 @@ def _style() -> None:
 
 def _save_figure(fig: plt.Figure, stem: str) -> None:
     fig.savefig(FIGURE_DIR / f"{stem}.png", dpi=300, bbox_inches="tight")
-    fig.savefig(FIGURE_DIR / f"{stem}.pdf", bbox_inches="tight")
+    fig.savefig(
+        FIGURE_DIR / f"{stem}.pdf",
+        bbox_inches="tight",
+        metadata={"CreationDate": None, "ModDate": None},
+    )
     plt.close(fig)
 
 

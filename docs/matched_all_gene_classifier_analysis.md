@@ -105,6 +105,20 @@ matched BH-FDR and utility gate. That does not remove the real-data muscle
 associations; it means this all-gene analysis does not show added gene-level
 support from synthetic training for those associations.
 
+## Reactome results
+
+Reactome enrichment used the 974 landmark genes as background. The 15 thymus
+candidates tested 36 terms, and 26 had FDR below 0.05. The leading term was
+mitotic cell cycle (`R-MMU-69278`, FDR `0.004744`), supported by `Ube2c`,
+`Kif20a`, `Cdc20`, `Gmnn`, `E2f2`, and `Ccnb2`. The flight-lower thymus subset
+had 33 significant terms. The four liver candidates tested two terms, neither
+significant. Single skin and spleen candidates were not treated as gene sets.
+
+These enrichment rows are overlapping Reactome parent and child terms, not 26
+independent discoveries. They show that the matched thymus genes form a
+cell-cycle program; the narrower liver, skin, and spleen results do not yet form
+comparable pathway-level claims.
+
 The crosswalk joins annotations by Ensembl gene ID. It keeps both symbols when
 the BH inventory and expression annotation use different aliases. This occurs
 for `ENSMUSG00000061559`, labeled `Skic8` in the BH inventory and `Wdr61` in the

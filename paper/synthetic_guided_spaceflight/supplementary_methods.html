@@ -389,7 +389,8 @@ applied after landmark selection.</p>
 <h3>WGAN-GP screen</h3>
 <p>The WGAN used the Viñas et al. topology: 64-dimensional noise, two 256-unit generator and critic layers, five critic updates, gradient-penalty weight 10, and batch size 32. RMSProp used learning rate 0.0005, alpha 0.9, and epsilon 1e-7 for at most 2,000 epochs. Released-code early stopping began at epoch 1, ran every five epochs, and allowed ten failed checks. Across six seeds, mean correlation, precision, recall, F1, adversarial accuracy, and FD/real-P95 were 0.9759, 0.9764, 0.9938, 0.9850, 0.6362, and 0.1439. Pooled FLT/GC recovery passed 6/6 repeats; accession-aware muscle recovery passed 0/6. These are validation metrics; no separate WGAN test metrics were generated. Table S15 contains exact repeats.</p>
 <h2>S8. Generated-feature workflow</h2>
-<p>The funnel tested pooled utility, tissue development, and real-data association. Pooled classifiers used real, generated, or combined profiles. Tissue screens compared <code>real_only</code>, <code>generated_only</code>, equal-weight <code>real_plus_generated</code>, consensus-ranked <code>guided_real_only</code>, and <code>guided_low_weight</code> with recentered synthetic profiles at 0.05 total weight.</p>
+<p>The funnel tested pooled utility, matched tissue-specific classifiers, consensus panels, and real-data association. Pooled classifiers used real, generated, or combined profiles. The primary tissue-specific comparison used all 974 genes in real-only, generated-only, and equal-weight real-plus-generated classifiers. Section S14 gives its complete design and results.</p>
+<p>The secondary consensus screen compared <code>real_only</code>, <code>generated_only</code>, equal-weight <code>real_plus_generated</code>, consensus-ranked <code>guided_real_only</code>, and <code>guided_low_weight</code> with recentered synthetic profiles at 0.05 total weight.</p>
 <p>Eight outer splits evaluated real profiles within accession-condition strata; inner loops selected feature count, regularization, and ranking. Eligibility required nonworse balanced accuracy, AUROC, and average precision versus real-only; ties met this rule without a mean gain. Accessions could occur in both partitions, so this tested within-study development rather than study transfer.</p>
 <p>Stable genes required selection frequency &gt;= 0.50 and sign agreement &gt;= 0.75. Reinforced genes were stable in real-only and selected synthetic-guided arms with matching directions and a real meta-effect. Synthetic-promoted genes were stable only with eligible guidance and had a real meta-effect. These labels classify selection, not novelty; random-effects and LOO tests followed.</p>
 <!-- BEGIN GENERATED TISSUE UTILITY TABLES -->
@@ -890,7 +891,7 @@ reused. No additional neural network was trained for the muscle-group screen.</p
 </tr>
 </tbody>
 </table>
-<p>Table S10 is the 49-row synthetic-informed subset: 26 promoted and 23 reinforced results with supporting real effects. Attribution was suppressed when the generated arm failed eligibility. The remaining inventory contains 34 real-only selections, 370 BH-significant unselected results, and six synthetic selections without real-direction support. Below, direction is the real random-effects estimate; an asterisk marks disagreement among accessions.</p>
+<p>Table S10 is the 49-row secondary consensus subset: 26 promoted and 23 reinforced results with supporting real effects. Attribution was suppressed when the generated arm failed eligibility. The remaining inventory contains 34 real-only selections, 370 BH-significant unselected results, and six synthetic selections without real-direction support. Below, direction is the real random-effects estimate; an asterisk marks disagreement among accessions.</p>
 <p><strong>Synthetic-promoted genes</strong></p>
 <table>
 <thead>
@@ -996,7 +997,7 @@ reused. No additional neural network was trained for the muscle-group screen.</p
 </tbody>
 </table>
 <p>Heart, liver, retina, EDL, and quadriceps had BH-FDR genes but none was synthetic-informed. Bone, bone marrow, brain, brown adipose tissue, cecum, cerebellum, colon, hippocampus, lung, mammary gland, optic nerve, and white adipose tissue had no BH-FDR gene in the landmark panel. Tables S11-S12 retain the complete results, including pooled muscle, liver's 19 real-only associations, skin's promoted <code>Plscr1</code>, and the null lung inventory.</p>
-<p>Machine-readable Tables S1-S17 are under <code>source_data/</code>.</p>
+<p>Machine-readable Tables S1-S21 are under <code>source_data/</code>.</p>
 <h2>S13. Targeted literature annotation of synthetic-informed genes</h2>
 <p>The literature screen covered all 49 synthetic-informed tissue-gene associations in Table S10: 26 promoted and 23 reinforced. Searches used the gene symbol and synonyms together with the tissue, spaceflight or microgravity, and relevant process terms. Primary studies were preferred for directional and mechanistic claims. Public OSDR or GeneLab reanalyses were retained as context but were not counted as independent confirmation.</p>
 <p>Selection status and literature interpretation were recorded as independent dimensions. <code>selection_status</code> is <code>promoted</code> when a gene was stable only under synthetic-informed selection and <code>reinforced</code> when it was stable under both real-only and synthetic-informed selection. <code>literature_classification</code> is one of four mutually exclusive labels. Aligning evidence agrees with the observed gene direction or the same-tissue process. Complementary evidence connects the gene to a reported flight process or relevant mechanism without reproducing the same gene-tissue-direction result. Ambiguous evidence is mixed or context dependent. Unmatched means that the targeted search found no sufficiently specific tissue or process match. Unmatched is not proof of novelty and does not imply that the gene lacks a plausible mechanism.</p>
@@ -1041,7 +1042,53 @@ reused. No additional neural network was trained for the muscle-group screen.</p
 <p>Five records used a direct same-gene, same-tissue, same-direction transcript-level scope: thymus <code>Ccnb2</code>, thymus <code>Ccne2</code>, gastrocnemius <code>Nfkbia</code>, and pooled-muscle <code>Sox4</code> and <code>Arid5b</code>. Soleus <code>Ech1</code> and <code>Decr1</code> matched the gene/protein, tissue, and direction in flight proteomics and were recorded separately as cross-assay alignment. Process-level alignment covered the remaining flight-lower thymus mitotic genes, reinforced thymus <code>Ube2c</code> and <code>Gmnn</code>, flight-lower eye <code>Klhl21</code>, several pooled-muscle genes, and soleus <code>Bdh1</code>.</p>
 <p>The four ambiguous records were thymus <code>Birc5</code>, soleus <code>Bnip3</code>, soleus <code>Tpm1</code>, and tibialis-anterior <code>Cdkn1a</code>. Their prior directions varied by mission, assay, species, sex, or muscle context. The four unmatched records were adrenal <code>Psmb8</code> and <code>Tspan4</code>, pooled-muscle <code>Bphl</code>, and thymus <code>Snx7</code>. These candidates remain statistically associated in the real-data analysis but should not be presented as literature-supported mechanisms.</p>
 <p>Table S16 records selection status, literature class, interpretive role, evidence scope, source relationship, and a gene-level interpretation. Table S17 supplies the 33-source bibliography and states whether each source is independent, potentially overlapping, or mechanistic context only. The deterministic builder is <code>nasa_mouse_rna_diffusion.annotate_promoted_gene_literature</code>.</p>
-<h2>S14. Supplementary figures</h2>
+<h2>S14. Matched all-gene classifier analysis</h2>
+<p>The primary classifier analysis held the feature space and model choices fixed across training sources. It covered 22 canonical tissues and five skeletal-muscle groups. Each ridge logistic classifier used all 974 landmark genes. Eight outer splits were run per analysis unit, yielding 648 fitted classifiers across real-only, generated-only, and real-plus-generated arms.</p>
+<p>The scaler was fitted on real outer-training profiles. Ridge regularization was selected from inner real-only data and then reused for all three arms in that split. The combined arm assigned the full synthetic set the same total weight as the real set. Every arm was scored on identical held-out real profiles. Metrics were calculated both after pooling those profiles and after calculating accession-level scores and averaging them. A synthetic arm passed the joint utility gate when mean balanced accuracy, AUROC, and average precision were all no worse than real only in both summaries.</p>
+<p>Accession-blocked permutation importance used ten shuffles per gene and fit. A gene had repeat-consistent marginal importance when its mean held-out-real AUROC loss was at least 0.001 and the loss was positive in at least half of the outer splits. Exact linear SHAP supplied contribution direction relative to the shared real-training background. A biological candidate also required real-data BH FDR below 0.05, a synthetic arm that passed the joint utility gate, a coefficient direction matching the real FLT/GC effect, and positive FLT/GC SHAP separation.</p>
+<p>Real-plus-synthetic training passed all six mean metric checks in 18 of 27 units. Sixteen improved at least one metric; bone marrow and brown adipose tissue tied. Synthetic-only training passed in six units, five with at least one improvement and one tie.</p>
+<p>Twenty-one unique tissue-gene associations passed the complete matched gate. Two were supported by both synthetic arms, producing 23 arm-level rows.</p>
+<table>
+<thead>
+<tr>
+<th>Tissue</th>
+<th>FLT higher</th>
+<th>FLT lower</th>
+<th style="text-align: right;">Unique associations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Thymus</td>
+<td><code>Klhdc2</code>, <code>Snx7</code>, <code>Etv1</code>, <code>Plscr1</code>, <code>Tspan3</code>, <code>Socs2</code></td>
+<td><code>Nusap1</code>, <code>Stmn1</code>, <code>Birc5</code>, <code>Ccnb2</code>, <code>E2f2</code>, <code>Ube2c</code>, <code>Cdc20</code>, <code>Gmnn</code>, <code>Kif20a</code></td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td>Liver</td>
+<td>None</td>
+<td><code>Grb10</code>, <code>Ppic</code>, <code>H2-DMa</code>, <code>Gtf2a2</code></td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td>Skin</td>
+<td><code>Plscr1</code></td>
+<td>None</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>Spleen</td>
+<td><code>Loxl1</code></td>
+<td>None</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+<p>Seven thymus genes were promoted under the matched definition: <code>Klhdc2</code>, <code>Snx7</code>, <code>Etv1</code>, <code>Plscr1</code>, <code>Tspan3</code>, <code>Socs2</code>, and <code>Kif20a</code>. Their marginal importance passed only after real-plus-synthetic training. The remaining candidates retained measurable importance in both real-only and synthetic classifiers. No anatomical muscle group passed the full matched utility and gene-importance gate.</p>
+<p>Reactome enrichment of all 15 thymus genes tested 36 terms; 26 had FDR below 0.05. The leading term was mitotic cell cycle (<code>R-MMU-69278</code>, FDR 0.004744), with <code>Ube2c</code>, <code>Kif20a</code>, <code>Cdc20</code>, <code>Gmnn</code>, <code>E2f2</code>, and <code>Ccnb2</code>. Thirty-three terms were significant in the flight-lower subset. The four liver genes tested two terms, neither significant.</p>
+<p>The matched and consensus analyses retained 21 and 49 associations, respectively. Eleven were shared, 38 appeared only in the consensus panel analysis, and ten appeared only in the matched analysis. The methods estimate different quantities. The matched workflow measures one gene's marginal importance while all 974 genes remain available. With correlated genes, shuffling one member leaves related genes able to carry the same signal, so the individual permutation loss can be small. Ridge can also divide coefficient weight among those genes. Consensus ranking is less strict at the individual-gene level and can retain several members of one correlated program. Matched results therefore support claims about synthetic contribution; consensus results support secondary panel and pathway interpretation.</p>
+<p>Tables S18-S21 contain matched utility, retained candidates, candidate Reactome enrichment, and the matched-consensus crosswalk. The outer profiles were held out from classifier fitting and regularization selection, but the fixed DDIM had seen the broader development pool. This is not an independent held-out-study test. Generated profiles remained model draws and did not enter BH-FDR estimation.</p>
+<h2>S15. Supplementary figures</h2>
 <p><img alt="Muscle arm heatmap." src="figures/figure_s1_muscle_arm_heatmap.png" /></p>
 <p class="caption"><strong>Figure S1. Repeated nested muscle-group balanced accuracy.</strong> Each row is a muscle group and each column is a downstream use of real or generated profiles. Arm selection also required nonworse AUROC and average precision.</p>
 
