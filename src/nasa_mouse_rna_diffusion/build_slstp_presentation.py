@@ -341,6 +341,9 @@ def _prepare_content_slide(slide, number: int):
             placeholder.text = ""
         elif kind == PP_PLACEHOLDER.SLIDE_NUMBER:
             placeholder.text = str(number)
+            for paragraph in placeholder.text_frame.paragraphs:
+                for run in paragraph.runs:
+                    run.font.name = FONT
     return slide
 
 
@@ -693,26 +696,6 @@ def _slide_autoencoder_foundation(slide):
 
     _add_text(slide, "AUTOENCODER", 0.58, 2.05, 1.44, 0.24, size=10.2, color=BLUE, bold=True, margin=0)
     _add_panel(slide, 0.50, 2.36, 7.38, 3.88, fill="F7F9FA", line="D9E1E5", radius=False)
-    encoder_background = slide.shapes.add_shape(
-        MSO_SHAPE.TRAPEZOID,
-        Inches(3.18),
-        Inches(2.91),
-        Inches(1.72),
-        Inches(2.46),
-    )
-    encoder_background.rotation = 270
-    _set_fill(encoder_background, PALE_BLUE, transparency=18)
-    _set_line(encoder_background, "D5E2EC", 0.8)
-    decoder_background = slide.shapes.add_shape(
-        MSO_SHAPE.TRAPEZOID,
-        Inches(5.10),
-        Inches(2.91),
-        Inches(1.72),
-        Inches(2.46),
-    )
-    decoder_background.rotation = 90
-    _set_fill(decoder_background, PALE_TEAL, transparency=18)
-    _set_line(decoder_background, "CEE2DE", 0.8)
     _add_text(slide, "gene\nprofile", 0.75, 3.82, 0.72, 0.52, size=11.2, color=GRAY, bold=True, align=PP_ALIGN.CENTER, margin=0)
     gene_values = [0.58, 1.07, 0.73, 1.32, 0.90, 0.46]
     for index, height in enumerate(gene_values):
@@ -2094,16 +2077,16 @@ def _slide_8(slide, utility_chart: Path):
     colors = [BLUE, CORAL, TEAL]
     baseline = 6.00
     chart_height = 3.00
-    chart_left = 0.96
+    chart_left = 1.10
     chart_right = 3.62
     axis_title = _add_text(
         slide,
         "Balanced accuracy",
-        -0.28,
+        0.00,
         4.35,
-        1.55,
+        1.30,
         0.28,
-        size=10.5,
+        size=9.5,
         color=GRAY,
         bold=True,
         align=PP_ALIGN.CENTER,
@@ -2116,7 +2099,7 @@ def _slide_8(slide, utility_chart: Path):
         _add_text(
             slide,
             label,
-            0.69,
+            0.83,
             tick_y - 0.10,
             0.22,
             0.20,
@@ -2126,7 +2109,7 @@ def _slide_8(slide, utility_chart: Path):
             margin=0,
         )
     for index, (label, value, color) in enumerate(zip(labels, values, colors)):
-        x = 0.99 + index * 0.89
+        x = 1.14 + index * 0.86
         bar_h = value * chart_height
         shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(x), Inches(baseline - bar_h), Inches(0.62), Inches(bar_h))
         _set_fill(shape, color)
