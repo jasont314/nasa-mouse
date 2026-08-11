@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score, balanced_accuracy_score, roc_auc_score
 
-from nasa_mouse_rna_diffusion.classifier_importance import (
+from nasa_mouse_diffusion.paper_parity.classifier_importance import (
     _aggregate_importance,
     _comparison_pattern,
     _linear_shap_rows,

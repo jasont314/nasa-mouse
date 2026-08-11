@@ -29,7 +29,7 @@ DEFAULT_ACCESSIONS = [
     "OSD-137",
     "OSD-173",
 ]
-DEFAULT_OUTPUT_DIR = "outputs/mober_liver_ribo6_osdr"
+DEFAULT_OUTPUT_DIR = "outputs/glare/mober/liver_ribo6_osdr"
 DEFAULT_BATCH_COLUMN = "h5_accession"
 DEFAULT_ONTO = "OSD-379"
 
@@ -39,7 +39,7 @@ def log(message: str) -> None:
 
 
 def mober_source_path() -> Path:
-    return Path(__file__).resolve().parents[1] / "MOBER"
+    return Path(__file__).resolve().parents[2] / "assets/model_sources/MOBER"
 
 
 def ensure_mober_importable() -> None:

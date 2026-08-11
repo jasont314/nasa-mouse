@@ -40,7 +40,7 @@ supports leave-one-accession-out reporting. Smaller tissues remain useful in the
 pooled tissue-conditioned model but cannot support a defensible standalone model.
 
 The full counts and accession lists are in
-`outputs/generative_benchmark/data_audit/osdr/osdr_tissue_inventory.tsv`.
+`outputs/generative/benchmark/data_audit/osdr/osdr_tissue_inventory.tsv`.
 
 ## ARCHS4 Scan
 

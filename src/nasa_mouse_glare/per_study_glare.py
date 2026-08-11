@@ -31,13 +31,13 @@ from .paper_finetune import (
 
 
 DEFAULT_STUDIES = ["OSD-379", "OSD-245", "OSD-463", "OSD-168", "OSD-48", "OSD-137"]
-DEFAULT_OUTPUT_DIR = "outputs/glare_per_study_liver_noercc_12filter"
+DEFAULT_OUTPUT_DIR = "outputs/glare/per_study_liver_noercc_12filter"
 DEFAULT_PRETRAINED_WEIGHTS = (
-    "outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth"
+    "outputs/glare/paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth"
 )
 DEFAULT_EXCLUDE_PROFILES = "data/filters/aggregate_liver_12_muscle_candidate_profiles.txt"
 DEFAULT_REACTOME_GMT = (
-    "src/expiMap_reproducibility/metadata/c2.cp.reactome.v4.0_mouseEID.gmt"
+    "data/reference/expimap/paper_metadata/c2.cp.reactome.v4.0_mouseEID.gmt"
 )
 
 

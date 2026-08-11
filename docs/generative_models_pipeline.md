@@ -60,7 +60,7 @@ older 24,428-profile reference.
 
 ## Configurable Axes
 
-- model: Vinas conditional WGAN-GP, Lacan landmark-space diffusion, or GeneJEPA;
+- model: Vinas conditional WGAN-GP or Lacan landmark-space diffusion;
 - preprocessing: raw counts, CPM, TPM when mouse gene lengths are available,
   `log1p`, `log2(x+1)`, gene z-score, robust scaling, or MaxAbs scaling;
 - feature space: all 48,694 shared genes, fold-selected HVGs, Reactome genes, or
@@ -165,16 +165,11 @@ not a vendored invocation of its training script.
 
 ## Shared And Native Preprocessing
 
-Each native generator receives both:
+Each generator receives both:
 
 1. a shared preprocessing benchmark for controlled comparison; and
 2. its paper-native preprocessing, including Vinas log/z-score and Lacan
    TPM/L1000/MaxAbs where gene lengths and ortholog mappings permit it.
-
-GeneJEPA receives `log1p` followed by one scalar mean and standard deviation fitted
-only over nonzero training expression values. Zero remains the absent-token sentinel,
-matching the official sparse input contract. Its single-cell ragged-token input and
-lack of a decoder are not disguised as a native bulk generator.
 
 Lacan's native arm uses TPM followed by training-fold MaxAbs scaling. Mouse gene
 lengths are generated from the union of GENCODE M39 exon intervals for each
@@ -242,7 +237,7 @@ The benchmark is gated to avoid an uncontrolled Cartesian search:
 6. consider paired counterfactual generation only after fidelity gates pass.
 
 Configurations live under `configs/generative/`. Data audit outputs and experiment
-plans live under `outputs/generative_benchmark/`. Model-specific training output will
+plans live under `outputs/generative/benchmark/`. Model-specific training output will
 be written under a run ID derived from the complete resolved configuration.
 
 On the A100 40 GB, one 225.6-million-parameter liver ModelDDIM records about 5.06 GB
@@ -256,8 +251,8 @@ are deferred until an arm passes every single-seed validation gate.
 
 Implemented in `src/nasa_mouse_generative/`:
 
-- three-model capability and paper/code provenance registry;
-- validated configuration schema and 463-row gated experiment plan;
+- two-model capability and paper/code provenance registry;
+- validated configuration schema and gated experiment plan;
 - current OSDR API inventory, technical-replicate-aware expression builder, and
   tissue eligibility tiers;
 - full ARCHS4 metadata scan and balanced reference manifests;
@@ -265,7 +260,7 @@ Implemented in `src/nasa_mouse_generative/`:
 - fold-aware shared preprocessing and harmonization constraints;
 - reloadable ComBat, R `sva::ComBat_seq`, three official MBatch, and MOBER
   harmonization adapters with fold behavior and fallback audits;
-- executable Vinas WGAN-GP, Lacan diffusion, and GeneJEPA representation adapters;
+- executable Vinas WGAN-GP and Lacan diffusion adapters;
 - full-H5 ARCHS4 extraction with content-addressed caching and hierarchical sampling;
 - direct OSDR, ARCHS4-only, and ARCHS4-pretrain/OSDR-fine-tune stage orchestration;
 - epoch checkpoints, deterministic resume, final model serialization, and GPU records;
@@ -275,22 +270,17 @@ Implemented in `src/nasa_mouse_generative/`:
 - resumable experiment-matrix execution, bounded rows per invocation, durable status,
   disk guards, sparse checkpoint retention, and ranked scoreboard generation;
 - ARCHS4-only GEO-series train/validation/test partitions and held-out tissue plots;
-- GeneJEPA held-out tissue UMAP and Lacan-style DDIM `t=1000,200,0` PCA trajectory.
-
-GeneJEPA uses the pinned official model source at commit
-`a2f4d7218b17f2f52cc5f1cc94420c8ef1ae3265`. It is evaluated only as a
-representation model and never appears in synthetic-expression results.
+- Lacan-style DDIM `t=1000,200,0` PCA trajectory.
 
 The configurable Lacan adapter was checked against official code commit
 `cde890154698fcea96c924804aaff04af3351b48`, but it remains an extension for
 arbitrary OSDR covariates and pretrain/fine-tune stages. Exact architecture and
 training-procedure comparisons use the separate pinned implementation under
-`src/nasa_mouse_rna_diffusion/`; see `docs/rna_diffusion_paper_parity.md`.
+`src/nasa_mouse_diffusion/paper_parity/`; see `docs/rna_diffusion_paper_parity.md`.
 
 The `paper_native` hyperparameter profiles enforce the source configurations and
-reject locked-value overrides. Full
-GeneJEPA (`d=768`, 24 blocks, 50 epochs) and Lacan (`8192` hidden units, batch 2048,
-15,000 epochs) runs are expensive. `practical_screen` retains the model family,
+reject locked-value overrides. Exact Lacan runs with 8,192-unit hidden layers,
+batch 2,048, and 15,000 epochs are expensive. `practical_screen` retains the model family,
 native transformation, conditioning, objective, diffusion schedule, and held-out
 evaluation while reducing architecture or epochs. Outputs must state which profile
 was used; a practical bulk adaptation is not an exact paper reproduction.
@@ -304,35 +294,13 @@ locked test. Two unreadable source columns were excluded and recorded. These run
 did not open or fine-tune on OSDR expression. All training and figure inference ran
 on an NVIDIA A100-SXM4-40GB.
 
-The practical GeneJEPA bulk adaptation used 4,096 train-fold HVGs, the official
-nonzero `log1p` global standardization, a 128-dimensional/4-block model, and 10
-epochs. On 20 tissues represented in held-out validation series, a linear probe on
-the learned embedding reached 0.453 balanced accuracy and 0.423 macro F1. The same
-probe on preprocessed expression reached 0.839 balanced accuracy and 0.840 macro
-F1. Embedding and UMAP silhouettes were -0.223 and -0.233. The model retained some
-tissue information, but the UMAP did not reproduce the paper's clean cell-type
-clusters. Results and coordinates are under
-`outputs/generative_benchmark/runs/genejepa/archs4_genejepa_tissues_paper_preprocessing_v4/figures/archs4_tissues_validation/`.
-
-The bounded exact-architecture follow-up retained the released 768-wide,
-512-latent, 24-block, 12-head model and processed 43,744 replacement-sampled
-profiles. It completed in 1,074 training seconds with 31.68 GB peak allocated A100
-memory. On the same balanced 5,815-training/971-held-out figure cohort, tissue
-balanced accuracy and macro F1 improved to 0.703 and 0.701, but remained below the
-expression baseline of 0.839 and 0.840. Embedding and UMAP silhouettes remained
-negative at -0.176 and -0.215. The run made 238 optimizer updates, below the
-released 2,000-step EMA warmup and far below the paper's 50-million-profile-exposure
-duration. It is therefore a successful architecture/runtime test but does not pass
-the representation gate for GeneJEPA-guided diffusion. Its outputs are under
-`outputs/generative_benchmark/runs/genejepa/matrix_phase_0_genejepa_exact_mouse_one_epoch_f2e01cf1f130d5cb/`.
-
 The earlier reduced Lacan proxy and its failed 100/500-epoch output directories were
 removed. They changed architecture, optimizer behavior, sampling weights, training
 duration, input normalization, and split policy simultaneously, so they could not
 attribute a result to mouse data. The replacement uses the unmodified upstream
 227,109,786-parameter `ModelDDIM`, the paper's 9,796/2,448/5,000 split sizes, and
 full-transcriptome TPM before selecting 974 mouse landmark genes. Its run directory
-is `outputs/generative_benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_seed1234/`.
+is `outputs/generative/benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_seed1234/`.
 The completed 15,000-epoch run reached 0.869 synthetic-to-real held-out tissue
 balanced accuracy versus 0.895 for real-to-real, direct L974 precision/recall of
 0.966/0.865, gene mean/SD/correlation-matrix agreement of 0.997/0.944/0.879, and
@@ -351,9 +319,8 @@ conda install -c conda-forge -c bioconda r-base=4.5 bioconductor-sva=3.58
 PYTHONPATH=src python -m nasa_mouse_generative prepare-upstreams
 ```
 
-The upstream command checks out the pinned GeneJEPA source under ignored
-`assets/model_sources/`. WGAN and diffusion reuse the repository's existing
-`nasa_mouse_wgan` and `nasa_mouse_diffusion` PyTorch cores.
+The upstream command checks out and verifies the pinned WGAN-GP and diffusion
+sources under ignored `assets/model_sources/`.
 
 ## Training Commands
 
@@ -361,7 +328,7 @@ Run the bounded end-to-end WGAN check first:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_generative train \
-  --config configs/generative/default.yaml \
+  --config configs/generative/benchmark/default.yaml \
   --set training.regime=osdr_only \
   --set execution.device=cuda \
   --smoke
@@ -429,34 +396,16 @@ PYTHONPATH=src python -m nasa_mouse_generative train \
 PYTHONPATH=src python -m nasa_mouse_generative train --all-tissues
 ```
 
-For GeneJEPA, set both `training.model=genejepa` and
-`training.task=representation`. An ARCHS4-only generator must set
-`training.condition_on_flight=false`: ARCHS4 has no flight labels, so it is only a
-tissue/reference baseline and cannot identify a spaceflight effect.
-
-Train GeneJEPA on ARCHS4 only with tissue retained as an evaluation label. The model
-itself is not tissue-conditioned and cannot generate expression:
-
-```bash
-PYTHONPATH=src python -m nasa_mouse_generative train \
-  --set training.model=genejepa \
-  --set training.task=representation \
-  --set training.regime=archs4_only \
-  --set training.condition_on_flight=false \
-  --set 'training.conditioning_covariates=[tissue]' \
-  --set preprocessing.profile=model_native \
-  --set features.space=hvg \
-  --set features.hvg_genes=4096 \
-  --set execution.device=cuda \
-  --run-name archs4_genejepa_tissues
-```
+An ARCHS4-only generator must set `training.condition_on_flight=false`: ARCHS4 has
+no flight labels, so it is only a tissue/reference baseline and cannot identify a
+spaceflight effect.
 
 Prepare and train the paper-parity tissue-conditioned ARCHS4 diffusion baseline:
 
 ```bash
-PYTHONPATH=src python -m nasa_mouse_rna_diffusion prepare
-PYTHONPATH=src python -m nasa_mouse_rna_diffusion train
-PYTHONPATH=src python -m nasa_mouse_rna_diffusion evaluate
+PYTHONPATH=src python -m nasa_mouse_diffusion.paper_parity prepare
+PYTHONPATH=src python -m nasa_mouse_diffusion.paper_parity train
+PYTHONPATH=src python -m nasa_mouse_diffusion.paper_parity evaluate
 ```
 
 Selected archival runs can save `prepared_data.h5`; loading remains compatible with
@@ -468,15 +417,10 @@ file is opened.
 Create paper-style held-out tissue figures after the configuration is fixed:
 
 ```bash
-PYTHONPATH=src python -m nasa_mouse_generative archs4-figures \
-  --run-dir outputs/generative_benchmark/runs/genejepa/RUN_ID \
-  --split validation --device cuda
-
-PYTHONPATH=src python -m nasa_mouse_rna_diffusion evaluate
+PYTHONPATH=src python -m nasa_mouse_diffusion.paper_parity evaluate
 ```
 
-The GeneJEPA command fits UMAP only on held-out embeddings using the official test
-callback defaults. The paper-parity diffusion evaluation fits one PCA basis only on
+The paper-parity diffusion evaluation fits one PCA basis only on
 real ARCHS4 training profiles, then projects real profiles and exact 1,000-step EMA
 DDIM trajectory snapshots. Tissue classifier and silhouette metrics are written
 beside the figures.
@@ -501,7 +445,7 @@ saved beside the global summary to expose composition-confounded pooled scores.
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_generative evaluate \
-  --run-dir outputs/generative_benchmark/runs/vinas_wgan_gp/RUN_ID \
+  --run-dir outputs/generative/benchmark/runs/vinas_wgan_gp/RUN_ID \
   --split test --unlock-test
 ```
 
@@ -510,7 +454,7 @@ needed:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_generative generate \
-  --run-dir outputs/generative_benchmark/runs/vinas_wgan_gp/RUN_ID \
+  --run-dir outputs/generative/benchmark/runs/vinas_wgan_gp/RUN_ID \
   --condition flight --set tissue=liver --n 100
 ```
 
@@ -531,4 +475,4 @@ reloadable adapters. ComBat-seq uses R 4.5 and Bioconductor `sva`; MBatch invoke
 pinned official R functions; ComBat and MOBER run in the Python environment. The
 one-epoch outputs validate mechanics only. The matched 15,000-epoch liver comparison
 and its independent-metric plots are under
-`outputs/generative_benchmark/summary/liver_harmonization/`.
+`outputs/generative/benchmark/summary/liver_harmonization/`.

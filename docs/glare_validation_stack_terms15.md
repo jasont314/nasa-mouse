@@ -14,7 +14,7 @@ PYTHONUNBUFFERED=1 PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mo
   --max-eac-genes 1200 \
   --terms-per-class 15 \
   --random-sets 100 \
-  --output-dir outputs/glare_multi_tissue_api/validation_stack_terms15
+  --output-dir outputs/glare/multi_tissue_api/validation_stack_terms15
 ```
 
 ## Output Location
@@ -22,7 +22,7 @@ PYTHONUNBUFFERED=1 PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mo
 Generated outputs are under:
 
 ```text
-outputs/glare_multi_tissue_api/validation_stack_terms15/
+outputs/glare/multi_tissue_api/validation_stack_terms15/
 ```
 
 The `outputs/` directory is ignored by git; this document tracks the run and interpretation.

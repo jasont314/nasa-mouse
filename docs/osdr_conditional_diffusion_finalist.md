@@ -85,6 +85,6 @@ generation and controlled simulation, not as validated training-data augmentatio
   independent fidelity or stability gates.
 
 Machine-readable results are under
-`outputs/generative_benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_seed2020/evaluation/final_locked_test/`.
+`outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_seed2020/evaluation/final_locked_test/`.
 The fixed configuration is
-`configs/rna_diffusion/osdr_factorized_study_lora512_correlation_refine.yaml`.
+`configs/generative/diffusion/osdr_factorized_study_lora512_correlation_refine.yaml`.

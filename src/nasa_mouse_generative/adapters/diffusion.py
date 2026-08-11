@@ -47,7 +47,7 @@ class DiffusionAdapter(ModelAdapter):
             raise RuntimeError(
                 "The configurable diffusion adapter is not the exact upstream "
                 "ModelDDIM. Run the paper-native baseline through "
-                "`python -m nasa_mouse_rna_diffusion`; use practical_screen for "
+                "`python -m nasa_mouse_diffusion.paper_parity`; use practical_screen for "
                 "the configurable NASA extension."
             )
         if self.source_path and Path(self.source_path).exists():

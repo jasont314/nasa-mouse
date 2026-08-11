@@ -2,7 +2,7 @@
 
 Project-specific GLARE adaptation for mouse spaceflight data.
 
-The GLARE code is vendored directly in `src/glare` so project-specific runtime
+The GLARE code is vendored directly in `assets/model_sources/glare` so project-specific runtime
 fixes can be edited and committed in this repository. This package is where
 mouse-specific data preparation and model changes live.
 
@@ -112,11 +112,11 @@ PYTHONPATH=src python -m nasa_mouse_glare.export csv \
 That produces the same broad input contract as GLARE:
 
 ```bash
-python src/glare/Manuscript_Code/glare/codes/hpt.py \
+python assets/model_sources/glare/Manuscript_Code/glare/codes/hpt.py \
   --data1 data/glare_inputs/osdr_finetune.csv \
   --data2 data/glare_inputs/tms_facs_pretrain.mtx \
   --log-every-epochs 1 \
-  --output-dir outputs/glare_hpt_tms_facs_osdr
+  --output-dir outputs/glare/hpt_tms_facs_osdr
 ```
 
 To resume after configs `1` through `249` completed in the single-cell HPT
@@ -124,11 +124,11 @@ stage, copy the prior `hpt_config_results.json` into the same `--output-dir`
 and continue from config `250`:
 
 ```bash
-python src/glare/Manuscript_Code/glare/codes/hpt.py \
+python assets/model_sources/glare/Manuscript_Code/glare/codes/hpt.py \
   --data1 data/glare_inputs/osdr_finetune.csv \
   --data2 data/glare_inputs/tms_facs_pretrain.mtx \
   --log-every-epochs 1 \
-  --output-dir outputs/glare_hpt_tms_facs_osdr \
+  --output-dir outputs/glare/hpt_tms_facs_osdr \
   --resume \
   --start-config 250
 ```
@@ -157,10 +157,10 @@ representations:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.post_finetune \
-  --representation outputs/glare_hpt_tms_facs_osdr/FTSAE_representation.npy \
+  --representation outputs/glare/hpt_tms_facs_osdr/FTSAE_representation.npy \
   --target-manifest data/processed/tms_facs_osdr_aligned.target.manifest.json \
   --osdr assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5 \
-  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune
+  --output-dir outputs/glare/hpt_tms_facs_osdr/post_finetune
 ```
 
 Key outputs:
@@ -178,10 +178,10 @@ a consensus step:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.ensemble_clustering \
-  --representation outputs/glare_hpt_tms_facs_osdr/FTSAE_representation.npy \
-  --gene-latent outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_latent.tsv \
-  --gene-pca outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_pca.tsv \
-  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_clustering
+  --representation outputs/glare/hpt_tms_facs_osdr/FTSAE_representation.npy \
+  --gene-latent outputs/glare/hpt_tms_facs_osdr/post_finetune/gene_latent.tsv \
+  --gene-pca outputs/glare/hpt_tms_facs_osdr/post_finetune/gene_pca.tsv \
+  --output-dir outputs/glare/hpt_tms_facs_osdr/post_finetune/ensemble_clustering
 ```
 
 This writes `ensemble_clusters.tsv`, a consensus `gene_clusters.tsv`,
@@ -196,8 +196,8 @@ Download official OSDR ISA metadata and extract sample/accession tissues:
 PYTHONPATH=src python -m nasa_mouse_glare.osdr_tissues \
   --download \
   --metadata-dir assets/osdr_metadata \
-  --profile-metadata outputs/glare_hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv \
-  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/osdr_tissues
+  --profile-metadata outputs/glare/hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv \
+  --output-dir outputs/glare/hpt_tms_facs_osdr/post_finetune/osdr_tissues
 ```
 
 This uses OSDR `Characteristics[Material Type]` from the official sample
@@ -212,11 +212,11 @@ tests for the ensemble consensus clusters:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.cluster_stratified_analysis \
-  --gene-clusters outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_clustering/gene_clusters.tsv \
+  --gene-clusters outputs/glare/hpt_tms_facs_osdr/post_finetune/ensemble_clustering/gene_clusters.tsv \
   --target-manifest data/processed/tms_facs_osdr_aligned.target.manifest.json \
-  --profile-metadata outputs/glare_hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv \
-  --official-tissues outputs/glare_hpt_tms_facs_osdr/post_finetune/osdr_tissues/osdr_sample_tissues.tsv \
-  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis
+  --profile-metadata outputs/glare/hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv \
+  --official-tissues outputs/glare/hpt_tms_facs_osdr/post_finetune/osdr_tissues/osdr_sample_tissues.tsv \
+  --output-dir outputs/glare/hpt_tms_facs_osdr/post_finetune/ensemble_analysis
 ```
 
 The OSDR HDF5 does not include its ISA tissue fields, so this step joins the
@@ -229,8 +229,8 @@ Run enrichment for all 15 ensemble consensus clusters:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.cluster_enrichment \
-  --post-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis \
-  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis/enrichment \
+  --post-dir outputs/glare/hpt_tms_facs_osdr/post_finetune/ensemble_analysis \
+  --output-dir outputs/glare/hpt_tms_facs_osdr/post_finetune/ensemble_analysis/enrichment \
   --clusters 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
 ```
 
@@ -238,23 +238,23 @@ Run enrichment and driver summaries for the strongest flight-shifted clusters:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.cluster_enrichment \
-  --post-dir outputs/glare_hpt_tms_facs_osdr/post_finetune \
-  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/enrichment \
+  --post-dir outputs/glare/hpt_tms_facs_osdr/post_finetune \
+  --output-dir outputs/glare/hpt_tms_facs_osdr/post_finetune/enrichment \
   --clusters 13 10 8 0 6
 ```
 
 This writes cluster gene lists, Reactome/Panglao over-representation results,
 and accession/condition/source driver summaries under
-`outputs/glare_hpt_tms_facs_osdr/post_finetune/enrichment`.
+`outputs/glare/hpt_tms_facs_osdr/post_finetune/enrichment`.
 
 Run GLARE-style representation evaluation and flight-vs-ground verification:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.glare_evaluation \
-  --representation outputs/glare_hpt_tms_facs_osdr/FTSAE_representation.npy \
+  --representation outputs/glare/hpt_tms_facs_osdr/FTSAE_representation.npy \
   --target-manifest data/processed/tms_facs_osdr_aligned.target.manifest.json \
-  --post-dir outputs/glare_hpt_tms_facs_osdr/post_finetune \
-  --output-dir outputs/glare_hpt_tms_facs_osdr/post_finetune/evaluation
+  --post-dir outputs/glare/hpt_tms_facs_osdr/post_finetune \
+  --output-dir outputs/glare/hpt_tms_facs_osdr/post_finetune/evaluation
 ```
 
 This mirrors GLARE's `evaluation.py` metrics where they apply to the mouse
@@ -270,7 +270,7 @@ and writes linear classifier coefficients instead.
 
 Use all TMS FACS liver cells for pretraining and only officially annotated
 OSDR liver profiles for fine-tuning. The training command reuses the previous
-winning configurations from `outputs/glare_hpt_tms_facs_osdr/hpt_summary.json`
+winning configurations from `outputs/glare/hpt_tms_facs_osdr/hpt_summary.json`
 and does not run either hyperparameter sweep:
 
 ```bash
@@ -282,7 +282,7 @@ PYTHONPATH=src python -m nasa_mouse_glare.tms \
 
 PYTHONPATH=src python -m nasa_mouse_glare.subset_bundle \
   --bundle data/processed/osdr_mouse_bulk.manifest.json \
-  --metadata outputs/glare_hpt_tms_facs_osdr/post_finetune/osdr_tissues/osdr_sample_tissues.tsv \
+  --metadata outputs/glare/hpt_tms_facs_osdr/post_finetune/osdr_tissues/osdr_sample_tissues.tsv \
   --filter-column tissue_final \
   --filter-value liver \
   --output-prefix data/processed/osdr_mouse_bulk_liver
@@ -300,59 +300,59 @@ PYTHONPATH=src python -m nasa_mouse_glare.export csv \
   --bundle data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
   --output data/glare_inputs/osdr_liver_finetune.csv
 
-python src/glare/Manuscript_Code/glare/codes/hpt.py \
+python assets/model_sources/glare/Manuscript_Code/glare/codes/hpt.py \
   --data1 data/glare_inputs/osdr_liver_finetune.csv \
   --data2 data/glare_inputs/tms_facs_liver_pretrain.mtx \
-  --reuse-best-configs-from outputs/glare_hpt_tms_facs_osdr/hpt_summary.json \
+  --reuse-best-configs-from outputs/glare/hpt_tms_facs_osdr/hpt_summary.json \
   --log-every-epochs 1 \
   --num-workers 0 \
-  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver
+  --output-dir outputs/glare/fixed_tms_facs_liver_osdr_liver
 ```
 
 All liver-only training and analysis outputs use
-`outputs/glare_fixed_tms_facs_liver_osdr_liver`, leaving the cross-tissue run
+`outputs/glare/fixed_tms_facs_liver_osdr_liver`, leaving the cross-tissue run
 unchanged.
 
 Run the liver-only post-training analyses:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.post_finetune \
-  --representation outputs/glare_fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy \
+  --representation outputs/glare/fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy \
   --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
   --osdr assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5 \
-  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune
+  --output-dir outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune
 
 PYTHONPATH=src python -m nasa_mouse_glare.ensemble_clustering \
-  --representation outputs/glare_fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy \
-  --gene-latent outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/gene_latent.tsv \
-  --gene-pca outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/gene_pca.tsv \
+  --representation outputs/glare/fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy \
+  --gene-latent outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/gene_latent.tsv \
+  --gene-pca outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/gene_pca.tsv \
   --hdbscan-min-cluster-size 100 \
   --hdbscan-min-samples 1 \
-  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering
+  --output-dir outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering
 
 PYTHONPATH=src python -m nasa_mouse_glare.osdr_tissues \
   --metadata-dir assets/osdr_metadata \
-  --profile-metadata outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/profile_metadata.tsv \
-  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/osdr_tissues
+  --profile-metadata outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/profile_metadata.tsv \
+  --output-dir outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/osdr_tissues
 
 PYTHONPATH=src python -m nasa_mouse_glare.cluster_stratified_analysis \
-  --gene-clusters outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering/gene_clusters.tsv \
+  --gene-clusters outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_clustering/gene_clusters.tsv \
   --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
-  --profile-metadata outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/profile_metadata.tsv \
-  --official-tissues outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/osdr_tissues/osdr_sample_tissues.tsv \
-  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis
+  --profile-metadata outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/profile_metadata.tsv \
+  --official-tissues outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/osdr_tissues/osdr_sample_tissues.tsv \
+  --output-dir outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis
 
 PYTHONPATH=src python -m nasa_mouse_glare.cluster_enrichment \
-  --post-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis \
+  --post-dir outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis \
   --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
-  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment \
+  --output-dir outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/ensemble_analysis/enrichment \
   --clusters 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
 
 PYTHONPATH=src python -m nasa_mouse_glare.glare_evaluation \
-  --representation outputs/glare_fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy \
+  --representation outputs/glare/fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy \
   --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
-  --post-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune \
-  --output-dir outputs/glare_fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation
+  --post-dir outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune \
+  --output-dir outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune/evaluation
 ```
 
 The liver latent space required a lower-density HDBSCAN setting than the
@@ -400,7 +400,7 @@ Pretrain the released 16-dimensional GLARE SAE on TMS FACS liver cells:
 ```bash
 conda run -n nasa python src/nasa_mouse_glare/reproduce_glare_pretrain.py \
   --input data/glare_inputs/tms_facs_liver_pretrain.mtx \
-  --output-dir outputs/glare_paper_tms_liver_osd379/pretraining \
+  --output-dir outputs/glare/paper_tms_liver_osd379/pretraining \
   --epochs 30 \
   --batch-size 16 \
   --seed 1996 \
@@ -415,13 +415,13 @@ PYTHONPATH=src python -m nasa_mouse_glare.paper_finetune \
   --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
   --accession OSD-379 \
   --normalized-counts assets/osdr/GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
-  --pretrained-weights outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
-  --output-dir outputs/glare_paper_tms_liver_osd379 \
+  --pretrained-weights outputs/glare/paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
+  --output-dir outputs/glare/paper_tms_liver_osd379 \
   --prepare-only
 
 PYTHONPATH=src MPLCONFIGDIR=/tmp/nasa-matplotlib \
   python -m nasa_mouse_glare.paper_analysis verification \
-  --run-dir outputs/glare_paper_tms_liver_osd379
+  --run-dir outputs/glare/paper_tms_liver_osd379
 ```
 
 Fine-tune separate model copies on FLT and GC and cluster both latent spaces:
@@ -432,15 +432,15 @@ PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
   --accession OSD-379 \
   --normalized-counts assets/osdr/GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
-  --pretrained-weights outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
-  --output-dir outputs/glare_paper_tms_liver_osd379 \
+  --pretrained-weights outputs/glare/paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
+  --output-dir outputs/glare/paper_tms_liver_osd379 \
   --epochs 30 \
   --seed 1996
 
 PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   MPLCONFIGDIR=/tmp/nasa-matplotlib \
   python -m nasa_mouse_glare.paper_clustering \
-  --run-dir outputs/glare_paper_tms_liver_osd379
+  --run-dir outputs/glare/paper_tms_liver_osd379
 ```
 
 Use NASA's four age- and collection-matched DESeq2 contrasts for DEG
@@ -448,7 +448,7 @@ proportions and export Metascape multi-list files:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.paper_analysis post \
-  --run-dir outputs/glare_paper_tms_liver_osd379 \
+  --run-dir outputs/glare/paper_tms_liver_osd379 \
   --official-de assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv
 ```
 
@@ -460,9 +460,9 @@ download:
 ```bash
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.metascape_client submit \
-  --gene-lists outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/metascape_multiple_gene_lists.csv \
-  --background outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/metascape_background.txt \
-  --output-dir 'outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_results/{session_id}' \
+  --gene-lists outputs/glare/paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/metascape_multiple_gene_lists.csv \
+  --background outputs/glare/paper_tms_liver_osd379/biological_analysis/metascape_gene_lists/metascape_background.txt \
+  --output-dir 'outputs/glare/paper_tms_liver_osd379/biological_analysis/metascape_results/{session_id}' \
   --input-species 10090 \
   --analysis-species 10090
 ```
@@ -475,7 +475,7 @@ was already run in the browser:
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.metascape_client download \
   --session-id <metascape_session_id> \
-  --output-dir outputs/glare_paper_tms_liver_osd379/biological_analysis/metascape_results/<metascape_session_id>
+  --output-dir outputs/glare/paper_tms_liver_osd379/biological_analysis/metascape_results/<metascape_session_id>
 ```
 
 If Metascape changes the internal endpoints, fall back to the manual workflow:
@@ -483,7 +483,7 @@ upload the multi-list CSV, enable **Multiple Gene Lists**, choose **Custom
 Analysis**, select `Mus musculus` for input and analysis, and paste the
 background text file into the custom enrichment-background dialog.
 
-See `outputs/glare_paper_tms_liver_osd379/RUN_SUMMARY.md` for results and
+See `outputs/glare/paper_tms_liver_osd379/RUN_SUMMARY.md` for results and
 method deviations that remain specific to the mouse adaptation.
 
 Audit liver tissue composition when muscle-related clusters or enrichment
@@ -492,7 +492,7 @@ appear:
 ```bash
 conda run -n nasa env PYTHONPATH=src MPLCONFIGDIR=/tmp/nasa-matplotlib \
   python -m nasa_mouse_glare.osd379_tissue_qc \
-  --run-dir outputs/glare_paper_tms_liver_osd379 \
+  --run-dir outputs/glare/paper_tms_liver_osd379 \
   --normalized-counts assets/osdr/GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
   --official-de assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv \
   --tms-h5ad assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad \
@@ -517,12 +517,12 @@ curl -L --fail --show-error \
 
 conda run -n nasa Rscript src/nasa_mouse_glare/osd379_deseq2.R \
   --raw-counts assets/osdr/GLDS-379_rna_seq_RSEM_Unnormalized_Counts_GLbulkRNAseq.csv \
-  --matched-slots outputs/glare_paper_tms_liver_osd379/matched_feature_slots.tsv \
-  --exclude-samples outputs/glare_paper_tms_liver_osd379/biological_analysis/tissue_composition_qc/recommended_sample_exclusions.tsv \
+  --matched-slots outputs/glare/paper_tms_liver_osd379/matched_feature_slots.tsv \
+  --exclude-samples outputs/glare/paper_tms_liver_osd379/biological_analysis/tissue_composition_qc/recommended_sample_exclusions.tsv \
   --filter-mode independent \
-  --composition-scores outputs/glare_paper_tms_liver_osd379/biological_analysis/tissue_composition_qc/sample_muscle_marker_scores.tsv \
+  --composition-scores outputs/glare/paper_tms_liver_osd379/biological_analysis/tissue_composition_qc/sample_muscle_marker_scores.tsv \
   --glare-gene-reference assets/osdr/GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
-  --output-dir outputs/glare_filtered_tms_liver_osd379/deseq2 \
+  --output-dir outputs/glare/filtered_tms_liver_osd379/deseq2 \
   --alpha 0.05 \
   --lfc-cutoff 1
 ```
@@ -535,10 +535,10 @@ conda run -n nasa env PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   python -m nasa_mouse_glare.paper_finetune \
   --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
   --accession OSD-379 \
-  --normalized-counts outputs/glare_filtered_tms_liver_osd379/deseq2/filtered_deseq2_normalized_counts_glare.csv \
-  --pretrained-weights outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
-  --output-dir outputs/glare_filtered_tms_liver_osd379 \
-  --exclude-samples outputs/glare_paper_tms_liver_osd379/biological_analysis/tissue_composition_qc/recommended_sample_exclusions.tsv \
+  --normalized-counts outputs/glare/filtered_tms_liver_osd379/deseq2/filtered_deseq2_normalized_counts_glare.csv \
+  --pretrained-weights outputs/glare/paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
+  --output-dir outputs/glare/filtered_tms_liver_osd379 \
+  --exclude-samples outputs/glare/paper_tms_liver_osd379/biological_analysis/tissue_composition_qc/recommended_sample_exclusions.tsv \
   --filter-mode independent \
   --epochs 30 \
   --batch-size 16 \
@@ -547,12 +547,12 @@ conda run -n nasa env PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
 conda run -n nasa env PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   MPLCONFIGDIR=/tmp/nasa-matplotlib \
   python -m nasa_mouse_glare.paper_clustering \
-  --run-dir outputs/glare_filtered_tms_liver_osd379
+  --run-dir outputs/glare/filtered_tms_liver_osd379
 
 conda run -n nasa env PYTHONPATH=src MPLCONFIGDIR=/tmp/nasa-matplotlib \
   python -m nasa_mouse_glare.deseq_glare_comparison \
-  --run-dir outputs/glare_filtered_tms_liver_osd379 \
-  --deseq-dir outputs/glare_filtered_tms_liver_osd379/deseq2
+  --run-dir outputs/glare/filtered_tms_liver_osd379 \
+  --deseq-dir outputs/glare/filtered_tms_liver_osd379/deseq2
 ```
 
 The melted-data XGBoost verification is intentionally omitted for this run:
@@ -571,8 +571,8 @@ selection uses `study.factor value.spaceflight`.
 ```bash
 conda run -n nasa env PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   python -m nasa_mouse_glare.aggregate_liver_finetune \
-  --pretrained-weights outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
-  --output-dir outputs/glare_tms_liver_aggregated_osdr_flt_gc \
+  --pretrained-weights outputs/glare/paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth \
+  --output-dir outputs/glare/tms_liver_aggregated_osdr_flt_gc \
   --epochs 30 \
   --batch-size 16 \
   --seed 1996
@@ -580,7 +580,7 @@ conda run -n nasa env PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
 conda run -n nasa env PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   MPLCONFIGDIR=/tmp/nasa-matplotlib \
   python -m nasa_mouse_glare.paper_clustering \
-  --run-dir outputs/glare_tms_liver_aggregated_osdr_flt_gc
+  --run-dir outputs/glare/tms_liver_aggregated_osdr_flt_gc
 ```
 
 Default accessions are `OSD-379`, `OSD-245`, `OSD-463`, `OSD-242`, `OSD-137`,
@@ -593,7 +593,7 @@ normalized-expression meta-DGEA:
 ```bash
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.aggregate_liver_analysis \
-  --run-dir outputs/glare_tms_liver_aggregated_osdr_flt_gc \
+  --run-dir outputs/glare/tms_liver_aggregated_osdr_flt_gc \
   --osdr-h5 assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5
 ```
 
@@ -603,22 +603,22 @@ each OSD accession, and combines per-study log2 fold changes:
 
 ```bash
 conda run -n nasa Rscript src/nasa_mouse_glare/aggregate_liver_deseq2.R \
-  --counts outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/counts.tsv \
-  --metadata outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/sample_metadata.tsv \
-  --gene-symbols outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/gene_symbols.tsv \
-  --output-dir outputs/glare_tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_meta \
+  --counts outputs/glare/tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/counts.tsv \
+  --metadata outputs/glare/tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/sample_metadata.tsv \
+  --gene-symbols outputs/glare/tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_inputs/gene_symbols.tsv \
+  --output-dir outputs/glare/tms_liver_aggregated_osdr_flt_gc/post_analysis/deseq2_meta \
   --alpha 0.05 \
   --lfc-cutoff 1 \
   --min-studies 2
 
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.aggregate_liver_deseq_glare_overlap \
-  --run-dir outputs/glare_tms_liver_aggregated_osdr_flt_gc
+  --run-dir outputs/glare/tms_liver_aggregated_osdr_flt_gc
 ```
 
 ## Aggregate Liver MOBER Batch Correction
 
-MOBER is vendored in `src/MOBER`. For batch-corrected aggregate liver analysis,
+MOBER is vendored in `assets/model_sources/MOBER`. For batch-corrected aggregate liver analysis,
 use the six technically closer ribo-depletion paired-end datasets:
 `OSD-379`, `OSD-245`, `OSD-463`, `OSD-242`, `OSD-137`, and `OSD-173`.
 The wrapper prepares an AnnData file with samples x genes log2(CPM+1)
@@ -626,9 +626,9 @@ expression and uses `h5_accession` as MOBER's required `data_source` field.
 The default projection target is `OSD-379`, the largest balanced study.
 
 ```bash
-conda run -n nasa env PYTHONPATH=src:src/MOBER \
+conda run -n nasa env PYTHONPATH=src:assets/model_sources/MOBER \
   python -m nasa_mouse_glare.aggregate_liver_mober run \
-  --output-dir outputs/mober_liver_ribo6_osdr \
+  --output-dir outputs/glare/mober/liver_ribo6_osdr \
   --onto OSD-379 \
   --epochs 300 \
   --batch-size 32 \
@@ -638,25 +638,25 @@ conda run -n nasa env PYTHONPATH=src:src/MOBER \
 
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.aggregate_liver_mober_qc \
-  --run-dir outputs/mober_liver_ribo6_osdr \
+  --run-dir outputs/glare/mober/liver_ribo6_osdr \
   --onto OSD-379
 
 conda run -n nasa env PYTHONPATH=src \
   MPLCONFIGDIR=/tmp/nasa-matplotlib \
   python -m nasa_mouse_glare.aggregate_liver_muscle_qc \
-  --run-dir outputs/mober_liver_ribo6_osdr \
-  --output-dir outputs/mober_liver_ribo6_osdr/muscle_outlier_qc
+  --run-dir outputs/glare/mober/liver_ribo6_osdr \
+  --output-dir outputs/glare/mober/liver_ribo6_osdr/muscle_outlier_qc
 ```
 
 To rerun the same six-dataset MOBER path without the strict OSD-379
 skeletal-muscle composition outliers:
 
 ```bash
-conda run -n nasa env PYTHONPATH=src:src/MOBER \
+conda run -n nasa env PYTHONPATH=src:assets/model_sources/MOBER \
   OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
   VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   python -m nasa_mouse_glare.aggregate_liver_mober run \
-  --output-dir outputs/mober_liver_ribo6_osdr_no_muscle_outliers \
+  --output-dir outputs/glare/mober/liver_ribo6_osdr_no_muscle_outliers \
   --exclude-profiles-file data/filters/osd379_severe_muscle_outlier_profiles.txt \
   --onto OSD-379 \
   --epochs 300 \
@@ -669,11 +669,11 @@ conda run -n nasa env PYTHONPATH=src:src/MOBER \
 To run the broader 12-candidate muscle-outlier sensitivity filter:
 
 ```bash
-conda run -n nasa env PYTHONPATH=src:src/MOBER \
+conda run -n nasa env PYTHONPATH=src:assets/model_sources/MOBER \
   OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
   VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   python -m nasa_mouse_glare.aggregate_liver_mober run \
-  --output-dir outputs/mober_liver_ribo6_osdr_12_muscle_outliers \
+  --output-dir outputs/glare/mober/liver_ribo6_osdr_12_muscle_outliers \
   --exclude-profiles-file data/filters/aggregate_liver_12_muscle_candidate_profiles.txt \
   --onto OSD-379 \
   --epochs 300 \
@@ -686,14 +686,14 @@ conda run -n nasa env PYTHONPATH=src:src/MOBER \
 The local run trained on CPU and early-stopped at epoch `118`, keeping the best
 model from epoch `67`. Key outputs:
 
-- `outputs/mober_liver_ribo6_osdr/MOBER_PREP_SUMMARY.md`
-- `outputs/mober_liver_ribo6_osdr/projection/MOBER_PROJECTION_SUMMARY.md`
-- `outputs/mober_liver_ribo6_osdr/projection/mober_latent_onto_OSD-379.tsv`
-- `outputs/mober_liver_ribo6_osdr/mober_qc/MOBER_QC_SUMMARY.md`
-- `outputs/mober_liver_ribo6_osdr/muscle_outlier_qc/AGGREGATE_LIVER_MUSCLE_QC.md`
+- `outputs/glare/mober/liver_ribo6_osdr/MOBER_PREP_SUMMARY.md`
+- `outputs/glare/mober/liver_ribo6_osdr/projection/MOBER_PROJECTION_SUMMARY.md`
+- `outputs/glare/mober/liver_ribo6_osdr/projection/mober_latent_onto_OSD-379.tsv`
+- `outputs/glare/mober/liver_ribo6_osdr/mober_qc/MOBER_QC_SUMMARY.md`
+- `outputs/glare/mober/liver_ribo6_osdr/muscle_outlier_qc/AGGREGATE_LIVER_MUSCLE_QC.md`
 
 The trained MOBER checkpoint is local under
-`outputs/mober_liver_ribo6_osdr/mober_train/models/`; it is intentionally not
+`outputs/glare/mober/liver_ribo6_osdr/mober_train/models/`; it is intentionally not
 tracked because the VAE checkpoint is about 124 MB.
 
 Apply GLARE to the MOBER-corrected aggregate liver expression:
@@ -703,7 +703,7 @@ conda run -n nasa env PYTHONPATH=src \
   OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
   VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   python -m nasa_mouse_glare.aggregate_liver_mober_glare \
-  --output-dir outputs/glare_tms_liver_mober_ribo6_osdr \
+  --output-dir outputs/glare/tms_liver_mober_ribo6_osdr \
   --epochs 30 \
   --batch-size 16 \
   --seed 1996
@@ -713,14 +713,14 @@ conda run -n nasa env PYTHONPATH=src \
   VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   MPLCONFIGDIR=/tmp/nasa-matplotlib \
   python -m nasa_mouse_glare.paper_clustering \
-  --run-dir outputs/glare_tms_liver_mober_ribo6_osdr \
+  --run-dir outputs/glare/tms_liver_mober_ribo6_osdr \
   --skip-tsne
 ```
 
 This keeps TMS liver as the GLARE pretraining source and uses MOBER-projected
 bulk expression as the FLT/GC fine-tuning target. The local run produced
 16 FLT consensus clusters and 15 GC consensus clusters under
-`outputs/glare_tms_liver_mober_ribo6_osdr`.
+`outputs/glare/tms_liver_mober_ribo6_osdr`.
 
 For the no-muscle-outlier MOBER projection, point GLARE at the filtered h5ad:
 
@@ -729,8 +729,8 @@ conda run -n nasa env PYTHONPATH=src \
   OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
   VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   python -m nasa_mouse_glare.aggregate_liver_mober_glare \
-  --mober-h5ad outputs/mober_liver_ribo6_osdr_no_muscle_outliers/projection/mober_projected_onto_OSD-379.h5ad \
-  --output-dir outputs/glare_tms_liver_mober_ribo6_osdr_no_muscle_outliers \
+  --mober-h5ad outputs/glare/mober/liver_ribo6_osdr_no_muscle_outliers/projection/mober_projected_onto_OSD-379.h5ad \
+  --output-dir outputs/glare/tms_liver_mober_ribo6_osdr_no_muscle_outliers \
   --epochs 30 \
   --batch-size 16 \
   --seed 1996
@@ -740,7 +740,7 @@ conda run -n nasa env PYTHONPATH=src \
   VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   MPLCONFIGDIR=/tmp/nasa-matplotlib \
   python -m nasa_mouse_glare.paper_clustering \
-  --run-dir outputs/glare_tms_liver_mober_ribo6_osdr_no_muscle_outliers \
+  --run-dir outputs/glare/tms_liver_mober_ribo6_osdr_no_muscle_outliers \
   --skip-tsne
 ```
 
@@ -751,8 +751,8 @@ conda run -n nasa env PYTHONPATH=src \
   OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
   VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   python -m nasa_mouse_glare.aggregate_liver_mober_glare \
-  --mober-h5ad outputs/mober_liver_ribo6_osdr_12_muscle_outliers/projection/mober_projected_onto_OSD-379.h5ad \
-  --output-dir outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers \
+  --mober-h5ad outputs/glare/mober/liver_ribo6_osdr_12_muscle_outliers/projection/mober_projected_onto_OSD-379.h5ad \
+  --output-dir outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers \
   --epochs 30 \
   --batch-size 16 \
   --seed 1996
@@ -762,7 +762,7 @@ conda run -n nasa env PYTHONPATH=src \
   VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   MPLCONFIGDIR=/tmp/nasa-matplotlib \
   python -m nasa_mouse_glare.paper_clustering \
-  --run-dir outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers \
+  --run-dir outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers \
   --skip-tsne
 ```
 
@@ -771,9 +771,9 @@ Run the Metascape wrapper for the 12-filter priority gene lists:
 ```bash
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.metascape_client submit \
-  --gene-lists outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_12filter_priority_gene_lists.csv \
-  --background outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_background_all_glare_genes.txt \
-  --output-dir 'outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_results/{session_id}' \
+  --gene-lists outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_12filter_priority_gene_lists.csv \
+  --background outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_background_all_glare_genes.txt \
+  --output-dir 'outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_results/{session_id}' \
   --input-species 10090 \
   --analysis-species 10090
 ```
@@ -783,23 +783,23 @@ Compare the paired flight and ground-control GLARE gene representations:
 ```bash
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.paired_cluster_report \
-  --run-dir outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers
+  --run-dir outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers
 ```
 
 This writes a paired FLT-to-GC cluster report under
-`outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/paired_cluster_report/`.
+`outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/paired_cluster_report/`.
 
 Run the focused FLT14/GC8 comparison:
 
 ```bash
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.flt14_gc8_comparison \
-  --run-dir outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers
+  --run-dir outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers
 ```
 
 This writes `FLT14_all`, `FLT14_and_GC8`, `FLT14_not_GC8`, `GC8_all`, and
 `GC8_not_FLT14` summaries and Metascape-ready gene lists under
-`outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/flt14_gc8_comparison/`.
+`outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/flt14_gc8_comparison/`.
 
 To follow the original GLARE post-analysis style on the 12-filtered
 MOBER-corrected aggregate liver run, use direct FLT and GC consensus clusters,
@@ -811,14 +811,14 @@ conda run -n nasa env PYTHONPATH=src MPLCONFIGDIR=/tmp/nasa-matplotlib \
   OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
   VECLIB_MAXIMUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
   python -m nasa_mouse_glare.glare_original_style_analysis \
-  --run-dir outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers \
+  --run-dir outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers \
   --n-estimators 500
 
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.metascape_client --request-timeout 600 submit \
-  --gene-lists outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/glare_original_style/direct_clusters/metascape_gene_lists/metascape_direct_cluster_gene_lists.csv \
-  --background outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/glare_original_style/direct_clusters/metascape_gene_lists/metascape_background_all_glare_genes.txt \
-  --output-dir 'outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/glare_original_style/metascape_results/{session_id}' \
+  --gene-lists outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/glare_original_style/direct_clusters/metascape_gene_lists/metascape_direct_cluster_gene_lists.csv \
+  --background outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/glare_original_style/direct_clusters/metascape_gene_lists/metascape_background_all_glare_genes.txt \
+  --output-dir 'outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/glare_original_style/metascape_results/{session_id}' \
   --input-species 10090 \
   --analysis-species 10090 \
   --timeout-minutes 180 \
@@ -851,7 +851,7 @@ Run the released GLARE pretraining config:
 ```bash
 python src/nasa_mouse_glare/reproduce_glare_pretrain.py \
   --input assets/glare_original/E-CURD-5.aggregated_filtered_normalised_counts.mtx \
-  --output-dir outputs/glare_original_pretrain_config5 \
+  --output-dir outputs/glare/original_pretrain_config5 \
   --epochs 30
 ```
 
@@ -872,8 +872,8 @@ Run the released GLARE fine-tuning config for FLT and GC:
 ```bash
 python src/nasa_mouse_glare/reproduce_glare_finetune.py \
   --data assets/glare_original/GLDS-120_rna_seq_Normalized_Counts_GLbulkRNAseq.csv \
-  --pretrained-weights outputs/glare_original_pretrain_config5/sc_shulse_pretrained_reproduced.pth \
-  --output-dir outputs/glare_original_finetune_osd120 \
+  --pretrained-weights outputs/glare/original_pretrain_config5/sc_shulse_pretrained_reproduced.pth \
+  --output-dir outputs/glare/original_finetune_osd120 \
   --epochs 30
 ```
 

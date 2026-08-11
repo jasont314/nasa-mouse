@@ -7,7 +7,7 @@ This note records the signed within-module DGEA direction check for the expanded
 
 ```bash
 PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mouse_glare.module_direction_summary \
-  --validation-dir outputs/glare_multi_tissue_api/validation_stack_terms15
+  --validation-dir outputs/glare/multi_tissue_api/validation_stack_terms15
 ```
 
 ## Outputs
@@ -15,7 +15,7 @@ PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mouse_glare.module_di
 Generated files are under:
 
 ```text
-outputs/glare_multi_tissue_api/validation_stack_terms15/module_direction/
+outputs/glare/multi_tissue_api/validation_stack_terms15/module_direction/
 ```
 
 Key files:

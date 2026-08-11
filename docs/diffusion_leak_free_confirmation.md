@@ -144,20 +144,20 @@ on real OSDR profiles.
 ## Outputs
 
 - Reference run:
-  `outputs/generative_benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_osdr_disjoint_seed1234/`
+  `outputs/generative/benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_osdr_disjoint_seed1234/`
 - OSDR adaptation:
-  `outputs/generative_benchmark/runs/lacan_diffusion/osdr_generated_feature_confirmation_disjoint_5000_seed3036/`
+  `outputs/generative/benchmark/runs/lacan_diffusion/osdr_generated_feature_confirmation_disjoint_5000_seed3036/`
 - Confirmation:
-  `outputs/generative_benchmark/analyses/generated_feature_guidance_confirmation_disjoint_v1/`
+  `outputs/generative/benchmark/analyses/generated_feature_guidance_confirmation_disjoint_v1/`
 - Corrected broad OSDR adaptation:
-  `outputs/generative_benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/`
+  `outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/`
 - Corrected broad tissue screen:
-  `outputs/generative_benchmark/analyses/within_study_generated_feature_stability_osdr_disjoint_v1/`
+  `outputs/generative/benchmark/analyses/within_study_generated_feature_stability_osdr_disjoint_v1/`
 - Corrected muscle-group screen:
-  `outputs/generative_benchmark/analyses/within_study_generated_feature_stability_muscle_groups_osdr_disjoint_v1/`
+  `outputs/generative/benchmark/analyses/within_study_generated_feature_stability_muscle_groups_osdr_disjoint_v1/`
 - Reference config:
-  `configs/rna_diffusion/archs4_mouse_paper_parity_osdr_disjoint.yaml`
+  `configs/generative/diffusion/archs4_mouse_paper_parity_osdr_disjoint.yaml`
 - OSDR config:
-  `configs/rna_diffusion/osdr_generated_feature_confirmation_disjoint_5000.yaml`
+  `configs/generative/diffusion/osdr_generated_feature_confirmation_disjoint_5000.yaml`
 - Feature-policy config:
-  `configs/rna_diffusion/generated_feature_guidance_confirmation_disjoint.yaml`
+  `configs/generative/diffusion/generated_feature_guidance_confirmation_disjoint.yaml`

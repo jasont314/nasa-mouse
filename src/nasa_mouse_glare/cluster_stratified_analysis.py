@@ -12,19 +12,19 @@ from .io import load_matrix_bundle, require_import
 
 
 DEFAULT_GENE_CLUSTERS = (
-    "outputs/glare_hpt_tms_facs_osdr/post_finetune/"
+    "outputs/glare/hpt_tms_facs_osdr/post_finetune/"
     "ensemble_clustering/gene_clusters.tsv"
 )
 DEFAULT_TARGET_MANIFEST = "data/processed/tms_facs_osdr_aligned.target.manifest.json"
 DEFAULT_PROFILE_METADATA = (
-    "outputs/glare_hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv"
+    "outputs/glare/hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv"
 )
 DEFAULT_OFFICIAL_TISSUES = (
-    "outputs/glare_hpt_tms_facs_osdr/post_finetune/"
+    "outputs/glare/hpt_tms_facs_osdr/post_finetune/"
     "osdr_tissues/osdr_sample_tissues.tsv"
 )
 DEFAULT_OUTPUT_DIR = (
-    "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_analysis"
+    "outputs/glare/hpt_tms_facs_osdr/post_finetune/ensemble_analysis"
 )
 
 

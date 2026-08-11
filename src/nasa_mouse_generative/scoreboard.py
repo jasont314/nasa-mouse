@@ -58,6 +58,11 @@ def _per_tissue_diagnostics(value: object) -> dict[str, float | int]:
 
 def _unified_row(summary_path: Path) -> dict[str, Any]:
     run = json.loads(summary_path.read_text(encoding="utf-8"))
+    model_id = summary_path.parent.parent.name
+    implementation = _nested(run, "model_provenance", "display_name", default="")
+    raw_model = str(run.get("model", ""))
+    if not implementation and raw_model and "/" not in raw_model:
+        implementation = raw_model
     validation_path = str(_nested(run, "outputs", "validation", default=""))
     validation_file = Path(validation_path) if validation_path else None
     validation = (
@@ -99,10 +104,8 @@ def _unified_row(summary_path: Path) -> dict[str, Any]:
     )
     return {
         "run_id": run.get("run_id", summary_path.parent.name),
-        "model": run.get("model", ""),
-        "implementation": _nested(
-            run, "model_provenance", "display_name", default=""
-        ),
+        "model": model_id,
+        "implementation": implementation,
         "model_profile": run.get("model_profile", ""),
         "regime": run.get("regime", ""),
         "tissue_mode": run.get("tissue_mode", ""),
@@ -470,10 +473,10 @@ def run(args: argparse.Namespace) -> Path:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-root", default="outputs/generative_benchmark")
+    parser.add_argument("--output-root", default="outputs/generative/benchmark")
     parser.add_argument(
         "--output",
-        default="outputs/generative_benchmark/summary/model_scoreboard.tsv",
+        default="outputs/generative/benchmark/summary/model_scoreboard.tsv",
     )
     return parser.parse_args()
 

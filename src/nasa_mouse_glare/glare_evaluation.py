@@ -9,10 +9,10 @@ from pathlib import Path
 from .io import dense_matrix, load_matrix_bundle, require_import
 
 
-DEFAULT_REPRESENTATION = "outputs/glare_hpt_tms_facs_osdr/FTSAE_representation.npy"
+DEFAULT_REPRESENTATION = "outputs/glare/hpt_tms_facs_osdr/FTSAE_representation.npy"
 DEFAULT_TARGET_MANIFEST = "data/processed/tms_facs_osdr_aligned.target.manifest.json"
-DEFAULT_POST_DIR = "outputs/glare_hpt_tms_facs_osdr/post_finetune"
-DEFAULT_OUTPUT_DIR = "outputs/glare_hpt_tms_facs_osdr/post_finetune/evaluation"
+DEFAULT_POST_DIR = "outputs/glare/hpt_tms_facs_osdr/post_finetune"
+DEFAULT_OUTPUT_DIR = "outputs/glare/hpt_tms_facs_osdr/post_finetune/evaluation"
 
 
 def stable_sample_indices(n_rows: int, max_rows: int, seed: int):

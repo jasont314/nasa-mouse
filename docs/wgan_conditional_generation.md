@@ -2,7 +2,7 @@
 
 Generated on 2026-06-29 from API-derived OSDR inputs and existing ARCHS4
 mouse reference inputs. Code lives under `src/nasa_mouse_wgan/`; trained
-outputs are under `outputs/wgan_conditional_generation/`.
+outputs are under `outputs/generative/standalone/wgan/conditional_generation/`.
 
 ## Conditioning Design
 
@@ -59,8 +59,8 @@ synthetic OSDR-like FLT/GC samples.
 Small matched counterfactual examples were generated for all eight main tissues
 from both OSDR-capable models:
 
-- `outputs/wgan_conditional_generation/synthetic_examples/osdr_only/<tissue>/`
-- `outputs/wgan_conditional_generation/synthetic_examples/archs4_pretrain_osdr_finetune/<tissue>/`
+- `outputs/generative/standalone/wgan/conditional_generation/synthetic_examples/osdr_only/<tissue>/`
+- `outputs/generative/standalone/wgan/conditional_generation/synthetic_examples/archs4_pretrain_osdr_finetune/<tissue>/`
 
 Each tissue directory contains:
 
@@ -77,8 +77,8 @@ To generate more samples for a specific observed profile:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_wgan.generate_synthetic \
-  --model-dir outputs/wgan_conditional_generation/archs4_pretrain_osdr_finetune \
-  --output-dir outputs/wgan_conditional_generation/synthetic_custom/liver \
+  --model-dir outputs/generative/standalone/wgan/conditional_generation/archs4_pretrain_osdr_finetune \
+  --output-dir outputs/generative/standalone/wgan/conditional_generation/synthetic_custom/liver \
   --n 128 \
   --counterfactual ground_control flight \
   --set wgan_tissue=liver \

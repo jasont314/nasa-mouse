@@ -1,6 +1,6 @@
 # Generative Model Paper And Code Audit
 
-This audit fixes the scope of the three requested model adapters before implementation.
+This audit fixes the scope of the two generative-model adapters before implementation.
 Repository commits were inspected on 2026-07-14.
 
 ## Vinas Conditional WGAN-GP
@@ -41,33 +41,8 @@ Repository commits were inspected on 2026-07-14.
   and train-on-synthetic/test-on-real reverse validation.
 - ARCHS4 pretraining followed by OSDR fine-tuning is a NASA extension.
 
-## GeneJEPA
-
-- Paper: [GeneJEPA: A Predictive World Model of the Transcriptome](https://doi.org/10.1101/2025.10.14.682378)
-- Code: [BiostateAI/GeneJEPA](https://github.com/BiostateAI/GeneJEPA)
-- Inspected commit: `a2f4d7218b17f2f52cc5f1cc94420c8ef1ae3265`
-- Native task: self-supervised single-cell representation learning, not expression
-  generation.
-- A Perceiver encoder reads ragged gene sets tokenized by gene identity and Fourier
-  features of expression. A student predicts EMA-teacher embeddings for masked gene
-  blocks with anti-collapse regularization.
-- Training uses Tahoe-100M, which is dominated by perturbed cancer cell lines.
-  Values are globally standardized after `log1p` using scalar statistics estimated
-  from one million cells.
-- The released configuration samples one million training cells in each of 50
-  epochs, uses batch 92 per device with accumulation two, and was designed for four
-  H100 80 GB GPUs. A short pass over the mouse profiles is not paper-native duration.
-- The paper explicitly states that it does not decode to counts. The public code has
-  `get_embedding` but no expression decoder or generator.
-- Mouse bulk use therefore requires a new gene vocabulary and from-scratch or
-  cross-species adaptation. It can be benchmarked as an embedding backbone, but it
-  cannot contribute synthetic-expression fidelity results without adding a separate
-  decoder. Such a decoder would be a new method, not paper-faithful GeneJEPA.
-
 ## Consequence For The Benchmark
 
-The primary synthetic-expression comparison contains two native generators:
-Vinas WGAN-GP and Lacan diffusion. GeneJEPA remains one of the three named model
-adapters, but its valid initial task is representation quality and FLT/GC prediction.
-The run planner marks GeneJEPA conditional-generation rows as capability-blocked.
-Pinned source files are verified by SHA-256 in addition to checking Git commits.
+The synthetic-expression comparison contains two native generators: Vinas WGAN-GP
+and Lacan diffusion. Pinned source files are verified by SHA-256 in addition to
+checking Git commits.

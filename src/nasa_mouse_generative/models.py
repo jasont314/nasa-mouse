@@ -1,4 +1,4 @@
-"""Capabilities and provenance for the three requested model families."""
+"""Capabilities and provenance for the supported generative models."""
 
 from __future__ import annotations
 
@@ -51,23 +51,6 @@ MODEL_REGISTRY = {
         notes=(
             "The paper generates landmarks with tissue-conditioned DDIM and "
             "reconstructs target genes. Pretrain/fine-tune is a local extension."
-        ),
-    ),
-    "genejepa": ModelCapabilities(
-        model_id="genejepa",
-        display_name="GeneJEPA",
-        paper_url="https://doi.org/10.1101/2025.10.14.682378",
-        code_url="https://github.com/BiostateAI/GeneJEPA",
-        inspected_commit="a2f4d7218b17f2f52cc5f1cc94420c8ef1ae3265",
-        native_input="ragged nonzero scRNA-seq genes with global log1p z-score",
-        supports_expression_generation=False,
-        supports_categorical_conditioning=False,
-        supports_pretrain_finetune=True,
-        supports_counterfactual_pairing=False,
-        notes=(
-            "GeneJEPA predicts masked-set embeddings and explicitly does not decode "
-            "counts. It is a representation benchmark unless a separately validated "
-            "decoder is added, which would no longer be the paper model."
         ),
     ),
 }

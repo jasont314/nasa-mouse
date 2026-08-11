@@ -40,7 +40,6 @@ def _pipeline_source_manifest(model: str) -> dict[str, object]:
         {
             "vinas_wgan_gp": ["nasa_mouse_wgan"],
             "lacan_diffusion": ["nasa_mouse_diffusion"],
-            "genejepa": [],
         }[model]
     )
     files = sorted(
@@ -503,7 +502,7 @@ def train_one(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", default="configs/generative/default.yaml")
+    parser.add_argument("--config", default="configs/generative/benchmark/default.yaml")
     parser.add_argument(
         "--set",
         action="append",

@@ -11,7 +11,7 @@ import pandas as pd
 from scipy.stats import fisher_exact
 
 
-DEFAULT_RUN_DIR = "outputs/glare_tms_liver_aggregated_osdr_flt_gc"
+DEFAULT_RUN_DIR = "outputs/glare/tms_liver_aggregated_osdr_flt_gc"
 
 
 def log(message: str) -> None:

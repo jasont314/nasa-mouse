@@ -36,11 +36,11 @@ from .study_specific_pathway_recurrence import (
 
 
 DEFAULT_COMPARISON_OUTPUT_DIR = (
-    "outputs/glare_per_study_liver_noercc_12filter/dgea_comparison"
+    "outputs/glare/per_study_liver_noercc_12filter/dgea_comparison"
 )
 DEFAULT_OSDR_H5 = "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5"
 DEFAULT_REACTOME_GMT = (
-    "src/expiMap_reproducibility/metadata/c2.cp.reactome.v4.0_mouseEID.gmt"
+    "data/reference/expimap/paper_metadata/c2.cp.reactome.v4.0_mouseEID.gmt"
 )
 
 

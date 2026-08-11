@@ -1,0 +1,76 @@
+version: 1
+contract: lacan_modelddim_osdr_extension_v1
+
+run:
+  output_dir: outputs/generative/benchmark/runs/lacan_diffusion/osdr_liver_within_study_zscore_osdr_only_seed2020
+  seed: 2020
+  source_root: assets/model_sources/rna-diffusion
+
+data:
+  expression_source: nasa_osdr_api
+  generative_config: configs/generative/benchmark/default.yaml
+  osdr_h5ad: outputs/generative/benchmark/data/osdr/osdr_api_raw_counts.h5ad
+  prepared_h5: outputs/generative/benchmark/data/lacan_diffusion/osdr_liver_within_study_zscore_l974.h5
+  gene_lengths: data/reference/gencode_vM39_mouse_gene_lengths.tsv
+  mouse_landmark_panel: data/diffusion/l974_mouse_paper_parity.tsv
+  landmark_dimensions: 974
+  tissue_mode: per_tissue
+  tissues: [liver]
+  accession_scope: all_eligible
+  include_accessions: []
+  exclude_accessions: []
+  split_strategy: accession_holdout
+  conditioning_covariates: [tissue, condition]
+  unseen_study_policy: not_conditioned
+  normalization: full_transcriptome_log1p_tpm_within_study_then_global_zscore
+  preprocessing:
+    profile: custom
+    input_units: tpm
+    library_normalization: none
+    transform: log1p
+    scaler: none
+    harmonization: within_study_then_global_zscore
+    harmonization_covariates: [condition, tissue]
+    harmonization_parameters: {}
+    unseen_study_policy: transductive_unlabeled
+    gene_lengths: ""
+
+model:
+  hidden_dims: [8192, 8192]
+  dropout: 0.1
+  time_embedding_dim: 1
+  tissue_embedding_dim: 2
+  sinusoidal_time: false
+  diffusion_timesteps: 1000
+  beta_schedule: quad
+  beta_start: 0.0001
+  beta_end: 0.02
+  ema_decay: 0.999
+
+training:
+  regime: osdr_only
+  epochs: 15000
+  batch_size: 2048
+  optimizer: Adam
+  learning_rate: 0.0004783833151836702
+  beta1: 0.9
+  beta2: 0.999
+  epsilon: 1.0e-08
+  weight_decay: 0.0
+  scheduler: OneCycle
+  one_cycle_peak_step: 1000
+  gradient_clipping: false
+  weighted_sampling: false
+  amp: true
+  num_workers: 8
+  checkpoint_every_epochs: 2500
+  log_every_epochs: 100
+  retain_training_checkpoint: true
+
+evaluation:
+  split: validation
+  unlock_test: false
+  quality_samples: 512
+  quality_batch_size: 128
+  diffusion_steps: 1000
+  metric_samples: 512

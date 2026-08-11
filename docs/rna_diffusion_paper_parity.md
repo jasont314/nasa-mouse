@@ -55,14 +55,14 @@ one-to-one orthology claim. See `data/diffusion/l974_mouse_paper_parity.tsv`.
 ## Commands
 
 ```bash
-PYTHONPATH=src python -m nasa_mouse_rna_diffusion prepare \
-  --config configs/rna_diffusion/archs4_mouse_paper_parity.yaml
+PYTHONPATH=src python -m nasa_mouse_diffusion.paper_parity prepare \
+  --config configs/generative/diffusion/archs4_mouse_paper_parity.yaml
 
-PYTHONPATH=src python -m nasa_mouse_rna_diffusion train \
-  --config configs/rna_diffusion/archs4_mouse_paper_parity.yaml
+PYTHONPATH=src python -m nasa_mouse_diffusion.paper_parity train \
+  --config configs/generative/diffusion/archs4_mouse_paper_parity.yaml
 
-PYTHONPATH=src python -m nasa_mouse_rna_diffusion evaluate \
-  --config configs/rna_diffusion/archs4_mouse_paper_parity.yaml
+PYTHONPATH=src python -m nasa_mouse_diffusion.paper_parity evaluate \
+  --config configs/generative/diffusion/archs4_mouse_paper_parity.yaml
 ```
 
 Training resumes from `checkpoints/latest.pt`. Evaluation loads EMA weights, runs all
@@ -74,11 +74,11 @@ training-label distribution for tissue utility and quantitative metrics.
 
 Run outputs are under:
 
-`outputs/generative_benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_seed1234/`
+`outputs/generative/benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_seed1234/`
 
 Prepared data are under:
 
-`outputs/generative_benchmark/data/lacan_diffusion/`
+`outputs/generative/benchmark/data/lacan_diffusion/`
 
 The human GTEx tissue-classifier weights are not transferable to mouse genes.
 Therefore Frechet distance is reported in a PCA-50 embedding fitted only on mouse

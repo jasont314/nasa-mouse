@@ -16,10 +16,10 @@ from .io import require_import
 
 DEFAULT_METADATA_DIR = "assets/osdr_metadata"
 DEFAULT_PROFILE_METADATA = (
-    "outputs/glare_hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv"
+    "outputs/glare/hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv"
 )
 DEFAULT_OUTPUT_DIR = (
-    "outputs/glare_hpt_tms_facs_osdr/post_finetune/osdr_tissues"
+    "outputs/glare/hpt_tms_facs_osdr/post_finetune/osdr_tissues"
 )
 
 

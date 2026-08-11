@@ -12,7 +12,7 @@ import pandas as pd
 from .multi_tissue_reports import clean_reactome_term, cluster_colors
 
 
-DEFAULT_ROOT = Path("outputs/glare_multi_tissue_api")
+DEFAULT_ROOT = Path("outputs/glare/multi_tissue_api")
 DEFAULT_VALIDATION_DIR = DEFAULT_ROOT / "validation_stack_terms15"
 
 PRIOR_COLOR = "#2563eb"

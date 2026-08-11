@@ -1,4 +1,4 @@
-"""Create held-out ARCHS4 tissue figures for GeneJEPA and Lacan diffusion."""
+"""Create held-out ARCHS4 tissue figures for the Lacan diffusion model."""
 
 from __future__ import annotations
 
@@ -129,92 +129,6 @@ def _write_coordinates(
     table["plot_source"] = source
     table.to_csv(path, sep="\t", index=False, compression="gzip")
     return path
-
-
-def _genejepa_figure(
-    adapter,
-    train: DataPartition,
-    evaluation: DataPartition,
-    output: Path,
-    *,
-    seed: int,
-) -> dict[str, object]:
-    try:
-        import umap
-    except ImportError as error:
-        raise RuntimeError(
-            "GeneJEPA tissue UMAP requires umap-learn; install the generative "
-            "requirements before plotting"
-        ) from error
-    import matplotlib
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    train_embeddings = adapter.encode(train)
-    evaluation_embeddings = adapter.encode(evaluation)
-    reducer = umap.UMAP(
-        n_components=2,
-        random_state=42,
-        n_jobs=1,
-        low_memory=True,
-    )
-    coordinates = reducer.fit_transform(evaluation_embeddings)
-    labels = evaluation.obs["tissue"].astype(str).to_numpy()
-    colors = _palette(labels)
-
-    figure, axis = plt.subplots(figsize=(8.6, 6.8))
-    for tissue in sorted(colors):
-        mask = labels == tissue
-        axis.scatter(
-            coordinates[mask, 0],
-            coordinates[mask, 1],
-            s=24,
-            alpha=0.82,
-            color=colors[tissue],
-            edgecolors="none",
-            label=tissue,
-        )
-    axis.set_xlabel("UMAP1", fontweight="bold")
-    axis.set_ylabel("UMAP2", fontweight="bold")
-    axis.set_title("GeneJEPA - held-out ARCHS4 tissue profiles", fontweight="bold")
-    axis.legend(frameon=False, fontsize=8, ncol=2, loc="best")
-    figure.tight_layout()
-    figure_path = output / "genejepa_archs4_tissue_umap.png"
-    figure.savefig(figure_path, dpi=220)
-    plt.close(figure)
-
-    coordinate_path = _write_coordinates(
-        output / "genejepa_archs4_tissue_umap.tsv.gz",
-        evaluation.obs,
-        coordinates,
-        first="UMAP1",
-        second="UMAP2",
-        source="heldout_real",
-    )
-    metrics = _classification_metrics(
-        train_embeddings,
-        train.obs["tissue"].astype(str).to_numpy(),
-        evaluation_embeddings,
-        labels,
-    )
-    metrics["heldout_embedding_silhouette"] = _silhouette(
-        evaluation_embeddings, labels
-    )
-    metrics["umap_silhouette"] = _silhouette(coordinates, labels)
-    expression_baseline = _classification_metrics(
-        train.matrix,
-        train.obs["tissue"].astype(str).to_numpy(),
-        evaluation.matrix,
-        labels,
-    )
-    return {
-        "method": "official GeneJEPA test-only UMAP defaults",
-        "figure": str(figure_path),
-        "coordinates": str(coordinate_path),
-        "tissue_metrics": metrics,
-        "real_expression_tissue_metrics": expression_baseline,
-    }
 
 
 def _diffusion_figure(
@@ -405,15 +319,7 @@ def run(args: argparse.Namespace) -> Path:
 
     output = run_dir / "figures" / f"archs4_tissues_{args.split}"
     output.mkdir(parents=True, exist_ok=True)
-    if adapter.adapter_id == "genejepa":
-        result = _genejepa_figure(
-            adapter,
-            train,
-            evaluation,
-            output,
-            seed=config.training.seed,
-        )
-    elif isinstance(adapter, DiffusionAdapter):
+    if isinstance(adapter, DiffusionAdapter):
         result = _diffusion_figure(
             adapter,
             train,
@@ -423,9 +329,7 @@ def run(args: argparse.Namespace) -> Path:
             background_samples=args.background_samples,
         )
     else:
-        raise ValueError(
-            "ARCHS4 tissue figures currently support genejepa and lacan_diffusion"
-        )
+        raise ValueError("ARCHS4 tissue figures require lacan_diffusion")
     summary = {
         "run_dir": str(run_dir),
         "adapter_id": adapter.adapter_id,

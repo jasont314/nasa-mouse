@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from nasa_mouse_rna_diffusion.matched_all_gene_classifiers import (
+from nasa_mouse_diffusion.paper_parity.matched_all_gene_classifiers import (
     _accession_blocks,
     _bh_fdr_crosswalk,
     _candidate_reactome_enrichment,

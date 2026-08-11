@@ -4,14 +4,10 @@ This document tracks the NASA mouse adaptation of Lacan et al.,
 "In silico generation of gene expression profiles using diffusion models"
 (BMC Bioinformatics, 2026; DOI: https://doi.org/10.1186/s12859-026-06470-8).
 
-The downloaded accepted-manuscript PDF is stored at:
-
-- `docs/papers/lacan_diffusion_2026_reference.pdf`
-
 The configurable OSDR extension lives in `src/nasa_mouse_diffusion/`. The strict
 paper-parity ARCHS4 comparison lives separately in
-`src/nasa_mouse_rna_diffusion/`, so extensions cannot be mistaken for the published
-architecture.
+`src/nasa_mouse_diffusion/paper_parity/`, so extensions cannot be mistaken for
+the published architecture.
 
 ## Paper And Code Review
 
@@ -79,9 +75,9 @@ entries remain explicit limitations.
 
 Inputs must remain API-derived:
 
-- OSDR query: `outputs/expimap_direct_osdr_<tissue>/input/*.h5ad`
+- OSDR query: `outputs/expimap/runs/direct/<tissue>/input/*.h5ad`
 - ARCHS4 reference:
-  `outputs/expimap_archs4_reference_osdr_query_<tissue>/reference_input_*/`
+  `outputs/expimap/runs/reference_query/<tissue>/reference_input_*/`
 
 The workflow does not use the older raw integrated OSDR H5 files.
 
@@ -131,7 +127,7 @@ training summary records whether the source was `mouse_l1000_orthologs` or
 
 Default output root:
 
-- `outputs/diffusion_conditional_generation/`
+- `outputs/generative/standalone/diffusion/conditional_generation/`
 
 Per model:
 
@@ -161,11 +157,11 @@ CPM export, and each condition writes a `*_clip_report.json` file.
 
 Production summary tables are written under:
 
-- `outputs/diffusion_conditional_generation/summary/diffusion_training_summary.tsv`
-- `outputs/diffusion_conditional_generation/summary/diffusion_analysis_summary.tsv`
-- `outputs/diffusion_conditional_generation/summary/diffusion_synthetic_examples_summary.tsv`
-- `outputs/diffusion_conditional_generation/summary/diffusion_subgroup_analysis_summary.tsv`
-- `outputs/diffusion_conditional_generation/summary/diffusion_reverse_validation_refresh.tsv`
+- `outputs/generative/standalone/diffusion/conditional_generation/summary/diffusion_training_summary.tsv`
+- `outputs/generative/standalone/diffusion/conditional_generation/summary/diffusion_analysis_summary.tsv`
+- `outputs/generative/standalone/diffusion/conditional_generation/summary/diffusion_synthetic_examples_summary.tsv`
+- `outputs/generative/standalone/diffusion/conditional_generation/summary/diffusion_subgroup_analysis_summary.tsv`
+- `outputs/generative/standalone/diffusion/conditional_generation/summary/diffusion_reverse_validation_refresh.tsv`
 
 ## Configurable OSDR Extension Deviations
 
@@ -203,8 +199,8 @@ Generate matched synthetic samples:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_diffusion.generate_synthetic \
-  --model-dir outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune \
-  --output-dir outputs/diffusion_conditional_generation/synthetic_custom/liver \
+  --model-dir outputs/generative/standalone/diffusion/conditional_generation/archs4_pretrain_osdr_finetune \
+  --output-dir outputs/generative/standalone/diffusion/conditional_generation/synthetic_custom/liver \
   --n 128 \
   --counterfactual ground_control flight \
   --set wgan_tissue=liver \

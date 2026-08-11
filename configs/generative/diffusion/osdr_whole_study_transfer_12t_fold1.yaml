@@ -1,0 +1,115 @@
+version: 1
+contract: lacan_modelddim_osdr_extension_v1
+
+run:
+  output_dir: outputs/generative/benchmark/runs/lacan_diffusion/osdr_whole_study_transfer_12t_fold1_seed6101
+  seed: 6101
+  source_root: assets/model_sources/rna-diffusion
+
+data:
+  expression_source: nasa_osdr_api
+  generative_config: configs/generative/benchmark/default.yaml
+  osdr_h5ad: outputs/generative/benchmark/data/osdr/osdr_api_raw_counts.h5ad
+  prepared_h5: outputs/generative/benchmark/data/lacan_diffusion/osdr_whole_study_transfer_12t_fold1_l974.h5
+  gene_lengths: data/reference/gencode_vM39_mouse_gene_lengths.tsv
+  mouse_landmark_panel: data/diffusion/l974_mouse_paper_parity.tsv
+  landmark_dimensions: 974
+  tissue_mode: pooled_conditioned
+  tissues:
+    - adrenal_gland
+    - brain
+    - cerebellum
+    - heart
+    - kidney
+    - liver
+    - lung
+    - retina
+    - skeletal_muscle
+    - skin
+    - spleen
+    - thymus
+  accession_scope: all_eligible
+  include_accessions: []
+  exclude_accessions: []
+  split_strategy: accession_holdout
+  validation_accessions:
+    - OSD-457
+    - OSD-161
+    - OSD-563
+    - OSD-270
+    - OSD-464
+    - OSD-397
+    - OSD-666
+    - OSD-240
+  test_accessions:
+    - OSD-98
+    - OSD-612
+    - OSD-525
+    - OSD-599
+    - OSD-253
+    - OSD-163
+    - OSD-245
+    - OSD-48
+    - OSD-686
+    - OSD-164
+    - OSD-173
+    - OSD-900
+    - OSD-255
+    - OSD-665
+    - OSD-576
+    - OSD-104
+    - OSD-419
+    - OSD-243
+    - OSD-238
+    - OSD-420
+    - OSD-421
+  conditioning_covariates: [tissue, condition]
+  unseen_study_policy: error
+  normalization: full_transcriptome_tpm_then_archs4_train_maxabs
+  maxabs_scale_source: outputs/generative/benchmark/data/lacan_diffusion/archs4_mouse_paper_parity_osdr_disjoint_l974.h5
+  pretrained_classes_h5: outputs/generative/benchmark/data/lacan_diffusion/archs4_mouse_paper_parity_osdr_disjoint_l974.h5
+
+model:
+  hidden_dims: [8192, 8192]
+  dropout: 0.1
+  time_embedding_dim: 1
+  tissue_embedding_dim: 2
+  sinusoidal_time: false
+  diffusion_timesteps: 1000
+  beta_schedule: quad
+  beta_start: 0.0001
+  beta_end: 0.02
+  ema_decay: 0.999
+
+training:
+  regime: archs4_pretrain_osdr_finetune
+  pretrained_model: outputs/generative/benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_osdr_disjoint_seed1234/model.pt
+  pretrained_condition_initialization: function_preserving_tissue
+  epochs: 15000
+  batch_size: 2048
+  optimizer: Adam
+  learning_rate: 0.0004783833151836702
+  beta1: 0.9
+  beta2: 0.999
+  epsilon: 1.0e-08
+  weight_decay: 0.0
+  scheduler: OneCycle
+  one_cycle_peak_step: 1000
+  gradient_clipping: false
+  weighted_sampling: false
+  amp: true
+  num_workers: 8
+  checkpoint_every_epochs: 1000
+  log_every_epochs: 100
+  retain_training_checkpoint: false
+  finetune_epochs: 5000
+  finetune_learning_rate: 0.0001
+  finetune_one_cycle_peak_step: 1000
+
+evaluation:
+  split: test
+  unlock_test: true
+  quality_samples: 1200
+  quality_batch_size: 256
+  diffusion_steps: 1000
+  metric_samples: 1200

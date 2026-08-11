@@ -426,9 +426,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--archs4-h5", default=defaults.archs4_h5)
     parser.add_argument(
         "--osdr-inventory",
-        default="outputs/generative_benchmark/data_audit/osdr/osdr_tissue_inventory.tsv",
+        default="outputs/generative/benchmark/data_audit/osdr/osdr_tissue_inventory.tsv",
     )
-    parser.add_argument("--output-dir", default="outputs/generative_benchmark/data_audit/archs4")
+    parser.add_argument("--output-dir", default="outputs/generative/benchmark/data_audit/archs4")
     parser.add_argument("--max-per-tissue", type=int, default=10000)
     parser.add_argument("--max-per-series", type=int, default=100)
     parser.add_argument("--seed", type=int, default=2020)

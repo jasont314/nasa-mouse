@@ -27,9 +27,9 @@ For the current 12-filter aggregate liver GLARE run:
 ```bash
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.metascape_client submit \
-  --gene-lists outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_12filter_priority_gene_lists.csv \
-  --background outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_background_all_glare_genes.txt \
-  --output-dir 'outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_results/{session_id}' \
+  --gene-lists outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_12filter_priority_gene_lists.csv \
+  --background outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_background_all_glare_genes.txt \
+  --output-dir 'outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_results/{session_id}' \
   --input-species 10090 \
   --analysis-species 10090
 ```
@@ -48,8 +48,8 @@ enrichment job:
 ```bash
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.metascape_client submit \
-  --gene-lists outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_12filter_priority_gene_lists.csv \
-  --background outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_background_all_glare_genes.txt \
+  --gene-lists outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_12filter_priority_gene_lists.csv \
+  --background outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_gene_lists/metascape_background_all_glare_genes.txt \
   --output-dir '/tmp/metascape_client_prepare_test/{session_id}' \
   --input-species 10090 \
   --analysis-species 10090 \
@@ -79,7 +79,7 @@ session:
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.metascape_client download \
   --session-id <metascape_session_id> \
-  --output-dir outputs/metascape_runs/<metascape_session_id>
+  --output-dir outputs/glare/metascape_runs/<metascape_session_id>
 ```
 
 Use `--include-zip` if you also want Metascape's full `all.zip` archive.
@@ -179,7 +179,7 @@ https://metascape.org/gp/index.html#/reportfinal/t0efo3prt
 Local output directory:
 
 ```text
-outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_results/t0efo3prt
+outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/metascape_results/t0efo3prt
 ```
 
 Run summary:

@@ -12,8 +12,8 @@ import pandas as pd
 from .multi_tissue_validation import term_module_genes
 
 
-DEFAULT_ROOT = "outputs/glare_multi_tissue_api"
-DEFAULT_VALIDATION_DIR = "outputs/glare_multi_tissue_api/validation_stack_terms15"
+DEFAULT_ROOT = "outputs/glare/multi_tissue_api"
+DEFAULT_VALIDATION_DIR = "outputs/glare/multi_tissue_api/validation_stack_terms15"
 
 
 def numeric(series: pd.Series) -> pd.Series:

@@ -12,10 +12,10 @@ from .io import require_import
 os.environ.setdefault("LOKY_MAX_CPU_COUNT", str(os.cpu_count() or 1))
 
 
-DEFAULT_REPRESENTATION = "outputs/glare_hpt_tms_facs_osdr/FTSAE_representation.npy"
-DEFAULT_GENE_LATENT = "outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_latent.tsv"
-DEFAULT_GENE_PCA = "outputs/glare_hpt_tms_facs_osdr/post_finetune/gene_pca.tsv"
-DEFAULT_OUTPUT_DIR = "outputs/glare_hpt_tms_facs_osdr/post_finetune/ensemble_clustering"
+DEFAULT_REPRESENTATION = "outputs/glare/hpt_tms_facs_osdr/FTSAE_representation.npy"
+DEFAULT_GENE_LATENT = "outputs/glare/hpt_tms_facs_osdr/post_finetune/gene_latent.tsv"
+DEFAULT_GENE_PCA = "outputs/glare/hpt_tms_facs_osdr/post_finetune/gene_pca.tsv"
+DEFAULT_OUTPUT_DIR = "outputs/glare/hpt_tms_facs_osdr/post_finetune/ensemble_clustering"
 
 
 def scale_latent(latent, no_scale: bool):

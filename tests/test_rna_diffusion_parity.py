@@ -10,32 +10,32 @@ import numpy as np
 import pandas as pd
 import torch
 
-from nasa_mouse_rna_diffusion.conditional_config import load_conditional_config
-from nasa_mouse_rna_diffusion.conditional_data import (
+from nasa_mouse_diffusion.paper_parity.conditional_config import load_conditional_config
+from nasa_mouse_diffusion.paper_parity.conditional_data import (
     _deseq2_median_of_ratios,
     _explicit_accession_roles,
     _full_transcriptome_tpm,
     _joint_class_labels,
     _within_study_roles,
 )
-from nasa_mouse_rna_diffusion.conditional_evaluate import (
+from nasa_mouse_diffusion.paper_parity.conditional_evaluate import (
     _class_probe,
     _per_tissue_fidelity,
 )
-from nasa_mouse_rna_diffusion.conditional_train import (
+from nasa_mouse_diffusion.paper_parity.conditional_train import (
     _expanded_condition_state,
     _scaled_optimizer_step,
 )
-from nasa_mouse_rna_diffusion.config import load_config
-from nasa_mouse_rna_diffusion.data import (
+from nasa_mouse_diffusion.paper_parity.config import load_config
+from nasa_mouse_diffusion.paper_parity.data import (
     _filter_excluded_series,
     _group_split_indices,
     _targeted_candidates,
 )
-from nasa_mouse_rna_diffusion.evaluate import (
+from nasa_mouse_diffusion.paper_parity.evaluate import (
     _nearest_neighbor_adversarial_accuracy,
 )
-from nasa_mouse_rna_diffusion.upstream import (
+from nasa_mouse_diffusion.paper_parity.upstream import (
     ddim_trajectory,
     model_config,
     noise_estimation_loss,
@@ -45,38 +45,38 @@ from nasa_mouse_rna_diffusion.upstream import (
     upstream_model_class,
     verify_source,
 )
-from nasa_mouse_rna_diffusion.real_effect_ceiling import (
+from nasa_mouse_diffusion.paper_parity.real_effect_ceiling import (
     analyze_tissue,
     load_development_expression,
 )
-from nasa_mouse_rna_diffusion.factorized_adapter import (
+from nasa_mouse_diffusion.paper_parity.factorized_adapter import (
     FactorizedAdapterDDIM,
     build_factorized_schema,
     encode_factorized_labels,
     neutralize_group,
 )
-from nasa_mouse_rna_diffusion.factorized_train import (
+from nasa_mouse_diffusion.paper_parity.factorized_train import (
     _condition_effect_direction_loss,
     _correlation_structure_loss,
 )
-from nasa_mouse_rna_diffusion.factorized_calibrate import CovarianceCalibrator
-from nasa_mouse_rna_diffusion.factorized_evaluate import (
+from nasa_mouse_diffusion.paper_parity.factorized_calibrate import CovarianceCalibrator
+from nasa_mouse_diffusion.paper_parity.factorized_evaluate import (
     _evaluation_sampling_seeds,
     _stratified_antithetic_noise,
     _variant_label,
 )
-from nasa_mouse_rna_diffusion.factorized_mean_calibrate import (
+from nasa_mouse_diffusion.paper_parity.factorized_mean_calibrate import (
     HierarchicalMeanCalibrator,
 )
-from nasa_mouse_rna_diffusion.factorized_distribution_calibrate import (
+from nasa_mouse_diffusion.paper_parity.factorized_distribution_calibrate import (
     PositiveResidualCalibrator,
 )
-from nasa_mouse_rna_diffusion.factorized_subset import subset_factorized_data
-from nasa_mouse_rna_diffusion.factorized_final_evaluate import _require_test_unlock
-from nasa_mouse_rna_diffusion.factorized_trajectory import (
+from nasa_mouse_diffusion.paper_parity.factorized_subset import subset_factorized_data
+from nasa_mouse_diffusion.paper_parity.factorized_final_evaluate import _require_test_unlock
+from nasa_mouse_diffusion.paper_parity.factorized_trajectory import (
     _balanced_resampled_indices,
 )
-from nasa_mouse_rna_diffusion.contrastive_guidance import (
+from nasa_mouse_diffusion.paper_parity.contrastive_guidance import (
     contrastive_ddim_final,
     opposite_condition_indices,
 )
@@ -241,7 +241,7 @@ class UpstreamParityTests(unittest.TestCase):
 
 class PaperConfigurationTests(unittest.TestCase):
     def test_paper_configuration_rejects_proxy_architecture(self):
-        source = Path("configs/rna_diffusion/archs4_mouse_paper_parity.yaml")
+        source = Path("configs/generative/diffusion/archs4_mouse_paper_parity.yaml")
         text = source.read_text(encoding="utf-8").replace(
             "hidden_dims: [8192, 8192]", "hidden_dims: [512, 512]"
         )
@@ -253,7 +253,7 @@ class PaperConfigurationTests(unittest.TestCase):
 
     def test_osdr_extension_retains_exact_model_and_training_contract(self):
         config = load_conditional_config(
-            "configs/rna_diffusion/osdr_pooled_flt_gc_paper_architecture.yaml"
+            "configs/generative/diffusion/osdr_pooled_flt_gc_paper_architecture.yaml"
         )
         self.assertEqual(config["model"]["hidden_dims"], [8192, 8192])
         self.assertEqual(config["training"]["epochs"], 15000)
@@ -261,7 +261,7 @@ class PaperConfigurationTests(unittest.TestCase):
             config["data"]["conditioning_covariates"], ["tissue", "condition"]
         )
         pretrained = load_conditional_config(
-            "configs/rna_diffusion/osdr_archs4_pretrain_flt_gc_paper_architecture.yaml"
+            "configs/generative/diffusion/osdr_archs4_pretrain_flt_gc_paper_architecture.yaml"
         )
         self.assertEqual(
             pretrained["training"]["regime"],
@@ -270,7 +270,7 @@ class PaperConfigurationTests(unittest.TestCase):
 
     def test_targeted_reference_retains_exact_training_contract(self):
         config = load_config(
-            "configs/rna_diffusion/archs4_liver_enriched_paper_native.yaml"
+            "configs/generative/diffusion/archs4_liver_enriched_paper_native.yaml"
         )
         self.assertEqual(config["model"]["hidden_dims"], [8192, 8192])
         self.assertEqual(config["training"]["epochs"], 15000)

@@ -21,12 +21,12 @@ from .paper_finetune import (
 
 
 DEFAULT_MOBER_H5AD = (
-    "outputs/mober_liver_ribo6_osdr/projection/mober_projected_onto_OSD-379.h5ad"
+    "outputs/glare/mober/liver_ribo6_osdr/projection/mober_projected_onto_OSD-379.h5ad"
 )
 DEFAULT_PRETRAINED_WEIGHTS = (
-    "outputs/glare_paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth"
+    "outputs/glare/paper_tms_liver_osd379/pretraining/sc_shulse_pretrained_reproduced.pth"
 )
-DEFAULT_OUTPUT_DIR = "outputs/glare_tms_liver_mober_ribo6_osdr"
+DEFAULT_OUTPUT_DIR = "outputs/glare/tms_liver_mober_ribo6_osdr"
 
 
 def as_array(matrix) -> np.ndarray:

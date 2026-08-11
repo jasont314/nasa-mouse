@@ -4,14 +4,14 @@ This note cross-checks the multi-tissue NASA mouse GLARE outputs against prior s
 
 Local outputs reviewed:
 
-- `outputs/glare_multi_tissue_api/validation_stack/candidate_modules.tsv`
-- `outputs/glare_multi_tissue_api/validation_stack/candidate_module_score_meta.tsv`
-- `outputs/glare_multi_tissue_api/validation_stack/candidate_module_panglao_enrichment.tsv`
-- `outputs/glare_multi_tissue_api/validation_stack/metascape_gene_lists/candidate_module_gene_list_manifest.tsv`
-- `outputs/glare_multi_tissue_api/*/dgea_comparison/GLARE_VS_DGEA_PER_STUDY.md`
-- `outputs/glare_multi_tissue_api/*/dgea_comparison/recurring_dgea_glare_pathway_overlap.tsv`
-- `outputs/glare_multi_tissue_api/*/dgea_comparison/significant_glare_reactome_terms_by_study.tsv`
-- Cluster annotation TSVs under `outputs/glare_multi_tissue_api/*/.../plots/`
+- `outputs/glare/multi_tissue_api/validation_stack/candidate_modules.tsv`
+- `outputs/glare/multi_tissue_api/validation_stack/candidate_module_score_meta.tsv`
+- `outputs/glare/multi_tissue_api/validation_stack/candidate_module_panglao_enrichment.tsv`
+- `outputs/glare/multi_tissue_api/validation_stack/metascape_gene_lists/candidate_module_gene_list_manifest.tsv`
+- `outputs/glare/multi_tissue_api/*/dgea_comparison/GLARE_VS_DGEA_PER_STUDY.md`
+- `outputs/glare/multi_tissue_api/*/dgea_comparison/recurring_dgea_glare_pathway_overlap.tsv`
+- `outputs/glare/multi_tissue_api/*/dgea_comparison/significant_glare_reactome_terms_by_study.tsv`
+- Cluster annotation TSVs under `outputs/glare/multi_tissue_api/*/.../plots/`
 
 ## Bottom Line
 

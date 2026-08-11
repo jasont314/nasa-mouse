@@ -9,9 +9,6 @@ import subprocess
 from .paper_contracts import PAPER_SOURCES, verify_pinned_source
 
 
-GENEJEPA_URL = PAPER_SOURCES["genejepa"]["url"]
-
-
 def prepare_source(model: str, path: str | Path) -> Path:
     contract = PAPER_SOURCES[model]
     target = Path(path)
@@ -27,13 +24,8 @@ def prepare_source(model: str, path: str | Path) -> Path:
     return target
 
 
-def prepare_genejepa(path: str | Path) -> Path:
-    return prepare_source("genejepa", path)
-
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--genejepa", default="assets/model_sources/GeneJEPA")
     parser.add_argument(
         "--wgan", default="assets/model_sources/adversarial-gene-expression"
     )
@@ -49,7 +41,6 @@ def main() -> None:
     paths = {
         "vinas_wgan_gp": prepare_source("vinas_wgan_gp", args.wgan),
         "lacan_diffusion": prepare_source("lacan_diffusion", args.diffusion),
-        "genejepa": prepare_source("genejepa", args.genejepa),
         "mbatch": prepare_source("mbatch", args.mbatch),
     }
     for model, path in paths.items():

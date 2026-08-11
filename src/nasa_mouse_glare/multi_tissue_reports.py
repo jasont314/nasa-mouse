@@ -16,7 +16,7 @@ from .io import require_import
 from .per_study_glare import DEFAULT_REACTOME_GMT, cluster_enrichment_for_run
 
 
-DEFAULT_ROOT = "outputs/glare_multi_tissue_api"
+DEFAULT_ROOT = "outputs/glare/multi_tissue_api"
 DEFAULT_ALPHA = 0.05
 
 

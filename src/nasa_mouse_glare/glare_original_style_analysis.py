@@ -28,7 +28,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
-DEFAULT_RUN_DIR = "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers"
+DEFAULT_RUN_DIR = "outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers"
 
 
 def log(message: str) -> None:

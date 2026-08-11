@@ -16,7 +16,7 @@ Primary local comparison:
 - Accessions: 13.
 - ARCHS4 all-eligible skeletal-muscle reference: 1,412 samples from 88 series.
 - Architecture: 1,140 mouse Reactome pathways, 9,319 matched genes.
-- Preferred run: `outputs/expimap_archs4_reference_osdr_query_skeletal_muscle/query_nb_allref_50epoch`.
+- Preferred run: `outputs/expimap/runs/reference_query/skeletal_muscle/query_nb_allref_50epoch`.
 
 Summary across skeletal-muscle runs:
 
@@ -48,8 +48,8 @@ Expected muscle themes in the preferred-run ranking:
 
 The follow-up plots and leave-one-accession-out checks for the preferred muscle run are in:
 
-- `outputs/expimap_pathway_followup_muscle_allref/`
-- `outputs/expimap_pathway_followup_muscle_allref/skeletal_muscle/plots/`
+- `outputs/expimap/analyses/pathway_followup_muscle_all_reference/`
+- `outputs/expimap/analyses/pathway_followup_muscle_all_reference/skeletal_muscle/plots/`
 
 None of the selected preferred-run muscle pathways pass the stricter follow-up rule: FDR < 0.05, same direction across all accessions, same direction under every leave-one-accession-out refit, and max leave-one-out FDR < 0.05.
 
@@ -98,10 +98,10 @@ The most plausible explanation is not "muscle has no spaceflight effect." It is 
 
 Completed follow-up output:
 
-- `outputs/osdr_skeletal_muscle_targeted_modules/`
-- `outputs/osdr_skeletal_muscle_targeted_modules/README.md`
-- `outputs/osdr_skeletal_muscle_targeted_modules/plots/targeted_module_effect_heatmap.png`
-- `outputs/osdr_skeletal_muscle_targeted_modules/plots/top_targeted_module_boxplots.png`
+- `outputs/expimap/analyses/skeletal_muscle_targeted_modules/`
+- `outputs/expimap/analyses/skeletal_muscle_targeted_modules/README.md`
+- `outputs/expimap/analyses/skeletal_muscle_targeted_modules/plots/targeted_module_effect_heatmap.png`
+- `outputs/expimap/analyses/skeletal_muscle_targeted_modules/plots/top_targeted_module_boxplots.png`
 - `data/pathways/mouse_muscle_targeted_modules.gmt`
 - `data/pathways/reactome_current_mouse_ensembl_plus_muscle_targeted.gmt`
 
@@ -138,10 +138,10 @@ The earlier targeted-module result above was not a full expiMap retraining in bo
 
 New follow-up output:
 
-- `outputs/expimap_muscle_targeted_combined_min8/`
-- `outputs/expimap_muscle_targeted_combined_min8/summary/README.md`
-- `outputs/expimap_muscle_targeted_combined_min8/summary/run_validation_summary.tsv`
-- `outputs/expimap_muscle_targeted_combined_min8/summary/targeted_muscle_module_validation_summary.tsv`
+- `outputs/expimap/runs/muscle_groups/combined_min8/`
+- `outputs/expimap/runs/muscle_groups/combined_min8/summary/README.md`
+- `outputs/expimap/runs/muscle_groups/combined_min8/summary/run_validation_summary.tsv`
+- `outputs/expimap/runs/muscle_groups/combined_min8/summary/targeted_muscle_module_validation_summary.tsv`
 
 Setup:
 
@@ -213,12 +213,12 @@ mapping, accession-aware validation, plots, and `latent_enrich` BF checks.
 
 New exploratory output:
 
-- `outputs/expimap_muscle_targeted_combined_min8/group_inputs_exploratory_2acc/`
-- `outputs/expimap_muscle_targeted_combined_min8/direct_edl_nb_100epoch/`
-- `outputs/expimap_muscle_targeted_combined_min8/direct_tibialis_anterior_nb_100epoch/`
-- `outputs/expimap_muscle_targeted_combined_min8/query_edl_nb_allref_50epoch/`
-- `outputs/expimap_muscle_targeted_combined_min8/query_tibialis_anterior_nb_allref_50epoch/`
-- `outputs/expimap_muscle_targeted_combined_min8/summary/exploratory_two_accession_muscle_split_summary.tsv`
+- `outputs/expimap/runs/muscle_groups/combined_min8/group_inputs_exploratory_2acc/`
+- `outputs/expimap/runs/muscle_groups/combined_min8/direct_edl_nb_100epoch/`
+- `outputs/expimap/runs/muscle_groups/combined_min8/direct_tibialis_anterior_nb_100epoch/`
+- `outputs/expimap/runs/muscle_groups/combined_min8/query_edl_nb_allref_50epoch/`
+- `outputs/expimap/runs/muscle_groups/combined_min8/query_tibialis_anterior_nb_allref_50epoch/`
+- `outputs/expimap/runs/muscle_groups/combined_min8/summary/exploratory_two_accession_muscle_split_summary.tsv`
 
 Run-level exploratory summary:
 
@@ -264,8 +264,8 @@ Variant summary:
 
 Output tables:
 
-- `outputs/expimap_muscle_targeted_combined_min8/summary/exploratory_two_accession_variant_matrix_summary.tsv`
-- `outputs/expimap_muscle_targeted_combined_min8/summary/exploratory_two_accession_de_novo_program_summary.tsv`
+- `outputs/expimap/runs/muscle_groups/combined_min8/summary/exploratory_two_accession_variant_matrix_summary.tsv`
+- `outputs/expimap/runs/muscle_groups/combined_min8/summary/exploratory_two_accession_de_novo_program_summary.tsv`
 
 These runs explain why the ARCHS4 reference did not provide a stronger result
 for EDL/tibialis. The reference-query model maps two-accession query data into

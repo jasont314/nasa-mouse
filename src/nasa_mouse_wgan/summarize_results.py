@@ -10,7 +10,7 @@ from nasa_mouse_glare.io import require_import
 
 
 DEFAULT_SEARCH_ROOT = Path("outputs")
-DEFAULT_OUTPUT_DIR = Path("outputs/wgan_pipeline/summary")
+DEFAULT_OUTPUT_DIR = Path("outputs/generative/standalone/wgan/pipeline/summary")
 EXCLUDED_OUTPUT_ROOTS = {"wgan_pipeline"}
 
 

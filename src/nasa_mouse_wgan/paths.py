@@ -45,14 +45,14 @@ class WGANRunSpec:
 
 def direct_query_h5ad(tissue: str) -> Path:
     return (
-        Path(f"outputs/expimap_direct_osdr_{tissue}")
+        Path(f"outputs/expimap/runs/direct/{tissue}")
         / "input"
         / f"osdr_{tissue}_flt_gc_reactome_raw_counts.h5ad"
     )
 
 
 def reference_candidates(tissue: str) -> list[Path]:
-    root = Path(f"outputs/expimap_archs4_reference_osdr_query_{tissue}")
+    root = Path(f"outputs/expimap/runs/reference_query/{tissue}")
     return [
         root / "reference_input_all" / f"archs4_mouse_{tissue}_reference_reactome_raw_counts.h5ad",
         root
@@ -68,7 +68,7 @@ def first_existing(paths: list[Path]) -> Path | None:
 
 def muscle_group_query_h5ad(group: str) -> Path:
     return (
-        Path("outputs/expimap_muscle_targeted_combined_min8")
+        Path("outputs/expimap/runs/muscle_groups/combined_min8")
         / "group_inputs_exploratory_2acc"
         / f"osdr_skeletal_muscle_{group}_flt_gc_reactome_plus_muscle_raw_counts.h5ad"
     )
@@ -76,7 +76,7 @@ def muscle_group_query_h5ad(group: str) -> Path:
 
 def muscle_group_reference_h5ad() -> Path:
     return (
-        Path("outputs/expimap_muscle_targeted_combined_min8")
+        Path("outputs/expimap/runs/muscle_groups/combined_min8")
         / "reference_input_all"
         / "archs4_mouse_skeletal_muscle_reference_reactome_raw_counts.h5ad"
     )
@@ -95,7 +95,7 @@ def build_run_specs(
     specs: list[WGANRunSpec] = []
     for tissue in tissues:
         query = direct_query_h5ad(tissue)
-        output_root = Path(f"outputs/wgan_{tissue}")
+        output_root = Path(f"outputs/generative/standalone/wgan/tissues/{tissue}")
         if include_direct and query.exists():
             specs.append(
                 WGANRunSpec(
@@ -126,7 +126,7 @@ def build_run_specs(
         reference = muscle_group_reference_h5ad()
         for group in muscle_groups:
             query = muscle_group_query_h5ad(group)
-            output_root = Path("outputs/wgan_skeletal_muscle_splits") / group
+            output_root = Path("outputs/generative/standalone/wgan/muscle_groups") / group
             if include_direct and query.exists():
                 specs.append(
                     WGANRunSpec(

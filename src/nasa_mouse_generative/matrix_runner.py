@@ -96,8 +96,6 @@ def config_for_row(base: BenchmarkConfig, row: dict[str, Any]) -> BenchmarkConfi
     if reason:
         raise ValueError(reason)
     preprocessing_name = str(row.get("preprocessing_profile", "custom"))
-    if preprocessing_name == "genejepa_native":
-        preprocessing_name = "model_native"
     feature_name = str(row.get("feature_space", base.features.space))
     hvg_genes = base.features.hvg_genes
     if feature_name == "hvg_2000":
@@ -333,15 +331,15 @@ def run(args: argparse.Namespace) -> Path:
             status.at[index, "error"] = ""
             _write_status(status, status_path)
             name = f"matrix_{row['phase']}_{row['row_id']}"
-            if str(row.get("execution_backend", "")) == "nasa_mouse_rna_diffusion":
+            if str(row.get("execution_backend", "")) == "nasa_mouse_diffusion.paper_parity":
                 baseline_config = str(
                     row.get(
                         "backend_config",
-                        "configs/rna_diffusion/archs4_mouse_paper_parity.yaml",
+                        "configs/generative/diffusion/archs4_mouse_paper_parity.yaml",
                     )
                 )
                 baseline_summary = Path(
-                    "outputs/generative_benchmark/runs/lacan_diffusion/"
+                    "outputs/generative/benchmark/runs/lacan_diffusion/"
                     "archs4_mouse_paper_parity_seed1234/run_summary.json"
                 )
                 if baseline_summary.exists() and json.loads(
@@ -349,7 +347,7 @@ def run(args: argparse.Namespace) -> Path:
                 ).get("status") == "complete":
                     summary = baseline_summary
                 else:
-                    from nasa_mouse_rna_diffusion.train import train
+                    from nasa_mouse_diffusion.paper_parity.train import train
 
                     train(baseline_config)
                     summary = baseline_summary
@@ -384,11 +382,11 @@ def run(args: argparse.Namespace) -> Path:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--matrix", default="configs/generative/experiment_matrix.yaml")
-    parser.add_argument("--config", default="configs/generative/default.yaml")
+    parser.add_argument("--matrix", default="configs/generative/benchmark/experiment_matrix.yaml")
+    parser.add_argument("--config", default="configs/generative/benchmark/default.yaml")
     parser.add_argument(
         "--status",
-        default="outputs/generative_benchmark/summary/experiment_status.tsv",
+        default="outputs/generative/benchmark/summary/experiment_status.tsv",
     )
     parser.add_argument("--phase", action="append", default=[])
     parser.add_argument("--tissue", default="")

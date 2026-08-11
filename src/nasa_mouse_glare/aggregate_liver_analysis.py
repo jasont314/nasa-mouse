@@ -17,7 +17,7 @@ from sklearn.preprocessing import StandardScaler
 from .io import require_import
 
 
-DEFAULT_RUN_DIR = "outputs/glare_tms_liver_aggregated_osdr_flt_gc"
+DEFAULT_RUN_DIR = "outputs/glare/tms_liver_aggregated_osdr_flt_gc"
 DEFAULT_OSDR_H5 = "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5"
 BATCH_VARIABLES = [
     "h5_accession",

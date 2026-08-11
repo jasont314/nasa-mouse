@@ -21,7 +21,7 @@ PYTHONUNBUFFERED=1 PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mo
 The validation outputs are under:
 
 ```text
-outputs/glare_multi_tissue_api/validation_stack/
+outputs/glare/multi_tissue_api/validation_stack/
 ```
 
 Important files:

@@ -29,7 +29,7 @@ compact run its Welch FDR is 0.866 and its accession-aware FDR is 0.860.
 This is therefore a negative discovery result, not evidence for a new liver
 spaceflight program. The compact run's program gene loadings and post-hoc
 Reactome association tables are under
-`outputs/expimap_archs4_reference_osdr_query_liver/query_denovo10_gamma3_150epoch/de_novo_analysis/`.
+`outputs/expimap/runs/reference_query/liver/query_denovo10_gamma3_150epoch/de_novo_analysis/`.
 
 ## Limitation
 

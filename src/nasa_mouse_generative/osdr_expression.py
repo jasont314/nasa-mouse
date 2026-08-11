@@ -331,13 +331,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--metadata",
-        default="outputs/generative_benchmark/data_audit/osdr/osdr_canonical_metadata.tsv",
+        default="outputs/generative/benchmark/data_audit/osdr/osdr_canonical_metadata.tsv",
     )
     parser.add_argument("--api-dir", default="data/osdr_api")
     parser.add_argument("--archs4-h5", default="assets/archs4/mouse_gene_v2.5.h5")
     parser.add_argument(
         "--output",
-        default="outputs/generative_benchmark/data/osdr/osdr_api_raw_counts.h5ad",
+        default="outputs/generative/benchmark/data/osdr/osdr_api_raw_counts.h5ad",
     )
     parser.add_argument(
         "--technical-replicate-policy", choices=["keep", "sum", "mean"], default="sum"

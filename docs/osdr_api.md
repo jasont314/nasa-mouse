@@ -105,8 +105,8 @@ local integrated OSDR HDF5:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.fetch_osdr_mouse_transcriptomics
-PYTHONPATH=src python -m nasa_mouse_glare.prepare_expimap_osdr_tissue --tissue liver
-PYTHONPATH=src python -m nasa_mouse_glare.prepare_expimap_osdr_tissue --tissue kidney
+PYTHONPATH=src python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue liver
+PYTHONPATH=src python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue kidney
 ```
 
 Keep downloaded API count CSVs under `data/osdr_api/counts/`; that directory is

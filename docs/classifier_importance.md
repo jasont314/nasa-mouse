@@ -102,10 +102,35 @@ held-out-real permutation columns are the relevant post-selection check.
 "Held out" here refers to the classifier's outer split. The fixed DDIM predates
 the nested classifier splits and is not independently validated by this test.
 
+## Literature annotation
+
+The strict matched all-gene screen retained 21 unique tissue-gene associations.
+All 21 now have a structured literature annotation: nine aligning, nine
+complementary, one ambiguous, and two unmatched. Eleven associations already
+appeared in the consensus review at the same tissue and direction, so those
+labels were reused. The ten matched-only associations were reviewed separately.
+
+The annotation does not use permutation or SHAP magnitude to assign biological
+meaning. It records whether prior work supports the same direction or process,
+provides a related mechanism, gives mixed evidence, or offers no sufficiently
+specific match. This keeps predictive importance, observed-data association,
+and prior literature as separate fields.
+
+The complete table is
+`paper/synthetic_guided_spaceflight/source_data/table_s22_matched_gene_literature_annotations.tsv`.
+The shared source inventory for matched genes and grouped pathways is
+`table_s24_importance_literature_sources.tsv` in the same directory. Rebuild or
+check both with:
+
+```bash
+PYTHONPATH=src conda run -n nasa-mouse python \
+  -m nasa_mouse_diffusion.paper_parity.annotate_importance_literature --check
+```
+
 ## Outputs
 
 The complete analysis is under
-`outputs/generative_benchmark/analyses/classifier_importance_osdr_disjoint_v1/`.
+`outputs/generative/benchmark/analyses/classifier_importance_osdr_disjoint_v1/`.
 Key files are:
 
 - `synthetic_informed_bh_fdr_gene_importance.tsv`: 49-gene manuscript crosswalk.
@@ -119,6 +144,6 @@ Reproduce the analysis with:
 
 ```bash
 PYTHONPATH=src conda run -n nasa-mouse python \
-  -m nasa_mouse_rna_diffusion.classifier_importance \
-  --config configs/rna_diffusion/classifier_importance_osdr_disjoint.yaml
+  -m nasa_mouse_diffusion.paper_parity.classifier_importance \
+  --config configs/generative/diffusion/classifier_importance_osdr_disjoint.yaml
 ```

@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 import numpy as np
 import pandas as pd
 
-from nasa_mouse_rna_diffusion.generated_feature_guidance import (
+from nasa_mouse_diffusion.paper_parity.generated_feature_guidance import (
     _build_rankings,
     _reactome_enrichment,
     _recenter_draw,

@@ -15,8 +15,8 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 
-from nasa_mouse_rna_diffusion.factorized_adapter import load_factorized_role
-from nasa_mouse_rna_diffusion.factorized_calibrate import _aligned_expression
+from nasa_mouse_diffusion.paper_parity.factorized_adapter import load_factorized_role
+from nasa_mouse_diffusion.paper_parity.factorized_calibrate import _aligned_expression
 
 
 COLORS = {"flight": "#C14924", "ground_control": "#176B87"}

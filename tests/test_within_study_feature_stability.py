@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from nasa_mouse_rna_diffusion.within_study_feature_stability import (
+from nasa_mouse_diffusion.paper_parity.within_study_feature_stability import (
     WorkflowData,
     _choose_arms,
     _metric_set,

@@ -12,7 +12,7 @@ from . import train_wgan
 from .paths import DEFAULT_TISSUES, direct_query_h5ad, first_existing, reference_candidates
 
 
-OUTPUT_ROOT = Path("outputs/wgan_conditional_generation")
+OUTPUT_ROOT = Path("outputs/generative/standalone/wgan/conditional_generation")
 SUMMARY_DIR = OUTPUT_ROOT / "summary"
 
 

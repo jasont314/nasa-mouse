@@ -436,7 +436,7 @@ def submit(args: argparse.Namespace) -> None:
     if output_dir_template:
         output_dir = Path(output_dir_template.format(session_id=session_id))
     else:
-        output_dir = Path("outputs/metascape_runs") / session_id
+        output_dir = Path("outputs/glare/metascape_runs") / session_id
     output_dir.mkdir(parents=True, exist_ok=True)
     log(f"Created Metascape session {session_id}")
 

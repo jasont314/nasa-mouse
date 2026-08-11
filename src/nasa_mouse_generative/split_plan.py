@@ -233,14 +233,14 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--metadata",
-        default="outputs/generative_benchmark/data_audit/osdr/osdr_canonical_metadata.tsv",
+        default="outputs/generative/benchmark/data_audit/osdr/osdr_canonical_metadata.tsv",
     )
     parser.add_argument(
         "--inventory",
-        default="outputs/generative_benchmark/data_audit/osdr/osdr_tissue_inventory.tsv",
+        default="outputs/generative/benchmark/data_audit/osdr/osdr_tissue_inventory.tsv",
     )
     parser.add_argument(
-        "--output-dir", default="outputs/generative_benchmark/splits"
+        "--output-dir", default="outputs/generative/benchmark/splits"
     )
     parser.add_argument("--seed", type=int, default=2020)
     parser.add_argument("--validation-fraction", type=float, default=0.15)

@@ -1,6 +1,6 @@
 # Diffusion Results
 
-Generated from `outputs/diffusion_conditional_generation/` on 2026-06-29.
+Generated from `outputs/generative/standalone/diffusion/conditional_generation/` on 2026-06-29.
 
 The production run is a pan-tissue conditional DDPM/DDIM model, not eight
 independent tissue models. Tissue, material type, muscle group, accession, sex,
@@ -12,11 +12,11 @@ tibialis anterior.
 
 Machine-readable summaries:
 
-- `outputs/diffusion_conditional_generation/summary/diffusion_training_summary.tsv`
-- `outputs/diffusion_conditional_generation/summary/diffusion_analysis_summary.tsv`
-- `outputs/diffusion_conditional_generation/summary/diffusion_synthetic_examples_summary.tsv`
-- `outputs/diffusion_conditional_generation/summary/diffusion_subgroup_analysis_summary.tsv`
-- `outputs/diffusion_conditional_generation/summary/diffusion_reverse_validation_refresh.tsv`
+- `outputs/generative/standalone/diffusion/conditional_generation/summary/diffusion_training_summary.tsv`
+- `outputs/generative/standalone/diffusion/conditional_generation/summary/diffusion_analysis_summary.tsv`
+- `outputs/generative/standalone/diffusion/conditional_generation/summary/diffusion_synthetic_examples_summary.tsv`
+- `outputs/generative/standalone/diffusion/conditional_generation/summary/diffusion_subgroup_analysis_summary.tsv`
+- `outputs/generative/standalone/diffusion/conditional_generation/summary/diffusion_reverse_validation_refresh.tsv`
 
 ## Completed Tracks
 
@@ -50,8 +50,8 @@ not interpretable because it used embeddings never seen during ARCHS4 pretrainin
 
 Per-tissue and split-muscle analyses are under:
 
-- `outputs/diffusion_conditional_generation/<track>/analysis_by_subgroup/<score_set>/<subgroup>/`
-- `outputs/diffusion_conditional_generation/summary/diffusion_subgroup_analysis_summary.tsv`
+- `outputs/generative/standalone/diffusion/conditional_generation/<track>/analysis_by_subgroup/<score_set>/<subgroup>/`
+- `outputs/generative/standalone/diffusion/conditional_generation/summary/diffusion_subgroup_analysis_summary.tsv`
 
 All 39 subgroup analyses completed. Rows below show LOO-stable feature counts;
 again, these are learned-feature diagnostics rather than named pathway calls.
@@ -98,7 +98,7 @@ not as high-confidence replacement biological samples.
 
 Synthetic example root:
 
-- `outputs/diffusion_conditional_generation/synthetic_examples/`
+- `outputs/generative/standalone/diffusion/conditional_generation/synthetic_examples/`
 
 All 26 requested model/profile examples completed for OSDR-only and ARCHS4
 fine-tuned models. Each directory contains scaled, log1p-CPM, CPM, profile,
@@ -112,33 +112,29 @@ Diffusion is currently complementary, not stronger.
   hits than the WGAN conditional post-fine-tune model, but WGAN has better
   established result documentation and stronger split-muscle evidence. Both
   methods produce unnamed learned features requiring attribution.
-- Versus OntoVAE: OntoVAE remains more biology-facing because it reports
-  pathway/program scores and decoder gene associations. OntoVAE also recovered
-  stronger thymus/spleen/liver and soleus signals in prior summaries.
 - Versus expiMap: expiMap remains the most interpretable Reactome-module method.
   Diffusion does not yet recover named skeletal-muscle pathways or de novo
-  gene modules better than expiMap/OntoVAE.
+  gene modules better than expiMap.
 
 For prior-literature alignment, diffusion currently supports that FLT/GC states
 are separable in a conditional generator, including muscle split profiles, but
 it does not by itself recover interpretable mitochondrial, contractile, calcium,
-immune, or ECM pathways. Use GLARE/OntoVAE/expiMap/DGEA for named biology and
-use diffusion mainly for synthetic-generation experiments after improving
-calibration.
+immune, or ECM pathways. Use GLARE, expiMap, or DGEA for named biology and use
+diffusion mainly for synthetic-generation experiments after improving calibration.
 
 ## Outputs And Plots
 
 Main analysis plots:
 
-- `outputs/diffusion_conditional_generation/osdr_only/analysis/diffusion_feature_pca.png`
-- `outputs/diffusion_conditional_generation/osdr_only/analysis/diffusion_feature_umap.png`
-- `outputs/diffusion_conditional_generation/osdr_only/analysis/top_diffusion_feature_shift_heatmap.png`
-- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/analysis/diffusion_feature_pca.png`
-- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/analysis/diffusion_feature_umap.png`
-- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/analysis/top_diffusion_feature_shift_heatmap.png`
-- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/pretrained_query_analysis/diffusion_feature_pca.png`
-- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/pretrained_query_analysis/diffusion_feature_umap.png`
-- `outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune/pretrained_query_analysis/top_diffusion_feature_shift_heatmap.png`
+- `outputs/generative/standalone/diffusion/conditional_generation/osdr_only/analysis/diffusion_feature_pca.png`
+- `outputs/generative/standalone/diffusion/conditional_generation/osdr_only/analysis/diffusion_feature_umap.png`
+- `outputs/generative/standalone/diffusion/conditional_generation/osdr_only/analysis/top_diffusion_feature_shift_heatmap.png`
+- `outputs/generative/standalone/diffusion/conditional_generation/archs4_pretrain_osdr_finetune/analysis/diffusion_feature_pca.png`
+- `outputs/generative/standalone/diffusion/conditional_generation/archs4_pretrain_osdr_finetune/analysis/diffusion_feature_umap.png`
+- `outputs/generative/standalone/diffusion/conditional_generation/archs4_pretrain_osdr_finetune/analysis/top_diffusion_feature_shift_heatmap.png`
+- `outputs/generative/standalone/diffusion/conditional_generation/archs4_pretrain_osdr_finetune/pretrained_query_analysis/diffusion_feature_pca.png`
+- `outputs/generative/standalone/diffusion/conditional_generation/archs4_pretrain_osdr_finetune/pretrained_query_analysis/diffusion_feature_umap.png`
+- `outputs/generative/standalone/diffusion/conditional_generation/archs4_pretrain_osdr_finetune/pretrained_query_analysis/top_diffusion_feature_shift_heatmap.png`
 
 ## Limitations
 

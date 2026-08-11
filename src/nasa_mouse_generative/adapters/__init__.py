@@ -1,4 +1,4 @@
-"""Executable adapters for the three benchmark model families."""
+"""Executable adapters for the WGAN-GP and DDIM benchmark models."""
 
 from __future__ import annotations
 
@@ -48,13 +48,6 @@ def create_adapter(
             l1000_map=config.features.l1000_map,
             source_path=config.execution.diffusion_source,
         )
-    if config.training.model == "genejepa":
-        from .genejepa import GeneJEPAAdapter
-
-        return GeneJEPAAdapter(
-            **common,
-            source_path=config.execution.genejepa_source,
-        )
     raise ValueError(f"Unsupported model adapter: {config.training.model}")
 
 
@@ -72,10 +65,6 @@ def load_adapter(output_dir: str | Path, *, device_spec: str = "auto") -> ModelA
         from .diffusion import DiffusionAdapter
 
         return DiffusionAdapter.load(root, device_spec=device_spec)
-    if adapter_id == "genejepa":
-        from .genejepa import GeneJEPAAdapter
-
-        return GeneJEPAAdapter.load(root, device_spec=device_spec)
     raise ValueError(f"Unknown adapter in {root / 'model.pt'}: {adapter_id!r}")
 
 

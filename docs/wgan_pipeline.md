@@ -47,11 +47,11 @@ Training modes:
 
 Inputs:
 
-- OSDR query: `outputs/expimap_direct_osdr_<tissue>/input/*.h5ad`
+- OSDR query: `outputs/expimap/runs/direct/<tissue>/input/*.h5ad`
 - ARCHS4 reference:
-  `outputs/expimap_archs4_reference_osdr_query_<tissue>/reference_input_*/`
+  `outputs/expimap/runs/reference_query/<tissue>/reference_input_*/`
 - Skeletal-muscle split OSDR groups:
-  `outputs/expimap_muscle_targeted_combined_min8/group_inputs_exploratory_2acc/`
+  `outputs/expimap/runs/muscle_groups/combined_min8/group_inputs_exploratory_2acc/`
 
 Expression transform:
 
@@ -94,17 +94,10 @@ Per score set analysis:
 ## Validation Checkpoints
 
 Smoke validation was run for liver with 256 genes, one epoch, and a small
-32-unit critic/generator to verify the workflow rather than call biology. Both
-paths used CUDA on the NVIDIA A100-SXM4-40GB:
-
-- direct OSDR training wrote scores, FLT-vs-GC tables, random-effects and LOO
-  summaries, PCA/UMAP plots, and a top-feature heatmap under
-  `outputs/wgan_smoke_liver/direct_osdr/`;
-- ARCHS4-pretrained training wrote pretrained-query scores, post-fine-tune
-  scores, the same analysis outputs, and both pretrained/final model files under
-  `outputs/wgan_smoke_liver/archs4_pretrain_osdr_finetune/`.
-
-Smoke outputs are excluded from the aggregate production summarizer by default.
+32-unit critic/generator to verify both direct OSDR training and
+ARCHS4-pretrained/OSDR-fine-tuned execution. Both paths used CUDA on the NVIDIA
+A100-SXM4-40GB. These temporary outputs were removed during repository cleanup;
+smoke outputs remain excluded from the production summarizer by default.
 
 ## Limitations
 
@@ -119,5 +112,4 @@ mapping. For NASA mouse comparison, the most defensible signal is therefore:
   patterns that can be followed up with DGEA or pathway enrichment
 
 WGAN outputs should be treated as complementary representation/generative
-evidence, not a direct replacement for expiMap pathway latents or OntoVAE
-Reactome-constrained programs.
+evidence, not a direct replacement for expiMap Reactome pathway latents.

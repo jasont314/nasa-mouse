@@ -14,17 +14,17 @@ from .io import require_import
 
 
 DEFAULT_OUTPUT_DIR = (
-    "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/"
+    "outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/"
     "post_analysis/study_specific_pathway_recurrence"
 )
 DEFAULT_H5 = "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5"
 DEFAULT_LIVER_METADATA = "data/processed/osdr_mouse_bulk_liver.profile_metadata.tsv"
 DEFAULT_EXCLUDE_PROFILES = "data/filters/aggregate_liver_12_muscle_candidate_profiles.txt"
 DEFAULT_REACTOME_GMT = (
-    "src/expiMap_reproducibility/metadata/c2.cp.reactome.v4.0_mouseEID.gmt"
+    "data/reference/expimap/paper_metadata/c2.cp.reactome.v4.0_mouseEID.gmt"
 )
 DEFAULT_AGGREGATE_GLARE_TERMS = (
-    "outputs/glare_tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/"
+    "outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/post_analysis/"
     "glare_original_style/metascape_results/t_lwm_r7q/top_heatmap_terms.tsv"
 )
 DEFAULT_STUDIES = ["OSD-379", "OSD-245", "OSD-463"]

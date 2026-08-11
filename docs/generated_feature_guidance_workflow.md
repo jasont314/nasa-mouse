@@ -5,7 +5,7 @@
 This workflow asks whether a fixed conditional DDIM can improve FLT-versus-GC
 feature discovery or classification without treating generated profiles as new
 biological replicates. It complements the accession-held-out confirmation in
-`outputs/generative_benchmark/analyses/generated_feature_guidance_confirmation_v1`.
+`outputs/generative/benchmark/analyses/generated_feature_guidance_confirmation_v1`.
 
 The earlier per-tissue "best use" table is retained as an exploratory screen and
 provenance record. It does not choose the final arm in this workflow.
@@ -126,12 +126,12 @@ generalization, even though it is not the primary split used here.
 ```bash
 PYTHONPATH=src OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
   /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m nasa_mouse_rna_diffusion.within_study_feature_stability \
-  --config configs/rna_diffusion/within_study_generated_feature_stability.yaml
+  -m nasa_mouse_diffusion.paper_parity.within_study_feature_stability \
+  --config configs/generative/diffusion/within_study_generated_feature_stability.yaml
 ```
 
 Outputs are under
-`outputs/generative_benchmark/analyses/within_study_generated_feature_stability_v1`.
+`outputs/generative/benchmark/analyses/within_study_generated_feature_stability_v1`.
 The main entry points are `tissue_arm_choices.tsv`, `paired_repeat_support.tsv`,
 `stable_gene_sets.tsv.gz`, `biological_support_summary.tsv`,
 `real_random_effects.tsv.gz`, and `reactome_enrichment.tsv.gz`.

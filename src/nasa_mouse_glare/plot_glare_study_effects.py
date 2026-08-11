@@ -428,10 +428,10 @@ def discover_tissues(root: Path) -> list[str]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, default=Path("outputs/glare_multi_tissue_api"))
-    parser.add_argument("--output-dir", type=Path, default=Path("outputs/glare_multi_tissue_api/study_effects"))
+    parser.add_argument("--root", type=Path, default=Path("outputs/glare/multi_tissue_api"))
+    parser.add_argument("--output-dir", type=Path, default=Path("outputs/glare/multi_tissue_api/study_effects"))
     parser.add_argument("--presentation-dir", type=Path, default=Path("presentation/glare/study_effects"))
-    parser.add_argument("--results-dir", type=Path, default=Path("results/glare/study_effects"))
+    parser.add_argument("--results-dir", type=Path, default=Path("outputs/glare/study_effects"))
     parser.add_argument("--seed", type=int, default=1996)
     args = parser.parse_args()
 
@@ -520,7 +520,7 @@ def main() -> None:
                 "",
                 "Tracked presentation panels are in `presentation/glare/study_effects/`.",
                 "Full per-scope coordinates and module scores are generated under ignored",
-                "`outputs/glare_multi_tissue_api/study_effects/`.",
+                "`outputs/glare/multi_tissue_api/study_effects/`.",
                 "",
                 "Lower accession silhouette after MOBER is consistent with reduced study/batch",
                 "separation. Positive condition silhouette indicates stronger FLT/GC separation",

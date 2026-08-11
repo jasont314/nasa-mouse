@@ -1,0 +1,56 @@
+version: 1
+contract: lacan_modelddim_factorized_adapter_v1
+
+run:
+  output_dir: outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_adapter_long_seed2020
+  seed: 2020
+  source_root: assets/model_sources/rna-diffusion
+
+data:
+  prepared_h5: outputs/generative/benchmark/data/lacan_diffusion/osdr_factorized_dev_l974.h5
+  samples_tsv: outputs/generative/benchmark/data/lacan_diffusion/osdr_factorized_dev_l974.samples.tsv.gz
+  pretrained_model: outputs/generative/benchmark/runs/lacan_diffusion/archs4_mouse_paper_parity_seed1234/model.pt
+
+model:
+  hidden_dims: [8192, 8192]
+  dropout: 0.1
+  time_embedding_dim: 1
+  tissue_embedding_dim: 2
+  sinusoidal_time: false
+  diffusion_timesteps: 1000
+  beta_schedule: quad
+  beta_start: 0.0001
+  beta_end: 0.02
+  ema_decay: 0.999
+
+training:
+  batch_size: 256
+  num_workers: 4
+  amp: true
+  beta1: 0.9
+  beta2: 0.999
+  epsilon: 1.0e-08
+  ema_decay: 0.999
+  condition_dropout: 0.15
+  log_every_steps: 250
+  validate_every_steps: 1000
+  checkpoint_every_steps: 1000
+  stages:
+    domain:
+      steps: 5000
+      learning_rate: 0.0001
+      warmup_steps: 250
+      sampling_strata: [tissue, accession]
+    condition:
+      steps: 5000
+      learning_rate: 0.0002
+      warmup_steps: 250
+      sampling_strata: [tissue, accession, condition]
+
+evaluation:
+  split: validation
+  metric_samples: 0
+  train_metric_samples: 240
+  batch_size: 128
+  sampling_steps: 100
+  guidance_scales: [1.0, 1.5, 2.0]

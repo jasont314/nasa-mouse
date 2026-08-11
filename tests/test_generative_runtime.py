@@ -41,7 +41,7 @@ from nasa_mouse_generative.paper_metrics import paper_distribution_metrics
 from nasa_mouse_generative.preprocessing import FittedPreprocessor, ScaleStats
 from nasa_mouse_generative.profiles import resolve_preprocessing_profile
 from nasa_mouse_generative.runner import _claim_run_identity
-from nasa_mouse_generative.scoreboard import _per_tissue_diagnostics
+from nasa_mouse_generative.scoreboard import _per_tissue_diagnostics, _unified_row
 from nasa_mouse_generative.training_data import (
     DataPartition,
     _retain_readable_archs4_metadata,
@@ -105,9 +105,27 @@ class RuntimeConfigTests(unittest.TestCase):
         self.assertEqual(result["per_tissue_fidelity_passes"], 1)
         self.assertEqual(result["per_tissue_condition_passes"], 1)
 
+    def test_scoreboard_uses_run_namespace_for_model_identity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            summary = (
+                Path(temporary)
+                / "runs"
+                / "lacan_diffusion"
+                / "run-x"
+                / "run_summary.json"
+            )
+            summary.parent.mkdir(parents=True)
+            summary.write_text(
+                '{"run_id": "run-x", "model": "/tmp/model.pt"}\n',
+                encoding="utf-8",
+            )
+            row = _unified_row(summary)
+        self.assertEqual(row["model"], "lacan_diffusion")
+        self.assertEqual(row["implementation"], "")
+
     def test_dotted_overrides_resolve_model_parameters(self):
         config = load_config_with_overrides(
-            "configs/generative/default.yaml",
+            "configs/generative/benchmark/default.yaml",
             [
                 "training.regime=osdr_only",
                 "training.model_parameters.epochs=3",
@@ -148,7 +166,7 @@ class RuntimeConfigTests(unittest.TestCase):
 
     def test_shared_preprocessing_profile_is_resolved(self):
         config = load_config_with_overrides(
-            "configs/generative/default.yaml",
+            "configs/generative/benchmark/default.yaml",
             ["preprocessing.profile=shared_log1p_cpm_maxabs"],
         )
         resolved = resolve_preprocessing_profile(config)
@@ -158,11 +176,11 @@ class RuntimeConfigTests(unittest.TestCase):
 
     def test_wgan_native_and_nasa_cpm_profiles_are_distinct(self):
         native = load_config_with_overrides(
-            "configs/generative/default.yaml",
+            "configs/generative/benchmark/default.yaml",
             ["preprocessing.profile=model_native"],
         )
         nasa = load_config_with_overrides(
-            "configs/generative/default.yaml",
+            "configs/generative/benchmark/default.yaml",
             ["preprocessing.profile=wgan_nasa_cpm_zscore"],
         )
         native = resolve_preprocessing_profile(native)
@@ -654,8 +672,8 @@ class Archs4ExtractionTests(unittest.TestCase):
                     scaler="none",
                 ),
                 training=TrainingConfig(
-                    model="genejepa",
-                    task="representation",
+                    model="lacan_diffusion",
+                    task="conditional_generation",
                     regime="archs4_only",
                     condition_on_flight=False,
                     conditioning_covariates=("tissue",),

@@ -191,7 +191,7 @@ def parse_args() -> argparse.Namespace:
     defaults = DataConfig()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metadata", default=defaults.osdr_metadata)
-    parser.add_argument("--output-dir", default="outputs/generative_benchmark/data_audit/osdr")
+    parser.add_argument("--output-dir", default="outputs/generative/benchmark/data_audit/osdr")
     parser.add_argument("--refresh", action="store_true")
     parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--min-confirmatory-total", type=int, default=defaults.min_confirmatory_total)

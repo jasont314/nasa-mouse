@@ -1,0 +1,19 @@
+version: 1
+
+run:
+  output_dir: outputs/generative/benchmark/analyses/grouped_pathway_importance_osdr_disjoint_v1
+  seed: 11800
+
+matched_config: configs/generative/diffusion/matched_all_gene_classifiers_osdr_disjoint.yaml
+matched_output: outputs/generative/benchmark/analyses/matched_all_gene_classifiers_osdr_disjoint_v1
+reactome_terms: data/pathways/reactome_current_mouse_ensembl_terms.tsv
+
+analysis:
+  minimum_pathway_genes: 3
+  maximum_pathway_genes: 250
+  permutation_repeats: 10
+  minimum_permutation_roc_auc: 0.001
+  minimum_positive_outer_fraction: 0.5
+  top_nonredundant_per_arm: 10
+  maximum_gene_jaccard: 0.7
+  top_pathways_per_plot: 15

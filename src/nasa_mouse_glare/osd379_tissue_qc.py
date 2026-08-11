@@ -638,7 +638,7 @@ def parse_args() -> argparse.Namespace:
         description="Audit skeletal-muscle composition in OSD-379 liver profiles."
     )
     parser.add_argument(
-        "--run-dir", default="outputs/glare_paper_tms_liver_osd379"
+        "--run-dir", default="outputs/glare/paper_tms_liver_osd379"
     )
     parser.add_argument(
         "--normalized-counts",

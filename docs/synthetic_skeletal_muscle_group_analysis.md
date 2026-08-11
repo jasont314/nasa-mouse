@@ -108,13 +108,13 @@ confirmation. Synthetic profiles must not be counted as additional animals.
 ## Reproduction
 
 ```bash
-PYTHONPATH=src python -m nasa_mouse_rna_diffusion.within_study_feature_stability \
-  --config configs/rna_diffusion/within_study_generated_feature_stability_muscle_groups.yaml
+PYTHONPATH=src python -m nasa_mouse_diffusion.paper_parity.within_study_feature_stability \
+  --config configs/generative/diffusion/within_study_generated_feature_stability_muscle_groups.yaml
 ```
 
 Outputs are written to:
 
-`outputs/generative_benchmark/analyses/within_study_generated_feature_stability_muscle_groups_v1/`
+`outputs/generative/benchmark/analyses/within_study_generated_feature_stability_muscle_groups_v1/`
 
 Key files:
 

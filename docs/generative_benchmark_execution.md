@@ -1,6 +1,6 @@
 # Adaptive Generative Benchmark Execution
 
-This document defines how the three paper families are executed without conflating
+This document defines how the two paper families are executed without conflating
 paper reproduction, mouse data substitution, and NASA-specific extensions.
 
 ## Paper Contracts
@@ -39,7 +39,7 @@ Profiles `paper_native` and `paper_native_paper_text` expose these variants expl
 - Input transform: full-transcriptome TPM, landmark selection, then train-fitted
   MaxAbs scaling.
 
-The exact implementation is `src/nasa_mouse_rna_diffusion/`, not the smaller generic
+The exact implementation is `src/nasa_mouse_diffusion/paper_parity/`, not the smaller generic
 conditional adapter. A generic run labeled `paper_native` is rejected. The completed
 mouse ARCHS4 run uses the manuscript 9,796/2,448/5,000 split. The released code's
 12,244-profile train-plus-validation behavior remains a separate declared variant.
@@ -83,37 +83,13 @@ seeded deterministically and reported as a named evaluation variant; the release
 default remains eta zero.
 
 ```bash
-PYTHONPATH=src python -m nasa_mouse_rna_diffusion prepare-osdr
-PYTHONPATH=src python -m nasa_mouse_rna_diffusion train-osdr
-PYTHONPATH=src python -m nasa_mouse_rna_diffusion evaluate-osdr
+PYTHONPATH=src python -m nasa_mouse_diffusion.paper_parity prepare-osdr
+PYTHONPATH=src python -m nasa_mouse_diffusion.paper_parity train-osdr
+PYTHONPATH=src python -m nasa_mouse_diffusion.paper_parity evaluate-osdr
 ```
 
 Validation uses 12 unseen accessions. The 12-accession test partition remains locked;
 both the configuration and `--unlock-test` must opt in after model selection.
-
-### GeneJEPA
-
-- Source commit: `a2f4d7218b17f2f52cc5f1cc94420c8ef1ae3265`.
-- The official Perceiver, Fourier/value tokenizer, random block masking,
-  student/EMA-teacher, predictor, cosine objective, and anti-collapse losses are used.
-- Architecture: `d=768`, 512 latents, 24 blocks, 12 heads, mask ratio 0.45.
-- Training: AdamW `1e-4`, weight decay `2e-4`, 5% linear warmup plus cosine decay,
-  batch 92/device, accumulation two, bfloat16, gradient clipping one, and 50 epochs.
-- Released data duration: one million sampled training profiles per epoch, or about
-  50 million profile exposures. The paper uses four H100 80 GB GPUs and does not
-  report a directly portable wall-clock time.
-- Input transform: `log1p` nonzero expression and one train-fitted scalar mean/SD;
-  zero remains the absent-gene token.
-
-GeneJEPA is representation-only. Any GeneJEPA-guided diffusion is a new experimental
-method and must be compared against the unguided exact DDIM.
-
-The exact released architecture fits one A100 40 GB. Batch 92 with accumulation two
-peaked at 29.88 GB and processed 184 profile exposures in 6.57 seconds. Extrapolating
-that measured throughput to the released 50-million-exposure duration is roughly 20
-GPU-days on this single device. Therefore a shorter run can test representation
-quality, but must be labeled as a duration adaptation and cannot be described as a
-paper-duration reproduction.
 
 ## Execution
 

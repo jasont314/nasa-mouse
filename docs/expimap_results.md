@@ -47,8 +47,8 @@ The current direct summaries use matched 50-epoch runs. Raw counts with negative
 
 | tissue | samples | flight | ground | accessions | genes | pathways | input |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| liver | 231 | 118 | 113 | 12 | 9,321 | 1,140 | `outputs/expimap_direct_osdr_liver/input` |
-| kidney | 135 | 68 | 67 | 6 | 9,321 | 1,140 | `outputs/expimap_direct_osdr_kidney/input` |
+| liver | 231 | 118 | 113 | 12 | 9,321 | 1,140 | `outputs/expimap/runs/direct/liver/input` |
+| kidney | 135 | 68 | 67 | 6 | 9,321 | 1,140 | `outputs/expimap/runs/direct/kidney/input` |
 
 | tissue | transform | role | loss | epochs | min Welch FDR | Welch FDR<0.10 | min study FDR | study FDR<0.10 | top aggregate term |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

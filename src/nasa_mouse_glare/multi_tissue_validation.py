@@ -47,9 +47,9 @@ from .cluster_enrichment import bh_fdr, read_gmt
 from .multi_tissue_reports import clean_reactome_term
 
 
-DEFAULT_ROOT = "outputs/glare_multi_tissue_api"
-DEFAULT_OUTPUT_DIR = "outputs/glare_multi_tissue_api/validation_stack"
-DEFAULT_PANGLAO_GMT = "src/expiMap_reproducibility/metadata/PanglaoDB_markers_27_Mar_2020_mouseEID.gmt"
+DEFAULT_ROOT = "outputs/glare/multi_tissue_api"
+DEFAULT_OUTPUT_DIR = "outputs/glare/multi_tissue_api/validation_stack"
+DEFAULT_PANGLAO_GMT = "data/reference/expimap/paper_metadata/PanglaoDB_markers_27_Mar_2020_mouseEID.gmt"
 
 ARTIFACT_RE = re.compile(
     r"influenza|hiv|viral|vif|rhodopsin|"

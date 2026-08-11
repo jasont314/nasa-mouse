@@ -100,16 +100,16 @@ diagnostic together on its fixed evaluation protocol.
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_wgan.matched_study train \
-  --config configs/generative/wgan_matched_study_conditioned.yaml
+  --config configs/generative/wgan/wgan_matched_study_conditioned.yaml
 
 PYTHONPATH=src python -m nasa_mouse_wgan.matched_study train \
-  --config configs/generative/wgan_matched_study_refine_aug025.yaml
+  --config configs/generative/wgan/wgan_matched_study_refine_aug025.yaml
 
 PYTHONPATH=src python -m nasa_mouse_wgan.matched_study evaluate-validation \
-  --config configs/generative/wgan_matched_study_refine_aug025.yaml
+  --config configs/generative/wgan/wgan_matched_study_refine_aug025.yaml
 
 PYTHONPATH=src python -m nasa_mouse_wgan.matched_study screen-calibration \
-  --config configs/generative/wgan_matched_study_refine_aug025.yaml
+  --config configs/generative/wgan/wgan_matched_study_refine_aug025.yaml
 ```
 
 Do not run `evaluate-test --unlock-test` unless a future fixed validation

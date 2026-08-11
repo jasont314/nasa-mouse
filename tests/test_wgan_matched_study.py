@@ -120,7 +120,7 @@ class MatchedStudyWGANTests(unittest.TestCase):
 
     def test_checked_in_config_uses_paper_architecture_and_study(self):
         config = load_config(
-            "configs/generative/wgan_matched_study_conditioned.yaml"
+            "configs/generative/wgan/wgan_matched_study_conditioned.yaml"
         )
         self.assertEqual(config["model"]["hidden_dims"], [256, 256])
         self.assertEqual(config["model"]["critic_steps"], 5)

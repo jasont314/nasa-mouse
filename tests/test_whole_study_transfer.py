@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from nasa_mouse_rna_diffusion.whole_study_transfer import (
+from nasa_mouse_diffusion.paper_parity.whole_study_transfer import (
     _effect_recovery,
     _markdown_table,
     _safe_correlation,
@@ -92,7 +92,7 @@ class WholeStudyTransferTests(unittest.TestCase):
         observed = set()
         for fold in range(3):
             path = Path(
-                f"configs/rna_diffusion/osdr_whole_study_transfer_12t_fold{fold}.yaml"
+                f"configs/generative/diffusion/osdr_whole_study_transfer_12t_fold{fold}.yaml"
             )
             config = yaml.safe_load(path.read_text(encoding="utf-8"))
             validation = set(config["data"]["validation_accessions"])

@@ -83,7 +83,7 @@ class PaperContractTests(unittest.TestCase):
         self.assertEqual(model.generator.network[-1].out_features, 10)
 
     def test_wgan_paper_rmsprop_and_stopping_variants_match_source_audit(self):
-        base = load_config("configs/generative/default.yaml")
+        base = load_config("configs/generative/benchmark/default.yaml")
         parameters = load_model_parameters(
             replace(
                 base,
@@ -122,7 +122,7 @@ class PaperContractTests(unittest.TestCase):
             self.assertEqual(adapter._early_stopping_checks(), 6)
 
     def test_paper_native_wgan_lr_cannot_be_silently_changed(self):
-        base = load_config("configs/generative/default.yaml")
+        base = load_config("configs/generative/benchmark/default.yaml")
         changed = replace(
             base,
             training=replace(
@@ -135,7 +135,7 @@ class PaperContractTests(unittest.TestCase):
             load_model_parameters(changed)
 
     def test_paper_native_wgan_stopping_cannot_be_disabled(self):
-        base = load_config("configs/generative/default.yaml")
+        base = load_config("configs/generative/benchmark/default.yaml")
         changed = replace(
             base,
             training=replace(
@@ -151,7 +151,6 @@ class PaperContractTests(unittest.TestCase):
         roots = {
             "vinas_wgan_gp": "assets/model_sources/adversarial-gene-expression",
             "lacan_diffusion": "assets/model_sources/rna-diffusion",
-            "genejepa": "assets/model_sources/GeneJEPA",
         }
         for model, root in roots.items():
             with self.subTest(model=model):
@@ -209,7 +208,7 @@ class MatrixResolutionTests(unittest.TestCase):
             inventory_path=Path("unused.tsv"),
             tissue_filter="",
         )
-        base = load_config("configs/generative/default.yaml")
+        base = load_config("configs/generative/benchmark/default.yaml")
         changed = replace(
             base,
             training=replace(
@@ -222,7 +221,7 @@ class MatrixResolutionTests(unittest.TestCase):
 
     def test_study_conditioning_is_an_explicit_alternative(self):
         config = config_for_row(
-            load_config("configs/generative/default.yaml"),
+            load_config("configs/generative/benchmark/default.yaml"),
             _matrix_row(study_policy="conditioned"),
         )
         self.assertIn("study", config.training.conditioning_covariates)
@@ -230,7 +229,7 @@ class MatrixResolutionTests(unittest.TestCase):
 
     def test_matrix_conditioning_profile_can_reduce_sparse_covariates(self):
         config = config_for_row(
-            load_config("configs/generative/default.yaml"),
+            load_config("configs/generative/benchmark/default.yaml"),
             _matrix_row(conditioning_profile="condition_tissue"),
         )
         self.assertEqual(
@@ -241,19 +240,19 @@ class MatrixResolutionTests(unittest.TestCase):
     def test_matrix_rejects_unknown_conditioning_profile(self):
         with self.assertRaisesRegex(ValueError, "Unknown conditioning_profile"):
             config_for_row(
-                load_config("configs/generative/default.yaml"),
+                load_config("configs/generative/benchmark/default.yaml"),
                 _matrix_row(conditioning_profile="not_a_profile"),
             )
 
     def test_unconditional_control_removes_condition_at_runtime(self):
         config = config_for_row(
-            load_config("configs/generative/default.yaml"),
+            load_config("configs/generative/benchmark/default.yaml"),
             _matrix_row(condition_on_flight=False),
         )
         self.assertNotIn("condition", effective_covariates(config))
 
     def test_single_and_selected_scopes_require_explicit_accessions(self):
-        base = load_config("configs/generative/default.yaml")
+        base = load_config("configs/generative/benchmark/default.yaml")
         with self.assertRaisesRegex(ValueError, "awaiting_accession_selection"):
             config_for_row(base, _matrix_row(accession_scope="single"))
         selected_base = replace(
@@ -269,7 +268,7 @@ class MatrixResolutionTests(unittest.TestCase):
         self.assertEqual(selected.data.osdr_accession_scope, "selected")
 
     def test_every_harmonizer_has_a_valid_configured_arm(self):
-        base = load_config("configs/generative/default.yaml")
+        base = load_config("configs/generative/benchmark/default.yaml")
         for method in (
             "none",
             "within_study_zscore",
@@ -361,7 +360,7 @@ class RepeatExecutionTests(unittest.TestCase):
     def test_repeat_count_expands_to_deterministic_seed_runs(self):
         with tempfile.TemporaryDirectory() as directory:
             args = argparse.Namespace(
-                config="configs/generative/default.yaml",
+                config="configs/generative/benchmark/default.yaml",
                 set=[f"output_root={directory}", "training.repeats=3"],
                 tissue="",
                 all_tissues=False,

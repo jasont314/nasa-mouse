@@ -30,7 +30,7 @@ withheld mask, so this run uses only unconstrained de novo extension nodes.
 
 Input artifacts:
 
-- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_5000/input/`
+- `outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/input/`
 - `archs4_mouse_liver_reference_tutorial_hvg_raw_counts.h5ad`
 - `osdr_liver_query_tutorial_hvg_raw_counts.h5ad`
 
@@ -39,13 +39,13 @@ ARCHS4 liver reference and the 231-sample OSDR liver query.
 
 Reference output:
 
-- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_5000/reference_nb_400epoch_seed2020/`
+- `outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/reference_nb_400epoch_seed2020/`
 
 The reference run early-stopped after 248 epochs, with best epoch 196.
 
 Query output:
 
-- `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_5000/query_denovo3_hsic_250epoch_seed2020/`
+- `outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/query_denovo3_hsic_250epoch_seed2020/`
 
 The query run completed all 250 epochs with 367 score dimensions: 364 Reactome
 terms plus `unconstrained_0`, `unconstrained_1`, and `unconstrained_2`.
@@ -91,7 +91,7 @@ comparison group. The largest absolute Bayes-factor-like score was small
 provide strong condition-level enrichment evidence. Applying the local expiMap
 paper-style cutoff of `abs(bf) >= 2.3` gives zero passing terms; the ranked
 summary is in
-`outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_5000/query_denovo3_hsic_250epoch_seed2020/latent_enrich_condition/paper_style_bf_summary/`.
+`outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/query_denovo3_hsic_250epoch_seed2020/latent_enrich_condition/paper_style_bf_summary/`.
 
 The three de novo programs were not FLT/GC-significant:
 

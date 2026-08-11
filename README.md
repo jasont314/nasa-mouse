@@ -7,22 +7,38 @@ pathway architecture files, ARCHS4 mouse resources, and downstream analysis.
 
 ## Repository Layout
 
-- `src/nasa_mouse_glare/`: project code for OSDR/TMS preprocessing, GLARE
-  adaptation, Reactome GMT generation, and analysis utilities.
-- `src/glare/`: vendored GLARE source with local runtime fixes.
-- `src/expiMap_scarches/`: expiMap/scArches source and handoff notes.
-- `src/onto-vae/`: vendored OntoVAE source used for the parallel pathway-VAE
-  evaluation.
+- `src/nasa_mouse_glare/`: project code for shared OSDR/TMS preprocessing,
+  GLARE adaptation, Reactome GMT generation, and analysis utilities.
+- `assets/model_sources/glare/`: vendored GLARE source with local runtime fixes.
+- `src/nasa_mouse_expimap/`: NASA mouse expiMap preparation, training, query
+  mapping, analysis, and publication workflows. The model uses the installed
+  `scarches` package.
+- `src/nasa_mouse_generative/`: configurable WGAN and diffusion benchmark with
+  OSDR-only, ARCHS4-only, and pretrain/fine-tune regimes.
+- `src/nasa_mouse_wgan/`: conditional WGAN-GP training, generation, and feature
+  analysis.
+- `src/nasa_mouse_diffusion/`: practical conditional diffusion backend and the
+  exact Lacan DDIM workflow under `paper_parity/`.
+- [`configs/generative/`](configs/generative/): shared benchmark settings plus
+  separate DDIM and WGAN run configurations.
+- `data/reference/expimap/`: expiMap paper metadata used by GLARE and expiMap
+  validation.
 - [`data/pathways/reactome_current_mouse_ensembl.gmt`](data/pathways/reactome_current_mouse_ensembl.gmt):
   generated Reactome mouse GMT file for the expiMap architecture mask.
 - `assets/archs4/mouse_gene_v2.5.h5`: local ARCHS4 mouse H5 resource; ignored
   by git because it is large.
 - `data/osdr_api/`: NASA OSDR Biological Data API metadata and small
   manifests; downloaded count CSVs under `data/osdr_api/counts/` are ignored.
-- [`literature.md`](literature.md): links for GLARE, VEGA, expiMap, OntoVAE,
-  and MOBER.
+- [`literature.md`](literature.md): links for GLARE, expiMap, MOBER, WGAN-GP,
+  and DDIM.
 - [`docs/osdr_api.md`](docs/osdr_api.md): NASA OSDR Biological Data API notes
   and examples.
+- [`docs/method_sources.md`](docs/method_sources.md): locations and pinned
+  revisions for upstream model and harmonization implementations.
+- [`outputs/README.md`](outputs/README.md): organized output layout and the
+  exact runs selected for analysis.
+- [`outputs/COMMANDS.md`](outputs/COMMANDS.md): canonical commands used to
+  reproduce the retained output families.
 
 ## Setup
 
@@ -85,7 +101,7 @@ PYTHONPATH=src python -m nasa_mouse_glare.multi_tissue_api_glare prepare \
   --prepare-per-study
 ```
 
-Outputs are written under `outputs/glare_multi_tissue_api/`. Retina is audited
+Outputs are written under `outputs/glare/multi_tissue_api/`. Retina is audited
 but skipped for GLARE unless a matching TMS FACS retina pretraining source is
 added. Skeletal-muscle subtype runs use official OSDR material-type labels and
 the available TMS FACS `limb muscle` pretraining tissue.
@@ -94,14 +110,14 @@ Run one prepared aggregate scope:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.multi_tissue_api_glare run-glare-scope \
-  --scope-dir outputs/glare_multi_tissue_api/liver/aggregate
+  --scope-dir outputs/glare/multi_tissue_api/liver/aggregate
 ```
 
 Run MOBER-corrected aggregate GLARE for a multi-study scope:
 
 ```bash
-PYTHONPATH=src:src/MOBER python -m nasa_mouse_glare.multi_tissue_api_glare run-mober-scope \
-  --scope-dir outputs/glare_multi_tissue_api/liver/aggregate
+PYTHONPATH=src:assets/model_sources/MOBER python -m nasa_mouse_glare.multi_tissue_api_glare run-mober-scope \
+  --scope-dir outputs/glare/multi_tissue_api/liver/aggregate
 ```
 
 Run all per-study GLARE scopes for one tissue and compare against per-study
@@ -109,17 +125,17 @@ DESeq2:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.multi_tissue_api_glare run-per-study-glare \
-  --tissue-dir outputs/glare_multi_tissue_api/liver
+  --tissue-dir outputs/glare/multi_tissue_api/liver
 
 PYTHONPATH=src python -m nasa_mouse_glare.multi_tissue_api_glare run-dgea-comparison \
-  --tissue-dir outputs/glare_multi_tissue_api/liver
+  --tissue-dir outputs/glare/multi_tissue_api/liver
 ```
 
 Run the paper-style validation stack on the generated multi-tissue GLARE
 outputs:
 
 ```bash
-PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mouse_glare.multi_tissue_validation \
+PYTHONPATH=src python -m nasa_mouse_glare.multi_tissue_validation \
   --include-per-study \
   --include-mober \
   --shap-aggregate
@@ -128,13 +144,13 @@ PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mouse_glare.multi_tis
 This writes XGBoost verification, representation QC, clustering QC,
 DEG-enrichment comparisons, intersection-vs-GLARE-only module-score validation,
 Panglao marker enrichment, and Metascape-ready gene lists to
-`outputs/glare_multi_tissue_api/validation_stack/`.
+`outputs/glare/multi_tissue_api/validation_stack/`.
 
 Prepare tissue-specific expiMap inputs from API count tables:
 
 ```bash
-PYTHONPATH=src python -m nasa_mouse_glare.prepare_expimap_osdr_tissue --tissue liver
-PYTHONPATH=src python -m nasa_mouse_glare.prepare_expimap_osdr_tissue --tissue kidney
+PYTHONPATH=src python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue liver
+PYTHONPATH=src python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue kidney
 ```
 
 ## Workflows
@@ -143,7 +159,7 @@ The GLARE-compatible preprocessing and fine-tuning workflow is documented in
 [`src/nasa_mouse_glare/README.md`](src/nasa_mouse_glare/README.md).
 
 The expiMap/scArches handoff and architecture notes are documented in
-[`src/expiMap_scarches/EXPIMAP_HANDOFF.md`](src/expiMap_scarches/EXPIMAP_HANDOFF.md).
+[`docs/expimap_handoff.md`](docs/expimap_handoff.md).
 
 Current expiMap run summaries and preprocessing comparisons are documented in
 [`docs/expimap_results.md`](docs/expimap_results.md).
@@ -165,11 +181,15 @@ Condition-specific GC/FLT expiMap clustering is documented in
 The skeletal-muscle pathway prior-work check is documented in
 [`docs/expimap_skeletal_muscle_prior_work.md`](docs/expimap_skeletal_muscle_prior_work.md).
 
-The OntoVAE parallel pipeline, outputs, limitations, and expiMap comparison are
-documented in [`docs/ontovae_pipeline.md`](docs/ontovae_pipeline.md).
-The focused OntoVAE follow-up report with stable pathways, decoder genes, and
-plot links is documented in
-[`docs/ontovae_followup_report.md`](docs/ontovae_followup_report.md).
+The configurable bulk generative-model benchmark, ARCHS4 cohort audit,
+conditioning, harmonization, training regimes, and tissue-figure commands are
+documented in
+[`docs/generative_models_pipeline.md`](docs/generative_models_pipeline.md).
+Model-specific WGAN-GP and diffusion workflows are documented in
+[`docs/wgan_pipeline.md`](docs/wgan_pipeline.md) and
+[`docs/diffusion_pipeline.md`](docs/diffusion_pipeline.md).
+The exact upstream-architecture mouse diffusion comparison is documented in
+[`docs/rna_diffusion_paper_parity.md`](docs/rna_diffusion_paper_parity.md).
 
 For NASA OSDR programmatic data access, see
 [`docs/osdr_api.md`](docs/osdr_api.md).

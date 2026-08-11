@@ -507,7 +507,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pretrained-weights", required=True)
     parser.add_argument(
         "--output-dir",
-        default="outputs/glare_paper_tms_liver_osd379",
+        default="outputs/glare/paper_tms_liver_osd379",
     )
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=16)

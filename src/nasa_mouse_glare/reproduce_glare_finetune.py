@@ -339,12 +339,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--pretrained-weights",
-        default="outputs/glare_original_pretrain_config5/sc_shulse_pretrained_reproduced.pth",
+        default="outputs/glare/original_pretrain_config5/sc_shulse_pretrained_reproduced.pth",
         help="Path to GLARE pretraining weights.",
     )
     parser.add_argument(
         "--output-dir",
-        default="outputs/glare_original_finetune_osd120",
+        default="outputs/glare/original_finetune_osd120",
         help="Directory for weights, representations, and logs.",
     )
     parser.add_argument("--epochs", type=int, default=30)

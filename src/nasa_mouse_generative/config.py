@@ -87,10 +87,10 @@ class PreprocessingConfig:
 @dataclass(frozen=True)
 class DataConfig:
     osdr_metadata: str = "data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv"
-    osdr_h5ad: str = "outputs/generative_benchmark/data/osdr/osdr_api_raw_counts.h5ad"
+    osdr_h5ad: str = "outputs/generative/benchmark/data/osdr/osdr_api_raw_counts.h5ad"
     archs4_h5: str = "assets/archs4/mouse_gene_v2.5.h5"
-    archs4_catalog_dir: str = "outputs/generative_benchmark/data_audit/archs4"
-    split_dir: str = "outputs/generative_benchmark/splits"
+    archs4_catalog_dir: str = "outputs/generative/benchmark/data_audit/archs4"
+    split_dir: str = "outputs/generative/benchmark/splits"
     archs4_cohort: str = "healthy_preferred"
     archs4_max_per_tissue: int = 10000
     archs4_max_per_series: int = 100
@@ -175,9 +175,8 @@ class ExecutionConfig:
     evaluate_after_training: bool = True
     save_generated_matrix: bool = False
     save_prepared_data: bool = False
-    model_profiles: str = "configs/generative/model_profiles.yaml"
-    preprocessing_profiles: str = "configs/generative/preprocessing_profiles.yaml"
-    genejepa_source: str = "assets/model_sources/GeneJEPA"
+    model_profiles: str = "configs/generative/benchmark/model_profiles.yaml"
+    preprocessing_profiles: str = "configs/generative/benchmark/preprocessing_profiles.yaml"
     wgan_source: str = "assets/model_sources/adversarial-gene-expression"
     diffusion_source: str = "assets/model_sources/rna-diffusion"
     retain_training_checkpoint: bool = False
@@ -188,7 +187,7 @@ class ExecutionConfig:
 @dataclass(frozen=True)
 class BenchmarkConfig:
     version: int = 1
-    output_root: str = "outputs/generative_benchmark"
+    output_root: str = "outputs/generative/benchmark"
     preprocessing: PreprocessingConfig = field(default_factory=PreprocessingConfig)
     data: DataConfig = field(default_factory=DataConfig)
     features: FeatureConfig = field(default_factory=FeatureConfig)
@@ -430,7 +429,7 @@ def _construct(data: dict[str, Any]) -> BenchmarkConfig:
         )
     return BenchmarkConfig(
         version=int(data.get("version", 1)),
-        output_root=str(data.get("output_root", "outputs/generative_benchmark")),
+        output_root=str(data.get("output_root", "outputs/generative/benchmark")),
         preprocessing=PreprocessingConfig(**preprocessing_options),
         data=DataConfig(**data_options),
         features=FeatureConfig(**data.get("features", {})),

@@ -37,14 +37,14 @@ between seeds, so the larger reference does not support it.
 
 ## Output Artifacts
 
-- `outputs/expimap_archs4_reference_osdr_query_liver/reference_input_5000_stratified/reference_input_manifest.json`
-- `outputs/expimap_archs4_reference_osdr_query_liver/reference_seed_stability_5000/README.md`
-- `outputs/expimap_archs4_reference_osdr_query_liver/reference_seed_stability_5000/reference_seed_pathway_stability.tsv`
-- `outputs/expimap_archs4_reference_osdr_query_liver/query_nb_5000stratified_seed{2020,2021,2022}_50epoch/posterior_mean_accession_validation/`
+- `outputs/expimap/runs/reference_query/liver/reference_input_5000_stratified/reference_input_manifest.json`
+- `outputs/expimap/runs/reference_query/liver/reference_seed_stability_5000/README.md`
+- `outputs/expimap/runs/reference_query/liver/reference_seed_stability_5000/reference_seed_pathway_stability.tsv`
+- `outputs/expimap/runs/reference_query/liver/query_nb_5000stratified_seed{2020,2021,2022}_50epoch/posterior_mean_accession_validation/`
 
 The preparation and cross-seed summary code is
-`src/nasa_mouse_glare/prepare_expimap_archs4_reference.py` and
-`src/nasa_mouse_glare/summarize_expimap_reference_seeds.py`.
+`src/nasa_mouse_expimap/prepare_expimap_archs4_reference.py` and
+`src/nasa_mouse_expimap/summarize_expimap_reference_seeds.py`.
 
 ## Inference Gate
 

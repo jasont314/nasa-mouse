@@ -14,7 +14,7 @@ PYTHONPATH=src /opt/anaconda3/envs/nasa/bin/python -m nasa_mouse_glare.validate_
 Generated files are under:
 
 ```text
-outputs/glare_multi_tissue_api/validation_stack_terms15/thymus_platelet_calcium_validation/
+outputs/glare/multi_tissue_api/validation_stack_terms15/thymus_platelet_calcium_validation/
 ```
 
 `outputs/` is ignored by Git, so this document tracks the conclusion.

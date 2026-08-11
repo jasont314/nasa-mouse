@@ -14,7 +14,7 @@ from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
 
 
-DEFAULT_RUN_DIR = "outputs/mober_liver_ribo6_osdr"
+DEFAULT_RUN_DIR = "outputs/glare/mober/liver_ribo6_osdr"
 DEFAULT_ONTO = "OSD-379"
 
 

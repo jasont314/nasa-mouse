@@ -161,7 +161,7 @@ biological test. Generated profiles are model draws, not biological replicates.
 ## Outputs
 
 Results are under
-`outputs/generative_benchmark/analyses/matched_all_gene_classifiers_osdr_disjoint_v1/`.
+`outputs/generative/benchmark/analyses/matched_all_gene_classifiers_osdr_disjoint_v1/`.
 
 - `eligible_bh_fdr_candidates.tsv` contains the 23 retained arm-level rows.
 - `bh_fdr_matched_importance.tsv.gz` contains all 459 BH-FDR associations for
@@ -180,6 +180,23 @@ Run the workflow with:
 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
 NUMEXPR_NUM_THREADS=1 PYTHONPATH=src \
 conda run --no-capture-output -n nasa-mouse python \
-  -m nasa_mouse_rna_diffusion.matched_all_gene_classifiers \
-  --config configs/rna_diffusion/matched_all_gene_classifiers_osdr_disjoint.yaml
+  -m nasa_mouse_diffusion.paper_parity.matched_all_gene_classifiers \
+  --config configs/generative/diffusion/matched_all_gene_classifiers_osdr_disjoint.yaml
 ```
+
+For a weight-screening run that keeps all 974 genes but skips the expensive
+permutation-importance and SHAP stages, add `--metrics-only`. The 5% synthetic
+weight experiment uses:
+
+```bash
+OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+NUMEXPR_NUM_THREADS=1 PYTHONPATH=src \
+conda run --no-capture-output -n nasa-mouse python \
+  -m nasa_mouse_diffusion.paper_parity.matched_all_gene_classifiers \
+  --config configs/generative/diffusion/matched_all_gene_classifiers_low_weight_osdr_disjoint.yaml \
+  --metrics-only
+```
+
+In this configuration, synthetic profiles have 5% of the total sample weight
+assigned to real profiles. The output remains separate from the equal-weight
+matched analysis.

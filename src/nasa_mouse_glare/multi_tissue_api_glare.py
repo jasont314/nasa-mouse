@@ -43,14 +43,14 @@ from .paper_finetune import (
 from .tms import prepare_tms
 
 
-DEFAULT_OUTPUT_DIR = "outputs/glare_multi_tissue_api"
+DEFAULT_OUTPUT_DIR = "outputs/glare/multi_tissue_api"
 DEFAULT_TMS_H5AD = "assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad"
 DEFAULT_API_METADATA = (
     "data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv"
 )
 DEFAULT_COUNTS_DIR = "data/osdr_api/counts"
 DEFAULT_REACTOME_GMT = (
-    "src/expiMap_reproducibility/metadata/c2.cp.reactome.v4.0_mouseEID.gmt"
+    "data/reference/expimap/paper_metadata/c2.cp.reactome.v4.0_mouseEID.gmt"
 )
 DEFAULT_MIN_TMS_CELLS = 100
 DEFAULT_MIN_PROFILES_PER_CONDITION = 2

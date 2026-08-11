@@ -12,7 +12,7 @@ from . import train_wgan
 from .paths import DEFAULT_TISSUES, MUSCLE_GROUPS, build_run_specs
 
 
-SUMMARY_ROOT = Path("outputs/wgan_pipeline/summary")
+SUMMARY_ROOT = Path("outputs/generative/standalone/wgan/pipeline/summary")
 
 
 def run_complete(output_dir: Path) -> bool:

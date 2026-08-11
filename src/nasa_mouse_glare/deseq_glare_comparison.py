@@ -485,16 +485,16 @@ the relationship between DESeq2 effect size and aligned latent-space shift.
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--run-dir", default="outputs/glare_filtered_tms_liver_osd379"
+        "--run-dir", default="outputs/glare/filtered_tms_liver_osd379"
     )
     parser.add_argument(
         "--reference-run",
-        default="outputs/glare_paper_tms_liver_osd379",
+        default="outputs/glare/paper_tms_liver_osd379",
         help="Original unfiltered GLARE run used for cluster-stability comparison.",
     )
     parser.add_argument(
         "--deseq-dir",
-        default="outputs/glare_filtered_tms_liver_osd379/deseq2",
+        default="outputs/glare/filtered_tms_liver_osd379/deseq2",
     )
     parser.add_argument(
         "--annotation",
@@ -503,7 +503,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--reactome-gmt",
         default=(
-            "src/expiMap_reproducibility/metadata/"
+            "data/reference/expimap/paper_metadata/"
             "c2.cp.reactome.v4.0_mouseEID.gmt"
         ),
     )

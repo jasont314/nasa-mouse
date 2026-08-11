@@ -1,0 +1,151 @@
+version: 1
+
+profiles:
+  vinas_wgan_gp:
+    paper_native:
+      noise_dim: 64
+      numeric_dim: 1
+      hidden_dims: [256, 256]
+      batch_size: 32
+      critic_steps: 5
+      gradient_penalty: 10.0
+      optimizer: rmsprop
+      rmsprop_alpha: 0.9
+      rmsprop_epsilon: 0.0000001
+      learning_rate: 0.0005
+      epochs: 2000
+      weighted_sampling: false
+      reference_epochs: 2000
+      finetune_epochs: 2000
+      finetune_learning_rate: 0.0005
+      early_stopping: true
+      early_stopping_variant: released_code
+      early_stopping_first_epoch: 1
+      early_stopping_evaluate_every_epochs: 5
+      early_stopping_patience_checks: 10
+      early_stopping_max_genes: 2000
+    paper_native_paper_text:
+      noise_dim: 64
+      numeric_dim: 1
+      hidden_dims: [256, 256]
+      batch_size: 32
+      critic_steps: 5
+      gradient_penalty: 10.0
+      optimizer: rmsprop
+      rmsprop_alpha: 0.9
+      rmsprop_epsilon: 0.0000001
+      learning_rate: 0.0005
+      epochs: 2000
+      weighted_sampling: false
+      reference_epochs: 2000
+      finetune_epochs: 2000
+      finetune_learning_rate: 0.0005
+      early_stopping: true
+      early_stopping_variant: paper_text
+      early_stopping_first_epoch: 1
+      early_stopping_evaluate_every_epochs: 5
+      early_stopping_patience_epochs: 30
+      early_stopping_max_genes: 2000
+    paper_architecture_screen:
+      noise_dim: 64
+      numeric_dim: 1
+      hidden_dims: [256, 256]
+      batch_size: 32
+      critic_steps: 5
+      gradient_penalty: 10.0
+      optimizer: rmsprop
+      rmsprop_alpha: 0.9
+      rmsprop_epsilon: 0.0000001
+      learning_rate: 0.0005
+      epochs: 100
+      weighted_sampling: false
+      reference_epochs: 100
+      finetune_epochs: 100
+      finetune_learning_rate: 0.0005
+      early_stopping: true
+      early_stopping_variant: released_code
+      early_stopping_first_epoch: 1
+      early_stopping_evaluate_every_epochs: 5
+      early_stopping_patience_checks: 10
+      early_stopping_max_genes: 2000
+    practical_screen:
+      noise_dim: 64
+      hidden_dims: [256, 256]
+      batch_size: 128
+      critic_steps: 5
+      gradient_penalty: 10.0
+      optimizer: adam
+      learning_rate: 0.0001
+      epochs: 100
+      reference_epochs: 100
+      finetune_epochs: 50
+      finetune_learning_rate: 0.00005
+
+  lacan_diffusion:
+    paper_native:
+      batch_size: 2048
+      learning_rate: 0.0004783833151836702
+      finetune_learning_rate: 0.0001
+      epochs: 15000
+      reference_epochs: 15000
+      finetune_epochs: 1000
+      hidden_dim: 8192
+      n_blocks: 2
+      dropout: 0.1
+      time_embedding_dim: 1
+      categorical_embedding_dim: 2
+      sinusoidal_time: false
+      diffusion_timesteps: 1000
+      sample_steps: 1000
+      beta_schedule: quad
+      beta_start: 0.0001
+      beta_end: 0.02
+      sampler: ddim
+      eta: 0.0
+      optimizer: adam
+      weight_decay: 0.0
+      scheduler: one_cycle
+      max_learning_rate: 0.0004783833151836702
+      finetune_max_learning_rate: 0.0001
+      use_amp: true
+      use_ema: true
+      ema_decay: 0.999
+      landmark_strategy: l1000
+      n_landmarks: 974
+      reconstruction_alpha: 1.0
+      reconstruction_samples: 10000
+      gradient_clipping: false
+      weighted_sampling: false
+      loss_reduction: sum_genes_mean_batch
+      antithetic_timesteps: true
+    practical_screen:
+      batch_size: 256
+      learning_rate: 0.0005
+      finetune_learning_rate: 0.0001
+      epochs: 100
+      reference_epochs: 100
+      finetune_epochs: 50
+      hidden_dim: 512
+      n_blocks: 2
+      dropout: 0.1
+      time_embedding_dim: 64
+      categorical_embedding_dim: 8
+      diffusion_timesteps: 1000
+      sample_steps: 50
+      beta_schedule: quad
+      beta_start: 0.0001
+      beta_end: 0.02
+      sampler: ddim
+      eta: 0.0
+      optimizer: adam
+      weight_decay: 0.0
+      scheduler: one_cycle
+      max_learning_rate: 0.0005
+      finetune_max_learning_rate: 0.0001
+      use_amp: true
+      use_ema: true
+      ema_decay: 0.999
+      landmark_strategy: l1000
+      n_landmarks: 980
+      reconstruction_alpha: 1.0
+      reconstruction_samples: 10000

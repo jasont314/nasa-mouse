@@ -37,6 +37,9 @@ def expand_matrix(payload: dict) -> pd.DataFrame:
 def run(args: argparse.Namespace) -> Path:
     payload = yaml.safe_load(Path(args.matrix).read_text(encoding="utf-8")) or {}
     table = expand_matrix(payload)
+    if not table.empty and "status" in table.columns:
+        ordered = [column for column in table.columns if column != "status"]
+        table = table[[*ordered, "status"]]
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     table.to_csv(output, sep="\t", index=False)
@@ -46,9 +49,9 @@ def run(args: argparse.Namespace) -> Path:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--matrix", default="configs/generative/experiment_matrix.yaml")
+    parser.add_argument("--matrix", default="configs/generative/benchmark/experiment_matrix.yaml")
     parser.add_argument(
-        "--output", default="outputs/generative_benchmark/summary/experiment_plan.tsv"
+        "--output", default="outputs/generative/benchmark/summary/experiment_plan.tsv"
     )
     return parser.parse_args()
 

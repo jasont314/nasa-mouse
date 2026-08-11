@@ -536,7 +536,7 @@ def parse_args() -> argparse.Namespace:
         "stage", choices=["verification", "post", "all"], help="Analysis stage to run"
     )
     parser.add_argument(
-        "--run-dir", default="outputs/glare_paper_tms_liver_osd379"
+        "--run-dir", default="outputs/glare/paper_tms_liver_osd379"
     )
     parser.add_argument("--seed", type=int, default=1996)
     parser.add_argument("--n-estimators", type=int, default=500)

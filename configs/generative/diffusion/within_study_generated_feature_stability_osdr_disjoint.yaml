@@ -1,0 +1,58 @@
+version: 1
+
+run:
+  output_dir: outputs/generative/benchmark/analyses/within_study_generated_feature_stability_osdr_disjoint_v1
+  seed: 6200
+
+data:
+  prepared_h5: outputs/generative/benchmark/data/lacan_diffusion/osdr_factorized_within_study_replicated_validation_l974.h5
+  samples_tsv: outputs/generative/benchmark/data/lacan_diffusion/osdr_factorized_within_study_replicated_validation_l974.samples.tsv.gz
+  model: outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/model.pt
+  calibrator: outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/evaluation/repeated_distribution_calibration/prior_5_residual_0.5
+  synthetic_draws:
+    - name: seed3020
+      train_path: outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/evaluation/validation_guidance_1/synthetic_train_expression.npz
+      validation_path: outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/evaluation/validation_guidance_1/synthetic_validation_expression.npz
+      residual_seed: 19100
+    - name: seed3022
+      train_path: outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/evaluation/validation_guidance_1_seed3022/synthetic_train_expression.npz
+      validation_path: outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/evaluation/validation_guidance_1_seed3022/synthetic_validation_expression.npz
+      residual_seed: 19101
+    - name: seed3023
+      train_path: outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/evaluation/validation_guidance_1_seed3023/synthetic_train_expression.npz
+      validation_path: outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/evaluation/validation_guidance_1_seed3023/synthetic_validation_expression.npz
+      residual_seed: 19102
+
+prior:
+  best_use_table: outputs/generative/benchmark/runs/lacan_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint_seed2020/evaluation/final_locked_test/per_tissue_classifier_utility_posthoc/three_synthetic_train_draw_summary.tsv
+
+annotations:
+  archs4_h5: assets/archs4/mouse_gene_v2.5.h5
+  reactome_gmt: data/pathways/reactome_current_mouse_ensembl.gmt
+
+analysis:
+  tissues: []
+  repeats: 8
+  outer_fraction: 0.25
+  inner_fraction: 0.25
+  minimum_development_profiles: 12
+  minimum_profiles_per_condition: 5
+
+grid:
+  feature_counts: [10, 25, 50, 100]
+  regularization_c: [0.01, 0.1, 1.0]
+
+arms:
+  real_only: {}
+  generated_only: {}
+  real_plus_generated: {}
+  guided_real_only:
+    rank_methods: [f_rank_consensus, effect_consensus, coefficient_consensus]
+  guided_low_weight:
+    rank_methods: [f_rank_consensus, effect_consensus, coefficient_consensus]
+    synthetic_weight: 0.05
+
+stability:
+  minimum_selection_frequency: 0.5
+  minimum_coefficient_sign_agreement: 0.75
+  minimum_accession_direction_fraction: 0.6

@@ -1,0 +1,76 @@
+{
+  "source": "assets/archs4/mouse_gene_v2.5.h5",
+  "profiles_inspected": 997515,
+  "expression_shape_genes_by_samples": [
+    53511,
+    997515
+  ],
+  "metadata_fields": [
+    "geo_accession",
+    "series_id",
+    "title",
+    "source_name_ch1",
+    "characteristics_ch1",
+    "library_strategy",
+    "library_source",
+    "instrument_model",
+    "organism_ch1",
+    "singlecellprobability"
+  ],
+  "target_osdr_tissues": [
+    "liver",
+    "skeletal_muscle",
+    "skin",
+    "kidney",
+    "thymus",
+    "spleen",
+    "lung",
+    "retina",
+    "brain",
+    "cerebellum",
+    "colon",
+    "heart",
+    "adrenal_gland",
+    "hippocampus",
+    "bone",
+    "optic_nerve",
+    "mammary_gland",
+    "bone_marrow",
+    "brown_adipose_tissue",
+    "white_adipose_tissue",
+    "eye",
+    "cecum",
+    "cells",
+    "cultured_cells"
+  ],
+  "selection": {
+    "bulk_like": "singlecellprobability < 0.5, RNA-Seq strategy, transcriptomic library source, and no explicit scRNA/snRNA/10x/Drop-seq/Chromium/Smart-seq terms",
+    "leakage_excluded": "NASA/GeneLab/spaceflight/microgravity/ISS/RR/hindlimb terms",
+    "healthy_preferred": "exclude explicit disease, tumor, genetic perturbation, intervention, and developmental-mismatch terms; retain control-like and unknown metadata",
+    "control_only": "healthy-preferred eligibility restricted to metadata explicitly labeled healthy, normal, wild type, untreated, control, sham, naive, or baseline",
+    "max_per_tissue": 10000,
+    "max_per_series": 100,
+    "seed": 2020,
+    "training_sampler": "uniform tissue, then uniform GEO series, then uniform sample"
+  },
+  "exclusion_flag_counts_nonexclusive": {
+    "unmatched_tissue": 514458,
+    "not_mouse": 0,
+    "not_rna_seq": 0,
+    "single_cell_like": 471727,
+    "explicit_single_cell": 80180,
+    "spaceflight_leakage": 218,
+    "explicit_nonhealthy_or_perturbed": 706674
+  },
+  "outputs": {
+    "control_only_selected": "outputs/generative/benchmark/data_audit/archs4/archs4_control_only_balanced.tsv.gz",
+    "control_only_summary": "outputs/generative/benchmark/data_audit/archs4/archs4_control_only_summary.tsv",
+    "healthy_preferred_selected": "outputs/generative/benchmark/data_audit/archs4/archs4_healthy_preferred_balanced.tsv.gz",
+    "healthy_preferred_summary": "outputs/generative/benchmark/data_audit/archs4/archs4_healthy_preferred_summary.tsv",
+    "broad_selected": "outputs/generative/benchmark/data_audit/archs4/archs4_broad_balanced.tsv.gz",
+    "broad_summary": "outputs/generative/benchmark/data_audit/archs4/archs4_broad_summary.tsv",
+    "combined_summary": "outputs/generative/benchmark/data_audit/archs4/archs4_reference_summary.tsv",
+    "full_profile_audit": "outputs/generative/benchmark/data_audit/archs4/archs4_full_profile_audit.tsv.gz",
+    "manifest": "outputs/generative/benchmark/data_audit/archs4/archs4_catalog_manifest.json"
+  }
+}

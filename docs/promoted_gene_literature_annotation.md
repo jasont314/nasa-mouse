@@ -74,13 +74,13 @@ targeted search found no prior adrenal spaceflight result for the gene.
 ## Reproducibility
 
 The curated decisions and source metadata live in
-`src/nasa_mouse_rna_diffusion/annotate_promoted_gene_literature.py`. The command
+`src/nasa_mouse_diffusion/paper_parity/annotate_promoted_gene_literature.py`. The command
 below rebuilds the two paper tables and validates complete coverage of the frozen
 promoted-gene inventory:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m nasa_mouse_rna_diffusion.annotate_promoted_gene_literature
+  -m nasa_mouse_diffusion.paper_parity.annotate_promoted_gene_literature
 ```
 
 Use `--check` to verify that committed tables match the curated definitions.

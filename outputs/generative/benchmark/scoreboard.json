@@ -1,0 +1,6 @@
+{
+  "runs": 75,
+  "generation_complete": 38,
+  "eligible": 0,
+  "scoreboard": "outputs/generative/benchmark/scoreboard.tsv"
+}

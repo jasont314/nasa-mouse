@@ -26,7 +26,7 @@ DEFAULT_TARGET_MANIFEST = (
     "data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json"
 )
 DEFAULT_OSDR_H5 = "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5"
-DEFAULT_OUTPUT_DIR = "outputs/glare_tms_liver_aggregated_osdr_flt_gc"
+DEFAULT_OUTPUT_DIR = "outputs/glare/tms_liver_aggregated_osdr_flt_gc"
 DEFAULT_ACCESSIONS = [
     "OSD-379",
     "OSD-245",

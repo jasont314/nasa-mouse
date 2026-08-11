@@ -31,13 +31,13 @@ across direct-model seeds or a count-level differential-expression model.
 
 ## Output Artifacts
 
-- `outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/posterior_mean_pathway_scores.tsv`
-- `outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/accession_validation/random_effects_meta_analysis.tsv`
-- `outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/accession_validation/per_accession_effects.tsv`
-- `outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/accession_validation/leave_one_accession_out.tsv`
+- `outputs/expimap/runs/direct/liver/raw_counts_nb_50epoch/posterior_mean_pathway_scores.tsv`
+- `outputs/expimap/runs/direct/liver/raw_counts_nb_50epoch/accession_validation/random_effects_meta_analysis.tsv`
+- `outputs/expimap/runs/direct/liver/raw_counts_nb_50epoch/accession_validation/per_accession_effects.tsv`
+- `outputs/expimap/runs/direct/liver/raw_counts_nb_50epoch/accession_validation/leave_one_accession_out.tsv`
 
-The implementation is `src/nasa_mouse_glare/export_expimap_scores.py` and
-`src/nasa_mouse_glare/validate_expimap_accession_effects.py`.
+The implementation is `src/nasa_mouse_expimap/export_expimap_scores.py` and
+`src/nasa_mouse_expimap/validate_expimap_accession_effects.py`.
 
 ## Inference Gate
 

@@ -108,7 +108,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--output-dir",
-        default="outputs/glare_original_pretrain_config5",
+        default="outputs/glare/original_pretrain_config5",
         help="Directory for weights and epoch logs.",
     )
     parser.add_argument("--epochs", type=int, default=30)

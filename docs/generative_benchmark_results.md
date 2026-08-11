@@ -79,7 +79,7 @@ distribution, not successful generation.
 ComBat, ComBat-seq, and the three MBatch held-out transforms use training anchors
 but remain transductive sensitivity analyses. MOBER is the only complex inductive
 harmonizer in this table. Machine-readable results and independent-metric plots are
-under `outputs/generative_benchmark/summary/liver_harmonization/`.
+under `outputs/generative/benchmark/summary/liver_harmonization/`.
 
 ## Adaptive Comparisons
 
@@ -101,26 +101,13 @@ under `outputs/generative_benchmark/summary/liver_harmonization/`.
   muscle accession diagnostic passed on locked test, but exact LOO-stable gene
   overlap remained negligible.
 
-## GeneJEPA
-
-GeneJEPA remains representation-only and has no expression decoder. The exact
-768-wide, 512-latent, 24-block screen completed 43,744 ARCHS4 exposures in 1,074
-training seconds with 31.68 GB peak allocated A100 memory. On the balanced
-held-out-series figure cohort, its tissue balanced accuracy/macro F1 were
-0.703/0.701 versus 0.839/0.840 from expression. Embedding and UMAP silhouettes were
--0.176/-0.215. This improves over the practical model but fails the predeclared
-guidance gate, so no GeneJEPA-guided diffusion experiment was started. The bounded
-run made 238 optimizer updates, below the paper's 2,000-step EMA warmup, and is not
-presented as a fully trained paper reproduction.
-
 ## Reproducibility
 
-The ranked table is at `outputs/generative_benchmark/scoreboard.tsv`. Each model run
+The ranked table is at `outputs/generative/benchmark/scoreboard.tsv`. Each model run
 stores a resolved configuration, source and data identities, split hashes, fitted
 preprocessing, device/runtime records, model checkpoint, validation summary, and
-plots under `outputs/generative_benchmark/runs/`. The experiment matrix is resumable
-and content-addressed. The finalist protocol implementation passed all 111
-repository tests.
+plots under `outputs/generative/benchmark/runs/`. The experiment matrix is resumable
+and content-addressed. The finalist protocol is covered by the repository test suite.
 
 See `generative_models_pipeline.md`, `generative_benchmark_decisions.md`,
 `rna_diffusion_paper_parity.md`, and `osdr_conditional_diffusion_finalist.md` for

@@ -21,9 +21,9 @@ from .osd379_tissue_qc import (
 )
 
 
-DEFAULT_RUN_DIR = "outputs/mober_liver_ribo6_osdr"
+DEFAULT_RUN_DIR = "outputs/glare/mober/liver_ribo6_osdr"
 DEFAULT_OSDR_H5 = "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5"
-DEFAULT_OUTPUT_DIR = "outputs/mober_liver_ribo6_osdr/muscle_outlier_qc"
+DEFAULT_OUTPUT_DIR = "outputs/glare/mober/liver_ribo6_osdr/muscle_outlier_qc"
 MIN_STRATUM_GROUP_SIZE = 4
 MIN_BROAD_GROUP_SIZE = 6
 

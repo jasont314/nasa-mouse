@@ -349,28 +349,6 @@ class OsdrExpressionTests(unittest.TestCase):
 
 
 class PlanningTests(unittest.TestCase):
-    def test_genejepa_generation_is_rejected(self):
-        config = BenchmarkConfig(
-            training=TrainingConfig(model="genejepa", task="conditional_generation")
-        )
-        with self.assertRaisesRegex(ValueError, "does not generate expression"):
-            config.validate()
-
-    def test_matrix_marks_non_generator_as_blocked(self):
-        matrix = {
-            "phases": [
-                {
-                    "name": "test",
-                    "axes": {
-                        "model": ["genejepa"],
-                        "task": ["conditional_generation"],
-                    },
-                }
-            ]
-        }
-        row = expand_matrix(matrix).iloc[0]
-        self.assertEqual(row["status"], "capability_blocked")
-
     def test_pooled_split_keeps_every_tissue_condition_in_training(self):
         rows = []
         for accession in ("OSD-1", "OSD-2", "OSD-3", "OSD-4"):

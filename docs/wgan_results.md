@@ -4,8 +4,8 @@ Generated from local WGAN outputs on 2026-06-29.
 
 Primary machine-readable outputs:
 
-- `outputs/wgan_pipeline/summary/wgan_run_summary.tsv`
-- `outputs/wgan_pipeline/summary/wgan_top_features.tsv`
+- `outputs/generative/standalone/wgan/pipeline/summary/wgan_run_summary.tsv`
+- `outputs/generative/standalone/wgan/pipeline/summary/wgan_top_features.tsv`
 
 Pan-tissue conditional-generation models and synthetic FLT/GC examples are
 documented in [WGAN Conditional Generation](wgan_conditional_generation.md).
@@ -115,50 +115,24 @@ Current expiMap multi-tissue FDR summary:
 
 WGAN is broader than expiMap for representation-level signal, especially in skeletal muscle and liver, but expiMap remains more interpretable because its latent dimensions are Reactome or targeted modules. The main disagreement is skeletal muscle: expiMap all-reference Reactome did not produce a final strict aggregate muscle pathway call, while WGAN shows strong whole-muscle direct and frozen-reference representation separation plus a strict soleus split signal. That supports muscle-type-specific follow-up, not a named pathway claim from WGAN alone.
 
-## Comparison To OntoVAE
-
-Top strict OntoVAE rows from the current local summary:
-
-| tissue | group | mode | score set | RE FDR hits | LOO-stable hits | min RE FDR |
-| --- | --- | --- | --- | --- | --- | --- |
-| thymus |  | archs4_pretrain_osdr_finetune | pre_finetune_projection | 928 | 797 | 7.06e-51 |
-| thymus |  | archs4_pretrain_osdr_finetune | finetuned_or_direct | 902 | 730 | 2.74e-44 |
-| thymus |  | hvg_archs4_pretrain_osdr_finetune | finetuned_or_direct | 260 | 146 | 2.28e-42 |
-| thymus |  | hvg_archs4_pretrain_osdr_finetune | pre_finetune_projection | 261 | 139 | 2.77e-41 |
-| spleen |  | archs4_pretrain_osdr_finetune | pre_finetune_projection | 339 | 129 | 3.50e-13 |
-| spleen |  | archs4_pretrain_osdr_finetune | finetuned_or_direct | 350 | 127 | 1.06e-10 |
-| thymus |  | direct_osdr | finetuned_or_direct | 731 | 114 | 3.22e-42 |
-| liver |  | archs4_pretrain_osdr_finetune | pre_finetune_projection | 120 | 48 | 1.25e-06 |
-| skeletal_muscle | soleus | archs4_pretrain_osdr_finetune | finetuned_or_direct | 60 | 27 | 7.41e-17 |
-| liver |  | archs4_pretrain_osdr_finetune | finetuned_or_direct | 82 | 13 | 3.38e-04 |
-| spleen |  | hvg_archs4_pretrain_osdr_finetune | pre_finetune_projection | 48 | 9 | 1.05e-05 |
-| spleen |  | hvg_archs4_pretrain_osdr_finetune | finetuned_or_direct | 54 | 7 | 8.12e-07 |
-| skeletal_muscle | soleus | archs4_pretrain_osdr_finetune | pre_finetune_projection | 24 | 7 | 7.30e-06 |
-| skeletal_muscle | quadriceps | archs4_pretrain_osdr_finetune | finetuned_or_direct | 63 | 3 | 8.96e-05 |
-| liver |  | hvg_archs4_pretrain_osdr_finetune | pre_finetune_projection | 18 | 3 | 4.25e-05 |
-| liver |  | hvg_archs4_pretrain_osdr_finetune | finetuned_or_direct | 17 | 3 | 4.90e-05 |
-| liver |  | direct_osdr | finetuned_or_direct | 10 | 2 | 1.80e-04 |
-| skeletal_muscle |  | archs4_pretrain_osdr_finetune | pre_finetune_projection | 6 | 2 | 8.33e-06 |
-| skeletal_muscle |  | hvg_archs4_pretrain_osdr_finetune | finetuned_or_direct | 2 | 2 | 2.60e-06 |
-| spleen |  | direct_osdr | finetuned_or_direct | 534 | 1 | 9.06e-08 |
-
-OntoVAE is currently the stronger biology-facing companion to expiMap because it reports named Reactome pathway/program scores and decoder gene associations. WGAN is complementary: it often finds stronger or broader FLT-vs-GC separation, but the features need attribution before they become biological modules.
-
 ## Prior-Literature Alignment
 
 The WGAN muscle results align with the prior-work expectation that spaceflight effects are muscle-type-specific and strongest in unloaded/postural muscle. The clearest split result is soleus, matching the prior emphasis on postural muscle, calcium handling, contractile remodeling, mitochondrial/metabolic stress, proteostasis, and ECM remodeling. Because WGAN features are unnamed, this is evidence of separability rather than direct recovery of those pathways.
 
-Thymus and spleen remain broad immune-organ signals across WGAN, expiMap, and OntoVAE. Liver is supported by WGAN and OntoVAE, with expiMap yielding more limited pathway evidence. Lung and skin have smaller WGAN signals; kidney and retina remain weak or non-stable across methods.
+Thymus and spleen remain broad immune-organ signals across WGAN and expiMap.
+Liver is supported by WGAN, while expiMap yielded more limited pathway evidence.
+Lung and skin have smaller WGAN signals; kidney and retina remain weak or
+non-stable across methods.
 
 ## Plot Locations
 
 Representative WGAN visualizations:
 
-- whole skeletal muscle direct: `outputs/wgan_skeletal_muscle/direct_osdr/analysis/top_wgan_feature_shift_heatmap.png`
-- whole skeletal muscle frozen reference projection: `outputs/wgan_skeletal_muscle/archs4_pretrain_osdr_finetune/pretrained_query_analysis/top_wgan_feature_shift_heatmap.png`
-- soleus reference fine-tuned: `outputs/wgan_skeletal_muscle_splits/soleus/archs4_pretrain_osdr_finetune/analysis/top_wgan_feature_shift_heatmap.png`
-- spleen frozen reference projection: `outputs/wgan_spleen/archs4_pretrain_osdr_finetune/pretrained_query_analysis/top_wgan_feature_shift_heatmap.png`
-- thymus reference fine-tuned: `outputs/wgan_thymus/archs4_pretrain_osdr_finetune/analysis/top_wgan_feature_shift_heatmap.png`
+- whole skeletal muscle direct: `outputs/generative/standalone/wgan/tissues/skeletal_muscle/direct_osdr/analysis/top_wgan_feature_shift_heatmap.png`
+- whole skeletal muscle frozen reference projection: `outputs/generative/standalone/wgan/tissues/skeletal_muscle/archs4_pretrain_osdr_finetune/pretrained_query_analysis/top_wgan_feature_shift_heatmap.png`
+- soleus reference fine-tuned: `outputs/generative/standalone/wgan/muscle_groups/soleus/archs4_pretrain_osdr_finetune/analysis/top_wgan_feature_shift_heatmap.png`
+- spleen frozen reference projection: `outputs/generative/standalone/wgan/tissues/spleen/archs4_pretrain_osdr_finetune/pretrained_query_analysis/top_wgan_feature_shift_heatmap.png`
+- thymus reference fine-tuned: `outputs/generative/standalone/wgan/tissues/thymus/archs4_pretrain_osdr_finetune/analysis/top_wgan_feature_shift_heatmap.png`
 
 Each analysis directory also contains `wgan_feature_pca.png`, `wgan_feature_pca_by_accession.png`, `wgan_feature_umap.png`, and `wgan_feature_umap_by_accession.png`.
 

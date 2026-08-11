@@ -17,7 +17,7 @@ import pandas as pd
 from .io import dense_matrix, load_matrix_bundle
 
 
-DEFAULT_ROOT = Path("outputs/glare_multi_tissue_api")
+DEFAULT_ROOT = Path("outputs/glare/multi_tissue_api")
 DEFAULT_VALIDATION_DIR = DEFAULT_ROOT / "validation_stack_terms15"
 DEFAULT_OUTPUT_DIR = DEFAULT_VALIDATION_DIR / "thymus_platelet_calcium_validation"
 TERM = "REACTOME_RESPONSE_TO_ELEVATED_PLATELET_CYTOSOLIC_CA2_"
@@ -640,8 +640,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--root", default=str(DEFAULT_ROOT))
     parser.add_argument("--validation-dir", default=str(DEFAULT_VALIDATION_DIR))
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR))
-    parser.add_argument("--reactome-v4-symbols", default="src/expiMap_reproducibility/metadata/c2.cp.reactome.v4.0.symbols.gmt")
-    parser.add_argument("--reactome-v4-mouse-eids", default="src/expiMap_reproducibility/metadata/c2.cp.reactome.v4.0_mouseEID.gmt")
+    parser.add_argument("--reactome-v4-symbols", default="data/reference/expimap/paper_metadata/c2.cp.reactome.v4.0.symbols.gmt")
+    parser.add_argument("--reactome-v4-mouse-eids", default="data/reference/expimap/paper_metadata/c2.cp.reactome.v4.0_mouseEID.gmt")
     return parser
 
 

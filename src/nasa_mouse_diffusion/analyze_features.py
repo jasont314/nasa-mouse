@@ -8,7 +8,9 @@ from pathlib import Path
 
 from nasa_mouse_glare.cluster_enrichment import bh_fdr
 from nasa_mouse_glare.io import require_import
-from nasa_mouse_glare.validate_expimap_accession_effects import random_effects
+from nasa_mouse_expimap.validate_expimap_accession_effects import (
+    random_effects,
+)
 
 
 def feature_columns(frame) -> list[str]:

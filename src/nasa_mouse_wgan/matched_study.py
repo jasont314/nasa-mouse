@@ -29,12 +29,12 @@ from nasa_mouse_generative.metrics import (
     memorization_metrics,
 )
 from nasa_mouse_generative.training_data import DataPartition
-from nasa_mouse_rna_diffusion.factorized_adapter import load_factorized_role
-from nasa_mouse_rna_diffusion.factorized_distribution_calibrate import (
+from nasa_mouse_diffusion.paper_parity.factorized_adapter import load_factorized_role
+from nasa_mouse_diffusion.paper_parity.factorized_distribution_calibrate import (
     PositiveResidualCalibrator,
     _metric_repeat_summary,
 )
-from nasa_mouse_rna_diffusion.factorized_evaluate import (
+from nasa_mouse_diffusion.paper_parity.factorized_evaluate import (
     _per_tissue_effects,
     _plot_pca,
 )
@@ -1141,7 +1141,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--config",
-        default="configs/generative/wgan_matched_study_conditioned.yaml",
+        default="configs/generative/wgan/wgan_matched_study_conditioned.yaml",
     )
     parser.add_argument("--unlock-test", action="store_true")
     return parser.parse_args()

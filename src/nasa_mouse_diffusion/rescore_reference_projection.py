@@ -124,7 +124,7 @@ def run(args) -> Path:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model-dir", default="outputs/diffusion_conditional_generation/archs4_pretrain_osdr_finetune")
+    parser.add_argument("--model-dir", default="outputs/generative/standalone/diffusion/conditional_generation/archs4_pretrain_osdr_finetune")
     parser.add_argument("--batch-size", type=int, default=512)
     parser.add_argument("--sample-steps", type=int, default=0)
     parser.add_argument("--top-features", type=int, default=30)

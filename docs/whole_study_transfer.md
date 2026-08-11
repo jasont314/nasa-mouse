@@ -38,15 +38,15 @@ then trained for 5,000 epochs using only that fold's training accessions.
 The three model configurations are:
 
 ```text
-configs/rna_diffusion/osdr_whole_study_transfer_12t_fold0.yaml
-configs/rna_diffusion/osdr_whole_study_transfer_12t_fold1.yaml
-configs/rna_diffusion/osdr_whole_study_transfer_12t_fold2.yaml
+configs/generative/diffusion/osdr_whole_study_transfer_12t_fold0.yaml
+configs/generative/diffusion/osdr_whole_study_transfer_12t_fold1.yaml
+configs/generative/diffusion/osdr_whole_study_transfer_12t_fold2.yaml
 ```
 
 The common downstream configuration is:
 
 ```text
-configs/rna_diffusion/generated_feature_whole_study_transfer_12t.yaml
+configs/generative/diffusion/generated_feature_whole_study_transfer_12t.yaml
 ```
 
 ## Evaluation levels
@@ -128,23 +128,23 @@ fixed scale-2 training draws. Fold-specific seeds are declared in the common
 configuration.
 
 ```bash
-python -m nasa_mouse_rna_diffusion prepare-osdr --config <fold-config>
-python -m nasa_mouse_rna_diffusion train-osdr --config <fold-config>
-python -m nasa_mouse_rna_diffusion evaluate-osdr --config <fold-config> --unlock-test --evaluation-variant whole_study
-python -m nasa_mouse_rna_diffusion generate-contrastive-osdr --config <fold-config> --guidance-scales 2 --seeds <fold-seeds>
+python -m nasa_mouse_diffusion.paper_parity prepare-osdr --config <fold-config>
+python -m nasa_mouse_diffusion.paper_parity train-osdr --config <fold-config>
+python -m nasa_mouse_diffusion.paper_parity evaluate-osdr --config <fold-config> --unlock-test --evaluation-variant whole_study
+python -m nasa_mouse_diffusion.paper_parity generate-contrastive-osdr --config <fold-config> --guidance-scales 2 --seeds <fold-seeds>
 ```
 
 After all three folds:
 
 ```bash
-python -m nasa_mouse_rna_diffusion whole-study-transfer \
-  --config configs/rna_diffusion/generated_feature_whole_study_transfer_12t.yaml
+python -m nasa_mouse_diffusion.paper_parity whole-study-transfer \
+  --config configs/generative/diffusion/generated_feature_whole_study_transfer_12t.yaml
 ```
 
 Outputs are written under:
 
 ```text
-outputs/generative_benchmark/analyses/whole_study_transfer_12_tissue_v1/
+outputs/generative/benchmark/analyses/whole_study_transfer_12_tissue_v1/
 ```
 
 This is a uniform retrospective cross-study evaluation. It is stronger than

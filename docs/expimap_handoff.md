@@ -1,0 +1,624 @@
+# expiMap / scArches Handoff
+
+Date: 2026-06-26
+
+This file summarizes the current NASA mouse spaceflight transcriptomics context for handing the work to another agent. The current pivot is from GLARE to expiMap/scArches.
+
+## Repository State
+
+- Repo root: `/media/volume/mouse/nasa/nasa-mouse`
+- Main branch: `main`
+- Latest relevant commit: `8df9641 Add scarches expiMap dependencies`
+- Conda env: `/home/exouser/miniforge3/envs/nasa-mouse`
+- Project Python requirements: `requirements-nasa-mouse-glare.txt`
+
+The dependency pins have been added to `requirements-nasa-mouse-glare.txt`.
+
+## Package Layout
+
+The NASA workflows live in `src/nasa_mouse_expimap/`. The expiMap model comes
+from `scarches==0.6.1` in the `nasa-mouse` environment; no second scArches source
+tree is vendored under `src/`. Run commands from the repository root with
+`PYTHONPATH=src`.
+
+Quick verification command:
+
+```bash
+/home/exouser/miniforge3/envs/nasa-mouse/bin/python - <<'PY'
+import scarches as sca
+import anndata
+import zarr
+print("scarches", getattr(sca, "__version__", "no __version__"), sca.__file__)
+print("anndata", anndata.__version__)
+print("zarr", zarr.__version__)
+print("has EXPIMAP", hasattr(sca.models, "EXPIMAP"))
+PY
+```
+
+Known compatible pins now in `requirements-nasa-mouse-glare.txt`:
+
+```text
+anndata>=0.10,<0.12
+zarr<3
+scanpy>=1.10,<1.12
+scarches==0.6.1
+```
+
+The `anndata` and `zarr` pins are required because `scarches 0.6.1` imports `anndata.read`, which is not present in `anndata 0.12.x`, and `anndata 0.11.x` requires `zarr<3`.
+
+## Current User Goal
+
+The user wants to test expiMap as a pathway-aware model for NASA mouse OSDR spaceflight transcriptomics, using API-derived OSDR bulk RNA-seq data rather than the older local integrated OSDR HDF5. Liver and kidney should both be prepared and analyzed at minimum.
+
+Two planned approaches:
+
+1. Direct OSDR expiMap
+   - Train expiMap directly on API-derived OSDR tissue bulk RNA-seq samples.
+   - Extract pathway/gene-program scores.
+   - Compare FLT vs GC pathway scores and clusters.
+   - This is closest to the usage in the Scientific Reports paper the user linked.
+
+2. Reference-query expiMap
+   - Train a general mouse bulk reference model, likely using ARCHS4 mouse RNA-seq.
+   - Map OSDR tissue bulk RNA-seq as the query using scArches surgery/query mapping.
+   - This is closer to the original expiMap/scArches reference-query workflow.
+
+Recommended order:
+
+1. Direct OSDR expiMap first.
+2. ARCHS4 reference-query expiMap second.
+
+Reason: OSDR is bulk RNA-seq. ARCHS4 is also bulk RNA-seq and is a better reference candidate than single-cell TMS for this method. Single-cell references are possible later, but bulk query to single-cell reference is a stronger modality mismatch unless pseudobulk is introduced.
+
+## Key Links
+
+- expiMap advanced surgery docs:
+  - https://docs.scarches.org/en/latest/expimap_surgery_pipeline_advanced.html
+- expiMap reproducibility repo:
+  - https://github.com/theislab/expiMap_reproducibility
+- Local snapshot of expiMap paper metadata:
+  - `data/reference/expimap/paper_metadata`
+- Scientific Reports paper mentioned by user:
+  - https://www.nature.com/articles/s41598-025-08649-0
+- ARCHS4 download page:
+  - https://maayanlab.cloud/archs4/download.html
+- Direct ARCHS4 mouse gene H5:
+  - https://s3.dev.maayanlab.cloud/archs4/files/mouse_gene_v2.5.h5
+- NASA OSDR Biological Data API:
+  - https://visualization.osdr.nasa.gov/biodata/api/
+- Repo OSDR API notes:
+  - `docs/osdr_api.md`
+- Current expiMap results summary:
+  - `docs/expimap_results.md`
+
+ARCHS4 mouse gene file details from the download page:
+
+- Filename: `mouse_gene_v2.5.h5`
+- Date: `8-24-2024`
+- Size: about 36 GB
+- HEAD request returned content length `38960132574`
+- SHA1 on page: `22605c9b6c4e7502b0861d4d8591ce128907c39f`
+
+## Current Data Sources
+
+Do not use the older raw/integrated OSDR HDF5 as the expiMap OSDR source. The direct OSDR expiMap inputs are now built from the NASA OSDR Biological Data API and its current unnormalized count tables.
+
+API discovery script:
+
+```bash
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.fetch_osdr_mouse_transcriptomics
+```
+
+Discovery filters:
+
+- `study.characteristics.organism = Mus musculus`
+- `study.factor value.spaceflight = Space Flight | Ground Control`
+- `file.datatype = unnormalized counts`
+- bulk RNA-seq inferred from assay/file text
+- single-cell and microarray-like rows excluded
+- all OSDR data sources returned by the API retained
+
+Small API provenance files:
+
+```text
+data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv
+data/osdr_api/osdr_api_mouse_bulk_rnaseq_tissue_counts.tsv
+data/osdr_api/osdr_api_mouse_bulk_rnaseq_tissue_accession_counts.tsv
+data/osdr_api/osdr_api_mouse_bulk_rnaseq_files.tsv
+data/osdr_api/osdr_api_mouse_bulk_rnaseq_summary.json
+```
+
+Downloaded per-accession API count CSVs are cached under:
+
+```text
+data/osdr_api/counts/
+```
+
+That cache is ignored by git.
+
+Current discovery counts:
+
+- 1631 selected FLT/GC samples
+- 75 OSD accessions
+- 75 count files
+- 24 tissues
+- liver before the 12-profile outlier filter: 125 flight, 118 ground control
+- kidney: 68 flight, 67 ground control
+
+Prepared expiMap tissue inputs:
+
+```text
+outputs/expimap/runs/direct/liver/input/
+outputs/expimap/runs/direct/kidney/input/
+```
+
+After the liver 12-profile muscle/outlier filter:
+
+- liver: 231 samples, 118 flight, 113 ground control, 12 accessions, 9321 genes, 1140 Reactome terms
+- kidney: 135 samples, 68 flight, 67 ground control, 6 accessions, 9321 genes, 1140 Reactome terms
+
+Generated OSDR transformations:
+
+- `raw_counts`: primary input, raw API unnormalized counts, recommended `recon_loss=nb`
+- `cpm`: sensitivity input, recommended `recon_loss=mse`
+- `log1p_cpm`: sensitivity input, recommended `recon_loss=mse`
+
+TPM/log1pTPM were not generated because the selected API count tables are unnormalized counts and no transcript-length/TPM field is used. Z-scored inputs were not generated because installed expiMap applies log-style preprocessing and expects nonnegative expression values.
+
+## Pathway Architecture
+
+For expiMap, the "architecture" is the pathway membership mask:
+
+- `adata.X`: expression matrix, sample/cell by gene
+- `adata.layers["counts"]`: raw count matrix
+- `adata.obs`: sample/cell metadata
+- `adata.var`: gene metadata
+- `adata.varm["I"]`: gene by pathway mask
+- `adata.uns["terms"]`: pathway names in the same order as mask columns
+
+Use the same Reactome architecture for both direct OSDR and ARCHS4 reference-query experiments, so pathway scores are comparable.
+
+Preferred Reactome source:
+
+```text
+https://reactome.org/download/current/ReactomePathways.txt
+https://reactome.org/download/current/Ensembl2Reactome_All_Levels.txt
+```
+
+Build a native/current mouse Reactome GMT by filtering `Ensembl2Reactome_All_Levels.txt` to:
+
+```text
+species == Mus musculus
+pathway stable IDs starting with R-MMU-
+genes starting with ENSMUSG
+```
+
+Then join pathway IDs to names from `ReactomePathways.txt`, also filtered to `Mus musculus`. This gives a direct Reactome Mus musculus Ensembl-ID pathway architecture matching OSDR gene IDs.
+
+Suggested generated architecture path:
+
+```text
+data/pathways/reactome_current_mouse_ensembl.gmt
+```
+
+Historical fallback/reference only:
+
+```text
+data/reference/expimap/paper_metadata/c2.cp.reactome.v4.0_mouseEID.gmt
+```
+
+That fallback came from the expiMap reproducibility repo and appears to be an MSigDB Reactome v4.0 symbol set converted to mouse Ensembl IDs. It is useful for reproducing older expiMap examples, but for this NASA mouse project prefer the direct/current Reactome Mus musculus mapping.
+
+Do not use `c2.cp.reactome.v7.5.1.symbols.gmt` unless doing a symbol-based ARCHS4-only test. If ARCHS4 uses symbols, map ARCHS4 symbols to Ensembl or build a careful shared gene table. The preferred comparable workflow is:
+
+```text
+OSDR genes ∩ ARCHS4 genes ∩ Reactome mouse Ensembl genes
+```
+
+Then use this shared gene universe/order for both direct and reference-query expiMap.
+
+## GLARE Background
+
+The GLARE work before this pivot:
+
+- GLARE was reproduced/adapted for mouse liver spaceflight transcriptomics.
+- Pretraining used Tabula Muris Senis FACS liver single-cell data.
+- Fine-tuning used OSDR liver bulk RNA-seq.
+- Per-study GLARE plus DESeq2 comparisons were more defensible than the aggregate analysis.
+- GLARE clusters genes, not samples.
+- PCA/UMAP plots for GLARE show genes as points and GLARE consensus gene clusters as colors.
+
+Important GLARE output directories:
+
+```text
+outputs/glare/per_study_liver_noercc_12filter/
+outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/
+outputs/glare/cluster_visual_review/
+```
+
+Important GLARE interpretation:
+
+- Stronger recurring themes: translation/ribosome, immune/MHC/stress, mitochondrial/metabolism/lipid/xenobiotic, platelet/hemostasis, RNA/DNA/cell-cycle/repair.
+- Apoptosis appears in Reactome enrichment tables, but it is spread across multiple GLARE clusters and should be treated as secondary, not a headline GLARE module.
+- Muscle/cytoskeleton signatures were an issue in aggregate liver GLARE; a 12-sample muscle outlier filter was used.
+
+The 12-filter file:
+
+```text
+data/filters/aggregate_liver_12_muscle_candidate_profiles.txt
+```
+
+For expiMap, start with a liver FLT/GC dataset that removes these 12 candidate muscle outlier profiles.
+
+## Direct OSDR expiMap Workflow
+
+Scripts now implemented:
+
+```text
+src/nasa_mouse_glare/fetch_osdr_mouse_transcriptomics.py
+src/nasa_mouse_expimap/prepare_expimap_osdr_tissue.py
+src/nasa_mouse_expimap/train_expimap_direct.py
+src/nasa_mouse_expimap/analyze_expimap_pathways.py
+src/nasa_mouse_expimap/compare_expimap_transformations.py
+```
+
+Prepare API-derived direct OSDR tissue inputs:
+
+```bash
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.fetch_osdr_mouse_transcriptomics
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue liver
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue kidney
+```
+
+Primary direct expiMap runs:
+
+```bash
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.train_expimap_direct \
+  --input outputs/expimap/runs/direct/liver/input/osdr_liver_flt_gc_reactome_raw_counts.h5ad \
+  --output-dir outputs/expimap/runs/direct/liver/raw_counts_nb_50epoch \
+  --recon-loss nb \
+  --epochs 50 \
+  --hidden-layer-sizes 64
+
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.train_expimap_direct \
+  --input outputs/expimap/runs/direct/kidney/input/osdr_kidney_flt_gc_reactome_raw_counts.h5ad \
+  --output-dir outputs/expimap/runs/direct/kidney/raw_counts_nb_50epoch \
+  --recon-loss nb \
+  --epochs 50 \
+  --hidden-layer-sizes 64
+```
+
+Sensitivity runs:
+
+```bash
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.train_expimap_direct \
+  --input outputs/expimap/runs/direct/liver/input/osdr_liver_flt_gc_reactome_cpm.h5ad \
+  --output-dir outputs/expimap/runs/direct/liver/cpm_mse_50epoch \
+  --recon-loss mse \
+  --epochs 50 \
+  --hidden-layer-sizes 64
+
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.train_expimap_direct \
+  --input outputs/expimap/runs/direct/liver/input/osdr_liver_flt_gc_reactome_log1p_cpm.h5ad \
+  --output-dir outputs/expimap/runs/direct/liver/log1p_cpm_mse_50epoch \
+  --recon-loss mse \
+  --epochs 50 \
+  --hidden-layer-sizes 64
+
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.train_expimap_direct \
+  --input outputs/expimap/runs/direct/kidney/input/osdr_kidney_flt_gc_reactome_cpm.h5ad \
+  --output-dir outputs/expimap/runs/direct/kidney/cpm_mse_50epoch \
+  --recon-loss mse \
+  --epochs 50 \
+  --hidden-layer-sizes 64
+
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.train_expimap_direct \
+  --input outputs/expimap/runs/direct/kidney/input/osdr_kidney_flt_gc_reactome_log1p_cpm.h5ad \
+  --output-dir outputs/expimap/runs/direct/kidney/log1p_cpm_mse_50epoch \
+  --recon-loss mse \
+  --epochs 50 \
+  --hidden-layer-sizes 64
+```
+
+Analysis commands:
+
+```bash
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.analyze_expimap_pathways \
+  --scores outputs/expimap/runs/direct/liver/raw_counts_nb_50epoch/pathway_scores.tsv \
+  --output-dir outputs/expimap/runs/direct/liver/raw_counts_nb_50epoch/analysis
+
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.compare_expimap_transformations \
+  --tissue liver \
+  --tissue-dir outputs/expimap/runs/direct/liver \
+  --output-dir outputs/expimap/runs/direct/liver/preprocessing_comparison_50epoch
+```
+
+Run the same analysis/compare commands for kidney by replacing the tissue and output paths.
+
+Current direct outputs:
+
+- `outputs/expimap/runs/direct/liver/raw_counts_nb_50epoch/`
+- `outputs/expimap/runs/direct/liver/cpm_mse_50epoch/`
+- `outputs/expimap/runs/direct/liver/log1p_cpm_mse_50epoch/`
+- `outputs/expimap/runs/direct/liver/preprocessing_comparison_50epoch/`
+- `outputs/expimap/runs/direct/kidney/raw_counts_nb_50epoch/`
+- `outputs/expimap/runs/direct/kidney/cpm_mse_50epoch/`
+- `outputs/expimap/runs/direct/kidney/log1p_cpm_mse_50epoch/`
+- `outputs/expimap/runs/direct/kidney/preprocessing_comparison_50epoch/`
+
+Each analysis directory contains FLT-vs-GC pathway tests, study-aware accession effect summaries, PCA/UMAP plots by condition and accession, and a top-pathway heatmap.
+
+Preprocessing comparison snapshot:
+
+- Liver direct 50-epoch runs nominate `R-MMU-75955_RNA_POLYMERASE_II_TRANSCRIPTION_ELONGATION` as lower in flight; it is FDR-significant and the top aggregate term in raw counts, CPM, and log1p-CPM.
+- Kidney direct 50-epoch runs have no Welch or Mann-Whitney pathway FDR below 0.10 in raw counts, CPM, or log1p-CPM.
+- Direct 50-epoch effect ranks are highly correlated across raw-count NB and CPM/log1p-CPM MSE sensitivity runs. Treat normalized MSE inputs as sensitivity only, not count-likelihood primary analyses.
+
+## ARCHS4 Reference-Query Workflow
+
+Reference file to download:
+
+```text
+https://s3.dev.maayanlab.cloud/archs4/files/mouse_gene_v2.5.h5
+```
+
+Suggested local path:
+
+```text
+assets/archs4/mouse_gene_v2.5.h5
+```
+
+Current local status:
+
+- File exists at `assets/archs4/mouse_gene_v2.5.h5`
+- Size: 38,960,132,574 bytes
+- SHA1 verified: `22605c9b6c4e7502b0861d4d8591ce128907c39f`
+- `assets/` is ignored by git
+
+Scripts now implemented:
+
+```text
+src/nasa_mouse_expimap/inspect_archs4_mouse.py
+src/nasa_mouse_expimap/prepare_expimap_archs4_reference.py
+src/nasa_mouse_expimap/train_expimap_archs4_reference.py
+src/nasa_mouse_expimap/map_expimap_osdr_query.py
+```
+
+ARCHS4 inspection output:
+
+```text
+data/archs4/archs4_mouse_tissue_summary.tsv
+```
+
+Usable nonleakage bulk-like tissue candidates from the inspection:
+
+- liver: 8970 samples
+- spleen: 6289 samples
+- lung: 5674 samples
+- skin: 2593 samples
+- kidney: 2464 samples
+- skeletal_muscle: 1412 samples
+
+Current bounded reference-query outputs:
+
+- `outputs/expimap/runs/reference_query/liver/reference_input_1000/`
+- `outputs/expimap/runs/reference_query/liver/reference_nb_1000_50epoch/`
+- `outputs/expimap/runs/reference_query/liver/query_nb_1000ref_50epoch/`
+- `outputs/expimap/runs/reference_query/kidney/reference_input_1000/`
+- `outputs/expimap/runs/reference_query/kidney/reference_nb_1000_50epoch/`
+- `outputs/expimap/runs/reference_query/kidney/query_nb_1000ref_50epoch/`
+
+The current bounded reference inputs use 1000 ARCHS4 samples per tissue, 50 reference-training epochs, and 50 query-mapping epochs. Query mapping preserved the Reactome term structure and dropped 2 OSDR genes absent from the reference, retaining 9319 shared genes and 1140 pathways. Neither liver nor kidney reference-query analysis has an aggregate Welch pathway FDR below 0.10 in these bounded runs. Older 100-sample/1-epoch mechanics-validation outputs were removed during repository cleanup.
+
+Reference-query preprocessing is raw-count NB only in the current workflow. CPM/log1p-CPM comparisons are direct-workflow sensitivity analyses, not reference-query surgery runs.
+
+Direct/reference agreement note:
+
+- Direct liver raw-count NB nominates `R-MMU-75955_RNA_POLYMERASE_II_TRANSCRIPTION_ELONGATION` as lower in flight with Welch FDR about 0.012.
+- The same term is also lower in flight after bounded ARCHS4 reference-query mapping, but its reference-query Welch FDR is about 0.97.
+- Treat the direct liver signal as preprocessing-stable but not reference-query-confirmed.
+- Kidney has no aggregate FDR-significant direct or reference-query pathway signal in the current runs.
+
+### Larger stratified liver reference and accession validation
+
+The first larger liver reference is complete. It proportionally samples 5,000
+of 8,970 eligible ARCHS4 liver samples across all 518 eligible series, preserving
+the 9,319 shared genes and 1,140 Reactome pathways. Three GPU raw-count NB
+references (seed 2020/2021/2022) used a 64-unit hidden layer, 200 maximum
+epochs, and early stopping; they completed 166, 138, and 93 epochs. Each mapped
+the same 231-sample OSDR liver query for 50 epochs.
+
+Use posterior-mean latent scores for downstream testing. Earlier workflow
+tables used stochastic score draws; the CLI now defaults to posterior means and
+has an explicit `--sample-latent` diagnostic option.
+
+For direct liver, the prior Polymerase II elongation result is not supported by
+accession-aware posterior-mean validation (random-effects FDR 0.670, I2 0.904,
+and 7/12 accession effects in the meta-analysis direction). It is historical,
+not a confirmed pathway finding. It is also not FDR-significant or
+direction-stable in the three larger reference-query seeds.
+
+The only strict cross-seed, leave-one-accession-out candidate is
+`R-MMU-416700_OTHER_SEMAPHORIN_INTERACTIONS`, lower in flight in each seed.
+It still has high accession heterogeneity (I2 0.63-0.73) and must be treated as
+a priority for count-level and independent-cohort follow-up, not a conclusion.
+The full artifacts and interpretation are in:
+
+- `docs/expimap_accession_validation.md`
+- `docs/expimap_reference_seed_stability.md`
+
+### Condition-specific GC/FLT clustering
+
+The colorectal-style idea of clustering GC and FLT separately has been run on
+posterior-mean expiMap liver pathway scores. This clusters samples by Reactome
+pathway-score profiles, not genes by GLARE latent representation.
+
+Direct OSDR liver results:
+
+- `outputs/expimap/runs/direct/liver/raw_counts_nb_50epoch/condition_cluster_comparison/`
+- GC selected k = 2, silhouette 0.483.
+- FLT selected k = 3, silhouette 0.440.
+- The two large FLT clusters mirror the same accession composition as the two
+  GC clusters; the extra FLT cluster has only five samples.
+
+Larger ARCHS4 reference-query results:
+
+- `outputs/expimap/runs/reference_query/liver/query_nb_5000stratified_seed2020_50epoch/condition_cluster_comparison/`
+- `outputs/expimap/runs/reference_query/liver/query_nb_5000stratified_seed2021_50epoch/condition_cluster_comparison/`
+- `outputs/expimap/runs/reference_query/liver/query_nb_5000stratified_seed2022_50epoch/condition_cluster_comparison/`
+- FLT repeatedly splits into one large cluster and one small mostly OSD-379
+  cluster. GC selected k varies from 4 to 5 across seeds.
+
+Interpretation: this is useful QC and hypothesis triage, but the present
+clusters mostly recover accession/sample substructure. They do not confirm a
+new flight-only pathway program. See `docs/expimap_condition_clustering.md`.
+
+### Tutorial-style HVG/deep/HSIC liver run
+
+A separate run now follows the scArches expiMap tutorial mechanics more closely:
+
+- 2,000 HVGs selected on the 5,000-sample ARCHS4 liver reference with
+  `batch_key="archs4_condition"`.
+- Post-HVG Reactome term filtering with strict `>12` genes.
+- Retained 1,995 genes and 364 Reactome terms.
+- Reference model: hidden layers `[300, 300, 300]`, raw-count NB loss, 400 max
+  epochs, `alpha=0.7`, `alpha_kl=0.5`, `alpha_epoch_anneal=100`, early stopping.
+- Query surgery: 3 unconstrained de novo nodes, 250 epochs, `alpha_kl=0.22`,
+  `gamma_ext=0.7`, `gamma_epoch_anneal=50`, `beta=3`, HSIC one-vs-all.
+
+Artifacts:
+
+- `outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/input/`
+- `outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/reference_nb_400epoch_seed2020/`
+- `outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/query_denovo3_hsic_250epoch_seed2020/`
+
+The installed scArches HSIC implementation overflows its direct gamma-ratio
+bandwidth calculation for the 367-dimensional query latent. The mapper now
+applies a runtime stable-HSIC patch using `lgamma` when HSIC is enabled; the
+query summary records `"stable_hsic_patch": true`.
+
+Results: 70 Reactome terms have accession-aware random-effects meta FDR < 0.05;
+32 also pass every leave-one-accession-out FDR < 0.05 in the same meta-analysis
+direction. The study-aware Wilcoxon across accession effects does not reach
+FDR 0.05, expiMap `latent_enrich` gives only weak condition BF-like scores, and
+the three de novo programs are not FLT/GC-significant. The previous Polymerase
+II and semaphorin terms are absent after HVG/term filtering. See
+`docs/expimap_tutorial_style_liver.md`.
+
+### Query-specific de novo programs
+
+`map_expimap_osdr_query.py` now supports query-architecture surgery with
+`--n-de-novo-programs`. This appends `unconstrained_*` dimensions without
+altering the official Reactome architecture. Use `--gamma-ext` to control L1
+sparsity, then include those dimensions in the standard analysis and summarize
+their decoder loadings:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_expimap.map_expimap_osdr_query \
+  --reference-model outputs/expimap/runs/reference_query/liver/reference_nb_1000_50epoch/model \
+  --query-h5ad outputs/expimap/runs/direct/liver/input/osdr_liver_flt_gc_reactome_raw_counts.h5ad \
+  --output-dir outputs/expimap/runs/reference_query/liver/query_denovo10_gamma3_150epoch \
+  --epochs 150 --alpha-epoch-anneal 50 \
+  --n-de-novo-programs 10 --gamma-ext 3.0 --gamma-epoch-anneal 50
+
+PYTHONPATH=src python -m nasa_mouse_expimap.analyze_expimap_pathways \
+  --scores outputs/expimap/runs/reference_query/liver/query_denovo10_gamma3_150epoch/query_pathway_scores.tsv \
+  --output-dir outputs/expimap/runs/reference_query/liver/query_denovo10_gamma3_150epoch/analysis \
+  --include-de-novo
+```
+
+The current liver sweep (`gamma_ext` 0.7, 1.5, and 3.0) produced either
+diffuse programs or over-sparse programs. None has aggregate or study-aware
+FLT/GC FDR below 0.05. The original unpatched `--use-hsic` run failed because
+the installed scArches HSIC normalizer overflowed and yielded NaN latent values.
+The mapper now applies a stable log-gamma HSIC bandwidth patch when HSIC is
+enabled.
+
+## Comparison to GLARE
+
+GLARE output:
+
+- Gene-level latent representations.
+- Gene consensus modules.
+- Interpretation via DGEA overlap and pathway enrichment.
+
+expiMap output:
+
+- Sample/cell-level pathway scores.
+- Each latent dimension is tied to a pathway/gene program through the mask.
+- More directly suited to asking: "Which pathways shift in flight?"
+
+This is why expiMap may be more interpretable than GLARE for the current biological question.
+
+## Decisions Already Made
+
+- Use ARCHS4 as likely general mouse bulk reference, not TMS single-cell, for the first reference-query expiMap.
+- Use the same Reactome architecture for direct OSDR and reference-query experiments.
+- Use NASA OSDR Biological Data API metadata and count tables for OSDR expiMap inputs.
+- Prepare both liver and kidney FLT vs GC direct OSDR inputs.
+- Use the 12 muscle outlier filter for liver.
+- Do not treat MOBER-corrected values as primary count input for expiMap.
+- Use direct raw-count NB expiMap as the primary direct OSDR run; CPM/log1p-CPM MSE runs are sensitivity checks only.
+- Use `id.accession` as the expiMap condition/batch key for direct OSDR runs unless a later diagnostic shows a better covariate.
+
+## Open Questions / Next Full Runs
+
+- Should direct OSDR expiMap use all API-discovered tissue FLT/GC studies or only stronger primary studies?
+  - Previous stronger liver studies included `OSD-379`, `OSD-245`, and `OSD-463`.
+  - Prior per-study GLARE/DGEA also included `OSD-168`, `OSD-48`, and `OSD-137`.
+  - Earlier aggregate liver work also considered `OSD-242`, `OSD-173`, `OSD-47`, and `OSD-686`.
+  - Current API metadata contains exact FLT/GC counts in `data/osdr_api/osdr_api_mouse_bulk_rnaseq_tissue_accession_counts.tsv`.
+
+- Should ARCHS4 be filtered to liver/general tissue subsets?
+  - Current bounded runs use tissue-specific ARCHS4 subsets.
+  - Follow-up reference models should use larger tissue-specific subsets or all available nonleakage tissue samples, then compare to a broader nonleakage reference if compute allows.
+
+- How many epochs and what architecture should full runs use?
+  - Current direct runs use 50 epochs and hidden size 64.
+  - Full follow-up runs should still monitor convergence and preserve the same API-derived input manifests.
+
+## Minimal Next Commands
+
+From repo root:
+
+```bash
+cd /media/volume/mouse/nasa/nasa-mouse
+
+/home/exouser/miniforge3/envs/nasa-mouse/bin/python - <<'PY'
+import scarches as sca
+print(hasattr(sca.models, "EXPIMAP"))
+PY
+```
+
+Re-run API discovery and tissue input preparation:
+
+```bash
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_glare.fetch_osdr_mouse_transcriptomics
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue liver
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue kidney
+```
+
+Before a full training run, inspect:
+
+- input manifests under `outputs/expimap/runs/direct/{tissue}/input/input_manifest.json`
+- number of samples retained
+- FLT/GC counts
+- samples per OSD accession
+- number of genes retained after Reactome filtering
+- number of Reactome terms retained
+- PCA by OSD accession after the direct and reference-query runs
+
+Validation command:
+
+```bash
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m py_compile \
+  src/nasa_mouse_glare/build_reactome_mouse_gmt.py \
+  src/nasa_mouse_glare/fetch_osdr_mouse_transcriptomics.py \
+  src/nasa_mouse_expimap/prepare_expimap_osdr_tissue.py \
+  src/nasa_mouse_expimap/train_expimap_direct.py \
+  src/nasa_mouse_expimap/analyze_expimap_pathways.py \
+  src/nasa_mouse_expimap/inspect_archs4_mouse.py \
+  src/nasa_mouse_expimap/prepare_expimap_archs4_reference.py \
+  src/nasa_mouse_expimap/map_expimap_osdr_query.py \
+  src/nasa_mouse_expimap/compare_expimap_transformations.py
+```

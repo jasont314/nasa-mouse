@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 
-from nasa_mouse_rna_diffusion.classifier_importance import _linear_shap_rows
-from nasa_mouse_rna_diffusion.grouped_pathway_importance import (
+from nasa_mouse_diffusion.paper_parity.classifier_importance import _linear_shap_rows
+from nasa_mouse_diffusion.paper_parity.grouped_pathway_importance import (
     PathwayGroup,
     _group_linear_shap_rows,
     _group_permutation_rows,

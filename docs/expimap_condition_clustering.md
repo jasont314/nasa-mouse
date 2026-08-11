@@ -11,7 +11,7 @@ made through nearest pathway-score centroids and accession composition.
 ## Direct Liver Model
 
 Artifact:
-`outputs/expimap_direct_osdr_liver/raw_counts_nb_50epoch/condition_cluster_comparison`
+`outputs/expimap/runs/direct/liver/raw_counts_nb_50epoch/condition_cluster_comparison`
 
 The direct posterior-mean liver pathway scores cluster into:
 
@@ -38,9 +38,9 @@ program without accession-level replication.
 
 Artifacts:
 
-- `outputs/expimap_archs4_reference_osdr_query_liver/query_nb_5000stratified_seed2020_50epoch/condition_cluster_comparison`
-- `outputs/expimap_archs4_reference_osdr_query_liver/query_nb_5000stratified_seed2021_50epoch/condition_cluster_comparison`
-- `outputs/expimap_archs4_reference_osdr_query_liver/query_nb_5000stratified_seed2022_50epoch/condition_cluster_comparison`
+- `outputs/expimap/runs/reference_query/liver/query_nb_5000stratified_seed2020_50epoch/condition_cluster_comparison`
+- `outputs/expimap/runs/reference_query/liver/query_nb_5000stratified_seed2021_50epoch/condition_cluster_comparison`
+- `outputs/expimap/runs/reference_query/liver/query_nb_5000stratified_seed2022_50epoch/condition_cluster_comparison`
 
 Across the three reference-query seeds, flight repeatedly splits into one large
 cluster and one small cluster:

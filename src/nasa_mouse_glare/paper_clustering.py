@@ -316,7 +316,7 @@ def cluster_location(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run paper-faithful GLARE EAC clustering.")
     parser.add_argument(
-        "--run-dir", default="outputs/glare_paper_tms_liver_osd379"
+        "--run-dir", default="outputs/glare/paper_tms_liver_osd379"
     )
     parser.add_argument("--skip-tsne", action="store_true")
     return parser.parse_args()

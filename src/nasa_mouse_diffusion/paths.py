@@ -15,9 +15,8 @@ from nasa_mouse_wgan.paths import (
 )
 
 
-OUTPUT_ROOT = Path("outputs/diffusion_conditional_generation")
+OUTPUT_ROOT = Path("outputs/generative/standalone/diffusion/conditional_generation")
 SUMMARY_DIR = OUTPUT_ROOT / "summary"
-PAPER_PDF = Path("docs/papers/lacan_diffusion_2026_reference.pdf")
 
 
 def existing_pan_tissue_inputs(tissues: tuple[str, ...]):
