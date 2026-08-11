@@ -33,7 +33,7 @@ applied after landmark selection.
 
 ## S4. ARCHS4 DDIM configuration
 
-The full configuration is `configs/rna_diffusion/archs4_mouse_paper_parity_osdr_disjoint.yaml`. Architecture and optimization matched the paper-parity implementation; only reference exclusion and grouped splitting changed.
+The full configuration is `configs/generative/diffusion/archs4_mouse_paper_parity_osdr_disjoint.yaml`. Architecture and optimization matched the paper-parity implementation; only reference exclusion and grouped splitting changed.
 
 | Component | Value |
 |---|---|
@@ -57,7 +57,7 @@ The full configuration is `configs/rna_diffusion/archs4_mouse_paper_parity_osdr_
 
 ## S5. Factorized OSDR adaptation
 
-The accepted configuration, `configs/rna_diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint.yaml`, used the Section S4 backbone. A base adapter received 12,000 domain and 4,000 condition steps before the correlation-refinement stage below. All-tissue and muscle-group screens used the refined adapter.
+The accepted configuration, `configs/generative/diffusion/osdr_factorized_study_lora512_correlation_refine_osdr_disjoint.yaml`, used the Section S4 backbone. A base adapter received 12,000 domain and 4,000 condition steps before the correlation-refinement stage below. All-tissue and muscle-group screens used the refined adapter.
 
 | Component | Value |
 |---|---|
@@ -258,7 +258,7 @@ Table S10 is the 49-row secondary consensus subset: 26 promoted and 23 reinforce
 
 Heart, liver, retina, EDL, and quadriceps had BH-FDR genes but none was synthetic-informed. Bone, bone marrow, brain, brown adipose tissue, cecum, cerebellum, colon, hippocampus, lung, mammary gland, optic nerve, and white adipose tissue had no BH-FDR gene in the landmark panel. Tables S11-S12 retain the complete results, including pooled muscle, liver's 19 real-only associations, skin's promoted `Plscr1`, and the null lung inventory.
 
-Machine-readable Tables S1-S21 are under `source_data/`.
+Machine-readable Tables S1-S24 are under `source_data/`.
 
 ## S13. Targeted literature annotation of synthetic-informed genes
 
@@ -276,7 +276,7 @@ Five records used a direct same-gene, same-tissue, same-direction transcript-lev
 
 The four ambiguous records were thymus `Birc5`, soleus `Bnip3`, soleus `Tpm1`, and tibialis-anterior `Cdkn1a`. Their prior directions varied by mission, assay, species, sex, or muscle context. The four unmatched records were adrenal `Psmb8` and `Tspan4`, pooled-muscle `Bphl`, and thymus `Snx7`. These candidates remain statistically associated in the real-data analysis but should not be presented as literature-supported mechanisms.
 
-Table S16 records selection status, literature class, interpretive role, evidence scope, source relationship, and a gene-level interpretation. Table S17 supplies the 33-source bibliography and states whether each source is independent, potentially overlapping, or mechanistic context only. The deterministic builder is `nasa_mouse_rna_diffusion.annotate_promoted_gene_literature`.
+Table S16 records selection status, literature class, interpretive role, evidence scope, source relationship, and a gene-level interpretation. Table S17 supplies the 33-source bibliography and states whether each source is independent, potentially overlapping, or mechanistic context only. The deterministic builder is `nasa_mouse_diffusion.paper_parity.annotate_promoted_gene_literature`.
 
 ## S14. Matched all-gene classifier analysis
 
@@ -305,7 +305,24 @@ The matched and consensus analyses retained 21 and 49 associations, respectively
 
 Tables S18-S21 contain matched utility, retained candidates, candidate Reactome enrichment, and the matched-consensus crosswalk. The outer profiles were held out from classifier fitting and regularization selection, but the fixed DDIM had seen the broader development pool. This is not an independent held-out-study test. Generated profiles remained model draws and did not enter BH-FDR estimation.
 
-## S15. Supplementary figures
+## S15. Literature annotation of matched genes and grouped pathways
+
+The primary matched analysis and the grouped Reactome analysis received their own literature review. This review covered all 21 unique matched tissue-gene associations and all ten eligible tissue-pathway associations. Eleven matched genes overlapped Table S16 at the same tissue and direction, so their existing annotation was reused. The ten matched-only genes and all ten grouped pathways were reviewed separately. Duplicate classifier-arm rows were collapsed before annotation. Both overlapping skin necroptosis terms and all six thymus cell-cycle terms remain in the complete pathway table; `is_nonredundant_pathway` marks the nine-term Jaccard-filtered display set.
+
+The same four literature labels used for the consensus analysis were applied here. They describe agreement with prior work, not classifier importance. Aligning means that the observed direction agrees with the same gene or same-tissue process. Complementary links the result to a relevant flight process or established mechanism without reproducing the exact association. Ambiguous records have mixed or context-dependent prior evidence. Unmatched records had no sufficiently specific tissue or process match in the targeted search.
+
+| Analysis | Aligning | Complementary | Ambiguous | Unmatched | Total |
+|---|---:|---:|---:|---:|---:|
+| Matched genes | 9 | 9 | 1 | 2 | 21 |
+| Grouped pathways | 6 | 2 | 2 | 0 | 10 |
+
+Six of the nine aligning genes were members of the flight-lower thymus cell-cycle program inherited from the consensus review. Matched-only `E2f2` and `Cdc20` also aligned at the same-tissue process level. Liver `Gtf2a2` aligned with reported suppression of RNA-polymerase-related pathways, while `Grb10`, `Ppic`, and `H2-DMa` were complementary candidates tied to hepatic metabolic signaling, proteostasis, and antigen presentation. Thymus `Klhdc2` and `Snx7` were unmatched. `Birc5` remained ambiguous because an earlier shuttle study reported the opposite gene direction even though later thymus data supported lower proliferation.
+
+At the grouped level, six flight-lower thymus pathways covered APC/C-Cdc20 regulation, chromosome condensation, and the G2/M checkpoint. They aligned with lower thymic cell-cycle activity reported across mouse missions. The two flight-higher skin groups shared `Cflar`, `Fas`, `Birc2`, and `Stub1` and were classified as complementary: RIPK1-mediated necroptosis is a plausible skin mechanism, but direct spaceflight evidence was not found. Flight-higher spleen AP-1 activation was ambiguous because prior microgravity studies often reported impaired AP-1-related T-cell activation. Thymus ERBB2-PTK6 signaling was also ambiguous because prior growth-signaling results varied by mission and duration.
+
+Table S22 contains the 21 matched-gene annotations. Table S23 contains the ten grouped-pathway annotations together with real-data pathway FDR, grouped permutation loss, grouped SHAP direction, supporting classifier arms, and the nonredundancy flag. Table S24 contains the 20 referenced sources and records whether each was used for gene or pathway annotation. The deterministic builder is `nasa_mouse_diffusion.paper_parity.annotate_importance_literature`.
+
+## S16. Supplementary figures
 
 ![Muscle arm heatmap.](figures/figure_s1_muscle_arm_heatmap.png)
 

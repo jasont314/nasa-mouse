@@ -14,13 +14,13 @@ Each of the original 153 pathways was assigned explicitly to a tissue-specific p
 
 | Tissue | Model directory |
 | --- | --- |
-| Thymus | `outputs/expimap_archs4_reference_osdr_query_thymus/tutorial_hvg_2000/query_nb_250epoch_seed2020` |
-| Skin | `outputs/expimap_archs4_reference_osdr_query_skin/tutorial_hvg_2000/query_nb_250epoch_seed2020` |
-| Liver primary, de-duplicated | `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_2000/query_nb_250epoch_seed2020_primary_deduplicated` |
-| Liver full-input sensitivity | `outputs/expimap_archs4_reference_osdr_query_liver/tutorial_hvg_2000/query_nb_250epoch_seed2020` |
-| Spleen corrected | `outputs/expimap_archs4_reference_osdr_query_spleen/reassessment_hvg_2000/query_nb_250epoch_seed2020` |
-| Kidney corrected, secondary | `outputs/expimap_archs4_reference_osdr_query_kidney/reassessment_hvg_2000/query_nb_250epoch_seed2020` |
-| Soleus, non-advanced supplementary screen | `outputs/expimap_muscle_targeted_combined_min8/tutorial_hvg_soleus_2000/query_nb_250epoch_seed2020` |
+| Thymus | `outputs/expimap/runs/reference_query/thymus/tutorial_hvg_2000/query_nb_250epoch_seed2020` |
+| Skin | `outputs/expimap/runs/reference_query/skin/tutorial_hvg_2000/query_nb_250epoch_seed2020` |
+| Liver primary, de-duplicated | `outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/query_nb_250epoch_seed2020_primary_deduplicated` |
+| Liver full-input sensitivity | `outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/query_nb_250epoch_seed2020` |
+| Spleen corrected | `outputs/expimap/runs/reference_query/spleen/reassessment_hvg_2000/query_nb_250epoch_seed2020` |
+| Kidney corrected, secondary | `outputs/expimap/runs/reference_query/kidney/reassessment_hvg_2000/query_nb_250epoch_seed2020` |
+| Soleus, non-advanced supplementary screen | `outputs/expimap/runs/muscle_groups/combined_min8/tutorial_hvg_soleus_2000/query_nb_250epoch_seed2020` |
 
 ## Direction and effect definitions
 
@@ -62,7 +62,7 @@ From the repository root:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.build_asgsr_paper
+  -m nasa_mouse_expimap.build_asgsr_paper
 ```
 
 The script writes all figures in PNG and vector PDF formats and rebuilds Tables S1-S5 and S8. It requires the `nasa-mouse` Conda environment and the existing trained models. The audited runs used an NVIDIA A100-SXM4-40GB GPU for training and query mapping.
@@ -71,7 +71,7 @@ The main build also invokes the expanded pathway-family review. To run that revi
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.review_expanded_pathway_screen
+  -m nasa_mouse_expimap.review_expanded_pathway_screen
 ```
 
 To render the abstract and manuscript as HTML and PDF:
@@ -80,62 +80,62 @@ To render the abstract and manuscript as HTML and PDF:
 /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m pip install \
   -r paper/asgsr_expimap_hvg/requirements.txt
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.render_asgsr_documents
+  -m nasa_mouse_expimap.render_asgsr_documents
 ```
 
 To verify every manuscript DOI against Crossref and regenerate the source audit:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.verify_asgsr_sources
+  -m nasa_mouse_expimap.verify_asgsr_sources
 ```
 
 To rebuild the aligned and complementary program audit, including pairwise score correlations and Reactome gene overlap:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.audit_aligned_complementary_programs
+  -m nasa_mouse_expimap.audit_aligned_complementary_programs
 ```
 
 To rebuild the conventional, held-out-project, and composition-proxy analyses:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.reviewer_robustness_analysis
+  -m nasa_mouse_expimap.reviewer_robustness_analysis
 ```
 
 To create missing full-pipeline seed runs and rebuild their summaries:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.run_asgsr_seed_sensitivity
+  -m nasa_mouse_expimap.run_asgsr_seed_sensitivity
 ```
 
 To integrate all checks into the reviewed-pathway evidence matrix:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.integrate_reviewer_robustness
+  -m nasa_mouse_expimap.integrate_reviewer_robustness
 ```
 
 To rebuild the corrected kidney and spleen models, evidence audit, manual curation, and revised paper-facing figures and tables:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.run_kidney_spleen_seed_sensitivity
+  -m nasa_mouse_expimap.run_kidney_spleen_seed_sensitivity
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.analyze_kidney_spleen_reassessment
+  -m nasa_mouse_expimap.analyze_kidney_spleen_reassessment
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.curate_kidney_spleen_reassessment
+  -m nasa_mouse_expimap.curate_kidney_spleen_reassessment
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.integrate_reassessed_tissues_paper
+  -m nasa_mouse_expimap.integrate_reassessed_tissues_paper
 ```
 
 The integration command must run after `build_asgsr_paper`, because it assembles the corrected main-tissue evidence and copies the original soleus material to supplementary figure names. The final publication figures and their added source tables are then generated with:
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m expiMap_scarches.nasa_mouse_expimap.build_publication_figures
+  -m nasa_mouse_expimap.build_publication_figures
 ```
 
 This final step authors the main figures and Figures S1, S7, and S9 at a 7.2-inch publication width, writes both 300-dpi PNG and vector PDF copies, and records dimensions and border checks in `figure_build_manifest.tsv`. Figure 6 is drawn deterministically from the retained pathway labels and interpretation boundaries; it contains no additional analysis and uses dotted links to distinguish inference from causal order. The builder also removes superseded duplicate figures and retired generated artwork. A broader process summary remains in `presentation/expimap/asgsr_process_summary.*` for presentation use only.

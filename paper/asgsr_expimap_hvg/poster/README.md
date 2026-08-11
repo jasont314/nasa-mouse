@@ -4,7 +4,7 @@
 
 The PDF is the print-ready export, and `asgsr_expimap_poster_preview.png` is a 4,800 x 2,700 pixel visual-check copy. `assets/expimap_architecture_visualization_300dpi.png` is a separate high-resolution export of the compact reference-training and query-mapping panel for reuse in talks or documents.
 
-The title, architecture, tables, evidence summaries, interpretation text, and footer remain native PowerPoint objects. The pathway plot is regenerated from the paper's source data at a wider poster-specific aspect ratio and 400 dpi. It shows only the 13 primary retained programs from manuscript Table 2. The program-score workflow also contains a 400-dpi heatmap of the actual seed-2020 spleen project effects for the three retained pathways; its values come from `outputs/expimap_kidney_spleen_reassessment/seed_accession_effects.tsv.gz`, with OSD-288 excluded. The tissue-state figure is rendered at 700 dpi from the paper's vector PDF. All embedded data figures retain more than 300 effective pixels per inch at their placed poster dimensions.
+The title, architecture, tables, evidence summaries, interpretation text, and footer remain native PowerPoint objects. The pathway plot is regenerated from the paper's source data at a wider poster-specific aspect ratio and 400 dpi. It shows only the 13 primary retained programs from manuscript Table 2. The program-score workflow also contains a 400-dpi heatmap of the actual seed-2020 spleen project effects for the three retained pathways; its values come from `outputs/expimap/analyses/kidney_spleen_reassessment/seed_accession_effects.tsv.gz`, with OSD-288 excluded. The tissue-state figure is rendered at 700 dpi from the paper's vector PDF. All embedded data figures retain more than 300 effective pixels per inch at their placed poster dimensions.
 
 The poster abstract is condensed for viewing distance but retains the manuscript abstract's methods, tissue directions, and strength-of-evidence language. The central results figure displays the retained literature-aligned, complementary, and context-sensitive pathways that support the paper's main interpretation across thymus, skin, liver, and spleen. Literature-supported but non-retained pathways, including skin keratinization, are not plotted as findings. Kidney is absent from the primary scope and results displays and remains only an exploratory result in the conclusion.
 
@@ -13,7 +13,7 @@ The annotation workflow identifies OpenAI Codex (GPT-5) as the LLM used to organ
 Rebuild from the repository root:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m expiMap_scarches.nasa_mouse_expimap.build_asgsr_poster
+PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.build_asgsr_poster
 ```
 
 The builder requires `python-pptx` and uses `pdftocairo` for high-resolution figure rendering. When LibreOffice is available, it also regenerates the PDF and PNG preview.

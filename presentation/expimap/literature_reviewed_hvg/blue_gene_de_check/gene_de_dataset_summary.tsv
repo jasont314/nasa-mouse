@@ -1,0 +1,5 @@
+model	n_samples	n_genes_hvg	n_flight	n_ground	n_accessions_with_both	accessions_with_both	n_pooled_gene_fdr05	n_accession_gene_fdr05	n_any_gene_fdr05	n_nominal_gene_p05
+liver_hvg	231	1995	118	113	12	OSD-137,OSD-164,OSD-168,OSD-173,OSD-242,OSD-245,OSD-379,OSD-457,OSD-463,OSD-47,OSD-48,OSD-686	109	1	110	587
+skin_hvg	151	1997	80	71	6	OSD-238,OSD-239,OSD-240,OSD-241,OSD-243,OSD-254	197	0	197	659
+thymus_hvg	117	1994	63	54	5	OSD-244,OSD-289,OSD-421,OSD-457,OSD-515	497	6	500	927
+soleus_hvg	53	1975	28	25	3	OSD-104,OSD-714,OSD-770	147	0	147	407

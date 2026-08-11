@@ -21,12 +21,12 @@ correlated gene panels. Thymus has the strongest support across both analyses.
 Liver, skin, and spleen provide narrower matched findings, while soleus provides
 a coherent secondary consensus panel.
 
-A targeted literature review covers all 49 associations from the secondary
-consensus analysis.
-Selection status records promoted or reinforced genes, while an independent
-literature field records aligning, complementary, ambiguous, or unmatched
-evidence. Evidence scope keeps exact gene-tissue-direction matches separate
-from process-level agreement.
+Targeted literature review covers all 49 associations from the secondary
+consensus analysis, all 21 matched gene associations, and all ten eligible
+grouped Reactome associations. Selection behavior is kept separate from the
+aligning, complementary, ambiguous, or unmatched literature label. Evidence
+scope distinguishes exact matches, process-level agreement, and mechanistic
+context.
 
 Using the DDIM generator, the paper follows a four-part downstream funnel:
 
@@ -60,7 +60,9 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
 - `source_data/`: manuscript and supplementary data tables. SHA-256 manifests
   are retained for repository auditing but are not part of the formal supplement.
   Tables S16-S17 contain the consensus-gene literature annotations and source
-  inventory. Tables S18-S21 contain the matched classifier results.
+  inventory. Tables S18-S21 contain the matched classifier results. Tables
+  S22-S24 contain matched-gene and grouped-pathway annotations and their source
+  inventory.
 
 ## Rebuild
 
@@ -69,7 +71,7 @@ feature selection.
 
 ```bash
 PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
-  -m nasa_mouse_rna_diffusion.build_synthetic_guided_paper
+  -m nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper
 ```
 
 The builder checks key frozen values before writing figures, then renders the
@@ -98,11 +100,10 @@ provenance note whose cited commit is not present in this repository.
   correlated genes and pathways.
 - **Complete real-data screen:** all 459 random-effects BH-FDR tissue-gene
   results, regardless of synthetic feature-selection status.
-- **Literature interpretation:** all 49 consensus associations receive
-  one mutually exclusive literature label. Five have direct transcript-level
-  same-gene, same-tissue, same-direction matches, and two soleus genes match
-  across transcriptomic and proteomic assays. The tables distinguish those
-  results from broader process-level and mechanistic context.
+- **Literature interpretation:** all 49 consensus associations, 21 matched gene
+  associations, and ten eligible grouped pathways receive one mutually
+  exclusive literature label. The tables distinguish direct matches from
+  process-level agreement, mechanistic context, and unmatched candidates.
 
 ## Tissue evidence labels
 

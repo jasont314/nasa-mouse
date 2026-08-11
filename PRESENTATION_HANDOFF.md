@@ -22,7 +22,7 @@ This file transfers the working context and decisions. It does not contain the c
 - Presentation: `presentation/SLSTP_2026_Generative_Transcriptomics.pptx`
 - PDF: `presentation/SLSTP_2026_Generative_Transcriptomics.pdf`
 - Speaker notes: `presentation/generative_slstp_2026/speaker_notes.md`
-- Rebuild script: `src/nasa_mouse_rna_diffusion/build_slstp_presentation.py`
+- Rebuild script: `src/nasa_mouse_diffusion/paper_parity/build_slstp_presentation.py`
 - NASA template: `presentation/SLSTP_template_2026.pptx`
 - Midpoint reference: `presentation/Biomedical_Foundation_Models_SLSTP_Midpoint_portable (2).pptx`
 
@@ -42,7 +42,7 @@ A fresh clone contains everything needed to open and continue editing the curren
 
 The following local files are not part of the Git repository:
 
-- `presentation/Biomedical_Foundation_Models_SLSTP_Midpoint_portable (2).pptx` is an untracked 17 MB visual reference. The builder does not require it.
+- `presentation/Biomedical_Foundation_Models_SLSTP_Midpoint_portable (2).pptx` is an ignored local visual reference. The builder does not require it.
 - Raw H5/H5AD expression files, `data/processed/`, `models/`, and `outputs/` are ignored by `.gitignore`.
 - Multi-gigabyte DDIM and WGAN checkpoints under `outputs/` are local only.
 
@@ -103,7 +103,7 @@ The expiMap manuscript is under `paper/asgsr_expimap_hvg/`.
 - Liver: lower MHC class II antigen presentation and T-cell receptor signaling, with heterogeneous metabolic responses.
 - Spleen: lower T-cell receptor signaling, neutrophil degranulation, and C-type lectin receptor signaling. All three passed conventional GSEA FDR below 0.05 and all five directional checks.
 - The supporting evidence tables remain checked in, but the dedicated expiMap evidence-matrix slide was removed from the presentation.
-- expiMap implementation code is under `src/expiMap_scarches/nasa_mouse_expimap/`.
+- expiMap implementation code is under `src/nasa_mouse_expimap/`.
 
 ## Generative summary used in the deck
 
@@ -122,7 +122,7 @@ Rebuild the deck:
 
 ```bash
 /home/exouser/miniforge3/condabin/conda run -n nasa-mouse \
-  python src/nasa_mouse_rna_diffusion/build_slstp_presentation.py
+  python src/nasa_mouse_diffusion/paper_parity/build_slstp_presentation.py
 ```
 
 Regenerate the PDF:
@@ -136,7 +136,7 @@ Minimum checks before committing:
 
 ```bash
 /home/exouser/miniforge3/condabin/conda run -n nasa-mouse \
-  python -m py_compile src/nasa_mouse_rna_diffusion/build_slstp_presentation.py
+  python -m py_compile src/nasa_mouse_diffusion/paper_parity/build_slstp_presentation.py
 git diff --check
 ```
 
@@ -150,7 +150,7 @@ presentation/SLSTP_2026_Generative_Transcriptomics.pptx
 presentation/generative_slstp_2026/assets/SOURCES.md
 presentation/generative_slstp_2026/speaker_notes.md
 presentation/generative_slstp_2026/source_data/*.tsv
-src/nasa_mouse_rna_diffusion/build_slstp_presentation.py
+src/nasa_mouse_diffusion/paper_parity/build_slstp_presentation.py
 PRESENTATION_HANDOFF.md
 ```
 
