@@ -9,28 +9,22 @@ from pathlib import Path
 import re
 
 from .io import load_matrix_bundle, require_import
+from .osdr import (
+    DEFAULT_API_METADATA,
+    DEFAULT_GLARE_LIVER_TARGET_MANIFEST,
+    read_api_metadata,
+)
 
 os.environ.setdefault("LOKY_MAX_CPU_COUNT", str(os.cpu_count() or 1))
 
 
-DEFAULT_TARGET_MANIFEST = "data/processed/tms_facs_osdr_aligned.target.manifest.json"
-DEFAULT_OSDR_SAMPLE_KEY = "/meta/info/id.sample name"
+DEFAULT_TARGET_MANIFEST = DEFAULT_GLARE_LIVER_TARGET_MANIFEST
 DEFAULT_EXPRESSION_GROUP_COLS = [
     "condition_inferred",
     "flight_status_inferred",
     "id.accession",
     "investigation.study assays.study assay technology type",
 ]
-
-
-def _decode_array(values) -> list[str]:
-    decoded = []
-    for value in values:
-        if isinstance(value, bytes):
-            decoded.append(value.decode("utf-8", "replace"))
-        else:
-            decoded.append(str(value))
-    return decoded
 
 
 def safe_name(value: str) -> str:
@@ -66,55 +60,18 @@ def infer_flight_status(condition: str) -> str:
 
 
 def load_osdr_metadata(
-    osdr_h5: str | Path,
+    api_metadata: str | Path,
     profiles: list[str],
-    sample_key: str = DEFAULT_OSDR_SAMPLE_KEY,
-    source_profile_indices=None,
 ):
-    """Load 1D /meta/info arrays that align with profile order."""
-    h5py = require_import("h5py", "pip install -r requirements-nasa-mouse-glare.txt")
+    """Load API metadata for profiles represented in a GLARE bundle."""
     pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-
-    rows = {}
-    with h5py.File(osdr_h5, "r") as handle:
-        info = handle.get("/meta/info")
-        if info is None:
-            return pd.DataFrame({"profile": profiles})
-
-        sample_col = Path(sample_key).name
-        if sample_col not in info:
-            return pd.DataFrame({"profile": profiles})
-        source_length = len(info[sample_col])
-        if source_profile_indices is not None:
-            source_profile_indices = list(map(int, source_profile_indices))
-            if len(source_profile_indices) != len(profiles):
-                raise ValueError(
-                    "source_profile_indices must match the requested profile count"
-                )
-            if source_profile_indices and max(source_profile_indices) >= source_length:
-                raise ValueError(
-                    "source_profile_index exceeds the OSDR HDF5 metadata length"
-                )
-
-        for key, dataset in info.items():
-            shape = getattr(dataset, "shape", ())
-            if len(shape) != 1:
-                continue
-            if source_profile_indices is not None and shape[0] == source_length:
-                values = dataset[:]
-                rows[key] = _decode_array(values[source_profile_indices])
-            elif source_profile_indices is None and shape[0] == len(profiles):
-                rows[key] = _decode_array(dataset[:])
-
-    metadata = pd.DataFrame(rows)
-    if sample_col in metadata:
-        metadata.insert(0, "profile", metadata[sample_col].astype(str))
-    else:
-        metadata.insert(0, "profile", profiles)
-    return metadata
+    metadata = read_api_metadata(api_metadata)
+    metadata = metadata.drop_duplicates(subset=["profile"], keep="first")
+    order = pd.DataFrame({"profile": list(map(str, profiles))})
+    return order.merge(metadata, on="profile", how="left")
 
 
-def merge_profile_metadata(bundle, osdr_h5: str | Path | None, sample_key: str):
+def merge_profile_metadata(bundle, api_metadata: str | Path | None):
     pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
 
     if bundle.profile_metadata is not None:
@@ -125,41 +82,33 @@ def merge_profile_metadata(bundle, osdr_h5: str | Path | None, sample_key: str):
         metadata.insert(0, "profile", bundle.profiles)
     metadata = metadata.reset_index(drop=True)
 
-    if osdr_h5:
-        source_profile_indices = (
-            metadata["source_profile_index"].tolist()
-            if "source_profile_index" in metadata
-            else None
-        )
-        h5_metadata = load_osdr_metadata(
-            osdr_h5,
-            bundle.profiles,
-            sample_key,
-            source_profile_indices=source_profile_indices,
-        )
-        h5_profiles = h5_metadata["profile"].astype(str).tolist()
+    if api_metadata:
+        api_rows = load_osdr_metadata(api_metadata, bundle.profiles)
+        api_profiles = api_rows["profile"].astype(str).tolist()
         bundle_profiles = [str(profile) for profile in bundle.profiles]
-        if len(h5_metadata) == len(metadata) and h5_profiles == bundle_profiles:
-            h5_metadata = h5_metadata.reset_index(drop=True)
-            for column in h5_metadata.columns:
+        if len(api_rows) == len(metadata) and api_profiles == bundle_profiles:
+            api_rows = api_rows.reset_index(drop=True)
+            for column in api_rows.columns:
                 if column == "profile":
                     continue
                 if column in metadata:
-                    metadata[column] = metadata[column].fillna(h5_metadata[column])
+                    metadata[column] = metadata[column].replace("", pd.NA).fillna(
+                        api_rows[column]
+                    )
                 else:
-                    metadata[column] = h5_metadata[column]
+                    metadata[column] = api_rows[column]
         else:
-            h5_metadata = h5_metadata.drop_duplicates(subset=["profile"], keep="first")
+            api_rows = api_rows.drop_duplicates(subset=["profile"], keep="first")
             metadata = metadata.merge(
-                h5_metadata,
+                api_rows,
                 on="profile",
                 how="left",
-                suffixes=("", "_h5"),
+                suffixes=("", "_api"),
             )
             for column in list(metadata.columns):
-                if not column.endswith("_h5"):
+                if not column.endswith("_api"):
                     continue
-                base = column[:-3]
+                base = column[:-4]
                 if base in metadata:
                     metadata[base] = metadata[base].fillna(metadata[column])
                     metadata = metadata.drop(columns=[column])
@@ -173,7 +122,12 @@ def merge_profile_metadata(bundle, osdr_h5: str | Path | None, sample_key: str):
         )
     metadata["profile"] = bundle.profiles
 
-    metadata["condition_inferred"] = metadata["profile"].map(infer_condition)
+    inferred = metadata["profile"].map(infer_condition)
+    if "condition_inferred" in metadata:
+        existing = metadata["condition_inferred"].fillna("").astype(str)
+        metadata["condition_inferred"] = existing.where(existing.ne(""), inferred)
+    else:
+        metadata["condition_inferred"] = inferred
     metadata["flight_status_inferred"] = metadata["condition_inferred"].map(
         infer_flight_status
     )
@@ -515,7 +469,7 @@ def run(args) -> Path:
         )
 
     entity_axis = resolve_entity_axis(representation, bundle, args.entity_axis)
-    profile_metadata = merge_profile_metadata(bundle, args.osdr, args.sample_key)
+    profile_metadata = merge_profile_metadata(bundle, args.api_metadata)
     profile_metadata_path = output_dir / "profile_metadata.tsv"
     profile_metadata.to_csv(profile_metadata_path, sep="\t", index=False)
 
@@ -587,7 +541,7 @@ def run(args) -> Path:
     summary = {
         "representation": str(args.representation),
         "target_manifest": str(args.target_manifest),
-        "osdr": str(args.osdr) if args.osdr else "",
+        "api_metadata": str(args.api_metadata) if args.api_metadata else "",
         "entity_axis": entity_axis,
         "representation_shape": list(representation.shape),
         "target_shape": list(bundle.matrix.shape),
@@ -620,9 +574,9 @@ def main() -> None:
         help="Aligned OSDR target manifest used to export the fine-tuning CSV.",
     )
     parser.add_argument(
-        "--osdr",
-        default="",
-        help="Optional OSDR HDF5 file for additional /meta/info sample metadata.",
+        "--api-metadata",
+        default=DEFAULT_API_METADATA,
+        help="NASA OSDR API metadata TSV used to enrich profile metadata.",
     )
     parser.add_argument("--output-dir", required=True)
     parser.add_argument(
@@ -647,7 +601,6 @@ def main() -> None:
     parser.add_argument("--no-plots", action="store_true")
     parser.add_argument("--run-tsne", action="store_true")
     parser.add_argument("--tsne-perplexity", type=float, default=30.0)
-    parser.add_argument("--sample-key", default=DEFAULT_OSDR_SAMPLE_KEY)
     run(parser.parse_args())
 
 

@@ -13,12 +13,12 @@ import numpy as np
 import pandas as pd
 
 from .aggregate_liver_finetune import (
-    DEFAULT_OSDR_H5,
-    DEFAULT_TARGET_MANIFEST,
     load_excluded_profiles,
     select_aggregate_profiles,
 )
+from .gene_annotations import DEFAULT_TMS_H5AD, load_tms_gene_symbols
 from .io import require_import
+from .osdr import DEFAULT_API_METADATA, DEFAULT_COUNTS_DIR
 
 
 DEFAULT_ACCESSIONS = [
@@ -48,24 +48,6 @@ def ensure_mober_importable() -> None:
         sys.path.insert(0, source_path)
 
 
-def decode_array(values) -> list[str]:
-    decoded = []
-    for value in values:
-        if isinstance(value, bytes):
-            decoded.append(value.decode("utf-8", "replace"))
-        else:
-            decoded.append(str(value))
-    return decoded
-
-
-def load_gene_symbols(osdr_h5: str | Path) -> dict[str, str]:
-    h5py = require_import("h5py", "pip install -r requirements-nasa-mouse-glare.txt")
-    with h5py.File(osdr_h5, "r") as handle:
-        genes = decode_array(handle["/meta/genes/ensembl_gene"][:])
-        symbols = decode_array(handle["/meta/genes/symbol"][:])
-    return dict(zip(genes, symbols))
-
-
 def log2_cpm(matrix: np.ndarray) -> np.ndarray:
     """Convert genes x samples count-like matrix to samples x genes log2(CPM+1)."""
     matrix = matrix.astype(np.float32, copy=False)
@@ -79,11 +61,14 @@ def prepare(args: argparse.Namespace) -> dict:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     prepared = select_aggregate_profiles(
-        args.target_manifest,
-        args.osdr_h5,
+        args.api_metadata,
+        args.counts_dir,
         args.accessions,
         output_dir,
         load_excluded_profiles(args.exclude_profiles_file, args.exclude_profile),
+        refresh_metadata=args.refresh_metadata,
+        download_counts=args.download_counts,
+        timeout=args.timeout,
     )
     target = np.load(output_dir / "controlled_target.npz")
     genes = target["genes"].astype(str)
@@ -115,7 +100,7 @@ def prepare(args: argparse.Namespace) -> dict:
             lambda value: "" if pd.isna(value) else str(value)
         ).astype(object)
 
-    symbols = load_gene_symbols(args.osdr_h5)
+    symbols = load_tms_gene_symbols(args.tms_h5ad)
     var = pd.DataFrame(
         {
             "gene_id": [str(gene) for gene in genes],
@@ -129,7 +114,7 @@ def prepare(args: argparse.Namespace) -> dict:
         ).astype(object)
     anndata = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
     adata = anndata.AnnData(X=x, obs=metadata, var=var)
-    adata.uns["normalization"] = "log2(CPM+1) from OSDR count-like HDF5 expression"
+    adata.uns["normalization"] = "log2(CPM+1) from NASA OSDR API counts"
     adata.uns["batch_column"] = args.batch_column
     adata.uns["accessions"] = args.accessions
     h5ad_path = output_dir / "mober_liver_ribo6_input.h5ad"
@@ -139,8 +124,9 @@ def prepare(args: argparse.Namespace) -> dict:
     summary = {
         "input_h5ad": str(h5ad_path),
         "output_dir": str(output_dir),
-        "target_manifest": args.target_manifest,
-        "osdr_h5": args.osdr_h5,
+        "api_metadata": args.api_metadata,
+        "counts_dir": args.counts_dir,
+        "gene_annotations": args.tms_h5ad,
         "accessions": args.accessions,
         "shape_samples_x_genes": list(adata.shape),
         "normalization": adata.uns["normalization"],
@@ -323,8 +309,12 @@ def run(args: argparse.Namespace) -> None:
 
 
 def add_shared_arguments(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--target-manifest", default=DEFAULT_TARGET_MANIFEST)
-    parser.add_argument("--osdr-h5", default=DEFAULT_OSDR_H5)
+    parser.add_argument("--api-metadata", default=DEFAULT_API_METADATA)
+    parser.add_argument("--counts-dir", default=DEFAULT_COUNTS_DIR)
+    parser.add_argument("--tms-h5ad", default=DEFAULT_TMS_H5AD)
+    parser.add_argument("--refresh-metadata", action="store_true")
+    parser.add_argument("--download-counts", action="store_true")
+    parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--accessions", nargs="+", default=DEFAULT_ACCESSIONS)
     parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--batch-column", default=DEFAULT_BATCH_COLUMN)

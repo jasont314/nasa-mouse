@@ -74,26 +74,26 @@ matrix, so full FACS/droplet is likely too large without changing training.
 
 ## Prepare OSDR fine-tuning matrix
 
-Your current OSDR HDF5 has `/data/expression` with shape `53511 x 3315`.
+Discover eligible mouse bulk RNA-seq profiles through the NASA OSDR Biological
+Data API and download the per-accession unnormalized count tables:
 
 ```bash
-PYTHONPATH=src python -m nasa_mouse_glare.osdr inspect-h5 \
-  --input assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5
+PYTHONPATH=src python -m nasa_mouse_glare.fetch_osdr_mouse_transcriptomics \
+  --download-counts
 
-PYTHONPATH=src python -m nasa_mouse_glare.osdr prep-h5 \
-  --input assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5 \
-  --output-prefix data/processed/osdr_mouse_bulk \
-  --matrix-key /data/expression \
-  --gene-key /meta/genes/ensembl_gene \
-  --sample-key "/meta/info/id.sample name"
+PYTHONPATH=src python -m nasa_mouse_glare.osdr \
+  --tissue liver \
+  --output-dir outputs/glare/api_inputs/liver \
+  --download-counts
 ```
 
-## Align genes
+The API loader writes raw-count and `log2(CPM+1)` bundles. Align the normalized
+target to the TMS reference before upstream GLARE training:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_glare.align \
   --pretrain data/processed/tms_facs_3552_cells.manifest.json \
-  --target data/processed/osdr_mouse_bulk.manifest.json \
+  --target outputs/glare/api_inputs/liver/api_log2_cpm.manifest.json \
   --output-prefix data/processed/tms_facs_osdr_aligned
 ```
 
@@ -159,7 +159,7 @@ representations:
 PYTHONPATH=src python -m nasa_mouse_glare.post_finetune \
   --representation outputs/glare/hpt_tms_facs_osdr/FTSAE_representation.npy \
   --target-manifest data/processed/tms_facs_osdr_aligned.target.manifest.json \
-  --osdr assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5 \
+  --api-metadata data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv \
   --output-dir outputs/glare/hpt_tms_facs_osdr/post_finetune
 ```
 
@@ -319,7 +319,7 @@ Run the liver-only post-training analyses:
 PYTHONPATH=src python -m nasa_mouse_glare.post_finetune \
   --representation outputs/glare/fixed_tms_facs_liver_osdr_liver/FTSAE_representation.npy \
   --target-manifest data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json \
-  --osdr assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5 \
+  --api-metadata data/osdr_api/osdr_api_mouse_bulk_rnaseq_flt_gc_metadata.tsv \
   --output-dir outputs/glare/fixed_tms_facs_liver_osdr_liver/post_finetune
 
 PYTHONPATH=src python -m nasa_mouse_glare.ensemble_clustering \
@@ -564,9 +564,9 @@ require equal sample counts.
 ## Aggregate Liver FLT/GC Fine-Tuning
 
 This run reuses the TMS FACS liver pretrained SAE and fine-tunes separate FLT
-and GC adapters on aggregated OSDR liver profiles. Tissue selection uses the
-integrated HDF5 `study.characteristics.material type` field, and condition
-selection uses `study.factor value.spaceflight`.
+and GC adapters on aggregated OSDR liver profiles. Tissue and condition labels
+come from the NASA OSDR API inventory; expression comes from the matching
+per-accession unnormalized count tables.
 
 ```bash
 conda run -n nasa env PYTHONPATH=src OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=1 \
@@ -594,7 +594,7 @@ normalized-expression meta-DGEA:
 conda run -n nasa env PYTHONPATH=src \
   python -m nasa_mouse_glare.aggregate_liver_analysis \
   --run-dir outputs/glare/tms_liver_aggregated_osdr_flt_gc \
-  --osdr-h5 assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5
+  --tms-h5ad assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad
 ```
 
 Then run the study-aware raw-count DESeq2 meta-analysis. This uses the

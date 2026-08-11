@@ -14,11 +14,10 @@ from scipy.linalg import orthogonal_procrustes
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
 from sklearn.preprocessing import StandardScaler
 
-from .io import require_import
+from .gene_annotations import DEFAULT_TMS_H5AD, load_tms_gene_symbols
 
 
 DEFAULT_RUN_DIR = "outputs/glare/tms_liver_aggregated_osdr_flt_gc"
-DEFAULT_OSDR_H5 = "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5"
 BATCH_VARIABLES = [
     "h5_accession",
     "mission",
@@ -53,22 +52,8 @@ def bh_adjust(p_values: np.ndarray) -> np.ndarray:
     return adjusted
 
 
-def decode_array(values) -> list[str]:
-    decoded = []
-    for value in values:
-        if isinstance(value, bytes):
-            decoded.append(value.decode("utf-8", "replace"))
-        else:
-            decoded.append(str(value))
-    return decoded
-
-
-def load_gene_symbols(osdr_h5: str | Path) -> dict[str, str]:
-    h5py = require_import("h5py", "pip install -r requirements-nasa-mouse-glare.txt")
-    with h5py.File(osdr_h5, "r") as handle:
-        genes = decode_array(handle["/meta/genes/ensembl_gene"][:])
-        symbols = decode_array(handle["/meta/genes/symbol"][:])
-    return dict(zip(genes, symbols))
+def load_gene_symbols(tms_h5ad: str | Path = DEFAULT_TMS_H5AD) -> dict[str, str]:
+    return load_tms_gene_symbols(tms_h5ad)
 
 
 def load_run(run_dir: Path) -> dict:
@@ -604,7 +589,7 @@ def write_report(output_dir: Path, summary: dict) -> None:
         "",
         "This is not DESeq2 from raw counts. It is an exploratory fixed-effect",
         "meta-analysis over per-study Welch tests on log2(normalized expression + 1)",
-        "from the integrated HDF5/aligned target matrix.",
+        "from the NASA API count matrix.",
         "",
         f"- Accessions tested: {', '.join(summary['meta_dgea']['accessions_tested'])}",
         f"- Genes tested: {summary['meta_dgea']['genes_tested']:,}",
@@ -619,7 +604,7 @@ def write_report(output_dir: Path, summary: dict) -> None:
         "",
         "## Raw-Count DESeq2 Inputs",
         "",
-        "The HDF5 expression matrix is integer count-like data. Per-study DESeq2",
+        "The NASA API provides unnormalized counts. Per-study DESeq2",
         "inputs were exported for a study-aware FLT-vs-GC analysis:",
         "",
         f"- Counts: `{summary['deseq2_inputs']['counts']}`",
@@ -636,7 +621,7 @@ def parse_args() -> argparse.Namespace:
         description="Analyze aggregated OSDR liver GLARE FLT/GC results."
     )
     parser.add_argument("--run-dir", default=DEFAULT_RUN_DIR)
-    parser.add_argument("--osdr-h5", default=DEFAULT_OSDR_H5)
+    parser.add_argument("--tms-h5ad", default=DEFAULT_TMS_H5AD)
     parser.add_argument(
         "--output-dir",
         help="Defaults to <run-dir>/post_analysis.",
@@ -652,7 +637,7 @@ def main() -> None:
 
     log(f"Loading aggregate GLARE run from {run_dir}")
     run = load_run(run_dir)
-    symbols = load_gene_symbols(args.osdr_h5)
+    symbols = load_gene_symbols(args.tms_h5ad)
 
     log("Running study/batch QC")
     batch_qc = run_batch_qc(run, output_dir)

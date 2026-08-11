@@ -66,35 +66,22 @@ PYTHONPATH=src python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue
 PYTHONPATH=src python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue --tissue kidney
 ```
 
-Legacy GLARE HDF5 prep commands:
+Prepare GLARE expression directly from NASA OSDR API metadata and per-accession
+unnormalized count tables:
 
 ```bash
-PYTHONPATH=src python -m nasa_mouse_glare.tms \
-  --input assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad \
-  --output-prefix data/processed/tms_facs_3552_cells \
-  --matrix-source X \
-  --max-cells 3552
+PYTHONPATH=src python -m nasa_mouse_glare.fetch_osdr_mouse_transcriptomics \
+  --download-counts
 
-PYTHONPATH=src python -m nasa_mouse_glare.osdr prep-h5 \
-  --input assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5 \
-  --output-prefix data/processed/osdr_mouse_bulk \
-  --matrix-key /data/expression \
-  --gene-key /meta/genes/ensembl_gene \
-  --sample-key "/meta/info/id.sample name"
-
-PYTHONPATH=src python -m nasa_mouse_glare.align \
-  --pretrain data/processed/tms_facs_3552_cells.manifest.json \
-  --target data/processed/osdr_mouse_bulk.manifest.json \
-  --output-prefix data/processed/tms_facs_osdr_aligned
-
-PYTHONPATH=src python -m nasa_mouse_glare.export mtx \
-  --bundle data/processed/tms_facs_osdr_aligned.pretrain.manifest.json \
-  --output data/glare_inputs/tms_facs_pretrain.mtx
-
-PYTHONPATH=src python -m nasa_mouse_glare.export csv \
-  --bundle data/processed/tms_facs_osdr_aligned.target.manifest.json \
-  --output data/glare_inputs/osdr_finetune.csv
+PYTHONPATH=src python -m nasa_mouse_glare.osdr \
+  --tissue liver \
+  --output-dir outputs/glare/api_inputs/liver \
+  --download-counts
 ```
+
+The GLARE API loader writes raw-count and `log2(CPM+1)` matrix bundles plus
+study-aware DESeq2 inputs. The multi-tissue training wrapper also prepares and
+aligns the matching TMS reference automatically.
 
 ## Output Shapes
 

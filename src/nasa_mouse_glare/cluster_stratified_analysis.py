@@ -15,7 +15,10 @@ DEFAULT_GENE_CLUSTERS = (
     "outputs/glare/hpt_tms_facs_osdr/post_finetune/"
     "ensemble_clustering/gene_clusters.tsv"
 )
-DEFAULT_TARGET_MANIFEST = "data/processed/tms_facs_osdr_aligned.target.manifest.json"
+DEFAULT_TARGET_MANIFEST = (
+    "outputs/glare/multi_tissue_api/liver/aggregate/inputs/"
+    "aligned_tms_api.target.manifest.json"
+)
 DEFAULT_PROFILE_METADATA = (
     "outputs/glare/hpt_tms_facs_osdr/post_finetune/profile_metadata.tsv"
 )

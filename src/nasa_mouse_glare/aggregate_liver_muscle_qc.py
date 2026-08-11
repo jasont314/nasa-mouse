@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .aggregate_liver_mober import load_gene_symbols
+from .gene_annotations import DEFAULT_TMS_H5AD, load_tms_gene_symbols
 from .osd379_tissue_qc import (
     LIVER_MARKERS,
     MUSCLE_MARKERS,
@@ -22,7 +22,6 @@ from .osd379_tissue_qc import (
 
 
 DEFAULT_RUN_DIR = "outputs/glare/mober/liver_ribo6_osdr"
-DEFAULT_OSDR_H5 = "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5"
 DEFAULT_OUTPUT_DIR = "outputs/glare/mober/liver_ribo6_osdr/muscle_outlier_qc"
 MIN_STRATUM_GROUP_SIZE = 4
 MIN_BROAD_GROUP_SIZE = 6
@@ -342,7 +341,7 @@ def parse_args() -> argparse.Namespace:
         description="Score aggregate OSDR liver samples for muscle-marker outliers."
     )
     parser.add_argument("--run-dir", default=DEFAULT_RUN_DIR)
-    parser.add_argument("--osdr-h5", default=DEFAULT_OSDR_H5)
+    parser.add_argument("--tms-h5ad", default=DEFAULT_TMS_H5AD)
     parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR)
     return parser.parse_args()
 
@@ -355,7 +354,7 @@ def main() -> None:
 
     log(f"Loading aggregate run from {run_dir}")
     expression, genes, metadata = load_run_matrix(run_dir)
-    symbols = load_gene_symbols(args.osdr_h5)
+    symbols = load_tms_gene_symbols(args.tms_h5ad)
     log("Scoring muscle and liver marker panels")
     scores, summary = score_samples(expression, genes, metadata, symbols)
     grouped = accession_condition_summary(scores)

@@ -10,7 +10,10 @@ from .io import load_matrix_bundle, require_import
 
 
 DEFAULT_POST_DIR = "outputs/glare/hpt_tms_facs_osdr/post_finetune"
-DEFAULT_TARGET_MANIFEST = "data/processed/tms_facs_osdr_aligned.target.manifest.json"
+DEFAULT_TARGET_MANIFEST = (
+    "outputs/glare/multi_tissue_api/liver/aggregate/inputs/"
+    "aligned_tms_api.target.manifest.json"
+)
 DEFAULT_CLUSTERS = [13, 10, 8, 0, 6]
 DEFAULT_REACTOME_GMT = (
     "data/reference/expimap/paper_metadata/c2.cp.reactome.v4.0_mouseEID.gmt"

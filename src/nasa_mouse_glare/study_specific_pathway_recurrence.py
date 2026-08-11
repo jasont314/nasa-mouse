@@ -11,14 +11,20 @@ import subprocess
 import sys
 
 from .io import require_import
+from .gene_annotations import DEFAULT_TMS_H5AD, load_tms_gene_symbols
+from .osdr import (
+    DEFAULT_API_METADATA,
+    DEFAULT_COUNTS_DIR,
+    load_api_expression,
+    read_api_metadata,
+    select_api_metadata,
+)
 
 
 DEFAULT_OUTPUT_DIR = (
     "outputs/glare/tms_liver_mober_ribo6_osdr_12_muscle_outliers/"
     "post_analysis/study_specific_pathway_recurrence"
 )
-DEFAULT_H5 = "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5"
-DEFAULT_LIVER_METADATA = "data/processed/osdr_mouse_bulk_liver.profile_metadata.tsv"
 DEFAULT_EXCLUDE_PROFILES = "data/filters/aggregate_liver_12_muscle_candidate_profiles.txt"
 DEFAULT_REACTOME_GMT = (
     "data/reference/expimap/paper_metadata/c2.cp.reactome.v4.0_mouseEID.gmt"
@@ -34,16 +40,6 @@ def read_lines(path: Path) -> list[str]:
     if not path.exists():
         return []
     return [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
-
-
-def decode_h5_values(values) -> list[str]:
-    decoded = []
-    for value in values:
-        if isinstance(value, bytes):
-            decoded.append(value.decode("utf-8"))
-        else:
-            decoded.append(str(value))
-    return decoded
 
 
 def infer_stratum(profile: str, accession: str) -> str:
@@ -67,51 +63,53 @@ def condition_label(condition_inferred: str) -> str:
 
 
 def extract_raw_count_inputs(
-    h5_path: Path,
-    liver_metadata_path: Path,
+    api_metadata_path: Path,
+    counts_dir: Path,
     exclude_profiles_path: Path,
     studies: list[str],
     output_dir: Path,
+    *,
+    tms_h5ad: Path = Path(DEFAULT_TMS_H5AD),
+    refresh_metadata: bool = False,
+    download_counts: bool = False,
+    timeout: int = 180,
 ) -> dict[str, str]:
-    h5py = require_import("h5py", "pip install -r requirements-nasa-mouse-glare.txt")
     pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
 
     input_dir = output_dir / "raw_deseq2_inputs"
     input_dir.mkdir(parents=True, exist_ok=True)
 
-    metadata = pd.read_csv(liver_metadata_path, sep="\t", keep_default_na=False)
+    metadata = read_api_metadata(
+        api_metadata_path,
+        refresh=refresh_metadata,
+        timeout=timeout,
+    )
     excluded = set(read_lines(exclude_profiles_path))
-    selected = metadata[
-        metadata["id.accession"].isin(studies)
-        & metadata["condition_inferred"].isin(["flight", "ground_control"])
-        & ~metadata["profile"].isin(excluded)
-    ].copy()
+    selected = select_api_metadata(metadata, tissue="liver", accessions=studies)
+    selected = selected.loc[~selected["profile"].isin(excluded)].copy()
     if selected.empty:
         raise SystemExit("No liver FLT/GC profiles remain after filtering")
 
-    selected["sample"] = selected["profile"].astype(str)
+    loaded = load_api_expression(
+        selected,
+        counts_dir=counts_dir,
+        timeout=timeout,
+        download_missing=download_counts,
+    )
+    counts_table = loaded["raw_counts"]
+    selected = loaded["metadata"].copy()
+    selected["sample"] = selected["feature"].astype(str)
     selected["accession"] = selected["id.accession"].astype(str)
     selected["condition"] = selected["condition_inferred"].map(condition_label)
     selected["stratum"] = [
         infer_stratum(profile, accession)
         for profile, accession in zip(selected["profile"], selected["accession"])
     ]
-    selected["source_profile_index"] = selected["source_profile_index"].astype(int)
     selected = selected.sort_values(["accession", "condition", "stratum", "sample"])
-
-    if selected["sample"].duplicated().any():
-        duplicates = selected.loc[selected["sample"].duplicated(), "sample"].tolist()
-        raise SystemExit(f"Duplicate profile names after filtering: {duplicates[:10]}")
-
-    with h5py.File(h5_path, "r") as handle:
-        gene_ids = decode_h5_values(handle["meta/genes/ensembl_gene"][:])
-        gene_symbols = decode_h5_values(handle["meta/genes/symbol"][:])
-        counts = handle["data/expression"][:, selected["source_profile_index"].tolist()]
-
-    counts_table = pd.DataFrame(counts, index=gene_ids, columns=selected["sample"].tolist())
+    counts_table = counts_table.loc[:, selected["sample"].tolist()]
     counts_table.index.name = "gene_id"
     counts_path = input_dir / "counts.tsv"
-    counts_table.to_csv(counts_path, sep="\t")
+    counts_table.round().astype("int64").to_csv(counts_path, sep="\t")
 
     metadata_columns = [
         "sample",
@@ -119,10 +117,9 @@ def extract_raw_count_inputs(
         "condition",
         "stratum",
         "profile",
-        "source_profile_index",
-        "official_sample_name",
-        "official_material_type",
-        "official_tissue",
+        "id.sample name",
+        "study.characteristics.material type",
+        "tissue_final",
         "library_selection",
         "library_layout",
         "sex",
@@ -134,7 +131,16 @@ def extract_raw_count_inputs(
     sample_metadata.to_csv(metadata_path, sep="\t", index=False)
 
     symbols_path = input_dir / "gene_symbols.tsv"
-    pd.DataFrame({"gene_id": gene_ids, "gene_symbol": gene_symbols}).to_csv(
+    gene_symbols = load_tms_gene_symbols(tms_h5ad)
+    pd.DataFrame(
+        {
+            "gene_id": counts_table.index.astype(str),
+            "gene_symbol": [
+                gene_symbols.get(str(gene).split(".", 1)[0], str(gene))
+                for gene in counts_table.index
+            ],
+        }
+    ).to_csv(
         symbols_path,
         sep="\t",
         index=False,
@@ -157,6 +163,9 @@ def extract_raw_count_inputs(
     stratum_counts.to_csv(input_dir / "study_stratum_condition_counts.tsv", sep="\t", index=False)
 
     return {
+        "api_metadata": str(api_metadata_path),
+        "counts_dir": str(counts_dir),
+        "excluded_profiles": str(exclude_profiles_path),
         "counts": str(counts_path),
         "metadata": str(metadata_path),
         "gene_symbols": str(symbols_path),
@@ -601,14 +610,14 @@ def write_report(
     lines = [
         "# Study-Specific FLT-vs-GC Pathway Recurrence",
         "",
-        "This analysis treats OSD-379, OSD-245, and OSD-463 as separate primary studies.",
+        f"This analysis treats {', '.join(studies)} as separate primary studies.",
         "Aggregate GLARE is used only as exploratory support after study-specific raw-count DESeq2 and Reactome pathway testing.",
         "",
         "## Inputs",
         "",
-        f"- Raw expression HDF5: `{DEFAULT_H5}`",
-        f"- Liver metadata: `{DEFAULT_LIVER_METADATA}`",
-        f"- Excluded muscle-outlier profiles: `{DEFAULT_EXCLUDE_PROFILES}`",
+        f"- NASA API metadata: `{input_paths['api_metadata']}`",
+        f"- NASA API count tables: `{input_paths['counts_dir']}`",
+        f"- Excluded muscle-outlier profiles: `{input_paths['excluded_profiles']}`",
         f"- Reactome GMT: `{DEFAULT_REACTOME_GMT}`",
         f"- DESeq2/pathway alpha: {alpha}",
         f"- Rank-sum pathway size range: {min_size}-{max_size} tested genes",
@@ -737,8 +746,12 @@ def write_report(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--h5", default=DEFAULT_H5)
-    parser.add_argument("--liver-metadata", default=DEFAULT_LIVER_METADATA)
+    parser.add_argument("--api-metadata", default=DEFAULT_API_METADATA)
+    parser.add_argument("--counts-dir", default=DEFAULT_COUNTS_DIR)
+    parser.add_argument("--tms-h5ad", default=DEFAULT_TMS_H5AD)
+    parser.add_argument("--refresh-metadata", action="store_true")
+    parser.add_argument("--download-counts", action="store_true")
+    parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--exclude-profiles", default=DEFAULT_EXCLUDE_PROFILES)
     parser.add_argument("--reactome-gmt", default=DEFAULT_REACTOME_GMT)
     parser.add_argument("--aggregate-glare-terms", default=DEFAULT_AGGREGATE_GLARE_TERMS)
@@ -763,11 +776,15 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     input_paths = extract_raw_count_inputs(
-        Path(args.h5),
-        Path(args.liver_metadata),
+        Path(args.api_metadata),
+        Path(args.counts_dir),
         Path(args.exclude_profiles),
         args.studies,
         output_dir,
+        tms_h5ad=Path(args.tms_h5ad),
+        refresh_metadata=args.refresh_metadata,
+        download_counts=args.download_counts,
+        timeout=args.timeout,
     )
     if not args.skip_deseq2:
         run_deseq2(

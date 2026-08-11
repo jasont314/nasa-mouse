@@ -14,13 +14,12 @@ import pandas as pd
 import torch
 
 from .aggregate_liver_finetune import (
-    DEFAULT_OSDR_H5,
-    DEFAULT_TARGET_MANIFEST,
     load_excluded_profiles,
     select_aggregate_profiles,
 )
 from .cluster_enrichment import bh_fdr, read_gmt
 from .io import require_import
+from .osdr import DEFAULT_API_METADATA, DEFAULT_COUNTS_DIR
 from .paper_finetune import (
     finetune_location,
     format_elapsed,
@@ -273,12 +272,15 @@ def write_report(
 def run_study(args: argparse.Namespace, accession: str, input_dim: int, device) -> dict:
     study_dir = Path(args.output_dir) / accession
     prepared = select_aggregate_profiles(
-        args.target_manifest,
-        args.osdr_h5,
+        args.api_metadata,
+        args.counts_dir,
         [accession],
         study_dir,
         load_excluded_profiles(args.exclude_profiles_file, args.exclude_profile),
         args.ercc_policy,
+        refresh_metadata=args.refresh_metadata,
+        download_counts=args.download_counts,
+        timeout=args.timeout,
     )
     counts = prepared["counts"].reset_index().rename(columns={"index": "h5_accession"})
     count_records = counts.reset_index(drop=True).to_dict(orient="records")
@@ -320,10 +322,10 @@ def run_study(args: argparse.Namespace, accession: str, input_dim: int, device) 
     summary = {
         "method": "per-study GLARE released 16-dimensional SAE with separate FLT/GC fine-tuning",
         "accession": accession,
-        "target_manifest": prepared["target_manifest"],
+        "api_metadata": prepared["api_metadata"],
+        "counts_dir": prepared["counts_dir"],
         "target_expression_input": prepared["input_path"],
-        "target_expression_kind": "aligned_osdr_liver_hdf5_expression",
-        "osdr_h5": prepared["osdr_h5"],
+        "target_expression_kind": "nasa_osdr_api_unnormalized_counts",
         "pretrained_weights": args.pretrained_weights,
         "pretrained_input_dim": input_dim,
         "device": str(device),
@@ -351,8 +353,11 @@ def run_study(args: argparse.Namespace, accession: str, input_dim: int, device) 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--target-manifest", default=DEFAULT_TARGET_MANIFEST)
-    parser.add_argument("--osdr-h5", default=DEFAULT_OSDR_H5)
+    parser.add_argument("--api-metadata", default=DEFAULT_API_METADATA)
+    parser.add_argument("--counts-dir", default=DEFAULT_COUNTS_DIR)
+    parser.add_argument("--refresh-metadata", action="store_true")
+    parser.add_argument("--download-counts", action="store_true")
+    parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--studies", nargs="+", default=DEFAULT_STUDIES)
     parser.add_argument("--pretrained-weights", default=DEFAULT_PRETRAINED_WEIGHTS)
     parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR)

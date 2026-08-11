@@ -23,6 +23,7 @@ from sklearn.preprocessing import StandardScaler
 
 from .aggregate_liver_analysis import load_gene_symbols
 from .cluster_enrichment import bh_fdr
+from .gene_annotations import DEFAULT_TMS_H5AD
 from .per_study_glare import (
     DEFAULT_OUTPUT_DIR as DEFAULT_GLARE_DIR,
     DEFAULT_STUDIES,
@@ -38,7 +39,6 @@ from .study_specific_pathway_recurrence import (
 DEFAULT_COMPARISON_OUTPUT_DIR = (
     "outputs/glare/per_study_liver_noercc_12filter/dgea_comparison"
 )
-DEFAULT_OSDR_H5 = "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5"
 DEFAULT_REACTOME_GMT = (
     "data/reference/expimap/paper_metadata/c2.cp.reactome.v4.0_mouseEID.gmt"
 )
@@ -787,7 +787,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--glare-dir", default=DEFAULT_GLARE_DIR)
     parser.add_argument("--output-dir", default=DEFAULT_COMPARISON_OUTPUT_DIR)
-    parser.add_argument("--osdr-h5", default=DEFAULT_OSDR_H5)
+    parser.add_argument("--tms-h5ad", default=DEFAULT_TMS_H5AD)
     parser.add_argument("--reactome-gmt", default=DEFAULT_REACTOME_GMT)
     parser.add_argument("--studies", nargs="+", default=DEFAULT_STUDIES)
     parser.add_argument("--rscript", default=default_rscript())
@@ -810,7 +810,7 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     log("Loading gene symbols")
-    symbols = load_gene_symbols(args.osdr_h5)
+    symbols = load_gene_symbols(args.tms_h5ad)
     log("Exporting matched DESeq2 inputs from per-study GLARE runs")
     input_paths = export_matched_deseq2_inputs(
         glare_dir,

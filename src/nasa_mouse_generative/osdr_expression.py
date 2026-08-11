@@ -285,7 +285,6 @@ def run(args: argparse.Namespace) -> Path:
         obs[column] = obs[column].fillna("").astype(str)
     adata = ad.AnnData(X=expression, obs=obs, var=var)
     adata.uns["source"] = "NASA OSDR Biological Data API unnormalized count tables"
-    adata.uns["not_used"] = "assets/osdr/OSDR_mouse_RNAseq_Feb2026.h5"
     adata.uns["technical_replicate_policy"] = args.technical_replicate_policy
     adata.uns["count_semantics"] = (
         "RSEM unnormalized expected counts; non-negative values may be fractional"
