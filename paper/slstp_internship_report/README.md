@@ -9,7 +9,7 @@ The literature rationale and proposed validation tests for distributed liver, sp
 Build the figures, source manifest, HTML, and PDF from the repository root:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_internship_report.build_report
 ```
 

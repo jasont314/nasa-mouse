@@ -95,7 +95,17 @@ SMALL_MODEL = {
     "ema_decay": 0.999,
 }
 
+PINNED_DDIM_SOURCE = (
+    Path(__file__).resolve().parents[1]
+    / "assets/model_sources/rna-diffusion/src/generation/ddim/models/diffusion_ddim.py"
+)
+REQUIRES_PINNED_DDIM = unittest.skipUnless(
+    PINNED_DDIM_SOURCE.exists(),
+    "restore the pinned RNA diffusion source with prepare-upstreams",
+)
 
+
+@REQUIRES_PINNED_DDIM
 class UpstreamParityTests(unittest.TestCase):
     def _model(self):
         config = model_config(expression_dim=12, num_classes=3, model=SMALL_MODEL)
@@ -480,6 +490,7 @@ class ConditionalDataTests(unittest.TestCase):
         torch.testing.assert_close(expanded["y_emb.weight"][2], source["y_emb.weight"][1])
         self.assertEqual(audit["mapped_classes"], 2)
 
+    @REQUIRES_PINNED_DDIM
     def test_function_preserving_tissue_expansion_matches_source_outputs(self):
         old_classes = ["a", "b"]
         new_classes = [
@@ -726,6 +737,7 @@ class FactorizedAdapterTests(unittest.TestCase):
             samples, ["liver", "skeletal_muscle"]
         )
 
+    @REQUIRES_PINNED_DDIM
     def test_zero_adapter_preserves_pretrained_function(self):
         samples, schema = self._schema()
         torch.manual_seed(31)
@@ -742,6 +754,7 @@ class FactorizedAdapterTests(unittest.TestCase):
         observed = adapter(expression, timesteps, labels)
         torch.testing.assert_close(observed, expected)
 
+    @REQUIRES_PINNED_DDIM
     def test_stage_selection_exposes_only_requested_adapter_group(self):
         _, schema = self._schema()
         base = upstream_model_class()(

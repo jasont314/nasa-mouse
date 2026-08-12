@@ -36,7 +36,7 @@ data:
     harmonization_covariates: []
     harmonization_parameters:
       batch_key: study
-      rscript: /home/exouser/miniforge3/envs/nasa-mouse/bin/Rscript
+      rscript: Rscript
       noninteger_policy: round
       anchor_samples: 32
       singleton_batch_policy: pool

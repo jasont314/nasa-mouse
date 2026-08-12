@@ -13,7 +13,7 @@ The annotation workflow identifies OpenAI Codex (GPT-5) as the LLM used to organ
 Rebuild from the repository root:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.build_asgsr_poster
+python -m nasa_mouse_expimap.build_asgsr_poster
 ```
 
 The builder requires `python-pptx` and uses `pdftocairo` for high-resolution figure rendering. When LibreOffice is available, it also regenerates the PDF and PNG preview.

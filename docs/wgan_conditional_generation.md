@@ -27,7 +27,7 @@ covariates fixed and flipping `wgan_condition` between `ground_control` and
 Command:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_wgan.run_conditional_generation
+python -m nasa_mouse_wgan.run_conditional_generation
 ```
 
 | track | samples | genes | epochs | device | purpose |
@@ -76,7 +76,7 @@ profiles, and matched random noise for the ground-control and flight pair.
 To generate more samples for a specific observed profile:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_wgan.generate_synthetic \
+python -m nasa_mouse_wgan.generate_synthetic \
   --model-dir outputs/generative/standalone/wgan/conditional_generation/archs4_pretrain_osdr_finetune \
   --output-dir outputs/generative/standalone/wgan/conditional_generation/synthetic_custom/liver \
   --n 128 \

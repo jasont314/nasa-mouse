@@ -61,7 +61,7 @@ Unnormalized OSDR API counts were converted to `log2(counts per million + 1)` fo
 From the repository root:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.build_asgsr_paper
 ```
 
@@ -70,71 +70,71 @@ The script writes all figures in PNG and vector PDF formats and rebuilds Tables 
 The main build also invokes the expanded pathway-family review. To run that review alone after Table S9 exists:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.review_expanded_pathway_screen
 ```
 
 To render the abstract and manuscript as HTML and PDF:
 
 ```bash
-/home/exouser/miniforge3/envs/nasa-mouse/bin/python -m pip install \
+python -m pip install \
   -r paper/asgsr_expimap_hvg/requirements.txt
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.render_asgsr_documents
 ```
 
 To verify every manuscript DOI against Crossref and regenerate the source audit:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.verify_asgsr_sources
 ```
 
 To rebuild the aligned and complementary program audit, including pairwise score correlations and Reactome gene overlap:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.audit_aligned_complementary_programs
 ```
 
 To rebuild the conventional, held-out-project, and composition-proxy analyses:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.reviewer_robustness_analysis
 ```
 
 To create missing full-pipeline seed runs and rebuild their summaries:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.run_asgsr_seed_sensitivity
 ```
 
 To integrate all checks into the reviewed-pathway evidence matrix:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.integrate_reviewer_robustness
 ```
 
 To rebuild the corrected kidney and spleen models, evidence audit, manual curation, and revised paper-facing figures and tables:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.run_kidney_spleen_seed_sensitivity
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.analyze_kidney_spleen_reassessment
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.curate_kidney_spleen_reassessment
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.integrate_reassessed_tissues_paper
 ```
 
 The integration command must run after `build_asgsr_paper`, because it assembles the corrected main-tissue evidence and copies the original soleus material to supplementary figure names. The final publication figures and their added source tables are then generated with:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_expimap.build_publication_figures
 ```
 

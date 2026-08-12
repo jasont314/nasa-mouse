@@ -1037,7 +1037,7 @@ def main() -> None:
             "selection": "top decile of absolute training-project effect",
         },
         "composition_proxy": {
-            "atlas": str(TMS_PATH),
+            "atlas": str(TMS_PATH.relative_to(Path(__file__).resolve().parents[2])),
             "atlas_citation": str(atlas.uns.get("citation", "")),
             "markers_per_compartment": N_MARKERS_PER_COMPARTMENT,
             "adjustment": "within-accession condition coefficient plus up to three marker-score PCs explaining at least 90% of marker-score variance",

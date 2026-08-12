@@ -23,6 +23,6 @@ All 11 pages were rendered to PNG and inspected at full-page scale after the fin
 Rebuild command:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_internship_report.build_report
 ```

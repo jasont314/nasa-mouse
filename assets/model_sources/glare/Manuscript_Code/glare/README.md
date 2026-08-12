@@ -94,4 +94,6 @@ Seo, D., Strickland, H. F., Zhou, M., Barker, R., Ferl, R. J., Paul, A. L., & Gi
 
 ## Proof of concept
 
-Proof of concept study was presented at ASGSR 2021, where you can find the source code and the abstract poster at [POC_ASGSR2021](POC_ASGSR2021).
+The proof-of-concept study was presented at ASGSR 2021. Its source and poster
+directory are part of the upstream repository but are not retained in this
+runtime snapshot.

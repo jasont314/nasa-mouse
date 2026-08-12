@@ -32,17 +32,17 @@ The primary descriptive quantity is the equally weighted project- or accession-s
 Run the original four-model build and robustness analyses first, then the corrected kidney/spleen analysis, paper integration, final publication-figure build, and document renderer:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.build_asgsr_paper
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.reviewer_robustness_analysis
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.run_asgsr_seed_sensitivity
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.integrate_reviewer_robustness
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.run_kidney_spleen_seed_sensitivity
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.analyze_kidney_spleen_reassessment
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.curate_kidney_spleen_reassessment
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.integrate_reassessed_tissues_paper
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.build_publication_figures
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.render_asgsr_documents
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.build_asgsr_poster
+python -m nasa_mouse_expimap.build_asgsr_paper
+python -m nasa_mouse_expimap.reviewer_robustness_analysis
+python -m nasa_mouse_expimap.run_asgsr_seed_sensitivity
+python -m nasa_mouse_expimap.integrate_reviewer_robustness
+python -m nasa_mouse_expimap.run_kidney_spleen_seed_sensitivity
+python -m nasa_mouse_expimap.analyze_kidney_spleen_reassessment
+python -m nasa_mouse_expimap.curate_kidney_spleen_reassessment
+python -m nasa_mouse_expimap.integrate_reassessed_tissues_paper
+python -m nasa_mouse_expimap.build_publication_figures
+python -m nasa_mouse_expimap.render_asgsr_documents
+python -m nasa_mouse_expimap.build_asgsr_poster
 ```
 
 `build_publication_figures` authors the final main figures and dense supplementary summaries at a 7.2-inch publication width, writes 300-dpi PNG and vector PDF copies, and checks image borders and dimensions. It also produces the latent-mapping, sample-score, and retained-member-gene source tables. Figure 6 is a deterministic Discussion schematic that explicitly separates prior-literature phenotypes, observed pathway-score directions, and new tissue-state hypotheses. The broader non-evidentiary process summary remains separate in `presentation/expimap/asgsr_process_summary.*`.

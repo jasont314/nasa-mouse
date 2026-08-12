@@ -79,7 +79,7 @@ below rebuilds the two paper tables and validates complete coverage of the froze
 promoted-gene inventory:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_diffusion.paper_parity.annotate_promoted_gene_literature
 ```
 

@@ -25,6 +25,17 @@ from .build_asgsr_paper import (
 
 
 SEEDS = (2020, 2021, 2022)
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def _portable_path(value: str | Path) -> str:
+    path = Path(value)
+    if not path.is_absolute():
+        return str(path)
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
 
 
 def _curated() -> pd.DataFrame:
@@ -390,14 +401,14 @@ def training_manifest() -> pd.DataFrame:
                 {
                     "tissue": config.tissue,
                     "seed": seed,
-                    "reference_input": reference["input"],
-                    "reference_output": str(reference_dir),
+                    "reference_input": _portable_path(reference["input"]),
+                    "reference_output": _portable_path(reference_dir),
                     "reference_epochs_completed": reference["training"]["epochs_completed"],
                     "reference_best_epoch": reference["training"]["best_epoch"],
                     "reference_training_seconds": reference["training"]["training_seconds"],
                     "reference_reconstruction_loss": reference["recon_loss"],
-                    "query_input": query["query_h5ad"],
-                    "query_output": str(query_dir),
+                    "query_input": _portable_path(query["query_h5ad"]),
+                    "query_output": _portable_path(query_dir),
                     "query_epochs": query["epochs"],
                     "gpu": query["torch"]["cuda_device_name"],
                     "posterior_mean_latent": query["posterior_mean_latent"],

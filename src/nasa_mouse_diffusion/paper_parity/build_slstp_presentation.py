@@ -3820,10 +3820,18 @@ def _add_notes(slide, note: SlideNote) -> None:
 
 
 def _write_notes(notes: list[SlideNote]) -> None:
+    total_seconds = sum(
+        int(minutes) * 60 + int(seconds)
+        for note in notes
+        for minutes, seconds in [note.time.split(":", maxsplit=1)]
+    )
     lines = [
         "# SLSTP 2026 mouse spaceflight transcriptomics speaker notes",
         "",
-        "Target length: 12-15 minutes. Current slide allocations total 16:45.",
+        (
+            "Target length: 12-15 minutes. Suggested pacing totals "
+            f"{total_seconds // 60}:{total_seconds % 60:02d}."
+        ),
         "",
     ]
     for note in notes:
@@ -3975,8 +3983,17 @@ def build() -> Path:
         SlideNote(28, "What the models can and cannot tell us", "0:30", "The models summarize patterns in the RNA-seq data and narrow the list of tissues, pathways, and genes to examine. They do not establish mechanism. Wet-lab experiments must confirm the biological changes and distinguish gene regulation from shifts in cell composition."),
         SlideNote(29, "Thank you", "0:10", "Acknowledge James Casaletto, SLSTP, NASA OSDR, ARCHS4, Reactome, ChatGPT, and Claude, then invite questions."),
     ]
+    final_times = (
+        "0:10", "0:30", "0:35", "0:20", "0:30", "0:25", "0:30",
+        "0:35", "0:25", "0:45", "0:20", "0:25", "0:25", "0:35",
+        "0:35", "0:20", "0:20", "0:25", "0:25", "0:35", "0:25",
+        "0:30", "0:30", "0:35", "0:30", "0:40", "0:40", "0:25",
+        "0:10",
+    )
+    if len(notes) != len(final_times):
+        raise ValueError("Presentation note count does not match final pacing plan")
     notes = [
-        SlideNote(index, note.title, note.time, note.text)
+        SlideNote(index, note.title, final_times[index - 1], note.text)
         for index, note in enumerate(notes, start=1)
     ]
     for note, slide in zip(notes, presentation.slides):

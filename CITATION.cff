@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "Please cite this repository and the relevant manuscript when reusing this work."
+title: "NASA mouse spaceflight transcriptomics"
+type: software
+authors:
+  - family-names: "Trinh"
+    given-names: "Jason"
+    email: "jasontrinh@berkeley.edu"
+repository-code: "https://github.com/jasont314/nasa-mouse"
+version: 1.0.0
+date-released: 2026-08-12
+keywords:
+  - spaceflight
+  - bulk RNA-seq
+  - NASA OSDR
+  - expiMap
+  - diffusion model
+  - WGAN-GP

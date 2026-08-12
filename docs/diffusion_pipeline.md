@@ -113,7 +113,7 @@ landmarks, so this workflow supports:
   using Ensembl BioMart:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_diffusion.map_l1000_mouse
+python -m nasa_mouse_diffusion.map_l1000_mouse
 ```
 
 - fallback to top-variance mouse genes from the aligned OSDR/ARCHS4 matrix if
@@ -186,19 +186,19 @@ Production summary tables are written under:
 Dry-run manifest:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_diffusion.run_conditional_generation --dry-run
+python -m nasa_mouse_diffusion.run_conditional_generation --dry-run
 ```
 
 Production pan-tissue run:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_diffusion.run_conditional_generation
+python -m nasa_mouse_diffusion.run_conditional_generation
 ```
 
 Generate matched synthetic samples:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_diffusion.generate_synthetic \
+python -m nasa_mouse_diffusion.generate_synthetic \
   --model-dir outputs/generative/standalone/diffusion/conditional_generation/archs4_pretrain_osdr_finetune \
   --output-dir outputs/generative/standalone/diffusion/conditional_generation/synthetic_custom/liver \
   --n 128 \
@@ -216,17 +216,17 @@ PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse
 Generate the standard per-tissue and skeletal-muscle-split examples:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_diffusion.generate_synthetic_examples --overwrite
+python -m nasa_mouse_diffusion.generate_synthetic_examples --overwrite
 ```
 
 Correct frozen ARCHS4 projection scores from a saved pretrained checkpoint:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_diffusion.rescore_reference_projection
+python -m nasa_mouse_diffusion.rescore_reference_projection
 ```
 
 Refresh compact result tables:
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_diffusion.summarize_results
+python -m nasa_mouse_diffusion.summarize_results
 ```

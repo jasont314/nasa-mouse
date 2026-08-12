@@ -146,7 +146,7 @@ def run(args) -> Path:
     summary = {
         "input": str(args.input),
         "output_dir": str(output_dir),
-        "scarches_file": scarches_file,
+        "scarches_version": str(getattr(sca, "__version__", "unknown")),
         "has_EXPIMAP": bool(hasattr(sca.models, "EXPIMAP")),
         "torch": {
             "version": str(torch.__version__),

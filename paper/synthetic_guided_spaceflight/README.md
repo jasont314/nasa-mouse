@@ -70,7 +70,7 @@ The build only reads completed outputs. It does not retrain any model or rerun
 feature selection.
 
 ```bash
-PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+python \
   -m nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper
 ```
 

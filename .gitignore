@@ -1,5 +1,7 @@
 *.h5
 assets/*
+!assets/EXTERNAL_ARTIFACTS.sha256
+!assets/README.md
 !assets/model_sources/
 assets/model_sources/*
 !assets/model_sources/glare/
@@ -14,10 +16,17 @@ assets/model_sources/glare/Manuscript_Code/glare/weights/
 !assets/model_sources/MOBER/**
 !presentation/generative_slstp_2026/assets/
 presentation/generative_slstp_2026/assets/*
+!presentation/generative_slstp_2026/assets/SOURCES.md
+!presentation/generative_slstp_2026/assets/anim_diffdata.gif
+!presentation/generative_slstp_2026/assets/anim_diffimg.gif
 !presentation/generative_slstp_2026/assets/anim_mober.gif
+!presentation/generative_slstp_2026/assets/anim_wgan.gif
 !presentation/generative_slstp_2026/assets/image-8-*.jpeg
 !presentation/generative_slstp_2026/assets/image-9-*.jpeg
 !presentation/generative_slstp_2026/assets/image-10-*.jpeg
+!presentation/generative_slstp_2026/assets/image-20-*.jpeg
+!presentation/generative_slstp_2026/assets/image-21-*.jpeg
+!presentation/generative_slstp_2026/assets/lacan_figure1c_generator_architecture.png
 !presentation/generative_slstp_2026/assets/midpoint_slide2.png
 !presentation/generative_slstp_2026/assets/midpoint_slide7_umap.png
 !presentation/generative_slstp_2026/assets/midpoint_slide10_output_heatmap.png
@@ -100,3 +109,4 @@ outputs/**
 .env
 __pycache__/
 *.pyc
+*.egg-info/

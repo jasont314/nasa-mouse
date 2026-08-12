@@ -36,7 +36,7 @@ DEFAULT_TISSUES = (
     "retina",
 )
 DEFAULT_OUTPUT_ROOT = Path("outputs/expimap/analyses/tissue_variant_matrix")
-DEFAULT_PYTHON = Path("/home/exouser/miniforge3/envs/nasa-mouse/bin/python")
+DEFAULT_PYTHON = Path(sys.executable)
 VARIANT_NAMES = (
     "direct",
     "reference_query",
@@ -671,7 +671,7 @@ def write_readme(variants: list[Variant], steps: list[Step], output_root: Path) 
             "Run missing steps deliberately:",
             "",
             "```bash",
-            "PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.run_expimap_tissue_variant_matrix --execute",
+            "python -m nasa_mouse_expimap.run_expimap_tissue_variant_matrix --execute",
             "```",
             "",
             "Use `--max-steps N` to submit a bounded chunk of work.",
@@ -679,7 +679,7 @@ def write_readme(variants: list[Variant], steps: list[Step], output_root: Path) 
             "Run only one core variant block, for example all-gene de novo query mapping:",
             "",
             "```bash",
-            "PYTHONPATH=src /home/exouser/miniforge3/envs/nasa-mouse/bin/python -m nasa_mouse_expimap.run_expimap_tissue_variant_matrix --variants reference_query_de_novo --core-only --execute",
+            "python -m nasa_mouse_expimap.run_expimap_tissue_variant_matrix --variants reference_query_de_novo --core-only --execute",
             "```",
             "",
         ]

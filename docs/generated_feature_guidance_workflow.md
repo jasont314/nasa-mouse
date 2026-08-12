@@ -125,7 +125,7 @@ generalization, even though it is not the primary split used here.
 
 ```bash
 PYTHONPATH=src OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
-  /home/exouser/miniforge3/envs/nasa-mouse/bin/python \
+  python \
   -m nasa_mouse_diffusion.paper_parity.within_study_feature_stability \
   --config configs/generative/diffusion/within_study_generated_feature_stability.yaml
 ```

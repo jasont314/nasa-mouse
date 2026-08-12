@@ -79,7 +79,7 @@
           "training": {
             "input": "outputs/expimap/runs/direct/liver/input/osdr_liver_flt_gc_reactome_raw_counts.h5ad",
             "output_dir": "outputs/expimap/runs/direct/liver/raw_counts_nb_50epoch",
-            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "scarches_version": "0.6.1",
             "has_EXPIMAP": true,
             "condition_key": "id.accession",
             "conditions": [
@@ -151,7 +151,7 @@
           "training": {
             "input": "outputs/expimap/runs/direct/liver/input/osdr_liver_flt_gc_reactome_cpm.h5ad",
             "output_dir": "outputs/expimap/runs/direct/liver/cpm_mse_50epoch",
-            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "scarches_version": "0.6.1",
             "has_EXPIMAP": true,
             "condition_key": "id.accession",
             "conditions": [
@@ -223,7 +223,7 @@
           "training": {
             "input": "outputs/expimap/runs/direct/liver/input/osdr_liver_flt_gc_reactome_log1p_cpm.h5ad",
             "output_dir": "outputs/expimap/runs/direct/liver/log1p_cpm_mse_50epoch",
-            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "scarches_version": "0.6.1",
             "has_EXPIMAP": true,
             "condition_key": "id.accession",
             "conditions": [
@@ -381,7 +381,7 @@
           "training": {
             "input": "outputs/expimap/runs/direct/kidney/input/osdr_kidney_flt_gc_reactome_raw_counts.h5ad",
             "output_dir": "outputs/expimap/runs/direct/kidney/raw_counts_nb_50epoch",
-            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "scarches_version": "0.6.1",
             "has_EXPIMAP": true,
             "condition_key": "id.accession",
             "conditions": [
@@ -447,7 +447,7 @@
           "training": {
             "input": "outputs/expimap/runs/direct/kidney/input/osdr_kidney_flt_gc_reactome_cpm.h5ad",
             "output_dir": "outputs/expimap/runs/direct/kidney/cpm_mse_50epoch",
-            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "scarches_version": "0.6.1",
             "has_EXPIMAP": true,
             "condition_key": "id.accession",
             "conditions": [
@@ -513,7 +513,7 @@
           "training": {
             "input": "outputs/expimap/runs/direct/kidney/input/osdr_kidney_flt_gc_reactome_log1p_cpm.h5ad",
             "output_dir": "outputs/expimap/runs/direct/kidney/log1p_cpm_mse_50epoch",
-            "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+            "scarches_version": "0.6.1",
             "has_EXPIMAP": true,
             "condition_key": "id.accession",
             "conditions": [
@@ -614,7 +614,7 @@
       "reference_training": {
         "input": "outputs/expimap/runs/reference_query/liver/reference_input_1000/archs4_mouse_liver_reference_reactome_raw_counts.h5ad",
         "output_dir": "outputs/expimap/runs/reference_query/liver/reference_nb_1000_50epoch",
-        "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+        "scarches_version": "0.6.1",
         "has_EXPIMAP": true,
         "condition_key": "archs4_condition",
         "conditions": [
@@ -775,7 +775,7 @@
       "reference_training": {
         "input": "outputs/expimap/runs/reference_query/kidney/reference_input_1000/archs4_mouse_kidney_reference_reactome_raw_counts.h5ad",
         "output_dir": "outputs/expimap/runs/reference_query/kidney/reference_nb_1000_50epoch",
-        "scarches_file": "/home/exouser/miniforge3/envs/nasa-mouse/lib/python3.11/site-packages/scarches/__init__.py",
+        "scarches_version": "0.6.1",
         "has_EXPIMAP": true,
         "condition_key": "archs4_condition",
         "conditions": [

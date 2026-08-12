@@ -37,7 +37,7 @@ data:
     harmonization_parameters:
       batch_key: study
       source_root: assets/model_sources/MBatch/apps/MBatch/R
-      rscript: /home/exouser/miniforge3/envs/nasa-mouse/bin/Rscript
+      rscript: Rscript
       anchor_samples: 64
       timeout_seconds: 7200
     unseen_study_policy: transductive_unlabeled
