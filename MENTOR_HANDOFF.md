@@ -83,16 +83,17 @@ The exact files and checksums are listed in [ARTIFACTS.md](ARTIFACTS.md).
 
 - `main` contains the final report, presentation, manuscripts, source tables,
   code, configs, and selected compact outputs.
-- `internship-final-2026-08-12-r2` marks the completed handoff state. It
-  supersedes the initial same-day handoff tag after clean-clone verification.
+- `internship-final-2026-08-12-r3` marks the completed handoff state. It
+  supersedes the earlier same-day tags after licensing and final verification.
 - Historical transfer notes are under `docs/archive/`; they are not current
   operating instructions.
 - The checked-out tree is about 150 MB, but the full Git object pack is about
   884 MB because older commits contain deleted datasets and intermediate
   outputs. Use a shallow clone for review-only access. History was not rewritten
   because doing so would replace every shared commit identifier.
-- No license has been selected. The mentor and author should choose one before
-  distributing the code for reuse.
+- Project-authored content is released under the MIT License. Vendored code,
+  reference files, and public datasets retain their upstream terms as recorded
+  in `THIRD_PARTY_NOTICES.md`.
 - Manuscripts remain research drafts until the author list, acknowledgments,
   repository release URL, and submission requirements receive final review.
 

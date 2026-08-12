@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,6 +8,15 @@ version = "1.0.0"
 description = "Mouse spaceflight transcriptomics workflows for NASA OSDR"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+license-files = [
+  "LICENSE",
+  "THIRD_PARTY_NOTICES.md",
+  "assets/model_sources/glare/LICENSE",
+  "assets/model_sources/glare/Manuscript_Code/glare/LICENSE",
+  "assets/model_sources/MOBER/LICENSE",
+  "data/reference/expimap/UPSTREAM_LICENSE",
+]
 authors = [
   {name = "Jason Trinh", email = "jasontrinh@berkeley.edu"},
 ]

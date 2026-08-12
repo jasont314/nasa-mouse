@@ -7,6 +7,7 @@ authors:
     given-names: "Jason"
     email: "jasontrinh@berkeley.edu"
 repository-code: "https://github.com/jasont314/nasa-mouse"
+license: MIT
 version: 1.0.0
 date-released: 2026-08-12
 keywords:

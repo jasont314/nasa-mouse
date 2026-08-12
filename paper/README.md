@@ -34,4 +34,4 @@ outputs.
 
 The files are suitable for mentor review and project preservation. Before any
 external submission, review the author list, acknowledgments, repository URL,
-data-access wording, target-journal format, and licensing status.
+data-access wording, and target-journal format.
