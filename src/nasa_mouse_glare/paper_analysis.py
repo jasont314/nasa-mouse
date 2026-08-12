@@ -542,8 +542,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-estimators", type=int, default=500)
     parser.add_argument(
         "--official-de",
-        default="assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv",
-        help="Official NASA differential-expression table; pass an empty value for Welch fallback.",
+        default="",
+        help=(
+            "Optional historical OSD-379 differential-expression CSV. "
+            "When omitted, use the Welch-test fallback from the prepared run."
+        ),
     )
     return parser.parse_args()
 

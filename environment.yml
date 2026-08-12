@@ -1,4 +1,4 @@
-name: nasa
+name: nasa-mouse
 channels:
   - conda-forge
   - bioconda
@@ -10,3 +10,9 @@ dependencies:
   - pip
   - pip:
       - -r requirements-nasa-mouse-glare.txt
+      - -r requirements-nasa-mouse-generative.txt
+      - Markdown>=3.5
+      - openpyxl>=3.1
+      - Pillow>=10
+      - pytest>=8
+      - python-pptx>=1.0

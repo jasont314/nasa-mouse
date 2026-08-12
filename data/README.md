@@ -4,9 +4,6 @@ This directory contains generated preprocessing outputs, pathway architecture
 files, and small manifests. Large matrix artifacts should stay out of git; the
 generated matrices are ignored by `.gitignore`.
 
-Original GLARE input notes were generated on 2026-06-12 in the `nasa` conda
-environment.
-
 Reactome mouse pathway files were added on 2026-06-26 for expiMap/scArches.
 
 ## Inputs
@@ -20,10 +17,8 @@ Reactome mouse pathway files were added on 2026-06-26 for expiMap/scArches.
 - paper-parity mouse diffusion landmarks:
   `data/diffusion/l974_mouse_paper_parity.tsv`
 
-The expiMap OSDR inputs should be built from the NASA OSDR Biological Data API.
-Do not use the older local integrated OSDR HDF5 as the expiMap OSDR source.
-Downloaded API count CSVs are cached under `data/osdr_api/counts/` and ignored
-by git.
+OSDR inputs are built from the NASA OSDR Biological Data API. Downloaded API
+count CSVs are cached under `data/osdr_api/counts/` and ignored by Git.
 
 The 974-gene diffusion panel is generated deterministically from the paper's GTEx
 landmarks, the Ensembl human-to-mouse map, and ARCHS4 gene annotations. Its adjacent
@@ -80,17 +75,10 @@ PYTHONPATH=src python -m nasa_mouse_glare.osdr \
 ```
 
 The GLARE API loader writes raw-count and `log2(CPM+1)` matrix bundles plus
-study-aware DESeq2 inputs. The multi-tissue training wrapper also prepares and
-aligns the matching TMS reference automatically.
-
-## Output Shapes
-
-- `data/processed/tms_facs_3552_cells`: `21025 genes x 3552 cells`
-- `data/processed/osdr_mouse_bulk`: `53511 genes x 3315 samples`
-- `data/processed/tms_facs_osdr_aligned.pretrain`: `21010 genes x 3552 cells`
-- `data/processed/tms_facs_osdr_aligned.target`: `21010 genes x 3315 samples`
-- `data/glare_inputs/tms_facs_pretrain.mtx`: `21010 genes x 3552 cells`
-- `data/glare_inputs/osdr_finetune.csv`: `21010 genes x 3315 samples`
+study-aware DESeq2 inputs. The multi-tissue training wrapper prepares and
+aligns the matching TMS reference automatically under
+`outputs/glare/multi_tissue_api/`; no intermediate `data/processed/` tree is
+required.
 
 The GLARE source is vendored directly in `assets/model_sources/glare` with the `hpt.py` runtime
 fix applied: direct script execution works, MatrixMarket input uses SciPy's

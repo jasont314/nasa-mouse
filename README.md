@@ -53,8 +53,9 @@ export PYTHONPATH=src
 To create or refresh the local environment:
 
 ```bash
-conda create -y -n nasa-mouse python=3.11
-conda run -n nasa-mouse python -m pip install -r requirements-nasa-mouse-glare.txt
+conda env create -f environment.yml
+# For an existing environment:
+conda env update -f environment.yml --prune
 ```
 
 ## Current Inputs

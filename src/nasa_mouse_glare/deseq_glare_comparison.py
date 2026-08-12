@@ -498,7 +498,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--annotation",
-        default="assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv",
+        required=True,
+        help=(
+            "Historical gene-annotation CSV containing ENSEMBL, SYMBOL, and "
+            "ENTREZID columns. This is not an active OSDR input default."
+        ),
     )
     parser.add_argument(
         "--reactome-gmt",

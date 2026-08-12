@@ -497,7 +497,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--target-manifest",
-        default="data/processed/tms_facs_liver_osdr_liver_aligned.target.manifest.json",
+        default=(
+            "outputs/glare/multi_tissue_api/liver/aggregate/inputs/"
+            "aligned_tms_api.target.manifest.json"
+        ),
+        help="API-derived, TMS-aligned OSDR target manifest.",
     )
     parser.add_argument("--accession", default="OSD-379")
     parser.add_argument(

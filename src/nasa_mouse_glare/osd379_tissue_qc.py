@@ -642,11 +642,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--normalized-counts",
-        default="assets/osdr/GLDS-379_rna_seq_Normalized_Counts_GLbulkRNAseq.csv",
+        required=True,
+        help="Historical OSD-379 normalized-count matrix CSV.",
     )
     parser.add_argument(
         "--official-de",
-        default="assets/osdr/GLDS-379_rna_seq_differential_expression_GLbulkRNAseq.csv",
+        required=True,
+        help="Historical OSD-379 table used for Ensembl-to-symbol annotation.",
     )
     parser.add_argument(
         "--tms-h5ad",
@@ -654,7 +656,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--isa-assay",
-        default="assets/osdr/OSD-379_assay_metadata.tsv",
+        default="",
         help="Complete OSD-379 ISA assay table; omitted if the file is absent.",
     )
     parser.add_argument("--cluster", type=int, default=12)
