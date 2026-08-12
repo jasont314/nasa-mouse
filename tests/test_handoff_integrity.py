@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import sys
 import tomllib
 import unittest
@@ -36,6 +37,23 @@ class HandoffIntegrityTests(unittest.TestCase):
             sep="\t",
         )
         missing = [path for path in manifest["path"] if not (ROOT / path).exists()]
+        self.assertEqual(missing, [])
+
+    def test_documentation_links_resolve(self):
+        missing = []
+        link_pattern = re.compile(r"\[[^]]+\]\(([^)]+)\)")
+
+        for markdown_path in sorted((ROOT / "docs").glob("*.md")):
+            for target in link_pattern.findall(
+                markdown_path.read_text(encoding="utf-8")
+            ):
+                target = target.split("#", 1)[0]
+                if not target or "://" in target or target.startswith("mailto:"):
+                    continue
+                resolved = (markdown_path.parent / target).resolve()
+                if not resolved.exists():
+                    missing.append(f"{markdown_path.relative_to(ROOT)} -> {target}")
+
         self.assertEqual(missing, [])
 
     def test_generative_render_only_skips_analysis_refresh(self):

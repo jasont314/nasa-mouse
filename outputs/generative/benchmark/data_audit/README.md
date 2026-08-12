@@ -4,4 +4,5 @@
 `archs4/` contains small cohort summaries plus locally generated compressed profile
 manifests. The large profile-level files are intentionally ignored by Git.
 
-See `docs/generative_data_audit.md` for selection rules, limitations, and counts.
+See `docs/generative_pipeline.md` and `docs/generative_validation.md` for the
+selection rules, final cohort, and validation scope.

@@ -47,7 +47,7 @@ limited independent replication constrain the biological interpretation.
 | [`data/`](data/README.md) | Tracked manifests, Reactome files, gene maps, and small reference tables |
 | [`assets/`](ARTIFACTS.md) | Local large references and pinned upstream method sources |
 | [`outputs/`](outputs/README.md) | Curated results plus ignored local model and matrix artifacts |
-| [`docs/`](docs/README.md) | Method notes, audits, result summaries, and archived work logs |
+| [`docs/`](docs/README.md) | OSDR access, method provenance, and current technical references |
 | [`paper/`](paper/README.md) | Internship report and two project-specific manuscripts |
 | [`presentation/`](presentation/README.md) | Final deck, PDF, speaker notes, and rebuild inputs |
 | [`tests/`](tests) | Unit and integration tests for data, configuration, and analysis utilities |
@@ -129,6 +129,6 @@ OSDR expression is discovered through the NASA API. Large downloaded matrices,
 checkpoints, and generated samples remain outside ordinary Git history. Curated
 tables and figures needed to inspect the final claims are tracked.
 
-The final handoff is tagged `internship-final-2026-08-12-r3`. Project-authored
+The final handoff is tagged `internship-final-2026-08-12-r4`. Project-authored
 content is released under the [MIT License](LICENSE). Vendored code and public
 data retain their original terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

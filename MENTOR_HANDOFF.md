@@ -83,10 +83,11 @@ The exact files and checksums are listed in [ARTIFACTS.md](ARTIFACTS.md).
 
 - `main` contains the final report, presentation, manuscripts, source tables,
   code, configs, and selected compact outputs.
-- `internship-final-2026-08-12-r3` marks the completed handoff state. It
-  supersedes the earlier same-day tags after licensing and final verification.
-- Historical transfer notes are under `docs/archive/`; they are not current
-  operating instructions.
+- `internship-final-2026-08-12-r4` marks the completed handoff state. It
+  supersedes the earlier same-day tags after licensing, documentation cleanup,
+  and final verification.
+- Superseded development handoffs and intermediate analyses remain available in
+  Git history; they are not current operating instructions.
 - The checked-out tree is about 150 MB, but the full Git object pack is about
   884 MB because older commits contain deleted datasets and intermediate
   outputs. Use a shallow clone for review-only access. History was not rewritten

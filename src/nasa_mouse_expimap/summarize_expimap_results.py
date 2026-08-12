@@ -537,8 +537,13 @@ def parse_args() -> argparse.Namespace:
         description="Write a markdown summary of expiMap direct and reference-query runs."
     )
     parser.add_argument("--root", default=".")
-    parser.add_argument("--output", default="docs/expimap_results.md")
-    parser.add_argument("--json-output", default="docs/expimap_results_summary.json")
+    parser.add_argument(
+        "--output", default="outputs/expimap/summary/expimap_results.md"
+    )
+    parser.add_argument(
+        "--json-output",
+        default="outputs/expimap/summary/expimap_results_summary.json",
+    )
     parser.add_argument("--tissue", action="append", choices=None)
     return parser.parse_args()
 
