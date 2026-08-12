@@ -47,13 +47,21 @@ def _sha256(path: Path) -> str:
 
 def verify_source(source_root: str | Path | None = None) -> dict[str, object]:
     root = Path(source_root or default_source_root()).resolve()
-    observed_commit = subprocess.check_output(
-        ["git", "-C", str(root), "rev-parse", "HEAD"], text=True
-    ).strip()
-    if observed_commit != SOURCE_COMMIT:
-        raise RuntimeError(
-            f"Expected RNA diffusion source {SOURCE_COMMIT}, observed {observed_commit}"
-        )
+    if not root.is_dir():
+        raise FileNotFoundError(f"Pinned RNA diffusion source is missing: {root}")
+    if (root / ".git").exists():
+        observed_commit = subprocess.check_output(
+            ["git", "-C", str(root), "rev-parse", "HEAD"], text=True
+        ).strip()
+        if observed_commit != SOURCE_COMMIT:
+            raise RuntimeError(
+                f"Expected RNA diffusion source {SOURCE_COMMIT}, "
+                f"observed {observed_commit}"
+            )
+        verification = "git_commit_and_source_hashes"
+    else:
+        observed_commit = SOURCE_COMMIT
+        verification = "pinned_commit_manifest_and_source_hashes"
     hashes: dict[str, str] = {}
     for relative, expected in SOURCE_FILES.items():
         path = root / relative
@@ -68,6 +76,7 @@ def verify_source(source_root: str | Path | None = None) -> dict[str, object]:
         "source_url": SOURCE_URL,
         "source_commit": observed_commit,
         "source_root": str(root),
+        "source_identity_verification": verification,
         "source_file_sha256": hashes,
     }
 

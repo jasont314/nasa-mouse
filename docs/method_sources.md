@@ -7,9 +7,12 @@ Project-owned packages remain under `src/`; upstream source is kept under
 ## GLARE
 
 - `assets/model_sources/glare`
-  - purpose: original GLARE manuscript code and model assets.
+  - purpose: original GLARE runtime source used by the project adaptation.
   - local changes: runtime compatibility fixes used by
     `src/nasa_mouse_glare/`.
+  - retention: upstream demos, SHAP dumps, example representations, old
+    checkpoints, and manuscript media are omitted because active workflows
+    regenerate their own inputs and models.
 
 ## expiMap
 
@@ -37,7 +40,7 @@ Method: "Multi Origin Batch Effect Remover"
   - commit: `81a628322044eb53e95bb606a65b4359fa645085`
   - purpose: batch/source correction for aggregate OSDR liver RNA-seq.
   - local changes: Scanpy and MLflow are treated as optional dependencies so
-    the package can run in the existing `nasa` environment with AnnData and
+    the package can run in the `nasa-mouse` environment with AnnData and
     local file logging.
 
 ## Generative model references
@@ -45,7 +48,9 @@ Method: "Multi Origin Batch Effect Remover"
 These pinned upstream checkouts are local development assets and are ignored by
 Git. Project-owned adapters, training code, and evaluation workflows remain in
 `src/nasa_mouse_generative/`, `src/nasa_mouse_wgan/`, and
-`src/nasa_mouse_diffusion/`.
+`src/nasa_mouse_diffusion/`. Commit identifiers are recorded here so nested
+Git metadata and upstream training datasets do not need to remain in the local
+working tree.
 
 - `assets/model_sources/adversarial-gene-expression`
   - upstream: https://github.com/rvinas/adversarial-gene-expression

@@ -98,19 +98,25 @@ def _sha256(path: Path) -> str:
 
 
 def verify_pinned_source(model: str, source_root: str | Path) -> dict[str, Any]:
-    """Verify both the Git identity and selected source files for one paper."""
+    """Verify a pinned checkout or hash-verified source snapshot."""
 
     contract = PAPER_SOURCES[model]
     root = Path(source_root).resolve()
-    if not (root / ".git").exists():
+    if not root.is_dir():
         raise FileNotFoundError(f"Pinned {model} source checkout is missing: {root}")
-    observed_commit = subprocess.check_output(
-        ["git", "-C", str(root), "rev-parse", "HEAD"], text=True
-    ).strip()
-    if observed_commit != contract["commit"]:
-        raise RuntimeError(
-            f"Expected {model} source {contract['commit']}, observed {observed_commit}"
-        )
+    if (root / ".git").exists():
+        observed_commit = subprocess.check_output(
+            ["git", "-C", str(root), "rev-parse", "HEAD"], text=True
+        ).strip()
+        if observed_commit != contract["commit"]:
+            raise RuntimeError(
+                f"Expected {model} source {contract['commit']}, "
+                f"observed {observed_commit}"
+            )
+        verification = "git_commit_and_source_hashes"
+    else:
+        observed_commit = contract["commit"]
+        verification = "pinned_commit_manifest_and_source_hashes"
     hashes: dict[str, str] = {}
     for relative, expected in contract["files"].items():
         path = root / relative
@@ -128,6 +134,7 @@ def verify_pinned_source(model: str, source_root: str | Path) -> dict[str, Any]:
         "source_url": contract["url"],
         "source_root": str(root),
         "source_commit": observed_commit,
+        "source_identity_verification": verification,
         "source_file_sha256": hashes,
     }
 

@@ -4,6 +4,12 @@ assets/*
 assets/model_sources/*
 !assets/model_sources/glare/
 !assets/model_sources/glare/**
+assets/model_sources/glare/Manuscript_Code/glare/POC_ASGSR2021/
+assets/model_sources/glare/Manuscript_Code/glare/data_representations/
+assets/model_sources/glare/Manuscript_Code/glare/datasets/
+assets/model_sources/glare/Manuscript_Code/glare/demo.ipynb
+assets/model_sources/glare/Manuscript_Code/glare/supplementary/
+assets/model_sources/glare/Manuscript_Code/glare/weights/
 !assets/model_sources/MOBER/
 !assets/model_sources/MOBER/**
 !presentation/generative_slstp_2026/assets/
@@ -30,6 +36,7 @@ models/
 outputs/**
 !outputs/README.md
 !outputs/COMMANDS.md
+!outputs/MODEL_ARTIFACTS.sha256
 
 # The compact GLARE result tables and validation summaries are publication
 # artifacts. Model weights and source matrices remain ignored elsewhere.
@@ -58,11 +65,6 @@ outputs/**
 
 !outputs/osdr/
 !outputs/osdr/inventory/
-!outputs/osdr/inventory/legacy_bulk_tissue_counts/
-!outputs/osdr/inventory/legacy_bulk_tissue_counts/README.md
-!outputs/osdr/inventory/legacy_bulk_tissue_counts/osdr_mouse_bulk_flt_gc_counts_by_tissue.tsv
-!outputs/osdr/inventory/legacy_bulk_tissue_counts/osdr_mouse_bulk_flt_gc_counts_by_tissue_study.tsv
-!outputs/osdr/inventory/legacy_bulk_tissue_counts/osdr_mouse_bulk_flt_gc_counts_by_tissue_system.tsv
 
 !outputs/generative/
 !outputs/generative/benchmark/

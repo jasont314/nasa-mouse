@@ -1,6 +1,6 @@
 {
-  "runs": 75,
-  "generation_complete": 38,
+  "runs": 57,
+  "generation_complete": 21,
   "eligible": 0,
   "scoreboard": "outputs/generative/benchmark/scoreboard.tsv"
 }

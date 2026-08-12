@@ -16,7 +16,7 @@ this layout instead of adding another prefixed directory directly under
 | `expimap/analyses/` | Cross-run summaries, follow-up analyses, and figures |
 | `expimap/summary/` | Compact multi-tissue result tables |
 | `generative/benchmark/` | Unified DDIM/WGAN benchmark, data audit, runs, and analyses |
-| `generative/standalone/` | Earlier standalone DDIM and WGAN workflows |
+| `generative/standalone/` | Regeneration target for superseded standalone DDIM and WGAN workflows |
 
 Large data, checkpoints, and generated samples remain local and are ignored by
 Git. Curated inventories and summary tables already versioned by the project
@@ -25,8 +25,9 @@ remain trackable.
 ## Final Analysis Selections
 
 The paths below are the runs consumed by the current paper, report, or
-presentation builders. Other retained runs are sensitivity analyses,
-development runs, or comparisons.
+presentation builders. Compact tables and plots from other experiments remain
+available as sensitivity analyses, but their large local checkpoints and
+matrices are regenerable and are not retained.
 
 ### expiMap
 
@@ -43,8 +44,9 @@ Core HVG reference-query results:
 - Kidney and spleen reassessment:
   `expimap/analyses/kidney_spleen_reassessment/`
 
-The other tissue seeds, direct OSDR models, all-gene models, de novo extensions,
-and preprocessing variants are retained as supporting or sensitivity runs.
+Tables and plots from other tissue seeds, direct OSDR models, all-gene models,
+de novo extensions, and preprocessing variants remain as supporting or
+sensitivity results. Their large model and AnnData artifacts have been pruned.
 
 ### Generative Models
 
@@ -80,15 +82,27 @@ The manuscript uses frozen tables under
 `paper/synthetic_guided_spaceflight/source_data/`. Those tables are publication
 artifacts derived from the selected output directories above.
 
-## Historical Material
+## Local Artifact Retention
 
-`osdr/inventory/legacy_bulk_tissue_counts/` was generated from an older local
-integrated matrix. It is retained only for provenance. Current workflows use
-the NASA OSDR API inventory under
-`generative/benchmark/data_audit/osdr/`.
+Only final model artifacts required by the selections above are kept locally:
 
-The standalone directories are not selected for biological interpretation.
-Smoke runs have been removed; the runners can recreate temporary smoke outputs
-when a quick execution check is needed.
+- the selected ARCHS4 DDIM backbone;
+- the selected final OSDR DDIM adapter;
+- the selected WGAN model, reference model, and best checkpoints;
+- the thymus, skin, liver, and soleus expiMap query models;
+- the reference models required by those four expiMap queries.
+
+`MODEL_ARTIFACTS.sha256` records hashes for this local allowlist. Run
+`sha256sum --check outputs/MODEL_ARTIFACTS.sha256` to verify it. The models are
+ignored by Git, so the check is intended for the machine that holds the local
+artifacts.
+
+Prepared data, caches, and nonselected model files can be recreated from the
+configs and commands in `COMMANDS.md`. The current OSDR inventory is generated
+from the NASA OSDR API under `generative/benchmark/data_audit/osdr/`.
+
+The superseded standalone output tree is not retained locally. Its commands
+and historical summaries remain documented, and the runners recreate the tree
+when needed. All smoke runs have also been removed.
 
 See [COMMANDS.md](COMMANDS.md) for the command ledger and reproduction order.
