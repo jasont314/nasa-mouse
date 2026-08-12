@@ -22,12 +22,13 @@ mode first. Then run:
 ```bash
 python -m nasa_mouse_internship_report.build_report
 python -m nasa_mouse_expimap.render_asgsr_documents
-python -m nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper
+python -m nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper --render-only
 ```
 
-The first two project packages include more specialized figure and audit
-commands in their own README files. Document builds consume frozen tables and
-do not retrain models.
+The project packages include more specialized figure and audit commands in
+their own README files. Rendering does not retrain models. Refreshing the
+generative paper's source tables and figures requires its ignored final analysis
+outputs.
 
 ## Submission status
 

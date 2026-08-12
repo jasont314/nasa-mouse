@@ -129,6 +129,6 @@ OSDR expression is discovered through the NASA API. Large downloaded matrices,
 checkpoints, and generated samples remain outside ordinary Git history. Curated
 tables and figures needed to inspect the final claims are tracked.
 
-The completed handoff is tagged `internship-final-2026-08-12`. No repository
+The corrected handoff is tagged `internship-final-2026-08-12-r2`. No repository
 license has been assigned; reuse beyond review of this internship work requires
 an explicit licensing decision by the author and mentor.

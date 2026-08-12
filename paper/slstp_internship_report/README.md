@@ -6,6 +6,9 @@ The expiMap section includes a constrained latent-space architecture, accession-
 
 The literature rationale and proposed validation tests for distributed liver, spleen, skin, and exploratory secondary responses are in `docs/distributed_response_hypotheses.md`.
 
+The compact tables required to rebuild the report are tracked under
+`source_data/`; the builder does not depend on ignored training outputs.
+
 Build the figures, source manifest, HTML, and PDF from the repository root:
 
 ```bash

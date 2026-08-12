@@ -66,16 +66,19 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
 
 ## Rebuild
 
-The build only reads completed outputs. It does not retrain any model or rerun
-feature selection.
+Render the tracked manuscript, supplementary methods, and existing figures from
+a fresh clone:
 
 ```bash
 python \
-  -m nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper
+  -m nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper \
+  --render-only
 ```
 
-The builder checks key frozen values before writing figures, then renders the
-Markdown manuscripts with WeasyPrint.
+To refresh source tables and figures from the completed local analyses, omit
+`--render-only`. That operation requires the ignored final outputs listed in
+`source_data/frozen_input_manifest.tsv`. It checks key values before writing
+figures and does not retrain a model or rerun feature selection.
 
 ## Editorial provenance
 

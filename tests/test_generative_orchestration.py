@@ -31,6 +31,19 @@ from nasa_mouse_generative.adapters.wgan import WGANAdapter
 from nasa_mouse_wgan.model import ConditionalWGANGP, embedding_dim
 
 
+ROOT = Path(__file__).resolve().parents[1]
+PINNED_WGAN_SOURCE = ROOT / "assets/model_sources/adversarial-gene-expression"
+PINNED_DDIM_SOURCE = ROOT / "assets/model_sources/rna-diffusion"
+REQUIRES_PINNED_WGAN = unittest.skipUnless(
+    PINNED_WGAN_SOURCE.is_dir(),
+    "restore the pinned WGAN source with prepare-upstreams",
+)
+REQUIRES_ALL_PINNED_SOURCES = unittest.skipUnless(
+    PINNED_WGAN_SOURCE.is_dir() and PINNED_DDIM_SOURCE.is_dir(),
+    "restore the pinned WGAN and DDIM sources with prepare-upstreams",
+)
+
+
 def _matrix_row(**updates):
     row = {
         "model": "vinas_wgan_gp",
@@ -82,6 +95,7 @@ class PaperContractTests(unittest.TestCase):
         self.assertEqual(first.out_features, 256)
         self.assertEqual(model.generator.network[-1].out_features, 10)
 
+    @REQUIRES_PINNED_WGAN
     def test_wgan_paper_rmsprop_and_stopping_variants_match_source_audit(self):
         base = load_config("configs/generative/benchmark/default.yaml")
         parameters = load_model_parameters(
@@ -102,7 +116,7 @@ class PaperContractTests(unittest.TestCase):
                 resume=False,
                 seed=1,
                 num_workers=0,
-                source_path="assets/model_sources/adversarial-gene-expression",
+                source_path=str(PINNED_WGAN_SOURCE),
             )
             generator_optimizer, _ = adapter._optimizers(5e-4)
             self.assertEqual(generator_optimizer.defaults["alpha"], 0.9)
@@ -147,10 +161,11 @@ class PaperContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "paper-native contract"):
             load_model_parameters(changed)
 
+    @REQUIRES_ALL_PINNED_SOURCES
     def test_all_pinned_source_hashes_verify(self):
         roots = {
-            "vinas_wgan_gp": "assets/model_sources/adversarial-gene-expression",
-            "lacan_diffusion": "assets/model_sources/rna-diffusion",
+            "vinas_wgan_gp": PINNED_WGAN_SOURCE,
+            "lacan_diffusion": PINNED_DDIM_SOURCE,
         }
         for model, root in roots.items():
             with self.subTest(model=model):

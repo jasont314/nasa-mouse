@@ -53,6 +53,12 @@ fresh clone can inspect the frozen analyses and rebuild the documents, but it
 cannot rerun model inference until these files are copied from the handoff
 machine or placed in managed storage.
 
+Refreshing every table and figure in the detailed generative manuscript also
+requires the compact files listed in
+`paper/synthetic_guided_spaceflight/source_data/frozen_input_manifest.tsv`.
+The final rendered paper, figures, and derived source tables are tracked and do
+not require those files for review or render-only builds.
+
 ## Upstream method code
 
 GLARE and MOBER source snapshots required by the active workflows are tracked
@@ -67,16 +73,16 @@ python -m nasa_mouse_generative prepare-upstreams
 
 ## What each task needs
 
-| Task | ARCHS4 | TMS | OSDR count cache | Checkpoints |
-|---|---:|---:|---:|---:|
-| Read final papers and presentation | No | No | No | No |
-| Rebuild report and presentation | No | No | No | No |
-| Refresh OSDR inventory | No | No | Downloaded as needed | No |
-| Rebuild final paper figures from frozen tables | No | No | No | No |
-| Run selected model inference | No | No | Depends on analysis | Yes |
-| Retrain GLARE | No | Yes | Yes | No |
-| Retrain expiMap reference-query models | Yes | No | Yes | No |
-| Retrain ARCHS4 DDIM and OSDR adapter | Yes | No | Yes | No |
+| Task | ARCHS4 | TMS | OSDR count cache | Checkpoints | Final analysis outputs |
+|---|---:|---:|---:|---:|---:|
+| Read final papers and presentation | No | No | No | No | No |
+| Render papers; rebuild report and presentation | No | No | No | No | No |
+| Refresh OSDR inventory | No | No | Downloaded as needed | No | No |
+| Refresh detailed generative-paper tables and figures | No | No | No | No | Yes |
+| Run selected model inference | No | No | Depends on analysis | Yes | No |
+| Retrain GLARE | No | Yes | Yes | No | No |
+| Retrain expiMap reference-query models | Yes | No | Yes | No | No |
+| Retrain ARCHS4 DDIM and OSDR adapter | Yes | No | Yes | No | No |
 
 ## Transfer recommendation
 

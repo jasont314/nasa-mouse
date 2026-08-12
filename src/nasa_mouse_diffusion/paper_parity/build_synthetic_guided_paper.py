@@ -1,7 +1,8 @@
-"""Build the synthetic-guided spaceflight manuscript package.
+"""Build or render the synthetic-guided spaceflight manuscript package.
 
-The builder intentionally consumes frozen analysis outputs. It does not train a
-model, resample a cohort, or rerun feature selection.
+Refreshing tables and figures consumes completed analysis outputs. Render-only
+mode uses the tracked manuscript, figures, and source tables. Neither mode
+trains a model, resamples a cohort, or reruns feature selection.
 """
 
 from __future__ import annotations
@@ -2572,14 +2573,42 @@ def render_document(markdown_path: Path, title: str) -> tuple[Path, Path]:
     return html_path, pdf_path
 
 
+def render_paper_documents() -> None:
+    render_document(
+        _required(PAPER_DIR / "manuscript.md"),
+        (
+            "A configurable generative transcriptomics framework identifies "
+            "tissue-dependent synthetic utility in mouse spaceflight RNA-seq"
+        ),
+    )
+    render_document(
+        _required(PAPER_DIR / "supplementary_methods.md"),
+        (
+            "Supplementary methods: configurable generative transcriptomics "
+            "in spaceflown mice"
+        ),
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
+    render_mode = parser.add_mutually_exclusive_group()
+    render_mode.add_argument(
         "--skip-render",
         action="store_true",
         help="Build source tables and figures without rendering HTML/PDF.",
     )
+    render_mode.add_argument(
+        "--render-only",
+        action="store_true",
+        help="Render tracked Markdown and figures without reading ignored analysis outputs.",
+    )
     args = parser.parse_args()
+
+    if args.render_only:
+        render_paper_documents()
+        print(f"Rendered tracked paper package: {PAPER_DIR}")
+        return
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
@@ -2599,20 +2628,7 @@ def main() -> None:
     build_manifest()
 
     if not args.skip_render:
-        render_document(
-            _required(PAPER_DIR / "manuscript.md"),
-            (
-                "A configurable generative transcriptomics framework identifies "
-                "tissue-dependent synthetic utility in mouse spaceflight RNA-seq"
-            ),
-        )
-        render_document(
-            _required(PAPER_DIR / "supplementary_methods.md"),
-            (
-                "Supplementary methods: configurable generative transcriptomics "
-                "in spaceflown mice"
-            ),
-        )
+        render_paper_documents()
 
     print(f"Built paper package: {PAPER_DIR}")
 

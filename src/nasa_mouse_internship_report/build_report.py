@@ -54,11 +54,19 @@ def _sha256(path: Path) -> str:
 
 def _save_figure(fig: plt.Figure, stem: str) -> None:
     for suffix in ("png", "pdf"):
+        metadata = None
+        if suffix == "pdf":
+            metadata = {
+                "Creator": "nasa-mouse-spaceflight",
+                "CreationDate": None,
+                "ModDate": None,
+            }
         fig.savefig(
             FIGURE_DIR / f"{stem}.{suffix}",
             dpi=300 if suffix == "png" else None,
             bbox_inches="tight",
             facecolor="white",
+            metadata=metadata,
         )
     plt.close(fig)
 
@@ -233,7 +241,7 @@ def _expimap_heatmap_data() -> tuple[pd.DataFrame, pd.DataFrame]:
     ]
 
     reassessed = pd.read_csv(
-        _required(ROOT / "outputs/expimap/analyses/kidney_spleen_reassessment/seed_accession_effects.tsv.gz"),
+        _required(SOURCE_DIR / "expimap_kidney_spleen_seed_accession_effects.tsv.gz"),
         sep="\t",
     )
     reassessed = reassessed.loc[
@@ -897,7 +905,7 @@ def write_manifest() -> None:
         ROOT / "paper/asgsr_expimap_hvg/manuscript.md",
         ROOT / "paper/asgsr_expimap_hvg/source_data/table_2_retained_pathway_evidence.tsv",
         ROOT / "paper/asgsr_expimap_hvg/source_data/table_s5_accession_pathway_effects.tsv.gz",
-        ROOT / "outputs/expimap/analyses/kidney_spleen_reassessment/seed_accession_effects.tsv.gz",
+        SOURCE_DIR / "expimap_kidney_spleen_seed_accession_effects.tsv.gz",
         ROOT / "paper/synthetic_guided_spaceflight/manuscript.md",
         ROOT / "paper/synthetic_guided_spaceflight/source_data/table_4_generator_model_selection.tsv",
         ROOT / "paper/synthetic_guided_spaceflight/source_data/table_s1_archs4_ddim_metrics.tsv",

@@ -70,8 +70,8 @@ All biological association tests were calculated from real OSDR profiles.
 |---|---:|---|
 | Read PDFs and inspect source tables | Yes | None |
 | Edit the PPTX or manuscripts | Yes | Office/PDF tools as needed |
-| Rebuild the main report and final presentation | Yes | `nasa-mouse` environment |
-| Rebuild publication figures from frozen tables | Mostly | See each paper README |
+| Render all manuscripts; rebuild report and presentation | Yes | `nasa-mouse` environment |
+| Refresh detailed generative-paper tables and figures | No | Ignored final analysis outputs |
 | Rerun OSDR ingestion | Yes | Network access to NASA OSDR |
 | Rerun final model inference | No | Selected local checkpoints |
 | Retrain GLARE or run composition checks | No | Tabula Muris Senis H5AD |
@@ -83,9 +83,14 @@ The exact files and checksums are listed in [ARTIFACTS.md](ARTIFACTS.md).
 
 - `main` contains the final report, presentation, manuscripts, source tables,
   code, configs, and selected compact outputs.
-- `internship-final-2026-08-12` marks the completed handoff state.
+- `internship-final-2026-08-12-r2` marks the completed handoff state. It
+  supersedes the initial same-day handoff tag after clean-clone verification.
 - Historical transfer notes are under `docs/archive/`; they are not current
   operating instructions.
+- The checked-out tree is about 150 MB, but the full Git object pack is about
+  884 MB because older commits contain deleted datasets and intermediate
+  outputs. Use a shallow clone for review-only access. History was not rewritten
+  because doing so would replace every shared commit identifier.
 - No license has been selected. The mentor and author should choose one before
   distributing the code for reuse.
 - Manuscripts remain research drafts until the author list, acknowledgments,

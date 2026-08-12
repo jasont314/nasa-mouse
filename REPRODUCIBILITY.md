@@ -51,18 +51,22 @@ sha256sum --check outputs/MODEL_ARTIFACTS.sha256
 
 The checksum commands require the ignored local assets. A fresh clone should
 skip the corresponding check until those files have been transferred.
-Tests that compare directly against the pinned upstream DDIM source also skip
-until `python -m nasa_mouse_generative prepare-upstreams` restores that checkout.
+Tests that compare directly against the pinned upstream WGAN and DDIM sources
+skip until `python -m nasa_mouse_generative prepare-upstreams` restores those
+checkouts.
 
 Document-only verification does not require the large data or models:
 
 ```bash
 python -m nasa_mouse_internship_report.build_report
 python -m nasa_mouse_diffusion.paper_parity.build_slstp_presentation
+python -m nasa_mouse_expimap.render_asgsr_documents
+python -m nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper --render-only
 ```
 
-The report and presentation builders read tracked source tables and images.
-They do not retrain a model.
+These commands read tracked source tables, figures, and manuscript files. They
+do not retrain a model. A full refresh of the detailed generative paper requires
+the ignored final analysis outputs listed in that paper's source manifest.
 
 ## Provenance conventions
 
