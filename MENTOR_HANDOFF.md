@@ -11,7 +11,7 @@ files outside normal Git history.
 
 1. Read the [internship report](paper/slstp_internship_report/manuscript.pdf) for
    the project question, methods, main figures, and biological interpretation.
-2. Review the [final presentation](presentation/SLSTP_2026_Generative_Transcriptomics.pdf)
+2. Review the [final presentation](presentation/final/SLSTP_2026_Generative_Transcriptomics.pdf)
    for the concise visual narrative. The editable deck contains speaker notes.
 3. Use the [expiMap manuscript](paper/asgsr_expimap_hvg/manuscript.pdf) for the
    pathway analysis and its study-level checks.
@@ -83,7 +83,7 @@ The exact files and checksums are listed in [ARTIFACTS.md](ARTIFACTS.md).
 
 - `main` contains the final report, presentation, manuscripts, source tables,
   code, configs, and selected compact outputs.
-- `internship-final-2026-08-13` marks the completed handoff state. It
+- `internship-final-2026-08-13-r2` marks the completed handoff state. It
   supersedes the earlier handoff tags after licensing, repository cleanup, and
   final verification.
 - Superseded development handoffs and intermediate analyses remain available in

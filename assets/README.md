@@ -12,7 +12,7 @@ This directory separates upstream method code from large local reference files.
 | `model_sources/trrac/` | Ignored | Spaceflight batch-correction reference implementation |
 | `archs4/` | Ignored | Full ARCHS4 mouse expression H5 |
 | `tms/` | Ignored | Tabula Muris Senis reference H5AD |
-| `poster_template/` | Ignored | Supplied NASA poster source templates |
+| `poster_template/` | Ignored | Supplied NASA poster source template |
 
 See [`../ARTIFACTS.md`](../ARTIFACTS.md) for download locations, checksums, and
 the tasks that require each large file. Upstream repository commits are listed

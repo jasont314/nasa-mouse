@@ -11,7 +11,8 @@ This directory is the tracked GLARE result bundle for the NASA mouse analysis. I
 - `validation/thymus_platelet_calcium_*`: focused thymus platelet/calcium/endothelial/stromal checks, including bulk marker adjustment and single-cell support.
 - `study_effects/`: sample-level GLARE module-score PCA/UMAP audit summaries for accession/study separation.
 
-Presentation plots are tracked separately in `presentation/glare/`.
+The GLARE panel used by the internship report is stored with that report's
+source data.
 
 ## Current Interpretation
 

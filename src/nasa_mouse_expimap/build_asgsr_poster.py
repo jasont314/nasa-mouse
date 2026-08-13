@@ -34,7 +34,7 @@ from .integrate_reassessed_tissues_paper import (
 ROOT = Path(__file__).resolve().parents[2]
 PAPER_DIR = ROOT / "paper/asgsr_expimap_hvg"
 FIGURE_DIR = PAPER_DIR / "figures"
-POSTER_DIR = PAPER_DIR / "poster"
+POSTER_DIR = ROOT / "presentation/poster"
 ASSET_DIR = POSTER_DIR / "assets"
 TEMPLATE_PATH = (
     ROOT

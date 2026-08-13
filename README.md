@@ -15,8 +15,10 @@ exploratory, and which large files are stored only on the original workstation.
 | Deliverable | Purpose |
 |---|---|
 | [Internship report](paper/slstp_internship_report/manuscript.pdf) | Shortest complete account of the full project |
-| [Final presentation](presentation/SLSTP_2026_Generative_Transcriptomics.pdf) | 29-slide overview for a biology audience |
-| [Editable presentation](presentation/SLSTP_2026_Generative_Transcriptomics.pptx) | Slides with embedded speaker notes |
+| [Poster](presentation/poster/asgsr_expimap_poster.pdf) | Print-ready expiMap research poster |
+| [Midpoint presentation](presentation/midpoint/SLSTP_2026_Midpoint_Presentation.pdf) | Project status and methods at the internship midpoint |
+| [Final presentation](presentation/final/SLSTP_2026_Generative_Transcriptomics.pdf) | 29-slide overview for a biology audience |
+| [Editable final presentation](presentation/final/SLSTP_2026_Generative_Transcriptomics.pptx) | Slides with embedded speaker notes |
 | [expiMap manuscript](paper/asgsr_expimap_hvg/manuscript.pdf) | Pathway-constrained cross-mission analysis |
 | [Generative manuscript](paper/synthetic_guided_spaceflight/manuscript.pdf) | Generator validation and synthetic-informed analysis |
 | [Output selections](outputs/README.md) | Final runs and analyses used by the papers |
@@ -129,6 +131,6 @@ OSDR expression is discovered through the NASA API. Large downloaded matrices,
 checkpoints, and generated samples remain outside ordinary Git history. Curated
 tables and figures needed to inspect the final claims are tracked.
 
-The final handoff is tagged `internship-final-2026-08-13`. Project-authored
+The final handoff is tagged `internship-final-2026-08-13-r2`. Project-authored
 content is released under the [MIT License](LICENSE). Vendored code and public
 data retain their original terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

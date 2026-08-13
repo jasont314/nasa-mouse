@@ -60,6 +60,28 @@ class HandoffIntegrityTests(unittest.TestCase):
         missing = [path for path in manifest["path"] if not (ROOT / path).exists()]
         self.assertEqual(missing, [])
 
+    def test_presentation_deliverables_are_grouped(self):
+        presentation_root = ROOT / "presentation"
+        self.assertEqual(
+            {path.name for path in presentation_root.iterdir()},
+            {"README.md", "poster", "midpoint", "final"},
+        )
+
+        deliverables = [
+            "poster/asgsr_expimap_poster.pptx",
+            "poster/asgsr_expimap_poster.pdf",
+            "midpoint/SLSTP_2026_Midpoint_Presentation.pptx",
+            "midpoint/SLSTP_2026_Midpoint_Presentation.pdf",
+            "final/SLSTP_2026_Generative_Transcriptomics.pptx",
+            "final/SLSTP_2026_Generative_Transcriptomics.pdf",
+        ]
+        missing = [
+            path
+            for path in deliverables
+            if not (presentation_root / path).is_file()
+        ]
+        self.assertEqual(missing, [])
+
     def test_documentation_links_resolve(self):
         missing = []
         link_pattern = re.compile(r"\[[^]]+\]\(([^)]+)\)")

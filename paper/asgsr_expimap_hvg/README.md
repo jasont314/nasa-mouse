@@ -8,7 +8,7 @@ The primary descriptive quantity is the equally weighted project- or accession-s
 
 - `asgsr_2026_abstract.md`: ASGSR-formatted abstract, under the 300-word limit.
 - `manuscript.md`: full manuscript with references and embedded figure captions.
-- `poster/`: editable 48 x 27 inch PowerPoint poster based on the approved NASA template, print PDF, high-resolution preview, reusable architecture graphic, and high-resolution embedded figure assets.
+- [`../../presentation/poster/`](../../presentation/poster/): editable 48 x 27 inch PowerPoint poster based on the approved NASA template, print PDF, high-resolution preview, reusable architecture graphic, and high-resolution embedded figure assets.
 - `supplementary_methods.md`: exact runs, effect definitions, safeguards, and rebuild commands.
 - `tissue_selection_audit.md`: reconstruction of the eight-tissue screen and corrected kidney/spleen reassessment.
 - `figures/`: publication figures in PNG and vector PDF formats.

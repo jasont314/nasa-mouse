@@ -4,7 +4,8 @@ These plots score each OSDR sample by mean z-scored expression of genes in each
 GLARE consensus cluster, then reduce the sample-by-module score matrix with PCA
 or UMAP. Points are samples, colors are OSDR accessions, and marker shape is FLT/GC.
 
-Tracked presentation panels are in `presentation/glare/study_effects/`.
+The skeletal-muscle UMAP used by the internship report is frozen under
+`paper/slstp_internship_report/source_data/glare/`.
 Full per-scope coordinates and module scores are generated under ignored
 `outputs/glare/multi_tissue_api/study_effects/`.
 

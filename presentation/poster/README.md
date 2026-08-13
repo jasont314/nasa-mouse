@@ -1,6 +1,6 @@
 # ASGSR expiMap poster
 
-`asgsr_expimap_poster.pptx` is an editable, single-slide scientific poster sized at 48 x 27 inches in landscape orientation. It preserves the 16:9 proportions, header treatment, NASA branding, three-column organization, and acknowledgement footer of `assets/poster_template/00 Poster Session Student Template_Approved by Legal.pptx`. The objective, cross-study confounding problem, and pathway-wiring explanation are adapted from `assets/poster_template/Biomedical_Foundation_Models_SLSTP_Midpoint_portable.pptx`; the preliminary midpoint findings are replaced by the final robustness-filtered thymus, skin, liver, and spleen results.
+`asgsr_expimap_poster.pptx` is an editable, single-slide scientific poster sized at 48 x 27 inches in landscape orientation. It preserves the 16:9 proportions, header treatment, NASA branding, three-column organization, and acknowledgement footer of `assets/poster_template/00 Poster Session Student Template_Approved by Legal.pptx`. The objective, cross-study confounding problem, and pathway-wiring explanation are adapted from `presentation/midpoint/SLSTP_2026_Midpoint_Presentation.pptx`; the preliminary midpoint findings are replaced by the final robustness-filtered thymus, skin, liver, and spleen results.
 
 The PDF is the print-ready export, and `asgsr_expimap_poster_preview.png` is a 4,800 x 2,700 pixel visual-check copy. `assets/expimap_architecture_visualization_300dpi.png` is a separate high-resolution export of the compact reference-training and query-mapping panel for reuse in talks or documents.
 

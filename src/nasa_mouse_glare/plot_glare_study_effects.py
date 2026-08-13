@@ -430,13 +430,20 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path("outputs/glare/multi_tissue_api"))
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/glare/multi_tissue_api/study_effects"))
-    parser.add_argument("--presentation-dir", type=Path, default=Path("presentation/glare/study_effects"))
+    parser.add_argument(
+        "--report-source",
+        type=Path,
+        default=Path(
+            "paper/slstp_internship_report/source_data/glare/"
+            "skeletal_muscle_aggregate_vs_mober_umap_by_accession.png"
+        ),
+    )
     parser.add_argument("--results-dir", type=Path, default=Path("outputs/glare/study_effects"))
     parser.add_argument("--seed", type=int, default=1996)
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    args.presentation_dir.mkdir(parents=True, exist_ok=True)
+    args.report_source.parent.mkdir(parents=True, exist_ok=True)
     args.results_dir.mkdir(parents=True, exist_ok=True)
 
     rows = []
@@ -488,13 +495,14 @@ def main() -> None:
                     f"{tissue_label(tissue)}: sample GLARE-module {coord_key.upper()} colored by study",
                     args.output_dir / out_name,
                 )
-                plot_pair(
-                    direct,
-                    mober,
-                    coord_key,
-                    f"{tissue_label(tissue)}: sample GLARE-module {coord_key.upper()} colored by study",
-                    args.presentation_dir / out_name,
-                )
+                if tissue == "skeletal_muscle" and coord_key == "umap":
+                    plot_pair(
+                        direct,
+                        mober,
+                        coord_key,
+                        f"{tissue_label(tissue)}: sample GLARE-module {coord_key.upper()} colored by study",
+                        args.report_source,
+                    )
 
     summary = pd.DataFrame(rows)
     if not summary.empty:
@@ -518,7 +526,8 @@ def main() -> None:
                 "GLARE consensus cluster, then reduce the sample-by-module score matrix with PCA",
                 "or UMAP. Points are samples, colors are OSDR accessions, and marker shape is FLT/GC.",
                 "",
-                "Presentation panels are written to `presentation/glare/study_effects/`.",
+                "The skeletal-muscle UMAP used by the internship report is frozen under",
+                "`paper/slstp_internship_report/source_data/glare/`.",
                 "Full per-scope coordinates and module scores are generated under ignored",
                 "`outputs/glare/multi_tissue_api/study_effects/`.",
                 "",

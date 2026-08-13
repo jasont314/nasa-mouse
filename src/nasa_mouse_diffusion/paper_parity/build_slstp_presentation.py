@@ -22,11 +22,12 @@ from pptx.util import Inches, Pt
 
 
 ROOT = Path(__file__).resolve().parents[3]
-TEMPLATE = ROOT / "presentation/SLSTP_template_2026.pptx"
-OUTPUT = ROOT / "presentation/SLSTP_2026_Generative_Transcriptomics.pptx"
-PACKAGE_DIR = ROOT / "presentation/generative_slstp_2026"
+FINAL_DIR = ROOT / "presentation/final"
+PACKAGE_DIR = FINAL_DIR / "source"
+TEMPLATE = PACKAGE_DIR / "SLSTP_template_2026.pptx"
+OUTPUT = FINAL_DIR / "SLSTP_2026_Generative_Transcriptomics.pptx"
 ASSET_DIR = PACKAGE_DIR / "assets"
-NOTES_PATH = PACKAGE_DIR / "speaker_notes.md"
+NOTES_PATH = FINAL_DIR / "speaker_notes.md"
 PAPER_DIR = ROOT / "paper/synthetic_guided_spaceflight"
 EXPIMAP_PAPER_DIR = ROOT / "paper/asgsr_expimap_hvg"
 
@@ -3883,7 +3884,7 @@ def build() -> Path:
         raise FileNotFoundError(
             "Missing presentation assets: "
             + ", ".join(path.name for path in missing_assets)
-            + ". See presentation/generative_slstp_2026/assets/SOURCES.md"
+            + ". See presentation/final/source/assets/SOURCES.md"
         )
     presentation = Presentation(TEMPLATE)
     _set_title_slide(presentation.slides[0])

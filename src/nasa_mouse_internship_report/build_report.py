@@ -91,8 +91,8 @@ def _style() -> None:
 def figure_2_glare_batch_effects() -> None:
     source = _required(
         ROOT
-        / "presentation/glare/study_effects/"
-        / "skeletal_muscle__aggregate_vs_mober__umap_by_accession.png"
+        / "paper/slstp_internship_report/source_data/glare/"
+        / "skeletal_muscle_aggregate_vs_mober_umap_by_accession.png"
     )
     image = plt.imread(source).copy()
     image[:176] = 1
@@ -901,7 +901,9 @@ def write_manifest() -> None:
     rows = []
     tracked_sources = [
         ROOT / "outputs/glare/study_effects/aggregate_vs_mober_study_effect_summary.tsv",
-        ROOT / "presentation/glare/study_effects/skeletal_muscle__aggregate_vs_mober__umap_by_accession.png",
+        ROOT
+        / "paper/slstp_internship_report/source_data/glare/"
+        / "skeletal_muscle_aggregate_vs_mober_umap_by_accession.png",
         ROOT / "paper/asgsr_expimap_hvg/manuscript.md",
         ROOT / "paper/asgsr_expimap_hvg/source_data/table_2_retained_pathway_evidence.tsv",
         ROOT / "paper/asgsr_expimap_hvg/source_data/table_s5_accession_pathway_effects.tsv.gz",

@@ -21,7 +21,7 @@ sha256sum --check assets/EXTERNAL_ARTIFACTS.sha256
 The ASGSR poster builder also expects the NASA poster template at
 `assets/poster_template/00 Poster Session Student Template_Approved by Legal.pptx`.
 That supplied template is not tracked. The generated poster PPTX and PDF are
-tracked under `paper/asgsr_expimap_hvg/poster/`.
+tracked under `presentation/poster/`.
 
 ## NASA OSDR cache
 
