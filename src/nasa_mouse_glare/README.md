@@ -159,6 +159,21 @@ NASA normalized-expression, differential-expression, or ISA files must be
 passed explicitly where requested; these scripts no longer assume a deleted
 `assets/osdr/` directory.
 
+## Module Map
+
+| Area | Modules |
+|---|---|
+| API, reference, and matrix preparation | `downloads.py`, `fetch_osdr_mouse_transcriptomics.py`, `osdr.py`, `osdr_tissues.py`, `tms.py`, `align.py`, `io.py`, `export.py`, `subset_bundle.py`, `gene_annotations.py`, `build_reactome_mouse_gmt.py` |
+| Active multi-tissue workflow | `multi_tissue_api_glare.py`, `multi_tissue_reports.py`, `multi_tissue_validation.py`, `per_study_glare.py`, `per_study_glare_dgea_comparison.py`, `plot_glare_study_effects.py`, `module_direction_summary.py`, `validate_thymus_platelet_calcium.py` |
+| Model and interpretation helpers | `model.py`, `ensemble_clustering.py`, `cluster_enrichment.py`, `cluster_stratified_analysis.py`, `paired_cluster_report.py`, `post_finetune.py`, `glare_evaluation.py`, `metascape_client.py`, `highlight_umap_modules.py` |
+| Original aggregate-liver work | `aggregate_liver_analysis.py`, `aggregate_liver_deseq_glare_overlap.py`, `aggregate_liver_finetune.py`, `aggregate_liver_mober.py`, `aggregate_liver_mober_glare.py`, `aggregate_liver_mober_qc.py`, `aggregate_liver_muscle_qc.py` |
+| Original OSD-379 and paper reproduction | `deseq_glare_comparison.py`, `flt14_gc8_comparison.py`, `glare_original_style_analysis.py`, `osd379_tissue_qc.py`, `paper_analysis.py`, `paper_clustering.py`, `paper_finetune.py`, `reproduce_glare_finetune.py`, `reproduce_glare_pretrain.py`, `study_specific_pathway_recurrence.py` |
+| R differential-expression helpers | `aggregate_liver_deseq2.R`, `osd379_deseq2.R`, `study_specific_deseq2.R` |
+
+The multi-tissue API path is the maintained GLARE workflow. The aggregate-liver
+and OSD-379 modules preserve the first project stage and are not the source of
+the final expiMap or generative findings.
+
 ## Output and Command Ledgers
 
 - [`outputs/README.md`](../../outputs/README.md) identifies the retained final

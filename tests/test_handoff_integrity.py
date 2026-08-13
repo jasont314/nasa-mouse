@@ -1,3 +1,4 @@
+import ast
 from pathlib import Path
 import re
 import sys
@@ -185,7 +186,14 @@ class HandoffIntegrityTests(unittest.TestCase):
             ROOT / "README.md",
             ROOT / "MENTOR_HANDOFF.md",
             ROOT / "ARTIFACTS.md",
+            ROOT / "REPRODUCIBILITY.md",
+            ROOT / "assets/README.md",
+            ROOT / "tests/README.md",
             *sorted((ROOT / "docs").rglob("*.md")),
+            *sorted((ROOT / "src").rglob("README.md")),
+            *sorted((ROOT / "configs").rglob("README.md")),
+            *sorted((ROOT / "data").rglob("README.md")),
+            *sorted((ROOT / "outputs").rglob("README.md")),
             *sorted((ROOT / "paper").rglob("*.md")),
             *sorted((ROOT / "presentation").rglob("*.md")),
         ]
@@ -201,6 +209,38 @@ class HandoffIntegrityTests(unittest.TestCase):
                     missing.append(f"{markdown_path.relative_to(ROOT)} -> {target}")
 
         self.assertEqual(missing, [])
+
+    def test_source_packages_and_modules_are_documented(self):
+        source_root = ROOT / "src"
+        for package_dir in sorted(source_root.glob("nasa_mouse_*")):
+            if not package_dir.is_dir():
+                continue
+            with self.subTest(package=package_dir.name):
+                self.assertTrue((package_dir / "README.md").is_file())
+
+            for module_path in sorted(package_dir.rglob("*.py")):
+                if module_path.name == "__init__.py":
+                    continue
+                with self.subTest(module=module_path.relative_to(ROOT)):
+                    tree = ast.parse(module_path.read_text(encoding="utf-8"))
+                    self.assertTrue(ast.get_docstring(tree))
+
+                    readme_dir = module_path.parent
+                    while not (readme_dir / "README.md").is_file():
+                        self.assertNotEqual(readme_dir, source_root)
+                        readme_dir = readme_dir.parent
+                    module_name = module_path.relative_to(readme_dir).as_posix()
+                    readme_text = (readme_dir / "README.md").read_text(
+                        encoding="utf-8"
+                    )
+                    self.assertIn(f"`{module_name}`", readme_text)
+
+            for script_path in sorted(package_dir.rglob("*.R")):
+                with self.subTest(script=script_path.relative_to(ROOT)):
+                    readme_text = (package_dir / "README.md").read_text(
+                        encoding="utf-8"
+                    )
+                    self.assertIn(f"`{script_path.name}`", readme_text)
 
     def test_paper_paths_use_current_repository_layout(self):
         expected_grouped_dir = (

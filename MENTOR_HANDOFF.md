@@ -18,10 +18,12 @@ files outside normal Git history.
 4. Use the [generative manuscript](paper/synthetic_guided_spaceflight/manuscript.pdf)
    for DDIM/WGAN validation, tissue-specific classifier tests, and
    synthetic-informed gene and pathway analyses.
-5. Use the [literature annotation record](docs/annotation_provenance.md) to
+5. Read the [codebase guide](docs/codebase_guide.md) before navigating scripts,
+   configurations, or retained development experiments.
+6. Use the [literature annotation record](docs/annotation_provenance.md) to
    trace expiMap pathways and synthetic feature-importance genes to their
    rationale and cited sources.
-6. Consult [outputs/README.md](outputs/README.md) and
+7. Consult [outputs/README.md](outputs/README.md) and
    [outputs/COMMANDS.md](outputs/COMMANDS.md) only when tracing a result back to
    a run or rebuilding an analysis.
 
@@ -86,7 +88,7 @@ The exact files and checksums are listed in [ARTIFACTS.md](ARTIFACTS.md).
 
 - `main` contains the final report, presentation, manuscripts, source tables,
   code, configs, and selected compact outputs.
-- `internship-final-2026-08-13-r3` marks the completed handoff state. It
+- `internship-final-2026-08-13-r4` marks the completed handoff state. It
   supersedes the earlier handoff tags after licensing, repository cleanup, and
   final verification.
 - Superseded development handoffs and intermediate analyses remain available in

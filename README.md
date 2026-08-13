@@ -1,7 +1,7 @@
 # NASA mouse spaceflight transcriptomics
 
-This repository contains the code, frozen analysis tables, manuscripts, and
-presentation from a 2026 NASA Space Life Sciences Training Program internship.
+This repository contains the code, frozen analysis tables, manuscripts, poster,
+and presentations from a 2026 NASA Space Life Sciences Training Program internship.
 The project tested three approaches to mouse bulk RNA-seq from NASA OSDR:
 GLARE representation learning, Reactome-constrained expiMap models, and
 conditional WGAN-GP and diffusion models.
@@ -9,6 +9,33 @@ conditional WGAN-GP and diffusion models.
 For the completed-project handoff, start with
 [`MENTOR_HANDOFF.md`](MENTOR_HANDOFF.md). It explains what is final, what is
 exploratory, and which large files are stored only on the original workstation.
+
+## Read this repository in this order
+
+A reader who wants to understand the complete repository should follow this
+sequence rather than trying to infer the project from directory names:
+
+1. Read this README for the project scope, main findings, and top-level map.
+2. Read [`MENTOR_HANDOFF.md`](MENTOR_HANDOFF.md) for final-versus-exploratory
+   status and the recommended scientific documents.
+3. Read the [internship report](paper/slstp_internship_report/manuscript.pdf) for the
+   complete GLARE, expiMap, DDIM, WGAN, and biological-analysis narrative.
+4. Read the [codebase guide](docs/codebase_guide.md) for package dependencies,
+   data flow, active versus historical code, and how to trace a result.
+5. Use the [expiMap](paper/asgsr_expimap_hvg/README.md) and
+   [generative](paper/synthetic_guided_spaceflight/README.md) paper packages for
+   detailed methods and source tables.
+6. Use the [annotation record](docs/annotation_provenance.md) to trace pathway
+   and feature-importance interpretations to written rationale and sources.
+7. Read [selected outputs](outputs/README.md), the
+   [command ledger](outputs/COMMANDS.md), [artifact inventory](ARTIFACTS.md),
+   and [reproducibility record](REPRODUCIBILITY.md) before rerunning code.
+8. Open the package README linked from [`src/README.md`](src/README.md) before
+   modifying a workflow. Those files inventory the retained modules and mark
+   final, supporting, and developmental entry points.
+
+Steps 1 through 6 explain the scientific work and repository organization.
+Steps 7 and 8 add the operational detail needed to reproduce or extend it.
 
 ## Start here
 
@@ -65,7 +92,7 @@ the interpretation; they are not independent evidence or statistical tests.
 | [`docs/`](docs/README.md) | OSDR access, method provenance, and current technical references |
 | [`paper/`](paper/README.md) | Internship report and two project-specific manuscripts |
 | [`presentation/`](presentation/README.md) | Poster, midpoint deck, final deck, PDFs, and rebuild inputs |
-| [`tests/`](tests) | Unit and integration tests for data, configuration, and analysis utilities |
+| [`tests/`](tests/README.md) | Unit and integration tests for data, configuration, and analysis utilities |
 
 ## Fresh-clone boundary
 
@@ -144,6 +171,6 @@ OSDR expression is discovered through the NASA API. Large downloaded matrices,
 checkpoints, and generated samples remain outside ordinary Git history. Curated
 tables and figures needed to inspect the final claims are tracked.
 
-The final handoff is tagged `internship-final-2026-08-13-r3`. Project-authored
+The final handoff is tagged `internship-final-2026-08-13-r4`. Project-authored
 content is released under the [MIT License](LICENSE). Vendored code and public
 data retain their original terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
