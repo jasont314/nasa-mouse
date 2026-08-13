@@ -42,6 +42,11 @@ genes, and the 49 secondary consensus genes.
 shows which units retained a synthetic-supported arm and the result count from
 each feature analysis.
 
+This guide is the narrative index for the whole project: findings, figures,
+source tables, and interpretation. The comparison bundle is narrower. Its README
+lists the selected genes and pathways themselves and its workbook provides
+filterable cross-method tables.
+
 ## GLARE and MOBER
 
 GLARE is an informative negative result in the final report. In pooled skeletal

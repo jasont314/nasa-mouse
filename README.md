@@ -51,6 +51,7 @@ extend it.
 | Deliverable | Purpose |
 |---|---|
 | [Results guide](docs/results_guide.md) | Direct map from headline results to exact tables, plots, and interpretations |
+| [Selected gene and pathway bundle](outputs/comparison/selected_features/README.md) | Human-readable result inventory and links to every comparison table |
 | [Selected-feature workbook](outputs/comparison/selected_features/selected_feature_comparison.xlsx) | Comparison-ready expiMap pathways and genes plus generative feature importance |
 | [Internship report](paper/slstp_internship_report/manuscript.pdf) | Shortest complete account of the full project |
 | [Poster](presentation/poster/asgsr_expimap_poster.pdf) | Print-ready expiMap research poster |
@@ -77,6 +78,23 @@ extend it.
 
 These are transcriptomic hypotheses. Bulk tissue composition, study design, and
 limited independent replication constrain the biological interpretation.
+
+## Compare genes and pathways
+
+For comparison with another model, open the
+[selected gene and pathway bundle](outputs/comparison/selected_features/README.md).
+That page lists every retained expiMap pathway, every primary generative gene,
+every grouped generative pathway, and all 49 secondary consensus genes. It also
+summarizes stable feature counts for all 27 tissue and muscle analysis units and
+links the complete stable-feature table covering 1,307 tissue-gene pairs. The
+[comparison workbook](outputs/comparison/selected_features/selected_feature_comparison.xlsx)
+contains the same records in filterable sheets.
+
+The comparison bundle and the [results guide](docs/results_guide.md) answer
+different questions. The comparison bundle answers "which exact genes and
+Reactome pathways can I match against another model?" The results guide explains
+what the project found, where each supporting figure and source table lives, and
+how the findings fit into the GLARE, expiMap, and generative analyses.
 
 ## Literature annotations
 

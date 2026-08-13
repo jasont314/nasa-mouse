@@ -272,6 +272,21 @@ class HandoffIntegrityTests(unittest.TestCase):
             manifest["workbook"]["sha256"],
         )
 
+        comparison_readme = (bundle / "README.md").read_text(encoding="utf-8")
+        for pathway_id in pathways["pathway_id"].unique():
+            self.assertIn(pathway_id, comparison_readme)
+        for symbol in pd.concat(
+            [matched["symbol"], consensus["symbol"]],
+            ignore_index=True,
+        ).unique():
+            self.assertIn(f"`{symbol}`", comparison_readme)
+        for filename in (
+            "gene_crosswalk.tsv",
+            "generative_all_arm_stable_features.tsv.gz",
+            "generative_selected_arm_stable_features.tsv",
+        ):
+            self.assertIn(filename, comparison_readme)
+
     def test_literature_annotation_sources_resolve(self):
         expimap_dir = ROOT / "paper/asgsr_expimap_hvg/source_data"
         review_dir = expimap_dir / "literature_review"
