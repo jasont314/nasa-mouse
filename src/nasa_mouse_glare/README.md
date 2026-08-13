@@ -38,6 +38,13 @@ Large inputs and generated matrices are ignored by Git. See
 [`data/README.md`](../../data/README.md) for their provenance and regeneration
 commands.
 
+Download and verify the public TMS reference before preparing GLARE inputs:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative prepare-references \
+  --reference tms
+```
+
 ## Discover OSDR Samples
 
 Refresh the eligible Mus musculus bulk RNA-seq inventory and download count

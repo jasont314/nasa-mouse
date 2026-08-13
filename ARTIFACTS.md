@@ -15,8 +15,22 @@ The same checksums are stored in `assets/EXTERNAL_ARTIFACTS.sha256` so local
 copies can be checked with:
 
 ```bash
-sha256sum --check assets/EXTERNAL_ARTIFACTS.sha256
+python -m nasa_mouse_generative prepare-references --check
 ```
+
+Both files are public and can be restored directly from their versioned source
+URLs. The downloader resumes partial transfers and checks the expected byte
+count and SHA-256 digest before installing either file:
+
+```bash
+python -m nasa_mouse_generative prepare-references --list
+python -m nasa_mouse_generative prepare-references
+```
+
+The two downloads require about 41.5 GB of disk space before filesystem and
+temporary-file overhead. They do not need to be copied from the handoff machine.
+The equivalent manifest-only check remains available as
+`sha256sum --check assets/EXTERNAL_ARTIFACTS.sha256`.
 
 The supplied NASA poster template is tracked at
 `assets/poster_template/00 Poster Session Student Template_Approved by Legal.pptx`,
@@ -80,17 +94,23 @@ python -m nasa_mouse_generative prepare-upstreams
 | Refresh OSDR inventory | No | No | Downloaded as needed | No | No |
 | Refresh detailed generative-paper tables and figures | No | No | No | No | Yes |
 | Run selected model inference | No | No | Depends on analysis | Yes | No |
-| Retrain GLARE | No | Yes | Yes | No | No |
-| Retrain expiMap reference-query models | Yes | No | Yes | No | No |
-| Retrain ARCHS4 DDIM and OSDR adapter | Yes | No | Yes | No | No |
+| Retrain GLARE | No | Public download | API download | No | No |
+| Retrain expiMap reference-query models | Public download | No | API download | No | No |
+| Retrain ARCHS4 DDIM and OSDR adapter | Public download | No | API download | No | No |
 
 ## Transfer recommendation
 
-Before deleting the original workstation, copy both checksum manifests and all
-files they name to managed storage. Record the storage URL, access policy, and
-retrieval date in this file. Do not add multi-gigabyte checkpoints or expression
-matrices to ordinary Git history. The ignored root `.env` is machine-specific
-and may contain credentials; do not include it in a handoff archive.
+ARCHS4, TMS, OSDR, and the optional upstream method repositories can all be
+restored from public sources. They may be mirrored for convenience, but they are
+not unique handoff artifacts.
+
+Before deleting the original workstation, preserve the files named in
+`outputs/MODEL_ARTIFACTS.sha256` if avoiding full model retraining matters.
+Preserving the compact files in the generative paper's
+`frozen_input_manifest.tsv` is also recommended for an exact source-table
+refresh. Record the storage URL, access policy, and retrieval date here. The
+ignored root `.env` is machine-specific and may contain credentials; do not
+include it in a handoff archive.
 
 The boundary between figures rebuilt from tracked tables and graphics that
 require model outputs is documented in

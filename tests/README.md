@@ -14,7 +14,7 @@ python -m pytest
 
 | Area | Files |
 |---|---|
-| Shared generative configuration and runtime | `test_generative_pipeline.py`, `test_generative_orchestration.py`, `test_generative_runtime.py` |
+| Shared generative configuration and runtime | `test_public_references.py`, `test_generative_pipeline.py`, `test_generative_orchestration.py`, `test_generative_runtime.py` |
 | OSDR and condition figures | `test_glare_osdr_api.py`, `test_condition_figures.py` |
 | DDIM and WGAN parity | `test_rna_diffusion_parity.py`, `test_wgan_matched_study.py` |
 | Classifier and feature analyses | `test_matched_all_gene_classifiers.py`, `test_classifier_importance.py`, `test_grouped_pathway_importance.py` |

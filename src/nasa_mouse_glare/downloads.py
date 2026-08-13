@@ -39,11 +39,26 @@ def download_dataset(kind: str, output_dir: str | Path) -> Path:
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     output = output_dir / Path(item["url"]).name
-    if output.exists() and output.stat().st_size > 0:
+    if kind == "facs":
+        from nasa_mouse_generative.public_references import (
+            PUBLIC_REFERENCES,
+            download_reference,
+        )
+
+        return download_reference(PUBLIC_REFERENCES["tms"], destination=output)
+    if output.exists() and output.stat().st_size == item["size_bytes"]:
         print(f"exists\t{output}")
         return output
-    print(f"downloading\t{item['url']}\n -> {output}")
-    urlretrieve(item["url"], output)
+    if output.exists():
+        raise RuntimeError(
+            f"Existing file has the wrong size: {output}. Remove it before retrying."
+        )
+    partial = output.with_name(f"{output.name}.part")
+    print(f"downloading\t{item['url']}\n -> {partial}")
+    urlretrieve(item["url"], partial)
+    if partial.stat().st_size != item["size_bytes"]:
+        raise RuntimeError(f"Downloaded file has the wrong size: {partial}")
+    partial.replace(output)
     return output
 
 

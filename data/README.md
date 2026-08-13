@@ -19,6 +19,11 @@ Reactome mouse pathway files were added on 2026-06-26 for expiMap/scArches.
 
 OSDR inputs are built from the NASA OSDR Biological Data API. Downloaded API
 count CSVs are cached under `data/osdr_api/counts/` and ignored by Git.
+ARCHS4 and TMS are also public and can be restored at their expected paths with:
+
+```bash
+PYTHONPATH=src python -m nasa_mouse_generative prepare-references
+```
 
 The 974-gene diffusion panel is generated deterministically from the paper's GTEx
 landmarks, the Ensembl human-to-mouse map, and ARCHS4 gene annotations. Its adjacent

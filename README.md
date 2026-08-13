@@ -109,8 +109,11 @@ prompt record.
 A clone contains the final papers, presentation, publication source tables,
 small data manifests, and project code. It does not contain the 39 GB ARCHS4
 file, the 2.5 GB Tabula Muris Senis reference, downloaded OSDR count tables, or
-the selected model checkpoints. See [`ARTIFACTS.md`](ARTIFACTS.md) for sources,
-checksums, and the task-to-artifact matrix.
+the selected model checkpoints. ARCHS4 and TMS can be downloaded and verified
+from their public sources with `prepare-references`; OSDR counts can be fetched
+again through the NASA API. Only the trained checkpoints need separate storage
+to avoid retraining. See [`ARTIFACTS.md`](ARTIFACTS.md) for sources, checksums,
+and the task-to-artifact matrix.
 
 ## Setup
 
@@ -127,6 +130,14 @@ For an existing environment:
 ```bash
 conda env update -f environment.yml --prune
 python -m pip install -e .
+```
+
+Download the public ARCHS4 and Tabula Muris Senis inputs when a training or
+composition workflow needs them. The command resumes partial downloads and
+verifies the exact files used here:
+
+```bash
+python -m nasa_mouse_generative prepare-references
 ```
 
 [`environment-lock.yml`](environment-lock.yml) records the complete Linux

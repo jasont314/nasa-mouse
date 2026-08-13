@@ -34,6 +34,14 @@ conda activate nasa-mouse
 python -m pip install -e .
 ```
 
+The large training references are public. Download both exact versions, or
+select one with repeated `--reference` options:
+
+```bash
+python -m nasa_mouse_generative prepare-references
+python -m nasa_mouse_generative prepare-references --check
+```
+
 Use `environment-lock.yml` only when recreating the final Linux package set is
 more important than portability. CUDA packages and system libraries make that
 snapshot unsuitable for macOS and most CPU-only machines.
@@ -50,7 +58,8 @@ sha256sum --check outputs/MODEL_ARTIFACTS.sha256
 ```
 
 The checksum commands require the ignored local assets. A fresh clone should
-skip the corresponding check until those files have been transferred.
+skip the corresponding check until the public references have been downloaded
+and any selected checkpoints have been transferred or regenerated.
 Tests that compare directly against pinned upstream method sources skip until
 `python -m nasa_mouse_generative prepare-upstreams` restores those checkouts.
 

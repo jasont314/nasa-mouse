@@ -13,6 +13,12 @@ conda activate nasa-mouse
 export PYTHONPATH=src
 ```
 
+Restore the versioned public reference matrices before a run that needs them:
+
+```bash
+python -m nasa_mouse_generative prepare-references
+```
+
 ## Final Selected Runs
 
 These are the model and analysis commands that reproduce the outputs selected

@@ -76,16 +76,16 @@ All biological association tests were calculated from real OSDR profiles.
 
 ## Reproducibility levels
 
-| Task | Fresh clone | Extra requirements |
+| Task | Recoverable from a clone | Extra requirements |
 |---|---:|---|
 | Read PDFs and inspect source tables | Yes | None |
 | Edit the PPTX or manuscripts | Yes | Office/PDF tools as needed |
 | Redraw frozen-source figures; render manuscripts, poster, and final presentation | Yes | `nasa-mouse` environment; LibreOffice for PPTX-to-PDF export |
-| Refresh detailed generative-paper tables and figures | No | Ignored final analysis outputs |
+| Refresh detailed generative-paper tables and figures exactly | Yes, with preserved compact inputs | Files named in `frozen_input_manifest.tsv`, or rerun their analysis commands |
 | Rerun OSDR ingestion | Yes | Network access to NASA OSDR |
-| Rerun final model inference | No | Selected local checkpoints |
-| Retrain GLARE or run composition checks | No | Tabula Muris Senis H5AD |
-| Retrain expiMap or DDIM on ARCHS4 | No | Full ARCHS4 mouse H5 and GPU |
+| Rerun final model inference without training | No | Selected local checkpoints |
+| Retrain GLARE or run composition checks | Yes | Public TMS download and OSDR API data |
+| Retrain expiMap or DDIM on ARCHS4 | Yes | Public ARCHS4 download, OSDR API data, and GPU |
 
 The exact files and checksums are listed in [ARTIFACTS.md](ARTIFACTS.md).
 
@@ -111,10 +111,12 @@ The exact files and checksums are listed in [ARTIFACTS.md](ARTIFACTS.md).
 
 ## Suggested preservation step
 
-The Git tag preserves the code and compact results. Long-term reproducibility
-also requires copying the files listed in `outputs/MODEL_ARTIFACTS.sha256` and
-`assets/EXTERNAL_ARTIFACTS.sha256` to managed storage, then adding that storage
-location to `ARTIFACTS.md`. At present, the checkpoint manifest identifies the
-files but the repository has no public checkpoint download location.
+The Git tag preserves the code and compact results. ARCHS4 and TMS are public
+and can be restored with `python -m nasa_mouse_generative prepare-references`;
+they do not require a private handoff copy. Long-term preservation should focus
+on the files listed in `outputs/MODEL_ARTIFACTS.sha256`, which avoid roughly
+2.3 GB of checkpoint regeneration, and the compact ignored inputs named by the
+generative paper's `frozen_input_manifest.tsv`. The repository has no public
+checkpoint download location yet.
 
 Contact: Jason Trinh, `jasontrinh@berkeley.edu`.

@@ -42,6 +42,15 @@ class HandoffIntegrityTests(unittest.TestCase):
         )
         self.assertEqual(candidate_dumps, [])
 
+    def test_public_reference_recovery_is_documented(self):
+        artifact_text = (ROOT / "ARTIFACTS.md").read_text(encoding="utf-8")
+        handoff_text = (ROOT / "MENTOR_HANDOFF.md").read_text(encoding="utf-8")
+        for text in (artifact_text, handoff_text):
+            self.assertIn("prepare-references", text)
+            self.assertIn("public", text.lower())
+        self.assertIn("mouse_gene_v2.5.h5", artifact_text)
+        self.assertIn("be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad", artifact_text)
+
     def test_project_license_metadata_agrees(self):
         license_text = (ROOT / "LICENSE").read_text(encoding="utf-8")
         self.assertTrue(license_text.startswith("MIT License\n"))

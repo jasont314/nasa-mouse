@@ -19,6 +19,7 @@ Run `python -m nasa_mouse_generative <command> --help`. The main commands are:
 | `matrix-run` | `matrix_runner.py` | Execute or resume experiment-plan rows |
 | `train`, `evaluate`, `generate` | `runner.py`, `evaluate.py`, `generate.py` | Run one resolved model configuration |
 | `scoreboard` | `scoreboard.py` | Summarize completed screens using hard metric gates |
+| `prepare-references` | `public_references.py` | Resume and checksum-verify the public ARCHS4 and TMS inputs |
 | `prepare-upstreams` | `upstreams.py` | Restore pinned optional model-source checkouts |
 | `archs4-figures`, `condition-figures` | figure modules | Build evaluation figures from completed runs |
 | `gene-lengths` | `gene_lengths.py` | Build the mouse Ensembl gene-length table |
@@ -31,7 +32,7 @@ runs are listed in [`outputs/README.md`](../../outputs/README.md).
 
 | Area | Modules |
 |---|---|
-| CLI and data inventory | `__main__.py`, `osdr_inventory.py`, `osdr_expression.py`, `archs4_catalog.py`, `gene_lengths.py`, `tissues.py` |
+| CLI and data inventory | `__main__.py`, `public_references.py`, `osdr_inventory.py`, `osdr_expression.py`, `archs4_catalog.py`, `gene_lengths.py`, `tissues.py` |
 | Configuration and planning | `config.py`, `profiles.py`, `models.py`, `paper_contracts.py`, `experiment_plan.py`, `split_plan.py`, `matrix_runner.py`, `scoreboard.py`, `upstreams.py` |
 | Preprocessing and harmonization | `preprocessing.py`, `conditioning.py`, `training_data.py`, `harmonization.py`, `harmonizers.py`, `mober_harmonizer.py`, `mbatch_harmonizer.py` |
 | Model execution | `runner.py`, `evaluate.py`, `generate.py`, `adapters/base.py`, `adapters/diffusion.py`, `adapters/wgan.py` |

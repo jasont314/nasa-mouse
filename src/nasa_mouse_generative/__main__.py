@@ -18,6 +18,7 @@ def main() -> None:
             "experiment-plan",
             "matrix-run",
             "scoreboard",
+            "prepare-references",
             "prepare-upstreams",
             "train",
             "evaluate",
@@ -61,6 +62,10 @@ def main() -> None:
         from . import upstreams
 
         upstreams.main()
+    elif args.command == "prepare-references":
+        from . import public_references
+
+        public_references.main()
     elif args.command == "train":
         from . import runner
 
