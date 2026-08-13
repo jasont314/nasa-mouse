@@ -22,7 +22,8 @@ SOURCE_DIR = ROOT / "paper" / "synthetic_guided_spaceflight" / "source_data"
 GROUPED_DIR = (
     ROOT
     / "outputs"
-    / "generative_benchmark"
+    / "generative"
+    / "benchmark"
     / "analyses"
     / "grouped_pathway_importance_osdr_disjoint_v1"
 )

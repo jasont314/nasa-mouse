@@ -6,6 +6,10 @@ The expiMap section includes a constrained latent-space architecture, accession-
 
 The literature rationale and proposed validation tests for distributed liver, spleen, skin, and exploratory secondary responses are in `docs/distributed_response_hypotheses.md`.
 
+The structured expiMap and feature-importance literature annotations, including
+their rationale fields and source catalogs, are indexed in
+[`docs/annotation_provenance.md`](../../docs/annotation_provenance.md).
+
 The compact tables required to rebuild the report are tracked under
 `source_data/`; the builder does not depend on ignored training outputs.
 

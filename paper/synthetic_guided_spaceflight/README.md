@@ -64,6 +64,12 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
   S22-S24 contain matched-gene and grouped-pathway annotations and their source
   inventory.
 
+The annotations are LLM-assisted and source checked. Each row keeps selection
+status separate from literature classification and records the evidence scope,
+source relationship, source IDs, concise rationale, interpretation, and search
+date. [`docs/annotation_provenance.md`](../../docs/annotation_provenance.md)
+indexes the tables and the scripts that produce them.
+
 ## Rebuild
 
 Render the tracked manuscript, supplementary methods, and existing figures from

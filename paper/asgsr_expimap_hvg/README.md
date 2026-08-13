@@ -25,7 +25,15 @@ The primary descriptive quantity is the equally weighted project- or accession-s
 - `source_data/figure_build_manifest.tsv`: dimensions, file sizes, vector-copy status, and border checks for every figure.
 - `source_data/table_s3_all_pathway_effects.tsv` and `table_s9_systematic_pathway_screen.tsv`: complete original thymus, skin, liver, and soleus results.
 - `source_data/table_s24_pathway_robustness_evidence.tsv`: original four-model five-check matrix.
+- [`source_data/literature_review/`](source_data/literature_review/): LLM-assisted,
+  source-checked pathway annotations, written rationale, and citation catalogs
+  for the original tissue review.
 - `visual_audit.md`: rendered-page and standalone-figure quality-control record.
+
+The project-wide annotation index is
+[`docs/annotation_provenance.md`](../../docs/annotation_provenance.md). It maps
+the expiMap pathway labels and member-gene checks to their rationale fields and
+full source records.
 
 ## Rebuild
 

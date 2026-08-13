@@ -8,7 +8,10 @@ from unittest import mock
 import pandas as pd
 import yaml
 
-from nasa_mouse_diffusion.paper_parity import build_synthetic_guided_paper
+from nasa_mouse_diffusion.paper_parity import (
+    annotate_importance_literature,
+    build_synthetic_guided_paper,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,6 +63,98 @@ class HandoffIntegrityTests(unittest.TestCase):
         missing = [path for path in manifest["path"] if not (ROOT / path).exists()]
         self.assertEqual(missing, [])
 
+    def test_literature_annotation_sources_resolve(self):
+        expimap_dir = ROOT / "paper/asgsr_expimap_hvg/source_data"
+        review_dir = expimap_dir / "literature_review"
+        expimap_source_keys = set()
+
+        for tissue in ("thymus", "skin", "liver", "soleus"):
+            annotations = pd.read_csv(review_dir / "final" / f"{tissue}.tsv", sep="\t")
+            source_text = (review_dir / "sources" / f"{tissue}.md").read_text(
+                encoding="utf-8"
+            )
+            tissue_source_keys = set(
+                re.findall(r"^- ([^:]+):", source_text, flags=re.MULTILINE)
+            )
+            expimap_source_keys.update(tissue_source_keys)
+
+            required = [
+                "literature_alignment",
+                "direction_assessment",
+                "review_rationale",
+            ]
+            self.assertFalse(annotations[required].isna().any(axis=None))
+            used_keys = {
+                key
+                for value in annotations["citations"].fillna("")
+                for key in str(value).split(";")
+                if key
+            }
+            self.assertEqual(used_keys - tissue_source_keys, set())
+
+        reassessment_sources = pd.read_csv(
+            expimap_dir / "table_s30_kidney_spleen_literature_sources.tsv",
+            sep="\t",
+        )
+        expimap_source_keys.update(reassessment_sources["key"].astype(str))
+        retained = pd.read_csv(
+            expimap_dir / "table_2_retained_pathway_evidence.tsv", sep="\t"
+        )
+        self.assertFalse(
+            retained[["manual_rationale", "literature_keys"]].isna().any(axis=None)
+        )
+        retained_keys = {
+            key
+            for value in retained["literature_keys"]
+            for key in str(value).split(";")
+            if key
+        }
+        self.assertEqual(retained_keys - expimap_source_keys, set())
+
+        generative_dir = ROOT / "paper/synthetic_guided_spaceflight/source_data"
+        annotation_sets = [
+            (
+                "consensus genes",
+                "table_s16_promoted_gene_literature_annotations.tsv",
+                "table_s17_promoted_gene_literature_sources.tsv",
+                49,
+            ),
+            (
+                "matched genes",
+                "table_s22_matched_gene_literature_annotations.tsv",
+                "table_s24_importance_literature_sources.tsv",
+                21,
+            ),
+            (
+                "grouped pathways",
+                "table_s23_grouped_pathway_literature_annotations.tsv",
+                "table_s24_importance_literature_sources.tsv",
+                10,
+            ),
+        ]
+        required = [
+            "literature_classification",
+            "evidence_scope",
+            "evidence_relationship",
+            "source_ids",
+            "literature_summary",
+            "interpretation",
+        ]
+        for name, annotation_file, source_file, expected_rows in annotation_sets:
+            with self.subTest(annotation_set=name):
+                annotations = pd.read_csv(generative_dir / annotation_file, sep="\t")
+                sources = pd.read_csv(generative_dir / source_file, sep="\t")
+                self.assertEqual(len(annotations), expected_rows)
+                self.assertFalse(annotations[required].isna().any(axis=None))
+                source_ids = set(sources["source_id"].astype(str))
+                used_ids = {
+                    source_id
+                    for value in annotations["source_ids"]
+                    for source_id in str(value).split(";")
+                    if source_id
+                }
+                self.assertEqual(used_ids - source_ids, set())
+
     def test_presentation_deliverables_are_grouped(self):
         presentation_root = ROOT / "presentation"
         self.assertEqual(
@@ -86,7 +181,15 @@ class HandoffIntegrityTests(unittest.TestCase):
         missing = []
         link_pattern = re.compile(r"\[[^]]+\]\(([^)]+)\)")
 
-        for markdown_path in sorted((ROOT / "docs").glob("*.md")):
+        markdown_paths = [
+            ROOT / "README.md",
+            ROOT / "MENTOR_HANDOFF.md",
+            ROOT / "ARTIFACTS.md",
+            *sorted((ROOT / "docs").rglob("*.md")),
+            *sorted((ROOT / "paper").rglob("*.md")),
+            *sorted((ROOT / "presentation").rglob("*.md")),
+        ]
+        for markdown_path in markdown_paths:
             for target in link_pattern.findall(
                 markdown_path.read_text(encoding="utf-8")
             ):
@@ -98,6 +201,32 @@ class HandoffIntegrityTests(unittest.TestCase):
                     missing.append(f"{markdown_path.relative_to(ROOT)} -> {target}")
 
         self.assertEqual(missing, [])
+
+    def test_paper_paths_use_current_repository_layout(self):
+        expected_grouped_dir = (
+            ROOT
+            / "outputs/generative/benchmark/analyses"
+            / "grouped_pathway_importance_osdr_disjoint_v1"
+        )
+        self.assertEqual(
+            annotate_importance_literature.GROUPED_DIR, expected_grouped_dir
+        )
+
+        legacy_paths = [
+            "outputs/generative_benchmark",
+            "paper/asgsr_expimap_hvg/poster",
+            "presentation/generative_slstp_2026",
+            "presentation/SLSTP_2026_Generative_Transcriptomics",
+            "presentation/glare",
+            "src/nasa_mouse_rna_diffusion",
+            "src/expiMap_scarches",
+        ]
+        paper_text = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in sorted((ROOT / "paper").rglob("*.md"))
+        )
+        for legacy_path in legacy_paths:
+            self.assertNotIn(legacy_path, paper_text)
 
     def test_generative_render_only_skips_analysis_refresh(self):
         arguments = ["build_synthetic_guided_paper", "--render-only"]

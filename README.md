@@ -40,6 +40,19 @@ exploratory, and which large files are stored only on the original workstation.
 These are transcriptomic hypotheses. Bulk tissue composition, study design, and
 limited independent replication constrain the biological interpretation.
 
+## Literature annotations
+
+LLM-assisted, source-checked annotations are stored as structured tables rather
+than only as manuscript prose. The expiMap records include pathway direction,
+confidence, rationale, and citation keys. The generative records cover consensus
+genes, individual-gene permutation and SHAP results, and grouped Reactome
+pathways. They include the evidence scope, source relationship, literature
+summary, interpretation, DOI or URL, and review date.
+
+[`docs/annotation_provenance.md`](docs/annotation_provenance.md) indexes every
+annotation table, source catalog, and rebuild script. Annotation labels organize
+the interpretation; they are not independent evidence or statistical tests.
+
 ## Repository map
 
 | Path | Contents |
@@ -51,7 +64,7 @@ limited independent replication constrain the biological interpretation.
 | [`outputs/`](outputs/README.md) | Curated results plus ignored local model and matrix artifacts |
 | [`docs/`](docs/README.md) | OSDR access, method provenance, and current technical references |
 | [`paper/`](paper/README.md) | Internship report and two project-specific manuscripts |
-| [`presentation/`](presentation/README.md) | Final deck, PDF, speaker notes, and rebuild inputs |
+| [`presentation/`](presentation/README.md) | Poster, midpoint deck, final deck, PDFs, and rebuild inputs |
 | [`tests/`](tests) | Unit and integration tests for data, configuration, and analysis utilities |
 
 ## Fresh-clone boundary
@@ -131,6 +144,6 @@ OSDR expression is discovered through the NASA API. Large downloaded matrices,
 checkpoints, and generated samples remain outside ordinary Git history. Curated
 tables and figures needed to inspect the final claims are tracked.
 
-The final handoff is tagged `internship-final-2026-08-13-r2`. Project-authored
+The final handoff is tagged `internship-final-2026-08-13-r3`. Project-authored
 content is released under the [MIT License](LICENSE). Vendored code and public
 data retain their original terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
