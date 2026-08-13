@@ -1,6 +1,11 @@
 # TMS single-cell check: thymus platelet-calcium module
 
-Input: local Tabula Muris Senis FACS matrix `data/processed/tms_facs_3552_cells.matrix.npz`. Scores are mean log1p(CPM/10k) over module gene sets.
+Source: the Tabula Muris Senis FACS reference at
+`assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad`. The public source and
+verified download command are recorded in
+[`ARTIFACTS.md`](../../../../ARTIFACTS.md). The removed working matrix was an
+intermediate derived from this reference. Scores are mean log1p(CPM/10k) over
+module gene sets.
 
 Gene-set coverage:
 - full_platelet_ca_module: 77/77 genes present in TMS
@@ -14,9 +19,8 @@ Main interpretation:
 - Within TMS thymus cells, fibroblasts score highest, thymocytes are lower, and thymic epithelial cells are lowest; thymus fibroblast and epithelial counts are small.
 - This supports a composition/stromal-vascular interpretation more than a thymocyte-intrinsic interpretation. It does not prove blood contamination, because TMS is a normal reference and lacks spaceflight condition labels.
 
-Files:
+Retained files:
 - `module_set_coverage.tsv`
 - `tms_cell_type_module_scores.tsv`
 - `tms_broad_class_module_scores.tsv`
 - `tms_thymus_cell_type_module_scores.tsv`
-- `module_gene_tms_top_expression.tsv`

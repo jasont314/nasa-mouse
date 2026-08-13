@@ -84,9 +84,8 @@ Subtype comparison is useful as an organizing analysis, not just another candida
 - TA: Cyclin E/G1-S appears but only two studies, so underpowered.
 - Quadriceps/gastrocnemius/EDL: useful context but weaker candidate validation.
 
-## Files
+## Retained Files
 
 - `candidate_validation_summary.tsv`
 - `candidate_per_study_validation.tsv`
 - `muscle_subtype_candidate_matrix.tsv`
-- `candidate_panglao_top_hits.tsv`

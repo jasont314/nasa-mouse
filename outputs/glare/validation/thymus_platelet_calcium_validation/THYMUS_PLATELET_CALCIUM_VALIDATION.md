@@ -113,10 +113,8 @@ Sample-level mean marker-score shifts, FLT minus GC:
 3. Check sample-level platelet/endothelial marker scores against sample metadata and outliers before using this as a main biological claim.
 4. Prefer this module as a hypothesis-generating GLARE-only finding unless confirmed by cell-composition deconvolution or independent thymus histology/flow/cell-type data.
 
-## Output Files
+## Retained Files
 
-- `significant_cluster_marker_summary.tsv`
-- `module_gene_dgea_by_study.tsv`
 - `module_gene_dgea_summary.tsv`
 - `marker_category_summary.tsv`
 - `module_score_by_study.tsv`

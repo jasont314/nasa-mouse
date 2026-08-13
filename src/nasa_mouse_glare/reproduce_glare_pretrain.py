@@ -100,10 +100,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--input",
-        default=(
-            "assets/glare_original/"
-            "E-CURD-5.aggregated_filtered_normalised_counts.mtx"
-        ),
+        required=True,
         help="Path to E-CURD-5 normalized MatrixMarket file.",
     )
     parser.add_argument(

@@ -92,7 +92,10 @@ def run(args) -> Path:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--landmark-table", default="/tmp/rna-diffusion-paper/data/gtex_description.csv")
+    parser.add_argument(
+        "--landmark-table",
+        default="assets/model_sources/rna-diffusion/data/gtex_description.csv",
+    )
     parser.add_argument("--output", default="data/diffusion/l1000_human_to_mouse_ensembl.tsv")
     parser.add_argument("--chunk-size", type=int, default=200)
     parser.add_argument("--timeout", type=int, default=60)

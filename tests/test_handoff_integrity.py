@@ -545,6 +545,70 @@ class HandoffIntegrityTests(unittest.TestCase):
 
         self.assertEqual(missing, [])
 
+    def test_curated_output_file_inventories_resolve(self):
+        missing = []
+        file_token = re.compile(
+            r"^- `([^/<>`]+\.(?:csv|gz|h5|h5ad|json|md|npz|pdf|png|tsv|txt|xlsx|ya?ml))`",
+            flags=re.IGNORECASE,
+        )
+        markdown_paths = [
+            ROOT / "outputs/README.md",
+            ROOT / "outputs/COMMANDS.md",
+            ROOT / "outputs/generative/benchmark/README.md",
+            ROOT / "outputs/generative/benchmark/data/osdr/README.md",
+            ROOT / "outputs/generative/benchmark/data_audit/README.md",
+            ROOT / "outputs/generative/benchmark/splits/README.md",
+            *sorted((ROOT / "outputs/comparison").rglob("*.md")),
+            *sorted(
+                (
+                    ROOT
+                    / "outputs/expimap/analyses/kidney_spleen_reassessment"
+                ).rglob("*.md")
+            ),
+            *sorted((ROOT / "outputs/glare").rglob("*.md")),
+        ]
+
+        for markdown_path in markdown_paths:
+            in_file_inventory = False
+            for line in markdown_path.read_text(encoding="utf-8").splitlines():
+                if line.startswith("## "):
+                    heading = line[3:].strip().lower()
+                    in_file_inventory = heading in {
+                        "files",
+                        "output files",
+                        "outputs",
+                        "retained files",
+                    }
+                    continue
+                if not in_file_inventory:
+                    continue
+                match = file_token.match(line)
+                if match and not (markdown_path.parent / match.group(1)).is_file():
+                    missing.append(
+                        f"{markdown_path.relative_to(ROOT)} -> {match.group(1)}"
+                    )
+
+        self.assertEqual(missing, [])
+
+    def test_source_defaults_use_current_repository_layout(self):
+        diffusion_source = (
+            ROOT / "src/nasa_mouse_diffusion/map_l1000_mouse.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            "assets/model_sources/rna-diffusion/data/gtex_description.csv",
+            diffusion_source,
+        )
+        self.assertNotIn("/tmp/rna-diffusion-paper", diffusion_source)
+
+        glare_sources = "\n".join(
+            (ROOT / path).read_text(encoding="utf-8")
+            for path in (
+                "src/nasa_mouse_glare/reproduce_glare_pretrain.py",
+                "src/nasa_mouse_glare/reproduce_glare_finetune.py",
+            )
+        )
+        self.assertNotIn("assets/glare_original", glare_sources)
+
     def test_source_packages_and_modules_are_documented(self):
         source_root = ROOT / "src"
         for package_dir in sorted(source_root.glob("nasa_mouse_*")):

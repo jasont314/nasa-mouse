@@ -166,6 +166,11 @@ NASA normalized-expression, differential-expression, or ISA files must be
 passed explicitly where requested; these scripts no longer assume a deleted
 `assets/osdr/` directory.
 
+The released GLARE pretraining and OSD-120 reproduction helpers likewise
+require explicit `--input` or `--data` paths. Their original expression files
+are not part of the public-reference recovery set used by the maintained
+NASA-API workflow.
+
 ## Module Map
 
 | Area | Modules |

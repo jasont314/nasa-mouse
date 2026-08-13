@@ -160,13 +160,9 @@ Outcome and marker scores are study-z values. `none` is the unadjusted FLT-vs-GC
 - TEC markers are not completely unrelated, but TEC scoring does not explain away the module.
 - The platelet/coagulation-adjusted residual module remains FLT-associated, so the module likely contains both composition-sensitive hemostasis genes and broader stromal/calcium/remodeling biology.
 
-## Files
+## Retained Files
 
-- `bulk_sample_marker_scores.tsv`
-- `bulk_sample_marker_scores_study_z.tsv`
 - `marker_set_flight_ground_by_study.tsv`
 - `module_marker_correlations_study_z.tsv`
 - `flight_effect_after_marker_adjustment.tsv`
 - `marker_set_overlap_with_glare_module.tsv`
-- `marker_symbol_to_ensembl.tsv`
-- `module_genes_with_manual_marker_flags.tsv`

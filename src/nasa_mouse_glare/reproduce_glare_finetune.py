@@ -334,12 +334,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--data",
-        default="assets/glare_original/GLDS-120_rna_seq_Normalized_Counts_GLbulkRNAseq.csv",
+        required=True,
         help="Path to GLDS-120 normalized counts CSV.",
     )
     parser.add_argument(
         "--pretrained-weights",
-        default="outputs/glare/original_pretrain_config5/sc_shulse_pretrained_reproduced.pth",
+        required=True,
         help="Path to GLARE pretraining weights.",
     )
     parser.add_argument(

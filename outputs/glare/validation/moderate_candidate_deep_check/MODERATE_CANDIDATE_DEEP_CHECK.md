@@ -88,10 +88,7 @@ This is plausible but not clean enough to claim as a strong hidden module. The m
 
 This is more coherent at the module-score level than at the gene-level DGEA level. Five of six studies have positive FLT-GC module shifts, but only the random-set comparison is consistently favorable; per-study Welch FDR is borderline. Gene-level DGEA includes both FLT-up and GC-up lipid genes, so the safest claim is renal lipid-handling reorganization, not simple activation of fatty-acid/ketone metabolism.
 
-## Files
+## Retained Files
 
 - `moderate_candidate_deep_check_summary.tsv`
 - `moderate_candidate_per_study_scores.tsv`
-- `moderate_candidate_gene_direction_summary.tsv`
-- `soleus_circadian_gene_direction_summary.tsv`
-- `kidney_fatty_acid_tag_ketone_gene_direction_summary.tsv`
