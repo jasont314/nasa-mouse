@@ -8,6 +8,7 @@ tables live with the papers rather than being duplicated here.
 
 | File | Purpose |
 |---|---|
+| [Results guide](results_guide.md) | Headline findings linked to exact values, plots, and interpretations |
 | [Codebase guide](codebase_guide.md) | Package dependencies, data flow, status boundaries, and result tracing |
 | [NASA OSDR API](osdr_api.md) | Dataset discovery, metadata fields, endpoints, and local API use |
 | [Method sources](method_sources.md) | Upstream repositories, pinned commits, and method provenance |

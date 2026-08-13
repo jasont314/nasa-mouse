@@ -139,7 +139,8 @@ supplementary methods and `outputs/COMMANDS.md`.
 
 ## How to trace a result
 
-Use this order when checking a claim:
+The [results guide](results_guide.md) provides direct links for the headline
+findings. For a full provenance check, use this order:
 
 1. Find the statement and table or figure number in the relevant manuscript.
 2. Open the adjacent `source_data/` table.

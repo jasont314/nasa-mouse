@@ -11,25 +11,27 @@ files outside normal Git history.
 
 1. Read the [internship report](paper/slstp_internship_report/manuscript.pdf) for
    the project question, methods, main figures, and biological interpretation.
-2. Review the [final presentation](presentation/final/SLSTP_2026_Generative_Transcriptomics.pdf)
+2. Use the [results guide](docs/results_guide.md) to move directly from each
+   headline finding to its exact source table, plot, and interpretation.
+3. Review the [final presentation](presentation/final/SLSTP_2026_Generative_Transcriptomics.pdf)
    for the concise visual narrative. The editable deck contains speaker notes.
-3. Use the [expiMap manuscript](paper/asgsr_expimap_hvg/manuscript.pdf) for the
+4. Use the [expiMap manuscript](paper/asgsr_expimap_hvg/manuscript.pdf) for the
    pathway analysis and its study-level checks.
-4. Use the [generative manuscript](paper/synthetic_guided_spaceflight/manuscript.pdf)
+5. Use the [generative manuscript](paper/synthetic_guided_spaceflight/manuscript.pdf)
    for DDIM/WGAN validation, tissue-specific classifier tests, and
    synthetic-informed gene and pathway analyses.
-5. Read the [codebase guide](docs/codebase_guide.md) before navigating scripts,
+6. Read the [codebase guide](docs/codebase_guide.md) before navigating scripts,
    configurations, or retained development experiments.
-6. Use the [literature annotation record](docs/annotation_provenance.md) and
+7. Use the [literature annotation record](docs/annotation_provenance.md) and
    [annotation prompts](docs/annotation_prompts.md) to trace expiMap pathways
    and synthetic feature-importance genes to their rationale, cited sources,
    and review instructions.
-7. Consult [outputs/README.md](outputs/README.md) and
+8. Consult [outputs/README.md](outputs/README.md) and
    [outputs/COMMANDS.md](outputs/COMMANDS.md) only when tracing a result back to
    a run or rebuilding an analysis.
-8. Use the [figure reproduction guide](docs/figure_reproduction.md) for the
+9. Use the [figure reproduction guide](docs/figure_reproduction.md) for the
    exact fresh-clone and full-analysis figure paths.
-9. See the [editorial review record](docs/editorial_review.md) for the files
+10. See the [editorial review record](docs/editorial_review.md) for the files
    reviewed with Humanizer and the content that the prose pass did not alter.
 
 ## What was completed

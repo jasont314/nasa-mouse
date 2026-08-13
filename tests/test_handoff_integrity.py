@@ -109,6 +109,31 @@ class HandoffIntegrityTests(unittest.TestCase):
         self.assertFalse(effects.empty)
         self.assertEqual(effects["heldout_project"].nunique(), 5)
 
+    def test_final_generative_tissue_evidence_matches_manuscript(self):
+        evidence = pd.read_csv(
+            ROOT
+            / "paper/synthetic_guided_spaceflight/source_data/"
+            "table_6_tissue_evidence.tsv",
+            sep="\t",
+        )
+        self.assertEqual(
+            evidence.columns.tolist(),
+            [
+                "tissue",
+                "matched_all_gene_result",
+                "secondary_consensus_result",
+                "interpretation",
+            ],
+        )
+        self.assertEqual(len(evidence), 8)
+        self.assertEqual(evidence.iloc[0]["tissue"], "Thymus")
+        self.assertIn("15 genes", evidence.iloc[0]["matched_all_gene_result"])
+        self.assertIn(
+            "Four shared-importance",
+            evidence.iloc[1]["matched_all_gene_result"],
+        )
+        self.assertNotIn("guided delta", "\n".join(evidence.astype(str).stack()))
+
     def test_literature_annotation_sources_resolve(self):
         expimap_dir = ROOT / "paper/asgsr_expimap_hvg/source_data"
         review_dir = expimap_dir / "literature_review"

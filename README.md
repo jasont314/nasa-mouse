@@ -18,29 +18,31 @@ sequence rather than trying to infer the project from directory names:
 1. Read this README for the project scope, main findings, and top-level map.
 2. Read [`MENTOR_HANDOFF.md`](MENTOR_HANDOFF.md) for final-versus-exploratory
    status and the recommended scientific documents.
-3. Read the [internship report](paper/slstp_internship_report/manuscript.pdf) for the
+3. Use the [results guide](docs/results_guide.md) to find each headline number,
+   plot, source table, and interpretation.
+4. Read the [internship report](paper/slstp_internship_report/manuscript.pdf) for the
    complete GLARE, expiMap, DDIM, WGAN, and biological-analysis narrative.
-4. Read the [codebase guide](docs/codebase_guide.md) for package dependencies,
+5. Read the [codebase guide](docs/codebase_guide.md) for package dependencies,
    data flow, active versus historical code, and how to trace a result.
-5. Use the [expiMap](paper/asgsr_expimap_hvg/README.md) and
+6. Use the [expiMap](paper/asgsr_expimap_hvg/README.md) and
    [generative](paper/synthetic_guided_spaceflight/README.md) paper packages for
    detailed methods and source tables.
-6. Use the [annotation record](docs/annotation_provenance.md) and
+7. Use the [annotation record](docs/annotation_provenance.md) and
    [prompt record](docs/annotation_prompts.md) to trace pathway and
    feature-importance interpretations to written rationale, sources, and the
    review instructions.
-7. Read the [editorial review record](docs/editorial_review.md) for the scope of
+8. Read the [editorial review record](docs/editorial_review.md) for the scope of
    the Humanizer pass and the scientific content that was held fixed.
-8. Read [selected outputs](outputs/README.md), the
+9. Read [selected outputs](outputs/README.md), the
    [command ledger](outputs/COMMANDS.md), [artifact inventory](ARTIFACTS.md),
    and [reproducibility record](REPRODUCIBILITY.md) before rerunning code.
-9. Use the [figure reproduction guide](docs/figure_reproduction.md) to rebuild
+10. Use the [figure reproduction guide](docs/figure_reproduction.md) to rebuild
    papers, plots, the poster, and the final presentation.
-10. Open the package README linked from [`src/README.md`](src/README.md) before
+11. Open the package README linked from [`src/README.md`](src/README.md) before
    modifying a workflow. Those files inventory the retained modules and mark
    final, supporting, and developmental entry points.
 
-Steps 1 through 6 explain the scientific work and repository organization.
+Steps 1 through 8 explain the scientific work and repository organization.
 The remaining steps provide the operational detail needed to reproduce or
 extend it.
 
@@ -48,6 +50,7 @@ extend it.
 
 | Deliverable | Purpose |
 |---|---|
+| [Results guide](docs/results_guide.md) | Direct map from headline results to exact tables, plots, and interpretations |
 | [Internship report](paper/slstp_internship_report/manuscript.pdf) | Shortest complete account of the full project |
 | [Poster](presentation/poster/asgsr_expimap_poster.pdf) | Print-ready expiMap research poster |
 | [Midpoint presentation](presentation/midpoint/SLSTP_2026_Midpoint_Presentation.pdf) | Project status and methods at the internship midpoint |

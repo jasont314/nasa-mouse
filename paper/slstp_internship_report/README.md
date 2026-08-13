@@ -2,6 +2,9 @@
 
 This directory contains the combined GLARE, expiMap, and conditional-generative-model internship report.
 
+For a direct map from the report's headline findings to exact tables and
+standalone plots, use the project [results guide](../../docs/results_guide.md).
+
 The expiMap section includes a constrained latent-space architecture, accession-level pathway heatmaps for thymus, skin, spleen, and kidney, and a schematic of the evidence and literature-annotation workflow.
 
 The literature rationale and proposed validation tests for distributed liver, spleen, skin, and exploratory secondary responses are in `docs/distributed_response_hypotheses.md`.

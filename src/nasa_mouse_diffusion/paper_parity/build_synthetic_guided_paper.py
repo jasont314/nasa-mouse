@@ -1260,103 +1260,86 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     evidence = pd.DataFrame(
         [
             {
-                "tissue": "thymus",
-                "tier": "coherent development panel",
-                "tier_score": 2,
-                "predictive_result": "guided delta BA/AUROC/AP +0.111/+0.069/+0.056",
-                "real_gene_support": "13 promoted and 3 reinforced BH-FDR genes",
-                "pathway_support": "mitosis, G2/M, APC/C, DNA replication; FDR < 0.05",
-                "interpretation": "coherent flight-lower proliferative-renewal hypothesis",
+                "tissue": "Thymus",
+                "matched_all_gene_result": (
+                    "15 genes; seven promoted; 26 significant Reactome terms"
+                ),
+                "secondary_consensus_result": (
+                    "16-gene panel; nine genes overlap matched result"
+                ),
+                "interpretation": (
+                    "Strongest joint result; lower mitotic renewal in flight"
+                ),
             },
             {
-                "tissue": "soleus",
-                "tier": "cross-accession development",
-                "tier_score": 2,
-                "predictive_result": "real-plus-generated delta BA/AUROC/AP +0.038/+0.000/+0.006",
-                "real_gene_support": "5 reinforced BH-FDR genes; 4 pass LOO FDR",
-                "pathway_support": "mitochondrial lipid oxidation/protein turnover; FDR < 0.05",
-                "interpretation": "coherent metabolic hypothesis; requires independent confirmation",
+                "tissue": "Liver",
+                "matched_all_gene_result": (
+                    "Four shared-importance FLT-lower genes"
+                ),
+                "secondary_consensus_result": "No retained panel",
+                "interpretation": (
+                    "Matched gene-level candidates without pathway enrichment"
+                ),
             },
             {
-                "tissue": "kidney",
-                "tier": "additional gene-level finding",
-                "tier_score": 1,
-                "predictive_result": "guided delta BA/AUROC/AP +0.053/+0.091/+0.115",
-                "real_gene_support": "Inpp4b promoted and LOO-stable; Slc37a4 reinforced",
-                "pathway_support": "no stable-set Reactome term at FDR < 0.05",
-                "interpretation": "renal metabolic-signaling hypothesis",
+                "tissue": "Skin",
+                "matched_all_gene_result": "FLT-higher Plscr1",
+                "secondary_consensus_result": (
+                    "Plscr1 plus broader selected pathways"
+                ),
+                "interpretation": "Gene-level result supported by both analyses",
             },
             {
-                "tissue": "skeletal_muscle",
-                "tier": "additional heterogeneous panel",
-                "tier_score": 1,
-                "predictive_result": "guided delta BA/AUROC/AP +0.071/+0.036/+0.037",
-                "real_gene_support": "12 synthetic-informed BH-FDR genes; 9 pass LOO FDR",
-                "pathway_support": "interferon signaling and sialic-acid metabolism; FDR < 0.05",
-                "interpretation": "pooled-muscle development complements anatomical soleus result",
+                "tissue": "Spleen",
+                "matched_all_gene_result": "FLT-higher Loxl1",
+                "secondary_consensus_result": (
+                    "Loxl1, Rai14, Ptprk, and Myl9"
+                ),
+                "interpretation": (
+                    "Matched anchor within a tentative adhesion and "
+                    "cytoskeletal panel"
+                ),
             },
             {
-                "tissue": "lung",
-                "tier": "predictive development only",
-                "tier_score": 1,
-                "predictive_result": "generated-only delta BA/AUROC/AP +0.078/+0.150/+0.148",
-                "real_gene_support": "no BH-FDR gene in the 974-gene panel",
-                "pathway_support": "no Reactome term at FDR < 0.05",
-                "interpretation": "development gain without a supported biological panel",
+                "tissue": "Skeletal muscle, pooled",
+                "matched_all_gene_result": (
+                    "Classifier utility improved; no gene passed the full gate"
+                ),
+                "secondary_consensus_result": (
+                    "12-gene interferon and sialic-acid panel"
+                ),
+                "interpretation": (
+                    "Predictive utility with secondary panel-level interpretation"
+                ),
             },
             {
-                "tissue": "spleen",
-                "tier": "additional gene-level finding",
-                "tier_score": 1,
-                "predictive_result": "real-plus-generated delta BA/AUROC/AP +0.131/+0.163/+0.160",
-                "real_gene_support": "Rai14, Ptprk, Myl9 promoted; Loxl1 reinforced; none pass LOO",
-                "pathway_support": "no coherent stable-set Reactome enrichment",
-                "interpretation": "adhesion/cytoskeletal hypothesis",
+                "tissue": "Soleus",
+                "matched_all_gene_result": "Joint utility and gene gate not passed",
+                "secondary_consensus_result": (
+                    "Reinforced five-gene mitochondrial and lipid panel"
+                ),
+                "interpretation": "Coherent secondary consensus hypothesis",
             },
             {
-                "tissue": "skin",
-                "tier": "additional gene-level finding",
-                "tier_score": 1,
-                "predictive_result": "real-plus-generated delta BA/AUROC/AP +0.085/+0.077/+0.061",
-                "real_gene_support": "Plscr1 is promoted and FLT-up in 6/6 studies; not LOO-stable",
-                "pathway_support": "cell-cycle/DNA-repair theme matches published skin analyses",
-                "interpretation": "literature-aligned skin candidate",
+                "tissue": "Eye, retina, lung",
+                "matched_all_gene_result": (
+                    "Classifier utility improved; no retained BH-FDR gene"
+                ),
+                "secondary_consensus_result": "No principal gene-level claim",
+                "interpretation": (
+                    "Predictive result without a supported biological candidate"
+                ),
             },
             {
-                "tissue": "adrenal_gland",
-                "tier": "additional gene-level finding",
-                "tier_score": 1,
-                "predictive_result": "generated-only delta BA/AUROC/AP +0.141/+0.078/+0.070",
-                "real_gene_support": "Psmb8 promoted and Tspan4 reinforced; FLT-lower in 3/3 studies",
-                "pathway_support": "heat-shock/RNA-regulation enrichment; FDR < 0.05",
-                "interpretation": "small-study developmental candidate; neither gene passes LOO",
-            },
-            {
-                "tissue": "liver",
-                "tier": "negative",
-                "tier_score": 0,
-                "predictive_result": "real-only arm retained by screen",
-                "real_gene_support": "no synthetic-informed BH-FDR genes",
-                "pathway_support": "no retained coherent synthetic-guided pathway",
-                "interpretation": "no convincing synthetic-guided biological result",
+                "tissue": (
+                    "Kidney, adrenal, gastrocnemius, tibialis anterior"
+                ),
+                "matched_all_gene_result": "No retained matched gene",
+                "secondary_consensus_result": "Narrow consensus-only candidates",
+                "interpretation": "Exploratory panel results",
             },
         ]
     )
-    evidence_order = [
-        "thymus",
-        "soleus",
-        "kidney",
-        "skeletal_muscle",
-        "spleen",
-        "skin",
-        "adrenal_gland",
-        "lung",
-        "liver",
-    ]
-    evidence["_order"] = evidence["tissue"].map(
-        {tissue: index for index, tissue in enumerate(evidence_order)}
-    )
-    evidence = evidence.sort_values("_order").drop(columns="_order").reset_index(drop=True)
 
     tables = {
         "inventory": inventory,

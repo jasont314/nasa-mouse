@@ -4,6 +4,10 @@ Generated artifacts are grouped by workflow and purpose. New runs should use
 this layout instead of adding another prefixed directory directly under
 `outputs/`.
 
+For final numbers and plots, start with the
+[results guide](../docs/results_guide.md). This directory records run selection
+and provenance; the paper `source_data/` tables are the final numeric record.
+
 ## Layout
 
 | Path | Contents |

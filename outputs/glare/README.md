@@ -14,17 +14,26 @@ This directory is the tracked GLARE result bundle for the NASA mouse analysis. I
 The GLARE panel used by the internship report is stored with that report's
 source data.
 
-## Current Interpretation
+## Final handoff interpretation
 
-Use these results as a curated evidence layer, not as raw training output. The strongest GLARE-supported leads are:
+The internship report uses GLARE as a batch-effect and representation-learning
+result. MOBER reduced accession separation in several tissues, but it did not
+produce clear FLT/GC separation. The final biological claims therefore come
+from the expiMap and synthetic-informed analyses.
+
+The following GLARE-supported leads are preserved as exploratory records:
 
 - skeletal muscle circadian and Cyclin E/G1-S regulatory modules;
 - soleus NGF signaling;
 - kidney membrane trafficking and insulin receptor signaling;
 - thymus platelet/calcium/endothelial/stromal remodeling, with composition sensitivity noted.
 
-The full working tree under `outputs/glare/multi_tissue_api/` contains raw intermediate files, model outputs, and larger diagnostic tables. Those files are regenerable and intentionally not tracked.
+They should not be read as part of the final biological claim set. The full
+working tree under `outputs/glare/multi_tissue_api/` contains regenerable raw
+intermediates, model outputs, and larger diagnostic tables that are not tracked.
 
 ## Cleanup Policy
 
-Tracked `outputs/glare/*` directories and old liver MOBER intermediates were older exploratory runs or stale liver-focused artifacts. New GLARE outputs should stay under ignored `outputs/` until promoted into this curated results bundle.
+The retained files document the final batch-effect summary and selected
+exploratory follow-up. New GLARE outputs should remain ignored until they are
+reviewed and deliberately added to this curated bundle.

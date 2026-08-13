@@ -1,10 +1,9 @@
-tissue	tier	tier_score	predictive_result	real_gene_support	pathway_support	interpretation
-thymus	coherent development panel	2	guided delta BA/AUROC/AP +0.111/+0.069/+0.056	13 promoted and 3 reinforced BH-FDR genes	mitosis, G2/M, APC/C, DNA replication; FDR < 0.05	coherent flight-lower proliferative-renewal hypothesis
-soleus	cross-accession development	2	real-plus-generated delta BA/AUROC/AP +0.038/+0.000/+0.006	5 reinforced BH-FDR genes; 4 pass LOO FDR	mitochondrial lipid oxidation/protein turnover; FDR < 0.05	coherent metabolic hypothesis; requires independent confirmation
-kidney	additional gene-level finding	1	guided delta BA/AUROC/AP +0.053/+0.091/+0.115	Inpp4b promoted and LOO-stable; Slc37a4 reinforced	no stable-set Reactome term at FDR < 0.05	renal metabolic-signaling hypothesis
-skeletal_muscle	additional heterogeneous panel	1	guided delta BA/AUROC/AP +0.071/+0.036/+0.037	12 synthetic-informed BH-FDR genes; 9 pass LOO FDR	interferon signaling and sialic-acid metabolism; FDR < 0.05	pooled-muscle development complements anatomical soleus result
-spleen	additional gene-level finding	1	real-plus-generated delta BA/AUROC/AP +0.131/+0.163/+0.160	Rai14, Ptprk, Myl9 promoted; Loxl1 reinforced; none pass LOO	no coherent stable-set Reactome enrichment	adhesion/cytoskeletal hypothesis
-skin	additional gene-level finding	1	real-plus-generated delta BA/AUROC/AP +0.085/+0.077/+0.061	Plscr1 is promoted and FLT-up in 6/6 studies; not LOO-stable	cell-cycle/DNA-repair theme matches published skin analyses	literature-aligned skin candidate
-adrenal_gland	additional gene-level finding	1	generated-only delta BA/AUROC/AP +0.141/+0.078/+0.070	Psmb8 promoted and Tspan4 reinforced; FLT-lower in 3/3 studies	heat-shock/RNA-regulation enrichment; FDR < 0.05	small-study developmental candidate; neither gene passes LOO
-lung	predictive development only	1	generated-only delta BA/AUROC/AP +0.078/+0.150/+0.148	no BH-FDR gene in the 974-gene panel	no Reactome term at FDR < 0.05	development gain without a supported biological panel
-liver	negative	0	real-only arm retained by screen	no synthetic-informed BH-FDR genes	no retained coherent synthetic-guided pathway	no convincing synthetic-guided biological result
+tissue	matched_all_gene_result	secondary_consensus_result	interpretation
+Thymus	15 genes; seven promoted; 26 significant Reactome terms	16-gene panel; nine genes overlap matched result	Strongest joint result; lower mitotic renewal in flight
+Liver	Four shared-importance FLT-lower genes	No retained panel	Matched gene-level candidates without pathway enrichment
+Skin	FLT-higher Plscr1	Plscr1 plus broader selected pathways	Gene-level result supported by both analyses
+Spleen	FLT-higher Loxl1	Loxl1, Rai14, Ptprk, and Myl9	Matched anchor within a tentative adhesion and cytoskeletal panel
+Skeletal muscle, pooled	Classifier utility improved; no gene passed the full gate	12-gene interferon and sialic-acid panel	Predictive utility with secondary panel-level interpretation
+Soleus	Joint utility and gene gate not passed	Reinforced five-gene mitochondrial and lipid panel	Coherent secondary consensus hypothesis
+Eye, retina, lung	Classifier utility improved; no retained BH-FDR gene	No principal gene-level claim	Predictive result without a supported biological candidate
+Kidney, adrenal, gastrocnemius, tibialis anterior	No retained matched gene	Narrow consensus-only candidates	Exploratory panel results

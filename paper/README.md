@@ -14,6 +14,9 @@ Each package contains Markdown source and a rendered PDF. The project-specific
 packages also contain publication figures and source tables. Read each package's
 README before rebuilding it.
 
+The project-wide [results guide](../docs/results_guide.md) links each headline
+finding to the relevant plot, exact source table, and manuscript explanation.
+
 The expiMap and generative packages include source-checked literature
 annotations. Their table locations, rationale fields, source catalogs, and
 rebuild scripts are indexed in
