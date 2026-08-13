@@ -59,6 +59,8 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
   report the tissue biology.
 - `source_data/`: manuscript and supplementary data tables. SHA-256 manifests
   are retained for repository auditing but are not part of the formal supplement.
+  `source_data/annotation_inputs/` freezes the compact grouped-pathway candidate
+  set needed to verify annotations from a clone.
   Tables S16-S17 contain the consensus-gene literature annotations and source
   inventory. Tables S18-S21 contain the matched classifier results. Tables
   S22-S24 contain matched-gene and grouped-pathway annotations and their source
@@ -68,7 +70,9 @@ The annotations are LLM-assisted and source checked. Each row keeps selection
 status separate from literature classification and records the evidence scope,
 source relationship, source IDs, concise rationale, interpretation, and search
 date. [`docs/annotation_provenance.md`](../../docs/annotation_provenance.md)
-indexes the tables and the scripts that produce them.
+indexes the tables and the scripts that produce them. The final label rules and
+canonical review prompt are in
+[`docs/annotation_prompts.md`](../../docs/annotation_prompts.md).
 
 ## Rebuild
 

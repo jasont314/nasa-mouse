@@ -41,7 +41,12 @@ The selected generator is identified by the model-comparison metrics in the
 generative manuscript. Generated data can alter classifier training and feature
 ranking, but all reported FLT/GC biological associations are tested in real
 OSDR profiles. The annotation tables and sources are indexed in
-[`docs/annotation_provenance.md`](../../../docs/annotation_provenance.md).
+[`docs/annotation_provenance.md`](../../../docs/annotation_provenance.md), and
+the review prompts are recorded in
+[`docs/annotation_prompts.md`](../../../docs/annotation_prompts.md). The
+grouped-pathway annotation checker falls back to the tracked candidate snapshot
+under `paper/synthetic_guided_spaceflight/source_data/annotation_inputs/` when
+the ignored analysis directory is unavailable.
 
 ## Outputs
 

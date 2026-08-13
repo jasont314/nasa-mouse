@@ -156,6 +156,61 @@ class HandoffIntegrityTests(unittest.TestCase):
                 }
                 self.assertEqual(used_ids - source_ids, set())
 
+    def test_annotation_prompts_and_frozen_inputs_are_preserved(self):
+        prompt_path = ROOT / "docs/annotation_prompts.md"
+        prompt_text = prompt_path.read_text(encoding="utf-8")
+        provenance_text = (ROOT / "docs/annotation_provenance.md").read_text(
+            encoding="utf-8"
+        )
+
+        for protocol_id in (
+            "expimap-pathway-review-v1",
+            "synthetic-feature-review-v2",
+        ):
+            self.assertIn(protocol_id, prompt_text)
+            self.assertIn(protocol_id, provenance_text)
+        for label in ("aligning", "complementary", "ambiguous", "unmatched"):
+            self.assertIn(f"- {label}:", prompt_text)
+
+        frozen = pd.read_csv(
+            annotate_importance_literature.FROZEN_GROUPED_INPUT,
+            sep="\t",
+        )
+        committed = pd.read_csv(
+            ROOT
+            / "paper/synthetic_guided_spaceflight/source_data/"
+            "table_s23_grouped_pathway_literature_annotations.tsv",
+            sep="\t",
+        )
+        self.assertEqual(len(frozen), 10)
+        self.assertEqual(
+            set(map(tuple, frozen[["tissue", "term"]].itertuples(index=False, name=None))),
+            set(
+                map(
+                    tuple,
+                    committed[["tissue", "term"]].itertuples(
+                        index=False, name=None
+                    ),
+                )
+            ),
+        )
+
+        missing_root = ROOT / "does-not-exist"
+        with (
+            mock.patch.object(
+                annotate_importance_literature,
+                "GROUPED_INPUT",
+                missing_root / "eligible.tsv.gz",
+            ),
+            mock.patch.object(
+                annotate_importance_literature,
+                "NONREDUNDANT_INPUT",
+                missing_root / "nonredundant.tsv",
+            ),
+        ):
+            clone_only = annotate_importance_literature._collapse_grouped()
+        self.assertEqual(len(clone_only), 10)
+
     def test_presentation_deliverables_are_grouped(self):
         presentation_root = ROOT / "presentation"
         self.assertEqual(

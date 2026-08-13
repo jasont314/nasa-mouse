@@ -10,12 +10,18 @@ private chain of thought. Each annotation can be traced from its result row to a
 source identifier and then to a citation, DOI, and URL. Labels organize the
 interpretation; they are not independent biological evidence.
 
+The original review was iterative, so there was no single saved API prompt.
+[`annotation_prompts.md`](annotation_prompts.md) records the instruction
+sequence, the final label definitions, and canonical rerun prompts. It also
+states which parts of the historical interaction cannot be recovered exactly.
+
 ## expiMap pathway annotations
 
 OpenAI Codex (GPT-5) assisted with the expiMap literature review. Source-level
 review was required before an annotation was used in a figure, table, or paper.
 The review uses three paper-facing roles: literature aligned, complementary,
-and context sensitive.
+and context sensitive. These rows follow protocol
+`expimap-pathway-review-v1` in the prompt record.
 
 | Record | Contents |
 |---|---|
@@ -36,7 +42,8 @@ The `manual` and `final` tables expose the editorial reasoning through
 The generative analysis keeps selection behavior separate from literature
 interpretation. `Promoted` and `reinforced` describe what changed after adding
 synthetic training data. `Aligning`, `complementary`, `ambiguous`, and
-`unmatched` describe the relationship to prior literature.
+`unmatched` describe the relationship to prior literature. These rows follow
+protocol `synthetic-feature-review-v2` in the prompt record.
 
 | Record | Contents |
 |---|---|
@@ -45,6 +52,7 @@ synthetic training data. `Aligning`, `complementary`, `ambiguous`, and
 | [`paper/synthetic_guided_spaceflight/source_data/table_s22_matched_gene_literature_annotations.tsv`](../paper/synthetic_guided_spaceflight/source_data/table_s22_matched_gene_literature_annotations.tsv) | 21 individual-gene permutation and SHAP annotations |
 | [`paper/synthetic_guided_spaceflight/source_data/table_s23_grouped_pathway_literature_annotations.tsv`](../paper/synthetic_guided_spaceflight/source_data/table_s23_grouped_pathway_literature_annotations.tsv) | 10 grouped Reactome permutation and SHAP annotations |
 | [`paper/synthetic_guided_spaceflight/source_data/table_s24_importance_literature_sources.tsv`](../paper/synthetic_guided_spaceflight/source_data/table_s24_importance_literature_sources.tsv) | Source catalog for matched genes and grouped pathways |
+| [`paper/synthetic_guided_spaceflight/source_data/annotation_inputs/grouped_pathway_candidates.tsv`](../paper/synthetic_guided_spaceflight/source_data/annotation_inputs/grouped_pathway_candidates.tsv) | Frozen pre-annotation input for the ten grouped Reactome candidates |
 
 These tables record `evidence_scope`, `evidence_relationship`, `source_ids`,
 `literature_summary`, `interpretation`, `annotation_origin`, and the search date.

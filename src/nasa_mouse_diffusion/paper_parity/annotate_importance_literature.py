@@ -33,6 +33,9 @@ CONSENSUS_ANNOTATION_INPUT = (
 )
 GROUPED_INPUT = GROUPED_DIR / "eligible_synthetic_pathways.tsv.gz"
 NONREDUNDANT_INPUT = GROUPED_DIR / "top_nonredundant_pathways.tsv"
+FROZEN_GROUPED_INPUT = (
+    SOURCE_DIR / "annotation_inputs" / "grouped_pathway_candidates.tsv"
+)
 GENE_OUTPUT = SOURCE_DIR / "table_s22_matched_gene_literature_annotations.tsv"
 PATHWAY_OUTPUT = SOURCE_DIR / "table_s23_grouped_pathway_literature_annotations.tsv"
 SOURCE_OUTPUT = SOURCE_DIR / "table_s24_importance_literature_sources.tsv"
@@ -512,7 +515,20 @@ def _build_gene_table() -> pd.DataFrame:
     return merged
 
 
-def _collapse_grouped() -> pd.DataFrame:
+def _validate_grouped_candidates(collapsed: pd.DataFrame) -> pd.DataFrame:
+    if "_source_order" not in collapsed:
+        collapsed = collapsed.copy()
+        collapsed["_source_order"] = range(len(collapsed))
+    if len(collapsed) != 10:
+        raise ValueError(
+            f"Expected 10 grouped pathway associations, found {len(collapsed)}"
+        )
+    if collapsed["is_nonredundant_pathway"].astype(bool).sum() != 9:
+        raise ValueError("Expected nine nonredundant grouped pathway associations")
+    return collapsed
+
+
+def _collapse_live_grouped() -> pd.DataFrame:
     grouped = pd.read_csv(GROUPED_INPUT, sep="\t")
     nonredundant = pd.read_csv(NONREDUNDANT_INPUT, sep="\t")
     keys = ["scope", "tissue", "term"]
@@ -563,11 +579,27 @@ def _collapse_grouped() -> pd.DataFrame:
                 "_source_order": order,
             }
         )
-    collapsed = pd.DataFrame(rows)
-    if len(collapsed) != 10:
-        raise ValueError(f"Expected 10 grouped pathway associations, found {len(collapsed)}")
-    if collapsed["is_nonredundant_pathway"].sum() != 9:
-        raise ValueError("Expected nine nonredundant grouped pathway associations")
+    return _validate_grouped_candidates(pd.DataFrame(rows))
+
+
+def _collapse_grouped() -> pd.DataFrame:
+    if GROUPED_INPUT.is_file() and NONREDUNDANT_INPUT.is_file():
+        return _collapse_live_grouped()
+    if not FROZEN_GROUPED_INPUT.is_file():
+        raise FileNotFoundError(
+            "Grouped pathway inputs are unavailable. Restore the final grouped "
+            f"analysis or the frozen candidate table at {FROZEN_GROUPED_INPUT}."
+        )
+    return _validate_grouped_candidates(
+        pd.read_csv(FROZEN_GROUPED_INPUT, sep="\t")
+    )
+
+
+def write_frozen_grouped_input() -> pd.DataFrame:
+    """Freeze the reviewed grouped-pathway candidate set for clone-only checks."""
+    collapsed = _collapse_live_grouped().drop(columns="_source_order")
+    FROZEN_GROUPED_INPUT.parent.mkdir(parents=True, exist_ok=True)
+    collapsed.to_csv(FROZEN_GROUPED_INPUT, sep="\t", index=False)
     return collapsed
 
 
@@ -685,12 +717,29 @@ def check_tables() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "--check",
         action="store_true",
         help="Verify that the committed tables match the curated annotations.",
     )
+    mode.add_argument(
+        "--refresh-frozen-input",
+        action="store_true",
+        help=(
+            "Refresh the compact grouped-pathway candidate snapshot from the "
+            "completed local analysis."
+        ),
+    )
     args = parser.parse_args()
+
+    if args.refresh_frozen_input:
+        frozen = write_frozen_grouped_input()
+        print(
+            f"Wrote {len(frozen)} grouped pathway candidates to "
+            f"{FROZEN_GROUPED_INPUT}"
+        )
+        return
 
     genes, pathways, sources = check_tables() if args.check else write_tables()
     print(

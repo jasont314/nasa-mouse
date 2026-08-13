@@ -20,9 +20,10 @@ files outside normal Git history.
    synthetic-informed gene and pathway analyses.
 5. Read the [codebase guide](docs/codebase_guide.md) before navigating scripts,
    configurations, or retained development experiments.
-6. Use the [literature annotation record](docs/annotation_provenance.md) to
-   trace expiMap pathways and synthetic feature-importance genes to their
-   rationale and cited sources.
+6. Use the [literature annotation record](docs/annotation_provenance.md) and
+   [annotation prompts](docs/annotation_prompts.md) to trace expiMap pathways
+   and synthetic feature-importance genes to their rationale, cited sources,
+   and review instructions.
 7. Consult [outputs/README.md](outputs/README.md) and
    [outputs/COMMANDS.md](outputs/COMMANDS.md) only when tracing a result back to
    a run or rebuilding an analysis.

@@ -9,6 +9,8 @@ The literature rationale and proposed validation tests for distributed liver, sp
 The structured expiMap and feature-importance literature annotations, including
 their rationale fields and source catalogs, are indexed in
 [`docs/annotation_provenance.md`](../../docs/annotation_provenance.md).
+The consolidated review instructions and final label definitions are in
+[`docs/annotation_prompts.md`](../../docs/annotation_prompts.md).
 
 The compact tables required to rebuild the report are tracked under
 `source_data/`; the builder does not depend on ignored training outputs.

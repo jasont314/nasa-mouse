@@ -25,8 +25,10 @@ sequence rather than trying to infer the project from directory names:
 5. Use the [expiMap](paper/asgsr_expimap_hvg/README.md) and
    [generative](paper/synthetic_guided_spaceflight/README.md) paper packages for
    detailed methods and source tables.
-6. Use the [annotation record](docs/annotation_provenance.md) to trace pathway
-   and feature-importance interpretations to written rationale and sources.
+6. Use the [annotation record](docs/annotation_provenance.md) and
+   [prompt record](docs/annotation_prompts.md) to trace pathway and
+   feature-importance interpretations to written rationale, sources, and the
+   review instructions.
 7. Read [selected outputs](outputs/README.md), the
    [command ledger](outputs/COMMANDS.md), [artifact inventory](ARTIFACTS.md),
    and [reproducibility record](REPRODUCIBILITY.md) before rerunning code.
@@ -79,6 +81,9 @@ summary, interpretation, DOI or URL, and review date.
 [`docs/annotation_provenance.md`](docs/annotation_provenance.md) indexes every
 annotation table, source catalog, and rebuild script. Annotation labels organize
 the interpretation; they are not independent evidence or statistical tests.
+[`docs/annotation_prompts.md`](docs/annotation_prompts.md) records the final
+label rules and canonical prompts, including the limits of the historical
+prompt record.
 
 ## Repository map
 

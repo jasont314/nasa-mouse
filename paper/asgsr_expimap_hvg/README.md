@@ -33,7 +33,8 @@ The primary descriptive quantity is the equally weighted project- or accession-s
 The project-wide annotation index is
 [`docs/annotation_provenance.md`](../../docs/annotation_provenance.md). It maps
 the expiMap pathway labels and member-gene checks to their rationale fields and
-full source records.
+full source records. The corresponding review instructions are preserved in
+[`docs/annotation_prompts.md`](../../docs/annotation_prompts.md).
 
 ## Rebuild
 
