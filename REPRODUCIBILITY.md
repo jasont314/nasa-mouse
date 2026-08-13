@@ -97,16 +97,16 @@ outputs listed in that paper's source manifest.
 
 ## Clean-clone audit
 
-The handoff was tested in a new clone on 2026-08-13. Before ignored method
-sources were restored, the suite reported 169 passed tests, 13 expected skips,
-and 225 passed subtests. The following command then restored and hash-checked
-the pinned WGAN, DDIM, MBatch, and TRRAC repositories:
+The latest handoff audit used a separate tracked-only checkout on 2026-08-13.
+Before ignored method sources were restored, the suite reported 174 passed
+tests, 13 expected skips, and 227 passed subtests. The following command then
+restored and hash-checked the pinned WGAN, DDIM, MBatch, and TRRAC repositories:
 
 ```bash
 python -m nasa_mouse_generative prepare-upstreams
 ```
 
-The source-enabled suite reported 185 passed tests and 232 passed subtests.
+The source-enabled suite reported 187 passed tests and 234 passed subtests.
 `python -m compileall -q src` also completed successfully. The two synthetic
 annotation checks resolved 49 consensus associations against 33 sources and 21
 matched genes plus 10 grouped pathways against 20 sources.
@@ -121,6 +121,8 @@ handoff machine.
 The fresh-clone commands above rebuilt both detailed papers, the 11-page
 internship report, the poster, and the final presentation. The generated final
 deck contained 29 slides and 29 speaker-note records and exported to a 29-page
-PDF with LibreOffice. The manuscript page images, poster preview, and slide
-contact sheet were inspected for blank pages, clipping, overlaps, and malformed
-text. The visual-audit records are kept with the paper packages.
+PDF with LibreOffice. A second render comparison covered 105 pages across the
+papers, supplement, report, poster, and final deck. Every rendered pixel matched
+the committed copies at 72 dpi. Both rebuilt PowerPoint archives also matched
+their committed internal content. The visual-audit records are kept with the
+paper packages.
