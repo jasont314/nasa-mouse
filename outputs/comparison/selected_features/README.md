@@ -27,23 +27,42 @@ longer annotation key used by the model.
 ## How to read the result labels
 
 - `FLT higher` and `FLT lower` are the observed flight-minus-ground direction.
-- An expiMap `main` pathway belongs to the primary reported set. Kidney pathways
-  are marked `secondary exploratory` in the source analysis.
+- In expiMap, `retained` means the pathway entered the final paper-facing set
+  after directional robustness filtering and pathway-family, member-gene,
+  redundancy, and tissue-fit review. Every retained pathway passed the
+  held-out-project, all-three-training-seed, and composition-proxy direction
+  checks. Fourteen also agreed with both ssGSEA and preranked GSEA and are
+  classified as `triangulated`. Skin cell-junction organization and thymus
+  lymphoid-stromal interaction passed the internal checks but had incomplete
+  conventional-method support.
+- Retained does not mean significant by GSEA FDR, unanimous in every accession
+  or protocol subgroup, or confirmed by prior literature. GSEA FDR and project
+  agreement remain separate columns. Kidney pathways are marked `secondary
+  exploratory` despite passing the five directional checks because conventional
+  FDR support was weak and composition adjustment attenuated their effects.
 - A primary matched generative gene has a real-data BH-FDR association and
   synthetic-supported marginal permutation or SHAP importance.
 - A consensus `promoted` gene became stable only with an eligible
   synthetic-informed ranking arm. A `reinforced` gene was stable with both real
   and synthetic-informed ranking. These labels describe feature selection, not
   biological novelty.
-- `Aligning` means prior evidence supports a compatible feature, tissue, and
-  direction. `Complementary` means prior work supports a related process rather
-  than an exact replication. `Ambiguous` means the published context or
-  direction is mixed. `Unmatched` means the targeted search found no specific
-  prior match.
+- The expiMap literature types are `aligned`, `complementary`, and `context
+  sensitive`. The generative types are `aligning`, `complementary`, `ambiguous`,
+  and `unmatched`. Aligned or aligning means prior evidence supports a compatible
+  feature, tissue, and direction. Complementary means prior work supports a
+  related process rather than an exact replication. Context sensitive or
+  ambiguous records have material variation or mixed published context.
+  Unmatched means the targeted search found no specific prior match.
 
 The literature labels organize follow-up. They are not additional statistical
 evidence. The cited rationale for each row is in the linked detailed tables and
 the [annotation record](../../../docs/annotation_provenance.md).
+
+The tables below show a literature type for every retained expiMap pathway,
+primary matched gene, grouped generative pathway, and secondary consensus gene.
+The 743 expiMap pathway-member genes and 1,307 stable generative tissue-gene
+pairs were not each reviewed as paper-facing biological candidates, so they do
+not have individual literature types.
 
 ## expiMap retained pathways
 
@@ -120,27 +139,27 @@ annotations are in
 
 | Scope | Tissue | Status | Direction | Genes |
 |---|---|---|---|---|
-| Tissue | Adrenal gland | promoted | FLT lower | `Psmb8` |
-| Tissue | Adrenal gland | reinforced | FLT lower | `Tspan4` |
-| Tissue | Eye | reinforced | FLT lower | `Klhl21` |
-| Tissue | Kidney | promoted | FLT higher | `Inpp4b` |
-| Tissue | Kidney | reinforced | FLT higher | `Slc37a4` |
-| Tissue | Skeletal muscle | promoted | FLT lower | `Klhl21`, `Mapkapk5`, `Reep5`, `Itgb5` |
-| Tissue | Skeletal muscle | reinforced | FLT higher | `Sox4`, `Cebpd`, `Sh3bp5`, `Prkcd`, `Arid5b`, `Sesn1`, `Tle1` |
-| Tissue | Skeletal muscle | reinforced | FLT lower | `Bphl` |
-| Tissue | Skin | promoted | FLT higher | `Plscr1` |
-| Tissue | Spleen | promoted | FLT higher | `Rai14`, `Myl9`, `Ptprk` |
-| Tissue | Spleen | reinforced | FLT higher | `Loxl1` |
-| Tissue | Thymus | promoted | FLT higher | `Hsd17b11`, `Etv1` |
-| Tissue | Thymus | promoted | FLT lower | `Nusap1`, `Stmn1`, `Birc5`, `Cdk1`, `Top2a`, `Ccnb2`, `Aurka`, `Ccne2`, `Kif20a`, `Pcna`, `Ccnf` |
-| Tissue | Thymus | reinforced | FLT higher | `Snx7` |
-| Tissue | Thymus | reinforced | FLT lower | `Ube2c`, `Gmnn` |
-| Muscle group | Gastrocnemius | promoted | FLT higher | `Nfkbia` |
-| Muscle group | Gastrocnemius | promoted | FLT lower | `Fhl2` |
-| Muscle group | Soleus | reinforced | FLT higher | `Tpm1` |
-| Muscle group | Soleus | reinforced | FLT lower | `Bdh1`, `Ech1`, `Bnip3`, `Decr1` |
-| Muscle group | Tibialis anterior | promoted | FLT higher | `Cebpd` |
-| Muscle group | Tibialis anterior | reinforced | FLT higher | `Cdkn1a`, `St3gal5`, `Bnip3` |
+| Tissue | Adrenal gland | promoted | FLT lower | `Psmb8` (unmatched) |
+| Tissue | Adrenal gland | reinforced | FLT lower | `Tspan4` (unmatched) |
+| Tissue | Eye | reinforced | FLT lower | `Klhl21` (aligning) |
+| Tissue | Kidney | promoted | FLT higher | `Inpp4b` (complementary) |
+| Tissue | Kidney | reinforced | FLT higher | `Slc37a4` (complementary) |
+| Tissue | Skeletal muscle | promoted | FLT lower | `Klhl21` (complementary), `Mapkapk5` (complementary), `Reep5` (complementary), `Itgb5` (complementary) |
+| Tissue | Skeletal muscle | reinforced | FLT higher | `Sox4` (aligning), `Cebpd` (aligning), `Sh3bp5` (complementary), `Prkcd` (aligning), `Arid5b` (aligning), `Sesn1` (aligning), `Tle1` (complementary) |
+| Tissue | Skeletal muscle | reinforced | FLT lower | `Bphl` (unmatched) |
+| Tissue | Skin | promoted | FLT higher | `Plscr1` (complementary) |
+| Tissue | Spleen | promoted | FLT higher | `Rai14` (complementary), `Myl9` (complementary), `Ptprk` (complementary) |
+| Tissue | Spleen | reinforced | FLT higher | `Loxl1` (complementary) |
+| Tissue | Thymus | promoted | FLT higher | `Hsd17b11` (complementary), `Etv1` (complementary) |
+| Tissue | Thymus | promoted | FLT lower | `Nusap1` (aligning), `Stmn1` (aligning), `Birc5` (ambiguous), `Cdk1` (aligning), `Top2a` (aligning), `Ccnb2` (aligning), `Aurka` (aligning), `Ccne2` (aligning), `Kif20a` (aligning), `Pcna` (aligning), `Ccnf` (aligning) |
+| Tissue | Thymus | reinforced | FLT higher | `Snx7` (unmatched) |
+| Tissue | Thymus | reinforced | FLT lower | `Ube2c` (aligning), `Gmnn` (aligning) |
+| Muscle group | Gastrocnemius | promoted | FLT higher | `Nfkbia` (aligning) |
+| Muscle group | Gastrocnemius | promoted | FLT lower | `Fhl2` (complementary) |
+| Muscle group | Soleus | reinforced | FLT higher | `Tpm1` (ambiguous) |
+| Muscle group | Soleus | reinforced | FLT lower | `Bdh1` (aligning), `Ech1` (aligning), `Bnip3` (ambiguous), `Decr1` (aligning) |
+| Muscle group | Tibialis anterior | promoted | FLT higher | `Cebpd` (complementary) |
+| Muscle group | Tibialis anterior | reinforced | FLT higher | `Cdkn1a` (ambiguous), `St3gal5` (complementary), `Bnip3` (complementary) |
 
 ## Stable feature coverage
 

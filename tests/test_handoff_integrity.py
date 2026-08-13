@@ -280,6 +280,24 @@ class HandoffIntegrityTests(unittest.TestCase):
             ignore_index=True,
         ).unique():
             self.assertIn(f"`{symbol}`", comparison_readme)
+        annotated_genes = pd.concat(
+            [
+                matched[["symbol", "literature_classification"]],
+                consensus[["symbol", "literature_classification"]],
+            ],
+            ignore_index=True,
+        ).drop_duplicates()
+        for row in annotated_genes.itertuples(index=False):
+            self.assertIn(
+                f"`{row.symbol}` ({row.literature_classification})",
+                comparison_readme,
+            )
+        for row in pathways.itertuples(index=False):
+            relation = str(row.literature_classification).replace("_", " ")
+            self.assertIn(
+                f"[{row.pathway_id}]({row.pathway_url}) | {relation} |",
+                comparison_readme,
+            )
         for filename in (
             "gene_crosswalk.tsv",
             "generative_all_arm_stable_features.tsv.gz",
