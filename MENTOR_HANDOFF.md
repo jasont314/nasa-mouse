@@ -81,7 +81,8 @@ All biological association tests were calculated from real OSDR profiles.
 | Read PDFs and inspect source tables | Yes | None |
 | Edit the PPTX or manuscripts | Yes | Office/PDF tools as needed |
 | Redraw frozen-source figures; render manuscripts, poster, and final presentation | Yes | `nasa-mouse` environment; LibreOffice for PPTX-to-PDF export |
-| Refresh detailed generative-paper tables and figures exactly | Yes, with preserved compact inputs | Files named in `frozen_input_manifest.tsv`, or rerun their analysis commands |
+| Rebuild the historical generative tables exactly | No, not from Git alone | Restore the 3.9 MB compact input snapshot named in `frozen_input_manifest.tsv` |
+| Recompute the generative analyses | Yes | Restore checkpoints or retrain, then run `outputs/COMMANDS.md` |
 | Rerun OSDR ingestion | Yes | Network access to NASA OSDR |
 | Rerun final model inference without training | No | Selected local checkpoints |
 | Retrain GLARE or run composition checks | Yes | Public TMS download and OSDR API data |
@@ -117,6 +118,7 @@ they do not require a private handoff copy. Long-term preservation should focus
 on the files listed in `outputs/MODEL_ARTIFACTS.sha256`, which avoid roughly
 2.3 GB of checkpoint regeneration, and the compact ignored inputs named by the
 generative paper's `frozen_input_manifest.tsv`. The repository has no public
-checkpoint download location yet.
+checkpoint download location yet. `ARTIFACTS.md` includes an archive and restore
+recipe for these local files.
 
 Contact: Jason Trinh, `jasontrinh@berkeley.edu`.

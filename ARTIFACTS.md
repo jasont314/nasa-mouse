@@ -6,10 +6,10 @@ manageable. Paths below are relative to the repository root.
 
 ## Public reference inputs
 
-| Local path | Size on handoff machine | Source | SHA-256 |
+| Local path | Expected bytes | Source | SHA-256 |
 |---|---:|---|---|
 | `assets/archs4/mouse_gene_v2.5.h5` | 38,960,132,574 bytes | [ARCHS4 download page](https://maayanlab.cloud/archs4/download.html), [direct mouse file](https://s3.dev.maayanlab.cloud/archs4/files/mouse_gene_v2.5.h5) | `74b509f82623bced395119244becf30df601a24fcaaf905691e2716bf83118b8` |
-| `assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad` | 2,548,190,251 bytes | [CELLxGENE-hosted Tabula Muris Senis FACS file](https://datasets.cellxgene.cziscience.com/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad) | `1d7fd90acb33269c3337dc5031b4a89d9aa4f72806a45b9c12e768fedc8acf8f` |
+| `assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad` | 2,548,190,251 bytes | [CELLxGENE collection](https://cellxgene.cziscience.com/collections/0b9d8a04-bb9d-44da-aa27-705bb65b54eb), [direct FACS file](https://datasets.cellxgene.cziscience.com/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad) | `1d7fd90acb33269c3337dc5031b4a89d9aa4f72806a45b9c12e768fedc8acf8f` |
 
 The same checksums are stored in `assets/EXTERNAL_ARTIFACTS.sha256` so local
 copies can be checked with:
@@ -31,6 +31,12 @@ The two downloads require about 41.5 GB of disk space before filesystem and
 temporary-file overhead. They do not need to be copied from the handoff machine.
 The equivalent manifest-only check remains available as
 `sha256sum --check assets/EXTERNAL_ARTIFACTS.sha256`.
+
+Both direct URLs were checked on 2026-08-13. Their reported byte counts matched
+the table, they supported resumed range requests, and the first downloaded
+megabyte matched the local files. The full local copies passed SHA-256; ARCHS4
+also matched the publisher's SHA-1
+`22605c9b6c4e7502b0861d4d8591ce128907c39f`.
 
 The supplied NASA poster template is tracked at
 `assets/poster_template/00 Poster Session Student Template_Approved by Legal.pptx`,
@@ -111,6 +117,32 @@ Preserving the compact files in the generative paper's
 refresh. Record the storage URL, access policy, and retrieval date here. The
 ignored root `.env` is machine-specific and may contain credentials; do not
 include it in a handoff archive.
+
+The following creates one uncompressed archive containing the 30 selected model
+files and 30 compact historical paper inputs. The archive is about 2.3 GB; the
+public ARCHS4, TMS, and OSDR files are deliberately excluded.
+
+```bash
+sed -E 's/^[0-9a-f]{64}  //' outputs/MODEL_ARTIFACTS.sha256 \
+  > /tmp/nasa_mouse_handoff_paths.txt
+tail -n +2 \
+  paper/synthetic_guided_spaceflight/source_data/frozen_input_manifest.tsv \
+  | cut -f1 >> /tmp/nasa_mouse_handoff_paths.txt
+sort -u /tmp/nasa_mouse_handoff_paths.txt \
+  > /tmp/nasa_mouse_handoff_paths.sorted.txt
+tar -cf nasa-mouse-local-models-and-inputs.tar \
+  -T /tmp/nasa_mouse_handoff_paths.sorted.txt
+sha256sum nasa-mouse-local-models-and-inputs.tar \
+  > nasa-mouse-local-models-and-inputs.tar.sha256
+```
+
+Restore it from the repository root, then verify the model files:
+
+```bash
+sha256sum --check nasa-mouse-local-models-and-inputs.tar.sha256
+tar -xf nasa-mouse-local-models-and-inputs.tar
+sha256sum --check outputs/MODEL_ARTIFACTS.sha256
+```
 
 The boundary between figures rebuilt from tracked tables and graphics that
 require model outputs is documented in

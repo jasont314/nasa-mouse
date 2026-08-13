@@ -111,6 +111,12 @@ The source-enabled suite reported 176 passed tests and 231 passed subtests.
 annotation checks resolved 49 consensus associations against 33 sources and 21
 matched genes plus 10 grouped pathways against 20 sources.
 
+The public ARCHS4 and TMS URLs were checked independently with HTTP range
+requests. Their reported sizes and first megabyte matched the local files, and
+both complete local files passed the tracked SHA-256 checks. All 30 checkpoint
+manifest entries and all 30 compact generative-paper input entries also matched
+their recorded sizes and hashes on the handoff machine.
+
 The fresh-clone commands above rebuilt both detailed papers, the 11-page
 internship report, the poster, and the final presentation. The generated final
 deck contained 29 slides and 29 speaker-note records and exported to a 29-page
