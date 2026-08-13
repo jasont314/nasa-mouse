@@ -51,9 +51,8 @@ sha256sum --check outputs/MODEL_ARTIFACTS.sha256
 
 The checksum commands require the ignored local assets. A fresh clone should
 skip the corresponding check until those files have been transferred.
-Tests that compare directly against the pinned upstream WGAN and DDIM sources
-skip until `python -m nasa_mouse_generative prepare-upstreams` restores those
-checkouts.
+Tests that compare directly against pinned upstream method sources skip until
+`python -m nasa_mouse_generative prepare-upstreams` restores those checkouts.
 
 Document-only verification does not require the large data or models:
 
@@ -86,3 +85,26 @@ outputs listed in that paper's source manifest.
 - Publication-facing source tables are frozen under each paper directory.
 - Historical absolute paths in archived logs and provenance manifests describe
   the original workstation and are not required runtime paths.
+
+## Clean-clone audit
+
+The handoff was tested in a new clone on 2026-08-13. Before ignored method
+sources were restored, the suite reported 163 passed tests, 13 expected skips,
+and 224 passed subtests. The following command then restored and hash-checked
+the pinned WGAN, DDIM, MBatch, and TRRAC repositories:
+
+```bash
+python -m nasa_mouse_generative prepare-upstreams
+```
+
+The source-enabled suite reported 176 passed tests and 231 passed subtests.
+`python -m compileall -q src` also completed successfully. The two synthetic
+annotation checks resolved 49 consensus associations against 33 sources and 21
+matched genes plus 10 grouped pathways against 20 sources.
+
+The fresh-clone commands above rebuilt both detailed papers, the 11-page
+internship report, the poster, and the final presentation. The generated final
+deck contained 29 slides and 29 speaker-note records and exported to a 29-page
+PDF with LibreOffice. The manuscript page images, poster preview, and slide
+contact sheet were inspected for blank pages, clipping, overlaps, and malformed
+text. The visual-audit records are kept with the paper packages.

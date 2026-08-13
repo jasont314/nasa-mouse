@@ -5,6 +5,7 @@ import sys
 import tomllib
 import unittest
 from unittest import mock
+import zipfile
 
 import pandas as pd
 import yaml
@@ -280,6 +281,7 @@ class HandoffIntegrityTests(unittest.TestCase):
             "midpoint/SLSTP_2026_Midpoint_Presentation.pdf",
             "final/SLSTP_2026_Generative_Transcriptomics.pptx",
             "final/SLSTP_2026_Generative_Transcriptomics.pdf",
+            "final/speaker_notes.md",
         ]
         missing = [
             path
@@ -287,6 +289,24 @@ class HandoffIntegrityTests(unittest.TestCase):
             if not (presentation_root / path).is_file()
         ]
         self.assertEqual(missing, [])
+
+        final_deck = (
+            presentation_root / "final/SLSTP_2026_Generative_Transcriptomics.pptx"
+        )
+        with zipfile.ZipFile(final_deck) as archive:
+            names = archive.namelist()
+        slides = [
+            name
+            for name in names
+            if re.fullmatch(r"ppt/slides/slide\d+\.xml", name)
+        ]
+        notes = [
+            name
+            for name in names
+            if re.fullmatch(r"ppt/notesSlides/notesSlide\d+\.xml", name)
+        ]
+        self.assertEqual(len(slides), 29)
+        self.assertEqual(len(notes), len(slides))
 
     def test_documentation_links_resolve(self):
         missing = []
