@@ -1,5 +1,0 @@
-model	blue_pathways	any_fdr_gene	two_plus_fdr_genes	strong_gene_support	moderate_gene_support	weak_or_no_gene_support	zero_fdr_gene	sig_gene_mostly_same_direction	sig_gene_mostly_opposite_direction	sig_gene_mixed_tie	median_hvg_same_direction	total_unique_sig_genes_in_blue_pathways
-liver_hvg	46	35	26	12	14	20	11	16	18	1	23	61
-skin_hvg	102	84	68	38	30	34	18	43	35	6	58	151
-soleus_hvg	44	44	36	14	22	8	0	20	17	7	28	92
-thymus_hvg	86	85	81	70	11	5	1	41	41	3	46	340

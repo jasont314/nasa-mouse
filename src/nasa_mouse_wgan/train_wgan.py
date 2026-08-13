@@ -46,7 +46,7 @@ def device_summary(torch, device) -> dict:
 
 
 def write_feature_scores(path: Path, obs, critic_score, features) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     metadata_columns = [
         column
         for column in [
@@ -83,7 +83,7 @@ def write_feature_scores(path: Path, obs, critic_score, features) -> Path:
 
 
 def write_quality(path: Path, quality: dict) -> None:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     path.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame([quality]).to_csv(path.with_suffix(".tsv"), sep="\t", index=False)
     path.write_text(json.dumps(quality, indent=2) + "\n", encoding="utf-8")
@@ -112,7 +112,7 @@ def write_readme(output_dir: Path, summary: dict) -> None:
 
 
 def write_observed_profiles(output_dir: Path, prepared) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     frames = [prepared.query_obs]
     if prepared.reference_obs is not None:
         frames.insert(0, prepared.reference_obs)
@@ -132,8 +132,8 @@ def write_observed_profiles(output_dir: Path, prepared) -> Path:
 
 
 def run(args) -> Path:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

@@ -7,7 +7,7 @@ from nasa_mouse_generative.paper_metrics import paper_distribution_metrics
 
 
 def corrcoef_safe(x, y):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
     if x.size < 2 or y.size < 2 or np.nanstd(x) == 0 or np.nanstd(y) == 0:
@@ -16,7 +16,7 @@ def corrcoef_safe(x, y):
 
 
 def generated_quality(real, fake, *, max_pr_samples: int = 2000):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     real = np.asarray(real, dtype=np.float32)
     fake = np.asarray(fake, dtype=np.float32)
     n = min(real.shape[0], fake.shape[0])
@@ -55,10 +55,10 @@ def generated_quality(real, fake, *, max_pr_samples: int = 2000):
 
 
 def manifold_metrics(real, fake, *, max_samples: int):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    sklearn_decomposition = require_import("sklearn.decomposition", "pip install -r requirements-nasa-mouse-glare.txt")
-    sklearn_neighbors = require_import("sklearn.neighbors", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_linalg = require_import("scipy.linalg", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    sklearn_decomposition = require_import("sklearn.decomposition", "pip install -r requirements.txt")
+    sklearn_neighbors = require_import("sklearn.neighbors", "pip install -r requirements.txt")
+    scipy_linalg = require_import("scipy.linalg", "pip install -r requirements.txt")
     n = min(real.shape[0], fake.shape[0], int(max_samples))
     if n < 5:
         return {"precision": float("nan"), "recall": float("nan"), "frechet_pca": float("nan"), "adversarial_accuracy": float("nan")}
@@ -99,11 +99,11 @@ def manifold_metrics(real, fake, *, max_samples: int):
 
 
 def reverse_validation(real, fake, labels):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    sklearn_model_selection = require_import("sklearn.model_selection", "pip install -r requirements-nasa-mouse-glare.txt")
-    sklearn_pipeline = require_import("sklearn.pipeline", "pip install -r requirements-nasa-mouse-glare.txt")
-    sklearn_preprocessing = require_import("sklearn.preprocessing", "pip install -r requirements-nasa-mouse-glare.txt")
-    sklearn_neural = require_import("sklearn.neural_network", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    sklearn_model_selection = require_import("sklearn.model_selection", "pip install -r requirements.txt")
+    sklearn_pipeline = require_import("sklearn.pipeline", "pip install -r requirements.txt")
+    sklearn_preprocessing = require_import("sklearn.preprocessing", "pip install -r requirements.txt")
+    sklearn_neural = require_import("sklearn.neural_network", "pip install -r requirements.txt")
     real = np.asarray(real, dtype=np.float32)
     fake = np.asarray(fake, dtype=np.float32)
     labels = np.asarray(labels, dtype=str)

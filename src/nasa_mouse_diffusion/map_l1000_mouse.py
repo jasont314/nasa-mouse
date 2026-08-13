@@ -11,7 +11,7 @@ from nasa_mouse_glare.io import require_import
 
 
 def load_human_landmarks(path: Path):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     table = pd.read_csv(path)
     if {"Description", "ensembl_id", "Type"}.issubset(table.columns):
         table = table.loc[table["Type"].astype(str).str.lower().eq("landmark")]
@@ -52,7 +52,7 @@ def biomart_query(human_ensembl_ids: list[str], *, timeout: int):
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     landmarks = load_human_landmarks(Path(args.landmark_table))

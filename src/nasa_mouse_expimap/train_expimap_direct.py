@@ -27,11 +27,11 @@ def term_columns(terms, latent, active_indices=None):
 
 
 def run(args) -> Path:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
-    sca = require_import("scarches", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    ad = require_import("anndata", "pip install -r requirements.txt")
+    sca = require_import("scarches", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
 
     adata = ad.read_h5ad(args.input)
     if "I" not in adata.varm:

@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-import shutil
 
 import numpy as np
 import pandas as pd
@@ -48,9 +47,10 @@ MODELS = (
 )
 
 
-REVIEW_DIR = ROOT / "presentation/expimap/literature_review_manual"
-PRESENTATION_DIR = ROOT / "presentation/expimap/literature_reviewed_hvg"
-BASE_LABEL_DIR = ROOT / "presentation/expimap/annotated_hvg"
+LITERATURE_DIR = ROOT / "paper/asgsr_expimap_hvg/source_data/literature_review"
+REVIEW_DIR = LITERATURE_DIR / "manual"
+FROZEN_LABEL_DIR = LITERATURE_DIR / "final"
+OUTPUT_DIR = ROOT / "outputs/expimap/analyses/literature_review"
 
 
 CATEGORY_COLORS = {
@@ -76,8 +76,9 @@ def read_matrix(config: ModelConfig) -> pd.DataFrame:
 
 
 def read_reviewed_labels(config: ModelConfig, matrix: pd.DataFrame) -> pd.DataFrame:
-    base_path = BASE_LABEL_DIR / f"{config.name}_pathway_interpretation_labels.tsv"
-    review_path = REVIEW_DIR / f"{config.name}_manual_literature_review.tsv"
+    tissue = config.name.removesuffix("_hvg")
+    base_path = config.run_dir / "analysis/pathway_interpretation_labels.tsv"
+    review_path = REVIEW_DIR / f"{tissue}.tsv"
     if not base_path.exists():
         raise FileNotFoundError(base_path)
     if not review_path.exists():
@@ -276,33 +277,32 @@ def plot_one(
     fig.text(0.63, 0.012, footnote, ha="center", va="bottom", fontsize=6)
     fig.subplots_adjust(left=0.56, right=0.89, top=0.985, bottom=0.055)
 
-    output = PRESENTATION_DIR / f"{config.name}_{suffix}.png"
+    output = OUTPUT_DIR / f"{config.name}_{suffix}.png"
     fig.savefig(output, dpi=180)
     plt.close(fig)
     return output
 
 
 def main() -> None:
-    PRESENTATION_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    FROZEN_LABEL_DIR.mkdir(parents=True, exist_ok=True)
     rows = []
     outputs = []
     for config in MODELS:
         matrix = read_matrix(config)
         labels = read_reviewed_labels(config, matrix)
-        labels_path = PRESENTATION_DIR / f"{config.name}_literature_review_labels.tsv"
+        tissue = config.name.removesuffix("_hvg")
+        labels_path = OUTPUT_DIR / f"{config.name}_literature_review_labels.tsv"
         labels.to_csv(labels_path, sep="\t", index=False)
+        labels.to_csv(FROZEN_LABEL_DIR / f"{tissue}.tsv", sep="\t", index=False)
         blue_labels = labels[
             labels["reviewed_category"].eq("blue_plausible_complementary")
         ].copy()
         blue_labels.to_csv(
-            PRESENTATION_DIR / f"{config.name}_literature_review_blue_only_labels.tsv",
+            OUTPUT_DIR / f"{config.name}_literature_review_blue_only_labels.tsv",
             sep="\t",
             index=False,
         )
-
-        source_path = REVIEW_DIR / f"{config.name}_sources.md"
-        if source_path.exists():
-            shutil.copy2(source_path, PRESENTATION_DIR / source_path.name)
 
         outputs.append(plot_one(config, matrix, labels, mode="all_labels"))
         outputs.append(plot_one(config, matrix, labels, mode="no_gray_red"))
@@ -324,10 +324,10 @@ def main() -> None:
         )
 
     summary = pd.DataFrame(rows)
-    summary.to_csv(PRESENTATION_DIR / "literature_review_color_summary.tsv", sep="\t", index=False)
+    summary.to_csv(OUTPUT_DIR / "literature_review_color_summary.tsv", sep="\t", index=False)
     for output in outputs:
         print(output.relative_to(ROOT))
-    print((PRESENTATION_DIR / "literature_review_color_summary.tsv").relative_to(ROOT))
+    print((OUTPUT_DIR / "literature_review_color_summary.tsv").relative_to(ROOT))
 
 
 if __name__ == "__main__":

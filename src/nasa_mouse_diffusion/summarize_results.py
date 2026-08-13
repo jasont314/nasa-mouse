@@ -81,8 +81,8 @@ def synthetic_rows(root: Path) -> list[dict]:
     manifest = root / "synthetic_examples" / "synthetic_examples_manifest.tsv"
     if not manifest.exists():
         return []
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     rows = []
     table = pd.read_csv(manifest, sep="\t")
     for _, item in table.iterrows():
@@ -107,7 +107,7 @@ def synthetic_rows(root: Path) -> list[dict]:
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     root = Path(args.root)
     summary_dir = Path(args.summary_dir)
     summary_dir.mkdir(parents=True, exist_ok=True)

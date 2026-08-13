@@ -29,8 +29,8 @@ def checkpoint_args(checkpoint: dict) -> SimpleNamespace:
 
 
 def run(args) -> Path:
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     model_dir = Path(args.model_dir)
     checkpoint_path = model_dir / "reference_pretrained_model.pt"
     if not checkpoint_path.exists():

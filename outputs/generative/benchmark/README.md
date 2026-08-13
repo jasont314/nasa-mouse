@@ -19,10 +19,10 @@ Current audited inputs:
 locked-test assignments for preprocessing, checkpoint selection, or hyperparameter
 tuning.
 
-`runs/<model>/<run-id>/` contains resolved configurations, fitted preprocessing,
-prepared OSDR partitions, resumable checkpoints, final models, embeddings, and
-held-out validation metrics. One-epoch directories with `smoke` in the name validate
-mechanics only and are not biological results.
+`runs/<model>/<run-id>/` contains resolved configurations, final models, and
+held-out validation metrics. The handoff machine keeps only the selected DDIM
+backbone, selected OSDR adapter, and WGAN comparison run. Rejected screens and
+smoke runs were removed after their compact results and commands were recorded.
 
 `scoreboard.tsv` records the initial model screen. Later experiments selected the
 ARCHS4 ModelDDIM backbone with the factorized study- and material-conditioned OSDR

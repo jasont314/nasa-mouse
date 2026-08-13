@@ -10,7 +10,7 @@ from nasa_mouse_glare.io import require_import
 
 
 def bf_table(adata, key: str, terms: list[str]):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     rows = []
     scores = adata.uns[key]
@@ -35,10 +35,10 @@ def bf_table(adata, key: str, terms: list[str]):
 
 
 def run(args) -> Path:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
-    sca = require_import("scarches", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    ad = require_import("anndata", "pip install -r requirements.txt")
+    sca = require_import("scarches", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

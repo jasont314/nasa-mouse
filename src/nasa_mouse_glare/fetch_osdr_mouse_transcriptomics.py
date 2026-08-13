@@ -49,7 +49,7 @@ def read_url_bytes(url: str, timeout: int) -> bytes:
 
 
 def read_api_csv(url: str, timeout: int):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     payload = read_url_bytes(url, timeout)
     if payload.lstrip().startswith(b"<"):
         raise RuntimeError(f"API returned HTML instead of CSV for {url}")
@@ -102,7 +102,7 @@ def is_bulk_rna_seq(row) -> bool:
 
 
 def discover_metadata(timeout: int):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     url = metadata_query_url()
     metadata = read_api_csv(url, timeout)

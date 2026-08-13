@@ -112,7 +112,7 @@ def prepare(args: argparse.Namespace) -> dict:
         var[column] = var[column].map(
             lambda value: "" if pd.isna(value) else str(value)
         ).astype(object)
-    anndata = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
+    anndata = require_import("anndata", "pip install -r requirements.txt")
     adata = anndata.AnnData(X=x, obs=metadata, var=var)
     adata.uns["normalization"] = "log2(CPM+1) from NASA OSDR API counts"
     adata.uns["batch_column"] = args.batch_column

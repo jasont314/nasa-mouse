@@ -20,11 +20,11 @@ class TrainConfig:
     seed: int = 2020
 
 
-class ExpressionDataset(require_import("torch.utils.data", "pip install -r requirements-nasa-mouse-glare.txt").Dataset):
+class ExpressionDataset(require_import("torch.utils.data", "pip install -r requirements.txt").Dataset):
     """Torch dataset with expression vectors and categorical codes."""
 
     def __init__(self, expression, categories):
-        torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+        torch = require_import("torch", "pip install -r requirements.txt")
         self.expression = torch.as_tensor(expression, dtype=torch.float32)
         self.categories = torch.as_tensor(categories, dtype=torch.long)
 
@@ -36,7 +36,7 @@ class ExpressionDataset(require_import("torch.utils.data", "pip install -r requi
 
 
 def make_loader(expression, categories, *, batch_size: int, seed: int, shuffle: bool = True):
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     generator = torch.Generator()
     generator.manual_seed(int(seed))
     dataset = ExpressionDataset(expression, categories)
@@ -50,7 +50,7 @@ def make_loader(expression, categories, *, batch_size: int, seed: int, shuffle: 
 
 
 def gradient_penalty(model, real, fake, categories, device):
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     alpha = torch.rand((real.shape[0], 1), device=device)
     interpolated = (alpha * real + (1.0 - alpha) * fake).requires_grad_(True)
     score = model.critic(interpolated, categories)
@@ -69,7 +69,7 @@ def gradient_penalty(model, real, fake, categories, device):
 def augment_expression(expression, *, probability: float, noise_scale: float):
     """Apply the released WGAN's per-profile Gaussian augmentation."""
 
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     probability = float(probability)
     noise_scale = float(noise_scale)
     if not 0.0 <= probability <= 1.0:
@@ -85,7 +85,7 @@ def augment_expression(expression, *, probability: float, noise_scale: float):
 
 
 def _gradient_norm(parameters):
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     squared = torch.zeros((), dtype=torch.float32)
     for parameter in parameters:
         if parameter.grad is not None:
@@ -95,7 +95,7 @@ def _gradient_norm(parameters):
 
 
 def train_epoch(model, loader, *, config: TrainConfig, optim_g, optim_d, device):
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     model.train()
     totals = {
         "critic_loss": 0.0,
@@ -176,7 +176,7 @@ def train_epoch(model, loader, *, config: TrainConfig, optim_g, optim_d, device)
 
 
 def train_model(model, expression, categories, *, config: TrainConfig, device):
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     torch.manual_seed(int(config.seed))
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(int(config.seed))
@@ -214,8 +214,8 @@ def train_model(model, expression, categories, *, config: TrainConfig, device):
 
 
 def critic_features(model, expression, categories, *, batch_size: int, device):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     loader = make_loader(
         expression,
         categories,
@@ -237,8 +237,8 @@ def critic_features(model, expression, categories, *, batch_size: int, device):
 
 
 def generate_samples(model, categories, *, batch_size: int, device):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     categories = torch.as_tensor(categories, dtype=torch.long)
     dataset = torch.utils.data.TensorDataset(categories)
     loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False)
@@ -254,7 +254,7 @@ def generate_samples(model, categories, *, batch_size: int, device):
 
 
 def generation_quality(real, fake):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
 
     def corr(a, b):
         if np.std(a) == 0 or np.std(b) == 0:

@@ -10,9 +10,9 @@ from nasa_mouse_glare.io import require_import
 
 
 def run(args) -> Path:
-    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    sca = require_import("scarches", "pip install -r requirements-nasa-mouse-glare.txt")
+    ad = require_import("anndata", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    sca = require_import("scarches", "pip install -r requirements.txt")
 
     adata = ad.read_h5ad(args.input)
     model = sca.models.EXPIMAP.load(args.model, adata=adata)

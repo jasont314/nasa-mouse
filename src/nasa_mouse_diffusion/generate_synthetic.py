@@ -23,7 +23,7 @@ def parse_set(values: list[str]) -> dict[str, str]:
 
 
 def load_checkpoint(model_dir: Path, *, device):
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     checkpoint = torch.load(model_dir / "model.pt", map_location=device, weights_only=False)
     model = ConditionalDiffusionMLP(**checkpoint["model_config"]).to(device)
     model.load_state_dict(checkpoint["model_state_dict"])
@@ -32,7 +32,7 @@ def load_checkpoint(model_dir: Path, *, device):
 
 
 def default_profile(model_dir: Path, covariates: tuple[str, ...]) -> dict[str, str]:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     path = model_dir / "observed_conditioning_profiles.tsv"
     if not path.exists():
         return {}
@@ -43,7 +43,7 @@ def default_profile(model_dir: Path, covariates: tuple[str, ...]) -> dict[str, s
 
 
 def encode_profile(profile: dict[str, str], vocabularies: dict[str, list[str]], covariates: tuple[str, ...], *, n: int):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     encoded = []
     for covariate in covariates:
         value = profile.get(covariate)
@@ -60,7 +60,7 @@ def encode_profile(profile: dict[str, str], vocabularies: dict[str, list[str]], 
 
 
 def reconstruct_full(landmarks, checkpoint):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     landmark_indices = np.asarray(checkpoint["landmark_indices"], dtype=int)
     target_indices = np.asarray(checkpoint["target_indices"], dtype=int)
     full = np.zeros((landmarks.shape[0], len(checkpoint["genes"])), dtype="float32")
@@ -74,8 +74,8 @@ def reconstruct_full(landmarks, checkpoint):
 
 
 def generate_landmarks(model, categories, betas, *, n: int, sample_steps: int, eta: float, seed: int, batch_size: int, device):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     categories = torch.as_tensor(categories, dtype=torch.long)
     rng = torch.Generator(device=device)
     rng.manual_seed(int(seed))
@@ -90,7 +90,7 @@ def generate_landmarks(model, categories, betas, *, n: int, sample_steps: int, e
 
 
 def write_matrix(path: Path, matrix, genes: list[str]) -> None:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     frame = pd.DataFrame(matrix, columns=genes)
     frame.insert(0, "synthetic_sample_id", [f"synthetic_{idx:05d}" for idx in range(matrix.shape[0])])
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -98,7 +98,7 @@ def write_matrix(path: Path, matrix, genes: list[str]) -> None:
 
 
 def scaled_to_log1p_cpm(full_scaled, center, scale):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     raw = full_scaled * scale.reshape(1, -1) + center.reshape(1, -1)
     max_log1p_cpm = float(np.log1p(1_000_000.0))
     finite = np.isfinite(raw)
@@ -117,7 +117,7 @@ def scaled_to_log1p_cpm(full_scaled, center, scale):
 
 
 def write_one(output_dir: Path, stem: str, full_scaled, center, scale, genes: list[str], profile: dict) -> dict:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     log1p_cpm, clip_report = scaled_to_log1p_cpm(full_scaled, center, scale)
     cpm = np.expm1(log1p_cpm).astype("float32")
     paths = {
@@ -136,8 +136,8 @@ def write_one(output_dir: Path, stem: str, full_scaled, center, scale, genes: li
 
 
 def run(args) -> Path:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
     model_dir = Path(args.model_dir)
     output_dir = Path(args.output_dir)
@@ -192,7 +192,7 @@ def run(args) -> Path:
         second_log1p, _ = scaled_to_log1p_cpm(second_full, center, scale)
         delta = second_log1p - first_log1p
         delta_path = output_dir / f"{second_condition}_minus_{first_condition}_mean_log1p_cpm_delta.tsv"
-        pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+        pd = require_import("pandas", "pip install -r requirements.txt")
         pd.DataFrame({"gene": genes, "mean_log1p_cpm_delta": delta.mean(axis=0)}).to_csv(delta_path, sep="\t", index=False)
         outputs["delta"] = str(delta_path)
     else:

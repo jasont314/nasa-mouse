@@ -10,9 +10,9 @@ from .io import dense_matrix, load_matrix_bundle, require_import
 
 def export_mtx(bundle_manifest: str | Path, output_mtx: str | Path) -> None:
     """Export a bundle matrix as MatrixMarket for upstream GLARE hpt.py."""
-    scipy_io = require_import("scipy.io", "pip install -r requirements-nasa-mouse-glare.txt")
+    scipy_io = require_import("scipy.io", "pip install -r requirements.txt")
     scipy_sparse = require_import(
-        "scipy.sparse", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.sparse", "pip install -r requirements.txt"
     )
     bundle = load_matrix_bundle(bundle_manifest)
     matrix = bundle.matrix
@@ -37,7 +37,7 @@ def export_csv(
     max_dense_gb: float = 8.0,
 ) -> None:
     """Export a bundle matrix as CSV for upstream GLARE fine-tuning scripts."""
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     bundle = load_matrix_bundle(bundle_manifest)
     matrix = dense_matrix(bundle.matrix, max_dense_gb=max_dense_gb)
     df = pd.DataFrame(matrix, columns=bundle.profiles)

@@ -59,7 +59,7 @@ def cluster_enrichment_for_run(
     min_overlap: int,
 ) -> pd.DataFrame:
     hypergeom = require_import(
-        "scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.stats", "pip install -r requirements.txt"
     ).hypergeom
 
     target = np.load(run_dir / "controlled_target.npz")

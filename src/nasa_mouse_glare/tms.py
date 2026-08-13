@@ -49,12 +49,12 @@ def prepare_tms(
     random_seed: int = 2026,
 ) -> Path:
     """Write a direct-cell TMS matrix bundle for GLARE-style pretraining."""
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     scipy_sparse = require_import(
-        "scipy.sparse", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.sparse", "pip install -r requirements.txt"
     )
-    anndata = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
+    anndata = require_import("anndata", "pip install -r requirements.txt")
 
     adata_backed = anndata.read_h5ad(input_h5ad, backed="r")
     obs = adata_backed.obs.copy()

@@ -43,9 +43,9 @@ CONFIGS = (
         reference_summary=ROOT
         / "outputs/expimap/runs/reference_query/thymus/tutorial_hvg_2000/reference_nb_400epoch_seed2020/training_summary.json",
         query_input=ROOT
-        / "outputs/expimap/runs/reference_query/thymus/tutorial_hvg_2000/input/osdr_thymus_query_tutorial_hvg_raw_counts.h5ad",
+        / "outputs/expimap/runs/reference_query/thymus/tutorial_hvg_2000/query_nb_250epoch_seed2020/mapped_query_with_scores.h5ad",
         literature_labels=ROOT
-        / "presentation/expimap/literature_reviewed_hvg/thymus_hvg_literature_review_labels.tsv",
+        / "paper/asgsr_expimap_hvg/source_data/literature_review/final/thymus.tsv",
         confounded_accessions=("OSD-289",),
     ),
     ModelConfig(
@@ -58,9 +58,9 @@ CONFIGS = (
         reference_summary=ROOT
         / "outputs/expimap/runs/reference_query/skin/tutorial_hvg_2000/reference_nb_400epoch_seed2020/training_summary.json",
         query_input=ROOT
-        / "outputs/expimap/runs/reference_query/skin/tutorial_hvg_2000/input/osdr_skin_query_tutorial_hvg_raw_counts.h5ad",
+        / "outputs/expimap/runs/reference_query/skin/tutorial_hvg_2000/query_nb_250epoch_seed2020/mapped_query_with_scores.h5ad",
         literature_labels=ROOT
-        / "presentation/expimap/literature_reviewed_hvg/skin_hvg_literature_review_labels.tsv",
+        / "paper/asgsr_expimap_hvg/source_data/literature_review/final/skin.tsv",
     ),
     ModelConfig(
         tissue="liver",
@@ -72,11 +72,11 @@ CONFIGS = (
         reference_summary=ROOT
         / "outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/reference_nb_400epoch_seed2020/training_summary.json",
         query_input=ROOT
-        / "outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/input/osdr_liver_query_tutorial_hvg_primary_deduplicated_raw_counts.h5ad",
+        / "outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/query_nb_250epoch_seed2020_primary_deduplicated/mapped_query_with_scores.h5ad",
         literature_labels=ROOT
-        / "presentation/expimap/literature_reviewed_hvg/liver_hvg_literature_review_labels.tsv",
+        / "paper/asgsr_expimap_hvg/source_data/literature_review/final/liver.tsv",
         covariate_input=ROOT
-        / "outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/input/osdr_liver_query_tutorial_hvg_raw_counts.h5ad",
+        / "outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000/query_nb_250epoch_seed2020/query_pathway_scores.tsv",
         primary_excluded_accessions=("OSD-164", "OSD-168"),
         primary_exclusion_reason=(
             "OSD-164 overlaps OSD-47 animals; OSD-168 repackages RR-1/RR-3 "
@@ -95,9 +95,9 @@ CONFIGS = (
         reference_summary=ROOT
         / "outputs/expimap/runs/muscle_groups/combined_min8/tutorial_hvg_edl_2000/reference_nb_400epoch_seed2020/training_summary.json",
         query_input=ROOT
-        / "outputs/expimap/runs/muscle_groups/combined_min8/tutorial_hvg_soleus_2000/input/osdr_skeletal_muscle_soleus_query_tutorial_hvg_raw_counts.h5ad",
+        / "outputs/expimap/runs/muscle_groups/combined_min8/tutorial_hvg_soleus_2000/query_nb_250epoch_seed2020/mapped_query_with_scores.h5ad",
         literature_labels=ROOT
-        / "presentation/expimap/literature_reviewed_hvg/soleus_hvg_literature_review_labels.tsv",
+        / "paper/asgsr_expimap_hvg/source_data/literature_review/final/soleus.tsv",
         confounded_accessions=("OSD-714",),
     ),
 )
@@ -501,7 +501,10 @@ def covariate_audit(config: ModelConfig) -> pd.DataFrame:
     import anndata as ad
 
     source = config.covariate_input or config.query_input
-    obs = ad.read_h5ad(source, backed="r").obs.copy()
+    if source.suffix == ".h5ad":
+        obs = ad.read_h5ad(source, backed="r").obs.copy()
+    else:
+        obs = pd.read_csv(source, sep="\t")
     rows = []
     for accession, frame in obs.groupby("id.accession", observed=True):
         record = {

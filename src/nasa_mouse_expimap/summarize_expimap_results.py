@@ -36,7 +36,7 @@ def read_json(path: Path) -> dict:
 
 
 def read_table(path: Path):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     if not path.exists():
         return pd.DataFrame()
     return pd.read_csv(path, sep="\t", keep_default_na=False)

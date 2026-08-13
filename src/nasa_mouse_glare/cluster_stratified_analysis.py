@@ -88,7 +88,7 @@ def validate_alignment(bundle, gene_clusters, metadata) -> None:
 
 
 def add_tissue_metadata(metadata, official_tissues_path: str | Path):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     metadata = metadata.copy()
     metadata["tissue_inferred"] = metadata["profile"].map(infer_tissue)
@@ -175,8 +175,8 @@ def add_tissue_metadata(metadata, official_tissues_path: str | Path):
 
 
 def compute_cluster_sample_expression(bundle, gene_clusters):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     labels = gene_clusters["gene_cluster"].astype(int).to_numpy()
     clusters = sorted(set(labels.tolist()))
@@ -194,7 +194,7 @@ def compute_cluster_sample_expression(bundle, gene_clusters):
 
 
 def write_sample_expression(clusters, expression, n_genes, metadata, output_dir: Path):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     rows = []
     metadata_cols = [
@@ -230,7 +230,7 @@ def write_group_summary(
     output_dir: Path,
     filename: str,
 ):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     grouped = (
         sample_expression.groupby(["gene_cluster", "n_genes", group_col], dropna=False)[
@@ -251,7 +251,7 @@ def write_group_summary(
 
 
 def write_flight_ground_summary(sample_expression, output_dir: Path):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     focus = sample_expression[
         sample_expression["condition_inferred"].isin(["flight", "ground_control"])
@@ -286,8 +286,8 @@ def write_flight_ground_summary(sample_expression, output_dir: Path):
 
 
 def paired_effects(sample_expression, strata_cols: list[str]):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
 
     focus = sample_expression[
         sample_expression["condition_inferred"].isin(["flight", "ground_control"])
@@ -329,10 +329,10 @@ def paired_effects(sample_expression, strata_cols: list[str]):
 
 
 def signed_rank_summary(effects, group_cols: list[str], min_pairs: int):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     scipy_stats = require_import(
-        "scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.stats", "pip install -r requirements.txt"
     )
 
     rows = []
@@ -394,7 +394,7 @@ def signed_rank_summary(effects, group_cols: list[str], min_pairs: int):
 
 
 def bh_fdr_with_nan(values):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     array = np.asarray(values, dtype=float)
     result = np.full(len(array), np.nan)
     valid = np.isfinite(array)
@@ -404,8 +404,8 @@ def bh_fdr_with_nan(values):
 
 
 def eta_squared(values, groups) -> float:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     frame = pd.DataFrame({"value": values, "group": groups})
     frame = frame[frame["group"].astype(str).ne("")]
@@ -422,7 +422,7 @@ def eta_squared(values, groups) -> float:
 
 
 def write_variance_summary(sample_expression, output_dir: Path):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     rows = []
     group_cols = [
@@ -448,7 +448,7 @@ def write_variance_summary(sample_expression, output_dir: Path):
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

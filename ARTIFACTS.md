@@ -46,7 +46,7 @@ The final local allowlist is recorded in
 - the selected OSDR-conditioned DDIM adapter;
 - the WGAN comparison checkpoints;
 - the expiMap reference and query models used for thymus, skin, liver, and
-  soleus.
+  soleus, including their gene-order metadata.
 
 Checkpoints are ignored by Git and currently have no public download URL. A
 fresh clone can inspect the frozen analyses and rebuild the documents, but it

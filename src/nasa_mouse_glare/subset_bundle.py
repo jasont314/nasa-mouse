@@ -16,7 +16,7 @@ def subset_bundle(
     filter_value: str,
     profile_column: str = "profile",
 ) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     bundle = load_matrix_bundle(bundle_manifest)
     selector = pd.read_csv(metadata_path, sep="\t", keep_default_na=False)

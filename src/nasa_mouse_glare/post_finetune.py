@@ -64,7 +64,7 @@ def load_osdr_metadata(
     profiles: list[str],
 ):
     """Load API metadata for profiles represented in a GLARE bundle."""
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     metadata = read_api_metadata(api_metadata)
     metadata = metadata.drop_duplicates(subset=["profile"], keep="first")
     order = pd.DataFrame({"profile": list(map(str, profiles))})
@@ -72,7 +72,7 @@ def load_osdr_metadata(
 
 
 def merge_profile_metadata(bundle, api_metadata: str | Path | None):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     if bundle.profile_metadata is not None:
         metadata = bundle.profile_metadata.copy()
@@ -163,14 +163,14 @@ def scaled_latent(representation, scale: bool):
     if not scale:
         return representation
     StandardScaler = require_import(
-        "sklearn.preprocessing", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.preprocessing", "pip install -r requirements.txt"
     ).StandardScaler
     return StandardScaler().fit_transform(representation)
 
 
 def cluster_latent(latent, n_clusters: int, seed: int):
     KMeans = require_import(
-        "sklearn.cluster", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.cluster", "pip install -r requirements.txt"
     ).KMeans
     n_clusters = min(n_clusters, latent.shape[0])
     if n_clusters < 2:
@@ -181,7 +181,7 @@ def cluster_latent(latent, n_clusters: int, seed: int):
 
 def compute_pca(latent, n_components: int, seed: int):
     PCA = require_import(
-        "sklearn.decomposition", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.decomposition", "pip install -r requirements.txt"
     ).PCA
     n_components = min(n_components, latent.shape[0], latent.shape[1])
     if n_components < 1:
@@ -192,7 +192,7 @@ def compute_pca(latent, n_components: int, seed: int):
 
 def compute_silhouette(latent, clusters, sample_size: int, seed: int) -> float | None:
     metrics = require_import(
-        "sklearn.metrics", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.metrics", "pip install -r requirements.txt"
     )
     n_clusters = len(set(clusters))
     if n_clusters < 2 or latent.shape[0] <= n_clusters:
@@ -213,8 +213,8 @@ def write_entity_tables(
     profile_metadata,
     output_dir: Path,
 ):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     if entity_axis == "genes":
         ids = bundle.genes
@@ -280,7 +280,7 @@ def write_profile_cluster_crosstabs(
     output_dir: Path,
     max_groups: int,
 ):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     paths = {}
     metadata_cols = [
         col
@@ -306,10 +306,10 @@ def write_gene_expression_summaries(
     group_cols: list[str],
     max_groups: int,
 ):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     scipy_sparse = require_import(
-        "scipy.sparse", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.sparse", "pip install -r requirements.txt"
     )
 
     matrix = bundle.matrix
@@ -421,9 +421,9 @@ def maybe_write_tsne(
     perplexity: float,
     seed: int,
 ):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     TSNE = require_import(
-        "sklearn.manifold", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.manifold", "pip install -r requirements.txt"
     ).TSNE
 
     if latent.shape[0] <= 3:
@@ -456,7 +456,7 @@ def path_strings(paths: dict[str, Path]) -> dict[str, str]:
 
 
 def run(args) -> Path:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

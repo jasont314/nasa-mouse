@@ -18,8 +18,8 @@ DEFAULT_OUTPUT_DIR = "outputs/expimap/runs/muscle_groups/combined/group_inputs"
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    ad = require_import("anndata", "pip install -r requirements.txt")
 
     adata = ad.read_h5ad(args.input)
     material_col = "study.characteristics.material type"

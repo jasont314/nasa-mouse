@@ -57,7 +57,7 @@ def stable_count(meta, loo):
 
 
 def summarize_score_set(run_dir: Path, score_set: str, analysis_dir: Path, training: dict):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     comparison_path = analysis_dir / "flt_vs_gc_wgan_feature_comparison.tsv"
     meta_path = analysis_dir / "random_effects_meta_analysis.tsv"
     loo_path = analysis_dir / "leave_one_out_summary.tsv"
@@ -194,7 +194,7 @@ def write_readme(output_dir: Path, summary, top_terms) -> None:
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     rows = []

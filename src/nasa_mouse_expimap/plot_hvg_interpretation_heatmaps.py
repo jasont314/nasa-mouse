@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-import shutil
 
 import numpy as np
 import pandas as pd
@@ -719,14 +718,6 @@ def plot_heatmap(config: ModelConfig) -> Path:
     fig.savefig(output, dpi=180)
     plt.close(fig)
 
-    presentation_dir = ROOT / "presentation/expimap/annotated_hvg"
-    presentation_dir.mkdir(parents=True, exist_ok=True)
-    presentation_output = presentation_dir / f"{config.name}_interpretation_heatmap.png"
-    shutil.copy2(output, presentation_output)
-    shutil.copy2(
-        analysis_dir / "pathway_interpretation_labels.tsv",
-        presentation_dir / f"{config.name}_pathway_interpretation_labels.tsv",
-    )
     return output
 
 

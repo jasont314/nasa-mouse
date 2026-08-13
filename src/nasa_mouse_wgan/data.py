@@ -41,8 +41,8 @@ class PreparedData:
 
 
 def counts_matrix(adata):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_sparse = require_import("scipy.sparse", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    scipy_sparse = require_import("scipy.sparse", "pip install -r requirements.txt")
     x = adata.X
     if scipy_sparse.issparse(x):
         x = x.toarray()
@@ -50,7 +50,7 @@ def counts_matrix(adata):
 
 
 def log1p_cpm(counts):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     counts = np.asarray(counts, dtype=np.float32)
     library = counts.sum(axis=1, keepdims=True)
     library = np.maximum(library, 1.0)
@@ -58,7 +58,7 @@ def log1p_cpm(counts):
 
 
 def standardize(*arrays, clip: float = 10.0):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     reference = np.asarray(arrays[0], dtype=np.float32)
     mean = reference.mean(axis=0, dtype=np.float64).astype(np.float32)
     std = reference.std(axis=0, dtype=np.float64).astype(np.float32)
@@ -122,7 +122,7 @@ def _common_genes(adatas) -> list[str]:
 
 
 def load_h5ads(value, *, source: str):
-    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
+    ad = require_import("anndata", "pip install -r requirements.txt")
     paths = split_h5ad_paths(value)
     if not paths:
         return None
@@ -178,7 +178,7 @@ def _first_existing_column(frame, columns: tuple[str, ...]) -> str | None:
 
 
 def _series_from_columns(frame, columns: tuple[str, ...], default: str):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     column = _first_existing_column(frame, columns)
     if column is None:
         return pd.Series(default, index=frame.index, dtype="object")
@@ -225,7 +225,7 @@ def simplify_platform(value: str) -> str:
 
 
 def harmonize_obs(obs, *, source: str):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     frame = obs.copy()
     if "profile_id" not in frame:
         frame["profile_id"] = frame.index.astype(str)
@@ -308,7 +308,7 @@ def build_vocabularies(frames, covariates: tuple[str, ...]) -> dict[str, list[st
 
 
 def encode_categories(frame, vocabularies: dict[str, list[str]], covariates: tuple[str, ...]):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     columns = []
     for covariate in covariates:
         mapping = {value: idx for idx, value in enumerate(vocabularies[covariate])}

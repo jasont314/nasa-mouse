@@ -15,6 +15,27 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class HandoffIntegrityTests(unittest.TestCase):
+    def test_single_requirements_entrypoint(self):
+        environment = yaml.safe_load(
+            (ROOT / "environment.yml").read_text(encoding="utf-8")
+        )
+        pip_dependencies = next(
+            item["pip"]
+            for item in environment["dependencies"]
+            if isinstance(item, dict) and "pip" in item
+        )
+
+        self.assertEqual(pip_dependencies, ["-r requirements.txt"])
+        self.assertTrue((ROOT / "requirements.txt").is_file())
+        self.assertFalse((ROOT / "requirements-nasa-mouse-glare.txt").exists())
+        self.assertFalse((ROOT / "requirements-nasa-mouse-generative.txt").exists())
+
+    def test_archs4_candidate_dumps_are_not_versioned_data(self):
+        candidate_dumps = list(
+            (ROOT / "data/archs4").glob("archs4_mouse_*_candidate_samples.tsv")
+        )
+        self.assertEqual(candidate_dumps, [])
+
     def test_project_license_metadata_agrees(self):
         license_text = (ROOT / "LICENSE").read_text(encoding="utf-8")
         self.assertTrue(license_text.startswith("MIT License\n"))

@@ -1,6 +1,6 @@
 # Mentor handoff
 
-Last reviewed: 2026-08-12
+Last reviewed: 2026-08-13
 
 This is the completed handoff for Jason Trinh's 2026 NASA Space Life Sciences
 Training Program internship. The repository preserves the final reports and
@@ -83,15 +83,16 @@ The exact files and checksums are listed in [ARTIFACTS.md](ARTIFACTS.md).
 
 - `main` contains the final report, presentation, manuscripts, source tables,
   code, configs, and selected compact outputs.
-- `internship-final-2026-08-12-r4` marks the completed handoff state. It
-  supersedes the earlier same-day tags after licensing, documentation cleanup,
-  and final verification.
+- `internship-final-2026-08-13` marks the completed handoff state. It
+  supersedes the earlier handoff tags after licensing, repository cleanup, and
+  final verification.
 - Superseded development handoffs and intermediate analyses remain available in
   Git history; they are not current operating instructions.
-- The checked-out tree is about 150 MB, but the full Git object pack is about
-  884 MB because older commits contain deleted datasets and intermediate
-  outputs. Use a shallow clone for review-only access. History was not rewritten
-  because doing so would replace every shared commit identifier.
+- A clean checkout contains about 108 MiB of tracked files, but the full Git
+  object pack is about 884 MB because older commits contain deleted datasets
+  and intermediate outputs. Use a shallow clone for review-only access. History
+  was not rewritten because doing so would replace every shared commit
+  identifier.
 - Project-authored content is released under the MIT License. Vendored code,
   reference files, and public datasets retain their upstream terms as recorded
   in `THIRD_PARTY_NOTICES.md`.

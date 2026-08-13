@@ -15,7 +15,7 @@ def safe_name(value: str, max_len: int = 120) -> str:
 
 
 def read_tables(base_dir: Path):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     scores = pd.read_csv(base_dir / "query_pathway_scores.tsv", sep="\t")
     validation = base_dir / "accession_validation"
     meta = pd.read_csv(validation / "random_effects_meta_analysis.tsv", sep="\t")
@@ -26,7 +26,7 @@ def read_tables(base_dir: Path):
 
 
 def select_terms(meta, loo_summary, top_n: int):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     merged = meta.merge(loo_summary, on="term", how="left")
     merged["all_accessions_same_direction"] = (
@@ -58,8 +58,8 @@ def select_terms(meta, loo_summary, top_n: int):
 
 
 def plot_scores(scores, term: str, output_path: Path):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    plt = require_import("matplotlib.pyplot", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    plt = require_import("matplotlib.pyplot", "pip install -r requirements.txt")
 
     accessions = sorted(scores["id.accession"].astype(str).unique())
     colors = {"flight": "#c43c39", "ground_control": "#2878b5"}
@@ -105,8 +105,8 @@ def plot_scores(scores, term: str, output_path: Path):
 
 
 def plot_forest(effects, meta_row, term: str, output_path: Path):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    plt = require_import("matplotlib.pyplot", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    plt = require_import("matplotlib.pyplot", "pip install -r requirements.txt")
 
     frame = effects.loc[effects["term"].eq(term)].copy()
     frame = frame.sort_values("flight_minus_ground", kind="stable")
@@ -144,8 +144,8 @@ def plot_forest(effects, meta_row, term: str, output_path: Path):
 
 
 def plot_loo(loo, meta_row, term: str, output_path: Path):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    plt = require_import("matplotlib.pyplot", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    plt = require_import("matplotlib.pyplot", "pip install -r requirements.txt")
 
     frame = loo.loc[loo["term"].eq(term)].copy()
     frame = frame.sort_values("held_out_accession", kind="stable")
@@ -196,7 +196,7 @@ def write_readme(tissue: str, selected, output_dir: Path, base_dir: Path) -> Pat
 
 
 def run(args) -> None:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     output_root = Path(args.output_dir)
     output_root.mkdir(parents=True, exist_ok=True)
     all_rows = []

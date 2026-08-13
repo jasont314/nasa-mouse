@@ -23,7 +23,7 @@ def slugify(value: str) -> str:
 
 
 def profile_sets(model_dir: Path, tissues: tuple[str, ...], muscle_groups: tuple[str, ...]) -> list[dict]:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     profiles_path = model_dir / "observed_conditioning_profiles.tsv"
     if not profiles_path.exists():
         return []
@@ -78,7 +78,7 @@ def write_readme(output_dir: Path, manifest_path: Path, rows: list[dict]) -> Non
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     output_root = Path(args.output_root)
     output_root.mkdir(parents=True, exist_ok=True)
     rows = []

@@ -41,9 +41,9 @@ def parse_hidden(value: str) -> tuple[int, int]:
 
 
 def train_epochs(model, x, categories, *, betas, epochs: int, batch_size: int, lr: float, device, amp: bool, seed: int):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
-    data_utils = require_import("torch.utils.data", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
+    data_utils = require_import("torch.utils.data", "pip install -r requirements.txt")
     dataset = data_utils.TensorDataset(
         torch.as_tensor(x, dtype=torch.float32),
         torch.as_tensor(categories, dtype=torch.long),
@@ -75,8 +75,8 @@ def train_epochs(model, x, categories, *, betas, epochs: int, batch_size: int, l
 
 
 def encode_features(model, matrix, categories, *, batch_size: int, device):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     outputs = []
     model.eval()
     with torch.no_grad():
@@ -90,7 +90,7 @@ def encode_features(model, matrix, categories, *, batch_size: int, device):
 
 
 def write_scores(path: Path, obs, features):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     frame = obs.copy().reset_index(drop=True)
     feature_frame = pd.DataFrame(
         features,
@@ -103,8 +103,8 @@ def write_scores(path: Path, obs, features):
 
 
 def generate_full(model, categories, reconstructor, *, betas, sample_steps: int, eta: float, batch_size: int, device, seed: int):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     generated = []
     gen = torch.Generator(device=device)
     gen.manual_seed(int(seed))
@@ -118,7 +118,7 @@ def generate_full(model, categories, reconstructor, *, betas, sample_steps: int,
 
 
 def save_model(path: Path, model, prepared, args, *, model_config: dict, betas, reconstructor) -> None:
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     payload = {
         "model_state_dict": model.state_dict(),
         "model_config": model_config,
@@ -142,7 +142,7 @@ def save_model(path: Path, model, prepared, args, *, model_config: dict, betas, 
 
 
 def write_matrix(path: Path, values, genes: list[str]) -> None:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     frame = pd.DataFrame(values, columns=genes)
     frame.insert(0, "synthetic_sample_id", [f"synthetic_{idx:05d}" for idx in range(values.shape[0])])
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -167,9 +167,9 @@ def write_training_readme(output_dir: Path, summary: dict) -> None:
 
 
 def run(args) -> Path:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     torch.manual_seed(int(args.seed))

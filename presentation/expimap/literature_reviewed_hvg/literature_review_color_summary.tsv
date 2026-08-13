@@ -1,5 +1,0 @@
-model	total_rows	green_prior_aligned	blue_plausible_complementary	orange_uncertain_no_direct_support	red_conflict_or_artifact	gray_low_effect
-liver_hvg	364	40	46	78	22	178
-skin_hvg	319	45	102	45	20	107
-thymus_hvg	387	22	86	38	24	217
-soleus_hvg	357	11	44	49	17	236

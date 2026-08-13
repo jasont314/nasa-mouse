@@ -12,6 +12,7 @@ from nasa_mouse_glare.io import require_import
 
 DEFAULT_ARCHS4 = "assets/archs4/mouse_gene_v2.5.h5"
 DEFAULT_OUTPUT_DIR = "data/archs4"
+DEFAULT_CANDIDATE_OUTPUT_DIR = "outputs/expimap/summary/archs4_candidates"
 LEAKAGE_TERMS = [
     "NASA",
     "GeneLab",
@@ -62,8 +63,8 @@ def has_leakage(row_text: str) -> bool:
 
 
 def load_sample_metadata(path: str | Path):
-    h5py = require_import("h5py", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    h5py = require_import("h5py", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     columns = [
         "geo_accession",
@@ -121,8 +122,14 @@ def classify(metadata):
     return metadata
 
 
-def write_outputs(metadata, output_dir: Path, max_rows: int) -> dict:
+def write_outputs(
+    metadata,
+    output_dir: Path,
+    candidate_output_dir: Path,
+    max_rows: int,
+) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
+    candidate_output_dir.mkdir(parents=True, exist_ok=True)
     summary_rows = []
     for tissue in TISSUE_KEYWORDS:
         matched = metadata[metadata[f"matches_{tissue}"]]
@@ -140,13 +147,15 @@ def write_outputs(metadata, output_dir: Path, max_rows: int) -> dict:
                 else 0,
             }
         )
-        sample_path = output_dir / f"archs4_mouse_{tissue}_candidate_samples.tsv"
+        sample_path = (
+            candidate_output_dir / f"archs4_mouse_{tissue}_candidate_samples.tsv"
+        )
         usable.head(max_rows).drop(columns=["filter_text"]).to_csv(
             sample_path,
             sep="\t",
             index=False,
         )
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     summary = pd.DataFrame(summary_rows).sort_values(
         "usable_nonleakage_bulk_like_samples",
         ascending=False,
@@ -156,7 +165,10 @@ def write_outputs(metadata, output_dir: Path, max_rows: int) -> dict:
     manifest = {
         "leakage_terms": LEAKAGE_TERMS,
         "tissue_keywords": TISSUE_KEYWORDS,
-        "outputs": {"summary": str(summary_path)},
+        "outputs": {
+            "summary": str(summary_path),
+            "candidate_directory": str(candidate_output_dir),
+        },
     }
     manifest_path = output_dir / "archs4_mouse_inspection_manifest.json"
     manifest["outputs"]["manifest"] = str(manifest_path)
@@ -166,7 +178,12 @@ def write_outputs(metadata, output_dir: Path, max_rows: int) -> dict:
 
 def run(args) -> Path:
     metadata = classify(load_sample_metadata(args.input))
-    manifest = write_outputs(metadata, Path(args.output_dir), args.max_rows)
+    manifest = write_outputs(
+        metadata,
+        Path(args.output_dir),
+        Path(args.candidate_output_dir),
+        args.max_rows,
+    )
     print(json.dumps(manifest, indent=2))
     return Path(manifest["outputs"]["manifest"])
 
@@ -177,6 +194,10 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--input", default=DEFAULT_ARCHS4)
     parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--candidate-output-dir",
+        default=DEFAULT_CANDIDATE_OUTPUT_DIR,
+    )
     parser.add_argument("--max-rows", type=int, default=5000)
     return parser.parse_args()
 

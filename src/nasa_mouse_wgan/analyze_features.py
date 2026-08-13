@@ -22,9 +22,9 @@ def feature_columns(frame) -> list[str]:
 
 
 def compare_features(scores, features):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_stats = require_import("scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    scipy_stats = require_import("scipy.stats", "pip install -r requirements.txt")
     flight = scores.loc[scores["condition_inferred"].eq("flight")]
     ground = scores.loc[scores["condition_inferred"].eq("ground_control")]
     rows = []
@@ -58,8 +58,8 @@ def compare_features(scores, features):
 
 
 def accession_effects(scores, features):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     rows = []
     for accession, frame in scores.groupby("id.accession", dropna=False):
         flight = frame.loc[frame["condition_inferred"].eq("flight")]
@@ -84,9 +84,9 @@ def accession_effects(scores, features):
 
 
 def meta_analysis(effects):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_stats = require_import("scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    scipy_stats = require_import("scipy.stats", "pip install -r requirements.txt")
     rows = []
     for feature, frame in effects.groupby("feature", sort=False):
         result = random_effects(
@@ -113,9 +113,9 @@ def meta_analysis(effects):
 
 
 def leave_one_accession_out(effects):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_stats = require_import("scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    scipy_stats = require_import("scipy.stats", "pip install -r requirements.txt")
     rows = []
     accessions = sorted(effects["id.accession"].astype(str).unique())
     for held_out in accessions:
@@ -151,11 +151,11 @@ def leave_one_accession_out(effects):
 
 
 def plot_pca(scores, features, output_dir: Path):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    plt = require_import("matplotlib.pyplot", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    plt = require_import("matplotlib.pyplot", "pip install -r requirements.txt")
     sklearn_decomposition = require_import(
-        "sklearn.decomposition", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.decomposition", "pip install -r requirements.txt"
     )
     x = scores[features].astype(float).to_numpy()
     x = np.nan_to_num(x)
@@ -195,9 +195,9 @@ def plot_pca(scores, features, output_dir: Path):
 
 
 def plot_umap(scores, features, output_dir: Path):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    plt = require_import("matplotlib.pyplot", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    plt = require_import("matplotlib.pyplot", "pip install -r requirements.txt")
     try:
         umap_module = require_import("umap", "pip install umap-learn")
     except Exception:
@@ -238,8 +238,8 @@ def plot_umap(scores, features, output_dir: Path):
 
 
 def plot_heatmap(scores, comparison, features, output_dir: Path, *, top_n: int):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    plt = require_import("matplotlib.pyplot", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    plt = require_import("matplotlib.pyplot", "pip install -r requirements.txt")
     selected = comparison.sort_values(["welch_fdr", "welch_p"], kind="stable")["feature"].head(top_n)
     selected = [feature for feature in selected if feature in features]
     if not selected:
@@ -290,7 +290,7 @@ def write_readme(output_dir: Path, summary: dict, meta, loo_summary) -> None:
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     scores = pd.read_csv(args.scores, sep="\t")

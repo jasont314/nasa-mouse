@@ -13,11 +13,11 @@ def embedding_dim(cardinality: int) -> int:
     return int(math.sqrt(max(0, int(cardinality)))) + 1
 
 
-class CovariateEmbeddings(require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt").Module):
+class CovariateEmbeddings(require_import("torch.nn", "pip install -r requirements.txt").Module):
     """Embedding block for categorical covariates."""
 
     def __init__(self, cardinalities: list[int]):
-        nn = require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt")
+        nn = require_import("torch.nn", "pip install -r requirements.txt")
         super().__init__()
         self.cardinalities = [int(cardinality) for cardinality in cardinalities]
         self.embedding_dims = [embedding_dim(cardinality) for cardinality in cardinalities]
@@ -33,7 +33,7 @@ class CovariateEmbeddings(require_import("torch.nn", "pip install -r requirement
         return int(sum(self.embedding_dims))
 
     def forward(self, categories):
-        torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+        torch = require_import("torch", "pip install -r requirements.txt")
         if categories.ndim == 1:
             categories = categories[:, None]
         pieces = []
@@ -44,7 +44,7 @@ class CovariateEmbeddings(require_import("torch.nn", "pip install -r requirement
         return torch.cat(pieces, dim=1)
 
 
-class Generator(require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt").Module):
+class Generator(require_import("torch.nn", "pip install -r requirements.txt").Module):
     """Conditional MLP generator."""
 
     def __init__(
@@ -56,7 +56,7 @@ class Generator(require_import("torch.nn", "pip install -r requirements-nasa-mou
         numeric_dim: int = 0,
         hidden_dims: tuple[int, ...] = (256, 256),
     ):
-        nn = require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt")
+        nn = require_import("torch.nn", "pip install -r requirements.txt")
         super().__init__()
         self.noise_dim = int(noise_dim)
         self.output_dim = int(output_dim)
@@ -71,7 +71,7 @@ class Generator(require_import("torch.nn", "pip install -r requirements-nasa-mou
         self.network = nn.Sequential(*layers)
 
     def forward(self, noise, categories, numeric=None):
-        torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+        torch = require_import("torch", "pip install -r requirements.txt")
         pieces = [noise]
         if self.numeric_dim:
             if numeric is None:
@@ -86,7 +86,7 @@ class Generator(require_import("torch.nn", "pip install -r requirements-nasa-mou
         return self.network(x)
 
 
-class Critic(require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt").Module):
+class Critic(require_import("torch.nn", "pip install -r requirements.txt").Module):
     """Conditional MLP critic returning scalar scores and hidden features."""
 
     def __init__(
@@ -97,7 +97,7 @@ class Critic(require_import("torch.nn", "pip install -r requirements-nasa-mouse-
         numeric_dim: int = 0,
         hidden_dims: tuple[int, ...] = (256, 256),
     ):
-        nn = require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt")
+        nn = require_import("torch.nn", "pip install -r requirements.txt")
         super().__init__()
         self.input_dim = int(input_dim)
         self.numeric_dim = int(numeric_dim)
@@ -114,7 +114,7 @@ class Critic(require_import("torch.nn", "pip install -r requirements-nasa-mouse-
     def forward(
         self, expression, categories, numeric=None, *, return_features: bool = False
     ):
-        torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+        torch = require_import("torch", "pip install -r requirements.txt")
         pieces = [expression]
         if self.numeric_dim:
             if numeric is None:
@@ -133,7 +133,7 @@ class Critic(require_import("torch.nn", "pip install -r requirements-nasa-mouse-
         return score
 
 
-class ConditionalWGANGP(require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt").Module):
+class ConditionalWGANGP(require_import("torch.nn", "pip install -r requirements.txt").Module):
     """Container for generator and critic."""
 
     def __init__(
@@ -145,7 +145,7 @@ class ConditionalWGANGP(require_import("torch.nn", "pip install -r requirements-
         numeric_dim: int = 0,
         hidden_dims: tuple[int, ...] = (256, 256),
     ):
-        nn = require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt")
+        nn = require_import("torch.nn", "pip install -r requirements.txt")
         super().__init__()
         self.expression_dim = int(expression_dim)
         self.noise_dim = int(noise_dim)
@@ -165,5 +165,5 @@ class ConditionalWGANGP(require_import("torch.nn", "pip install -r requirements-
         )
 
     def sample_noise(self, n: int, device):
-        torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+        torch = require_import("torch", "pip install -r requirements.txt")
         return torch.randn((int(n), self.noise_dim), device=device)

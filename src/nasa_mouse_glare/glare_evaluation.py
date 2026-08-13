@@ -19,7 +19,7 @@ DEFAULT_OUTPUT_DIR = "outputs/glare/hpt_tms_facs_osdr/post_finetune/evaluation"
 
 
 def stable_sample_indices(n_rows: int, max_rows: int, seed: int):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
 
     if max_rows <= 0 or n_rows <= max_rows:
         return np.arange(n_rows)
@@ -28,18 +28,18 @@ def stable_sample_indices(n_rows: int, max_rows: int, seed: int):
 
 
 def scaled_array(values, scale: bool = True):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     if not scale:
         return np.asarray(values, dtype="float32")
     StandardScaler = require_import(
-        "sklearn.preprocessing", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.preprocessing", "pip install -r requirements.txt"
     ).StandardScaler
     return StandardScaler().fit_transform(values).astype("float32", copy=False)
 
 
 def compute_pca(values, n_components: int, seed: int):
     PCA = require_import(
-        "sklearn.decomposition", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.decomposition", "pip install -r requirements.txt"
     ).PCA
     n_components = min(n_components, values.shape[0], values.shape[1])
     model = PCA(n_components=n_components, svd_solver="randomized", random_state=seed)
@@ -48,7 +48,7 @@ def compute_pca(values, n_components: int, seed: int):
 
 def kmeans_labels(values, n_clusters: int, seed: int):
     KMeans = require_import(
-        "sklearn.cluster", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.cluster", "pip install -r requirements.txt"
     ).KMeans
     n_clusters = min(n_clusters, values.shape[0])
     if n_clusters < 2:
@@ -59,7 +59,7 @@ def kmeans_labels(values, n_clusters: int, seed: int):
 
 def silhouette(values, labels, sample_size: int, seed: int) -> float | None:
     silhouette_score = require_import(
-        "sklearn.metrics", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.metrics", "pip install -r requirements.txt"
     ).silhouette_score
     if len(set(labels.tolist())) < 2 or values.shape[0] <= len(set(labels.tolist())):
         return None
@@ -70,15 +70,15 @@ def silhouette(values, labels, sample_size: int, seed: int) -> float | None:
 
 
 def knn_cluster_accuracy(values, labels, folds: int, neighbors: int, seed: int):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     KFold = require_import(
-        "sklearn.model_selection", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.model_selection", "pip install -r requirements.txt"
     ).KFold
     KNeighborsClassifier = require_import(
-        "sklearn.neighbors", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.neighbors", "pip install -r requirements.txt"
     ).KNeighborsClassifier
     accuracy_score = require_import(
-        "sklearn.metrics", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.metrics", "pip install -r requirements.txt"
     ).accuracy_score
 
     folds = min(folds, values.shape[0])
@@ -105,7 +105,7 @@ def knn_cluster_accuracy(values, labels, folds: int, neighbors: int, seed: int):
 
 def trustworthiness_value(source_values, representation, neighbors: int) -> float | None:
     trustworthiness = require_import(
-        "sklearn.manifold", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.manifold", "pip install -r requirements.txt"
     ).trustworthiness
     if source_values.shape[0] <= 2:
         return None
@@ -114,8 +114,8 @@ def trustworthiness_value(source_values, representation, neighbors: int) -> floa
 
 
 def evaluate_representations(args, output_dir: Path) -> dict[str, str]:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     bundle = load_matrix_bundle(args.target_manifest)
     raw = dense_matrix(bundle.matrix, max_dense_gb=args.max_dense_gb)
@@ -209,13 +209,13 @@ def evaluate_representations(args, output_dir: Path) -> dict[str, str]:
 
 def make_verification_model(seed: int):
     make_pipeline = require_import(
-        "sklearn.pipeline", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.pipeline", "pip install -r requirements.txt"
     ).make_pipeline
     StandardScaler = require_import(
-        "sklearn.preprocessing", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.preprocessing", "pip install -r requirements.txt"
     ).StandardScaler
     SGDClassifier = require_import(
-        "sklearn.linear_model", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.linear_model", "pip install -r requirements.txt"
     ).SGDClassifier
     return make_pipeline(
         StandardScaler(),
@@ -242,9 +242,9 @@ def classifier_scores(model, values):
 
 
 def cv_metrics(values, labels, splitter, splitter_name: str, groups=None):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     metrics = require_import(
-        "sklearn.metrics", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.metrics", "pip install -r requirements.txt"
     )
 
     rows = []
@@ -285,10 +285,10 @@ def cv_metrics(values, labels, splitter, splitter_name: str, groups=None):
 
 
 def write_verification(args, output_dir: Path) -> dict[str, str | None]:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     model_selection = require_import(
-        "sklearn.model_selection", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.model_selection", "pip install -r requirements.txt"
     )
 
     metadata_path = Path(args.post_dir) / "profile_metadata.tsv"

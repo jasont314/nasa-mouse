@@ -37,7 +37,7 @@ def download_metadata(
     timeout: int,
     refresh: bool,
 ) -> None:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     profiles = pd.read_csv(profile_metadata, sep="\t", keep_default_na=False)
     accessions = sorted(
@@ -326,7 +326,7 @@ def counter_text(values) -> str:
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     metadata_dir = Path(args.metadata_dir)
     if args.download:

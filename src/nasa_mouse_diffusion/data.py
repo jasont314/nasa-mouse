@@ -56,7 +56,7 @@ def joined_paths(value) -> list[Path]:
 
 
 def maxabs_scale(reference, *arrays):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     reference = np.asarray(reference, dtype=np.float32)
     center = np.zeros(reference.shape[1], dtype=np.float32)
     scale = np.max(np.abs(reference), axis=0).astype(np.float32)
@@ -69,7 +69,7 @@ def maxabs_scale(reference, *arrays):
 
 
 def load_l1000_mouse_genes(path: str | Path | None, available: set[str]) -> list[str]:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     if not path:
         return []
     path = Path(path)
@@ -99,7 +99,7 @@ def select_landmarks(
     l1000_map: str | Path | None = None,
     min_l1000: int = 300,
 ):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     available = set(genes)
     source = strategy
     selected: list[str] = []
@@ -137,7 +137,7 @@ def prepare_diffusion_data(
     landmark_strategy: str = "l1000_or_hvg",
     l1000_map: str | Path | None = "data/diffusion/l1000_human_to_mouse_ensembl.tsv",
 ):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     query = load_h5ads(query_h5ad, source=query_source)
     reference = load_h5ads(reference_h5ad, source=reference_source) if reference_h5ad else None
     if query is None:
@@ -220,7 +220,7 @@ def reference_projection_obs(prepared: PreparedDiffusionData):
     uses per-tissue ARCHS4 defaults for all other categorical covariates.
     """
 
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     if prepared.reference_obs is None:
         return prepared.query_obs.copy()
     ref = prepared.reference_obs
@@ -257,7 +257,7 @@ def reference_projection_categories(prepared: PreparedDiffusionData):
 
 
 def write_observed_profiles(path: Path, prepared: PreparedDiffusionData) -> None:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     frames = []
     query = prepared.query_obs[list(prepared.categorical_covariates)].drop_duplicates().copy()
     query.insert(0, "training_source", "query")

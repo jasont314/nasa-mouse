@@ -71,9 +71,9 @@ def write_matrix_bundle(
     description: str = "",
 ) -> Path:
     """Write a gene x profile matrix bundle and return its manifest path."""
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     scipy_sparse = require_import(
-        "scipy.sparse", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.sparse", "pip install -r requirements.txt"
     )
 
     prefix = normalize_prefix(output_prefix)
@@ -117,11 +117,11 @@ def write_matrix_bundle(
 
 def load_matrix_bundle(manifest_path: str | Path) -> MatrixBundle:
     """Load a matrix bundle from its manifest."""
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     scipy_sparse = require_import(
-        "scipy.sparse", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.sparse", "pip install -r requirements.txt"
     )
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     manifest_path = Path(manifest_path)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -144,9 +144,9 @@ def load_matrix_bundle(manifest_path: str | Path) -> MatrixBundle:
 
 def dense_matrix(matrix, max_dense_gb: float = 8.0):
     """Return a dense float32 matrix with a guardrail around accidental blowups."""
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     scipy_sparse = require_import(
-        "scipy.sparse", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.sparse", "pip install -r requirements.txt"
     )
 
     n_bytes = matrix.shape[0] * matrix.shape[1] * 4

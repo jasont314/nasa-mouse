@@ -18,7 +18,7 @@ def decode(values) -> list[str]:
 
 
 def load_gene_symbols(path: str | Path) -> dict[str, str]:
-    h5py = require_import("h5py", "pip install -r requirements-nasa-mouse-glare.txt")
+    h5py = require_import("h5py", "pip install -r requirements.txt")
     with h5py.File(path, "r") as handle:
         ensembl = decode(handle["/meta/genes/ensembl_gene"][:])
         symbols = decode(handle["/meta/genes/symbol"][:])
@@ -30,9 +30,9 @@ def load_gene_symbols(path: str | Path) -> dict[str, str]:
 
 
 def program_enrichment(adata, program_genes: list[str], top_n: int):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    hypergeom = require_import("scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt").hypergeom
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    hypergeom = require_import("scipy.stats", "pip install -r requirements.txt").hypergeom
 
     mask = np.asarray(adata.varm["I"], dtype=bool)
     term_labels = [str(term) for term in adata.uns["terms"][: mask.shape[1]]]
@@ -72,9 +72,9 @@ def program_enrichment(adata, program_genes: list[str], top_n: int):
 
 
 def run(args) -> Path:
-    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    ad = require_import("anndata", "pip install -r requirements.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

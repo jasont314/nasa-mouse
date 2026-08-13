@@ -1,5 +1,0 @@
-model	blue_pathways	with_any_hvg_gene_fdr05	with_2plus_hvg_gene_fdr05	with_any_nominal_gene_p05	median_fraction_any_fdr05	median_fraction_nominal_p05	total_unique_sig_genes_in_blue_pathways
-liver_hvg	46	35	26	46	0.043478260869565216	0.30625	61
-skin_hvg	102	84	68	102	0.06879648411088574	0.3	151
-thymus_hvg	86	85	81	86	0.21500234411626817	0.4095860566448801	340
-soleus_hvg	44	44	36	44	0.039607843137254906	0.17956349206349206	92

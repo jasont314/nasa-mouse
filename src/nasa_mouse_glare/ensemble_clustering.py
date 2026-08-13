@@ -22,7 +22,7 @@ def scale_latent(latent, no_scale: bool):
     if no_scale:
         return latent
     StandardScaler = require_import(
-        "sklearn.preprocessing", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.preprocessing", "pip install -r requirements.txt"
     ).StandardScaler
     return StandardScaler().fit_transform(latent)
 
@@ -37,7 +37,7 @@ def run_gmm(
     fallback_covariance_type: str,
 ):
     GaussianMixture = require_import(
-        "sklearn.mixture", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.mixture", "pip install -r requirements.txt"
     ).GaussianMixture
     model = GaussianMixture(
         n_components=n_clusters,
@@ -85,7 +85,7 @@ def run_hdbscan(latent, min_cluster_size: int, min_samples: int, n_jobs: int):
 
 def run_spectral(latent, n_clusters: int, n_neighbors: int, seed: int, n_jobs: int):
     SpectralClustering = require_import(
-        "sklearn.cluster", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.cluster", "pip install -r requirements.txt"
     ).SpectralClustering
     model = SpectralClustering(
         n_clusters=n_clusters,
@@ -99,8 +99,8 @@ def run_spectral(latent, n_clusters: int, n_neighbors: int, seed: int, n_jobs: i
 
 
 def one_hot_membership(label_arrays: dict[str, object]):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    sparse = require_import("scipy.sparse", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    sparse = require_import("scipy.sparse", "pip install -r requirements.txt")
 
     names = list(label_arrays)
     n_rows = len(next(iter(label_arrays.values())))
@@ -139,7 +139,7 @@ def one_hot_membership(label_arrays: dict[str, object]):
 
 def consensus_from_base_labels(label_arrays: dict[str, object], n_clusters: int, seed: int):
     MiniBatchKMeans = require_import(
-        "sklearn.cluster", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.cluster", "pip install -r requirements.txt"
     ).MiniBatchKMeans
     membership, feature_names = one_hot_membership(label_arrays)
     model = MiniBatchKMeans(
@@ -154,7 +154,7 @@ def consensus_from_base_labels(label_arrays: dict[str, object], n_clusters: int,
 
 def silhouette(latent, labels, sample_size: int, seed: int):
     silhouette_score = require_import(
-        "sklearn.metrics", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.metrics", "pip install -r requirements.txt"
     ).silhouette_score
     unique = sorted(set(labels.tolist()))
     if len(unique) < 2:
@@ -184,8 +184,8 @@ def write_outputs(
     args,
     output_dir: Path,
 ):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -331,10 +331,10 @@ def write_pca_plot(pca_df, consensus_labels, path: Path):
 
 
 def run(args) -> Path:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     adjusted_mutual_info_score = require_import(
-        "sklearn.metrics", "pip install -r requirements-nasa-mouse-glare.txt"
+        "sklearn.metrics", "pip install -r requirements.txt"
     ).adjusted_mutual_info_score
 
     latent = np.load(args.representation)

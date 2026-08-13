@@ -26,6 +26,10 @@ manifest records the ten human landmarks without a direct mouse dimension and th
 ten additional paralogs used to preserve the published input width. Large prepared
 TPM matrices remain under `outputs/generative/benchmark/data/lacan_diffusion/`.
 
+`data/archs4/` keeps only the compact tissue summary and inspection manifest.
+Per-sample candidate dumps are regenerated under
+`outputs/expimap/summary/archs4_candidates/` and are not versioned.
+
 ## Pathways
 
 `data/pathways/reactome_current_mouse_ensembl.gmt` is generated from official

@@ -24,7 +24,7 @@ DEFAULT_MODEL_DIRS = (
 
 
 def refresh_one(model_dir: Path, *, batch_size: int, sample_steps: int, seed: int, cpu: bool) -> dict:
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     model_path = model_dir / "model.pt"
     summary_path = model_dir / "training_summary.json"
     if not model_path.exists():
@@ -75,7 +75,7 @@ def refresh_one(model_dir: Path, *, batch_size: int, sample_steps: int, seed: in
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     root = Path(args.root)
     rows = [
         refresh_one(root / model_dir, batch_size=args.batch_size, sample_steps=args.sample_steps, seed=args.seed, cpu=args.cpu)

@@ -36,7 +36,7 @@ def has_two_conditions(frame) -> bool:
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     output_root = Path(args.output_root)
     rows = []
     for track, score_set, filename in SCORE_SETS:

@@ -18,14 +18,14 @@ def patch_stable_expimap_hsic() -> None:
     tutorial-style model here. The log-gamma form is mathematically equivalent
     and stays finite.
     """
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     losses = require_import(
         "scarches.models.expimap.losses",
-        "pip install -r requirements-nasa-mouse-glare.txt",
+        "pip install -r requirements.txt",
     )
     expimap_module = require_import(
         "scarches.models.expimap.expimap",
-        "pip install -r requirements-nasa-mouse-glare.txt",
+        "pip install -r requirements.txt",
     )
 
     def stable_bandwidth(d):
@@ -64,7 +64,7 @@ def update_terms_for_extensions(model, adata) -> tuple[list[str], list[str]]:
 
 
 def write_de_novo_gene_loadings(model, terms: list[str], output_dir: Path, top_n: int):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     rows = []
     summary_rows = []
@@ -102,10 +102,10 @@ def write_de_novo_gene_loadings(model, terms: list[str], output_dir: Path, top_n
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
-    sca = require_import("scarches", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    ad = require_import("anndata", "pip install -r requirements.txt")
+    sca = require_import("scarches", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
 
     if args.use_hsic and not args.no_stable_hsic_patch:
         patch_stable_expimap_hsic()

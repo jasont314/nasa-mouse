@@ -35,9 +35,9 @@ def pathway_columns(frame, include_de_novo: bool = False) -> list[str]:
 
 
 def compare_pathways(scores, terms: list[str]):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_stats = require_import("scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    scipy_stats = require_import("scipy.stats", "pip install -r requirements.txt")
 
     rows = []
     for term in terms:
@@ -88,8 +88,8 @@ def compare_pathways(scores, terms: list[str]):
 
 
 def accession_effects(scores, terms: list[str]):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_stats = require_import("scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    scipy_stats = require_import("scipy.stats", "pip install -r requirements.txt")
 
     rows = []
     for accession, group in scores.groupby("id.accession", dropna=False):
@@ -168,10 +168,10 @@ def metadata_frame(scores):
 
 
 def write_pca(scores, terms: list[str], output_dir: Path) -> dict[str, str]:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    sklearn_decomp = require_import("sklearn.decomposition", "pip install -r requirements-nasa-mouse-glare.txt")
-    plt = require_import("matplotlib.pyplot", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    sklearn_decomp = require_import("sklearn.decomposition", "pip install -r requirements.txt")
+    plt = require_import("matplotlib.pyplot", "pip install -r requirements.txt")
 
     x = scores[terms].astype(float).to_numpy()
     x = np.nan_to_num(x, copy=False)
@@ -244,10 +244,10 @@ def write_pca(scores, terms: list[str], output_dir: Path) -> dict[str, str]:
 
 
 def write_umap(scores, terms: list[str], output_dir: Path) -> dict[str, str]:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     umap_module = require_import("umap", "pip install umap-learn")
-    plt = require_import("matplotlib.pyplot", "pip install -r requirements-nasa-mouse-glare.txt")
+    plt = require_import("matplotlib.pyplot", "pip install -r requirements.txt")
 
     x = scores[terms].astype(float).to_numpy()
     x = np.nan_to_num(x, copy=False)
@@ -319,8 +319,8 @@ def write_umap(scores, terms: list[str], output_dir: Path) -> dict[str, str]:
 
 
 def write_top_heatmap(scores, comparison, terms: list[str], output_dir: Path, top_n: int = 30) -> dict[str, str]:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    plt = require_import("matplotlib.pyplot", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    plt = require_import("matplotlib.pyplot", "pip install -r requirements.txt")
 
     if comparison.empty:
         return {}
@@ -411,7 +411,7 @@ def write_summary(output_dir: Path, comparison, study_tests, scores_path: str) -
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

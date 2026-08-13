@@ -52,6 +52,7 @@
   },
   "outputs": {
     "summary": "data/archs4/archs4_mouse_tissue_summary.tsv",
+    "candidate_directory": "outputs/expimap/summary/archs4_candidates",
     "manifest": "data/archs4/archs4_mouse_inspection_manifest.json"
   }
 }

@@ -10,7 +10,7 @@ from .io import load_matrix_bundle, require_import, write_matrix_bundle
 
 def _row_slice(matrix, indices):
     scipy_sparse = require_import(
-        "scipy.sparse", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.sparse", "pip install -r requirements.txt"
     )
     if scipy_sparse.issparse(matrix):
         return matrix[indices, :]

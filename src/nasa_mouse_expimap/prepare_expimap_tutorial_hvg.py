@@ -57,9 +57,9 @@ def infer_tissue(reference_path: Path, query_path: Path) -> str:
 
 
 def prepare(args: argparse.Namespace) -> Path:
-    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    sc = require_import("scanpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    ad = require_import("anndata", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    sc = require_import("scanpy", "pip install -r requirements.txt")
 
     reference_path = Path(args.reference_h5ad)
     query_path = Path(args.query_h5ad)

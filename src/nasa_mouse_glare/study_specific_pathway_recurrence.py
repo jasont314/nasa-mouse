@@ -74,7 +74,7 @@ def extract_raw_count_inputs(
     download_counts: bool = False,
     timeout: int = 180,
 ) -> dict[str, str]:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     input_dir = output_dir / "raw_deseq2_inputs"
     input_dir.mkdir(parents=True, exist_ok=True)
@@ -239,7 +239,7 @@ def clean_reactome_term(term: str) -> str:
 
 
 def bh_fdr(pvalues) -> list[float]:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
 
     values = np.asarray(pvalues, dtype=float)
     adjusted = np.full(values.shape, np.nan, dtype=float)
@@ -269,10 +269,10 @@ def run_rank_sum_enrichment(
     min_size: int,
     max_size: int,
 ):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     mannwhitneyu = require_import(
-        "scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.stats", "pip install -r requirements.txt"
     ).mannwhitneyu
 
     rows = []
@@ -333,9 +333,9 @@ def run_ora_enrichment(
     alpha: float,
     min_overlap: int,
 ):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     hypergeom = require_import(
-        "scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.stats", "pip install -r requirements.txt"
     ).hypergeom
 
     rows = []
@@ -465,7 +465,7 @@ def pathway_categories(text: str) -> set[str]:
 
 
 def aggregate_glare_categories(path: Path) -> set[str]:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     if not path.exists():
         return set()
@@ -478,7 +478,7 @@ def aggregate_glare_categories(path: Path) -> set[str]:
 
 
 def summarize_rank_recurrence(rank_enrichment, alpha: float, aggregate_categories: set[str]):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     if rank_enrichment.empty:
         return pd.DataFrame()
@@ -523,7 +523,7 @@ def summarize_rank_recurrence(rank_enrichment, alpha: float, aggregate_categorie
 
 
 def top_gene_table(deseq, studies: list[str], alpha: float):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     rows = []
     for accession in studies:
@@ -586,7 +586,7 @@ def write_report(
     max_size: int,
     aggregate_categories: set[str],
 ) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     sample_counts = pd.read_csv(input_paths["study_condition_counts"], sep="\t")
     stratum_counts = pd.read_csv(input_paths["study_stratum_condition_counts"], sep="\t")
@@ -769,7 +769,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     args = parse_args()
     output_dir = Path(args.output_dir)

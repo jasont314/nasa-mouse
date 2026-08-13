@@ -14,7 +14,7 @@ class LinearReconstructor:
     target_indices: object
 
     def reconstruct_full(self, landmark_matrix):
-        np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+        np = require_import("numpy", "pip install -r requirements.txt")
         full = np.zeros((landmark_matrix.shape[0], len(self.landmark_indices) + len(self.target_indices)), dtype="float32")
         full[:, self.landmark_indices] = landmark_matrix
         if len(self.target_indices):
@@ -23,8 +23,8 @@ class LinearReconstructor:
 
 
 def train_linear_reconstructor(full_matrix, landmark_indices, target_indices, *, alpha: float = 1.0):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    sklearn_linear = require_import("sklearn.linear_model", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    sklearn_linear = require_import("sklearn.linear_model", "pip install -r requirements.txt")
     x = np.asarray(full_matrix[:, landmark_indices], dtype=np.float32)
     y = np.asarray(full_matrix[:, target_indices], dtype=np.float32)
     model = sklearn_linear.Ridge(alpha=float(alpha), fit_intercept=True)
@@ -34,7 +34,7 @@ def train_linear_reconstructor(full_matrix, landmark_indices, target_indices, *,
 
 
 def reconstruction_metrics(reconstructor: LinearReconstructor, full_matrix):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     x = np.asarray(full_matrix[:, reconstructor.landmark_indices], dtype=np.float32)
     truth = np.asarray(full_matrix, dtype=np.float32)
     pred = reconstructor.reconstruct_full(x)

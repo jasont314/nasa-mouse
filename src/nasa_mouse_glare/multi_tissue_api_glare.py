@@ -106,7 +106,7 @@ def read_api_metadata(path: str | Path, refresh: bool = False, timeout: int = 18
 
 
 def tms_tissue_counts(tms_h5ad: str | Path) -> pd.DataFrame:
-    anndata = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
+    anndata = require_import("anndata", "pip install -r requirements.txt")
     adata = anndata.read_h5ad(tms_h5ad, backed="r")
     counts = (
         adata.obs["tissue"]
@@ -965,7 +965,7 @@ def bundle_to_mober_h5ad(
     output_path: Path,
     batch_column: str,
 ) -> dict:
-    anndata = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
+    anndata = require_import("anndata", "pip install -r requirements.txt")
     bundle = load_matrix_bundle(target_manifest)
     if bundle.profile_metadata is None:
         raise ValueError("Target bundle is missing profile metadata")
@@ -1012,7 +1012,7 @@ def bundle_to_mober_h5ad(
 def choose_mober_onto(h5ad_path: Path, requested: str) -> str:
     if requested != "auto":
         return requested
-    anndata = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
+    anndata = require_import("anndata", "pip install -r requirements.txt")
     adata = anndata.read_h5ad(h5ad_path, backed="r")
     counts = adata.obs["data_source"].astype(str).value_counts()
     try:

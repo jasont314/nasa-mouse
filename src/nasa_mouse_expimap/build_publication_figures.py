@@ -31,7 +31,7 @@ from .integrate_reassessed_tissues_paper import (
 PAPER_DIR = ROOT / "paper/asgsr_expimap_hvg"
 SOURCE_DIR = PAPER_DIR / "source_data"
 FIGURE_DIR = PAPER_DIR / "figures"
-PRESENTATION_DIR = ROOT / "presentation/expimap"
+PROCESS_SUMMARY_DIR = ROOT / "outputs/expimap/analyses/publication_process_summary"
 REASSESSMENT_DIR = ROOT / "outputs/expimap/analyses/kidney_spleen_reassessment"
 
 FIGURE_WIDTH = 7.2
@@ -104,9 +104,9 @@ LATENT_CONFIGS = (
     LatentConfig(
         "spleen",
         ROOT
-        / "outputs/expimap/runs/reference_query/spleen/reassessment_hvg_2000/reference_nb_400epoch_seed2020/trained_input_with_scores.h5ad",
+        / "outputs/expimap/runs/reference_query/spleen/reassessment_hvg_2000/reference_nb_400epoch_seed2020/pathway_scores.tsv",
         ROOT
-        / "outputs/expimap/runs/reference_query/spleen/reassessment_hvg_2000/query_nb_250epoch_seed2020/mapped_query_with_scores.h5ad",
+        / "outputs/expimap/runs/reference_query/spleen/reassessment_hvg_2000/query_nb_250epoch_seed2020/query_pathway_scores.tsv",
         "R-MMU-202403_TCR_SIGNALING",
     ),
 )
@@ -347,19 +347,51 @@ def plot_workflow(scope: pd.DataFrame) -> None:
     save_figure(fig, "figure_1_workflow_architecture")
 
 
+def _load_latent_scores(
+    path: Path,
+    *,
+    query: bool,
+) -> tuple[np.ndarray, np.ndarray, pd.DataFrame, np.ndarray]:
+    if path.suffix == ".h5ad":
+        adata = ad.read_h5ad(path, backed="r")
+        terms = np.asarray(adata.uns["terms"], dtype=str)
+        score_key = "X_expimap_query" if query else "X_expimap"
+        scores = np.asarray(adata.obsm[score_key], dtype=float)
+        obs = adata.obs.copy()
+        sample_ids = adata.obs_names.astype(str).to_numpy()
+        adata.file.close()
+        return terms, scores, obs, sample_ids
+
+    frame = pd.read_csv(path, sep="\t")
+    terms = np.asarray(
+        [column for column in frame.columns if column.startswith("R-MMU-")],
+        dtype=str,
+    )
+    if not len(terms):
+        raise RuntimeError(f"No Reactome score columns found in {path}")
+    sample_column = "obs_name" if "obs_name" in frame else "profile_id"
+    return (
+        terms,
+        frame.loc[:, terms].to_numpy(dtype=float),
+        frame,
+        frame[sample_column].astype(str).to_numpy(),
+    )
+
+
 def build_latent_mapping_tables() -> tuple[pd.DataFrame, pd.DataFrame]:
     coordinate_frames: list[pd.DataFrame] = []
     qc_rows: list[dict[str, object]] = []
     for config in LATENT_CONFIGS:
-        reference = ad.read_h5ad(config.reference_path, backed="r")
-        query = ad.read_h5ad(config.query_path, backed="r")
-        reference_terms = np.asarray(reference.uns["terms"], dtype=str)
-        query_terms = np.asarray(query.uns["terms"], dtype=str)
+        reference_terms, reference_scores, reference_obs, reference_ids = (
+            _load_latent_scores(config.reference_path, query=False)
+        )
+        query_terms, query_scores, query_obs, query_ids = _load_latent_scores(
+            config.query_path,
+            query=True,
+        )
         if not np.array_equal(reference_terms, query_terms):
             raise RuntimeError(f"Reference-query term mismatch for {config.tissue}")
 
-        reference_scores = np.asarray(reference.obsm["X_expimap"], dtype=float)
-        query_scores = np.asarray(query.obsm["X_expimap_query"], dtype=float)
         scaler = StandardScaler().fit(reference_scores)
         scaled_reference = scaler.transform(reference_scores)
         scaled_query = scaler.transform(query_scores)
@@ -378,8 +410,8 @@ def build_latent_mapping_tables() -> tuple[pd.DataFrame, pd.DataFrame]:
             {
                 "tissue": config.tissue,
                 "source": "ARCHS4_reference",
-                "sample_id": reference.obs_names.astype(str),
-                "project": reference.obs["series_id"].astype(str).to_numpy(),
+                "sample_id": reference_ids,
+                "project": reference_obs["series_id"].astype(str).to_numpy(),
                 "condition": "reference",
                 "PC1": reference_pcs[:, 0],
                 "PC2": reference_pcs[:, 1],
@@ -391,9 +423,9 @@ def build_latent_mapping_tables() -> tuple[pd.DataFrame, pd.DataFrame]:
             {
                 "tissue": config.tissue,
                 "source": "OSDR_query",
-                "sample_id": query.obs_names.astype(str),
-                "project": query.obs["id.accession"].astype(str).to_numpy(),
-                "condition": query.obs["condition_inferred"].astype(str).to_numpy(),
+                "sample_id": query_ids,
+                "project": query_obs["id.accession"].astype(str).to_numpy(),
+                "condition": query_obs["condition_inferred"].astype(str).to_numpy(),
                 "PC1": query_pcs[:, 0],
                 "PC2": query_pcs[:, 1],
                 "nearest_reference_distance_20pc": query_nn,
@@ -415,8 +447,6 @@ def build_latent_mapping_tables() -> tuple[pd.DataFrame, pd.DataFrame]:
                 "reference_median_nn_distance_20pc": float(np.median(reference_nn)),
             }
         )
-        reference.file.close()
-        query.file.close()
 
     coordinates = pd.concat(coordinate_frames, ignore_index=True)
     qc = pd.DataFrame(qc_rows)
@@ -622,12 +652,14 @@ def _derive_latent_orientation(
 def build_program_score_table(evidence: pd.DataFrame) -> pd.DataFrame:
     frames = []
     for config in LATENT_CONFIGS:
-        query = ad.read_h5ad(config.query_path, backed="r")
-        terms = np.asarray(query.uns["terms"], dtype=str)
+        terms, query_scores, query_obs, query_ids = _load_latent_scores(
+            config.query_path,
+            query=True,
+        )
         matches = np.flatnonzero(terms == config.representative_term)
         if len(matches) != 1:
             raise RuntimeError(f"Representative term missing for {config.tissue}")
-        scores = np.asarray(query.obsm["X_expimap_query"][:, matches[0]], dtype=float)
+        scores = query_scores[:, matches[0]]
         target = evidence.loc[
             evidence["tissue"].eq(config.tissue)
             & evidence["term"].eq(config.representative_term),
@@ -635,16 +667,16 @@ def build_program_score_table(evidence: pd.DataFrame) -> pd.DataFrame:
         ]
         if len(target) != 1:
             raise RuntimeError(f"Primary pathway effect missing for {config.tissue}")
-        orientation = _derive_latent_orientation(scores, query.obs, float(target.iloc[0]))
+        orientation = _derive_latent_orientation(scores, query_obs, float(target.iloc[0]))
         oriented = scores * orientation
         frame = pd.DataFrame(
             {
                 "tissue": config.tissue,
                 "term": config.representative_term,
                 "display_label": DISPLAY_LABELS[config.representative_term],
-                "sample_id": query.obs_names.astype(str),
-                "project": query.obs["id.accession"].astype(str).to_numpy(),
-                "condition": query.obs["condition_inferred"].astype(str).to_numpy(),
+                "sample_id": query_ids,
+                "project": query_obs["id.accession"].astype(str).to_numpy(),
+                "condition": query_obs["condition_inferred"].astype(str).to_numpy(),
                 "oriented_pathway_score": oriented,
                 "latent_orientation": orientation,
             }
@@ -655,7 +687,6 @@ def build_program_score_table(evidence: pd.DataFrame) -> pd.DataFrame:
             "project", observed=True
         )["oriented_pathway_score"].transform("mean")
         frames.append(frame)
-        query.file.close()
     result = pd.concat(frames, ignore_index=True)
     result.to_csv(
         SOURCE_DIR / "table_s33_representative_program_sample_scores.tsv.gz",
@@ -1201,7 +1232,7 @@ def plot_original_robustness_matrix() -> None:
     save_figure(fig, "figure_s7_pathway_robustness_matrix")
 
 
-def plot_presentation_process_summary() -> None:
+def plot_process_summary() -> None:
     rows = (
         (
             "Thymus",
@@ -1265,7 +1296,7 @@ def plot_presentation_process_summary() -> None:
         fontsize=6.8,
         color="#596267",
     )
-    save_figure(fig, "asgsr_process_summary", output_dir=PRESENTATION_DIR)
+    save_figure(fig, "asgsr_process_summary", output_dir=PROCESS_SUMMARY_DIR)
 
 
 def plot_tissue_state_hypotheses() -> None:
@@ -1634,7 +1665,7 @@ def run() -> None:
     plot_tissue_state_hypotheses()
     plot_broad_pathway_screen()
     plot_original_robustness_matrix()
-    plot_presentation_process_summary()
+    plot_process_summary()
     clean_obsolete_assets()
     manifest = write_figure_manifest()
     validate_new_figures(manifest)

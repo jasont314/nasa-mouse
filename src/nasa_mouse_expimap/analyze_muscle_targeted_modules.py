@@ -221,7 +221,7 @@ def muscle_group(value: object) -> str:
 
 
 def read_metadata(path: str | Path):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     metadata = pd.read_csv(path, sep="\t", keep_default_na=False)
     if "profile_id" not in metadata:
         metadata["profile_id"] = (
@@ -269,7 +269,7 @@ def load_or_query_symbol_map(
     cache_path: Path,
     timeout: int,
 ):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     if cache_path.exists():
@@ -320,7 +320,7 @@ def load_or_query_symbol_map(
 
 
 def module_member_table(symbol_map, count_genes: set[str]):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     lookup = symbol_map.set_index("gene_symbol").to_dict(orient="index")
     rows = []
     for module, symbols in MODULES.items():
@@ -340,7 +340,7 @@ def module_member_table(symbol_map, count_genes: set[str]):
 
 
 def write_targeted_gmts(members, reactome_gmt: Path, targeted_gmt: Path, combined_gmt: Path):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     targeted_gmt.parent.mkdir(parents=True, exist_ok=True)
     combined_gmt.parent.mkdir(parents=True, exist_ok=True)
@@ -388,7 +388,7 @@ def write_targeted_gmts(members, reactome_gmt: Path, targeted_gmt: Path, combine
 
 
 def log1p_cpm(counts):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     library = counts.sum(axis=0).astype("float64")
     library[library <= 0] = 1.0
     cpm = counts.div(library, axis=1) * 1_000_000.0
@@ -396,14 +396,14 @@ def log1p_cpm(counts):
 
 
 def zscore_rows(frame):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     means = frame.mean(axis=1)
     stds = frame.std(axis=1, ddof=0).replace(0, np.nan)
     return frame.sub(means, axis=0).div(stds, axis=0).fillna(0.0)
 
 
 def score_modules(metadata, counts, members):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     transformed = log1p_cpm(counts)
     z = zscore_rows(transformed)
 
@@ -424,7 +424,7 @@ def score_modules(metadata, counts, members):
 
 
 def variance_of_difference(flight, ground) -> float:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     x = np.asarray(flight, dtype=float)
     y = np.asarray(ground, dtype=float)
     x_var = float(np.var(x, ddof=1) / len(x)) if len(x) > 1 else 0.0
@@ -434,7 +434,7 @@ def variance_of_difference(flight, ground) -> float:
 
 
 def effect_table(frame, terms: list[str], group_label: str):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     rows = []
     strata = [("all_skeletal_muscle", frame)]
     strata.extend((name, group) for name, group in frame.groupby("muscle_group", sort=True))
@@ -465,9 +465,9 @@ def effect_table(frame, terms: list[str], group_label: str):
 
 
 def meta_table(effects):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_stats = require_import("scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    scipy_stats = require_import("scipy.stats", "pip install -r requirements.txt")
 
     rows = []
     for (analysis_group, term, score_type), group in effects.groupby(
@@ -511,9 +511,9 @@ def meta_table(effects):
 
 
 def leave_one_out_tables(effects, primary_meta):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_stats = require_import("scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    scipy_stats = require_import("scipy.stats", "pip install -r requirements.txt")
 
     rows = []
     for (analysis_group, score_type), scope in effects.groupby(
@@ -617,8 +617,8 @@ def sample_counts(metadata):
 
 
 def plot_module_heatmap(meta, output_dir: Path):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    plt = require_import("matplotlib.pyplot", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    plt = require_import("matplotlib.pyplot", "pip install -r requirements.txt")
 
     frame = meta.loc[meta["score_type"].eq("targeted_module")].copy()
     if frame.empty:
@@ -657,7 +657,7 @@ def plot_module_heatmap(meta, output_dir: Path):
 
 
 def plot_module_boxplots(scores, meta, output_dir: Path, top_n: int = 6):
-    plt = require_import("matplotlib.pyplot", "pip install -r requirements-nasa-mouse-glare.txt")
+    plt = require_import("matplotlib.pyplot", "pip install -r requirements.txt")
 
     frame = meta.loc[meta["score_type"].eq("targeted_module")].copy()
     frame = frame.loc[frame["analysis_group"].ne("all_skeletal_muscle")]
@@ -858,7 +858,7 @@ def write_readme(output_dir: Path, summary: dict, module_meta, gene_meta, reacto
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     output_dir = Path(args.output_dir)
     plot_dir = output_dir / "plots"

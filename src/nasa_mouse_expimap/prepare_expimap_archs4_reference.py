@@ -27,7 +27,7 @@ def decode_array(values) -> list[str]:
 
 def stratified_series_sample(selected, max_samples: int, seed: int):
     """Sample proportional to ARCHS4 series while retaining every series when possible."""
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
 
     groups = list(selected.groupby("series_id", dropna=False, sort=True))
     sizes = np.asarray([len(group) for _, group in groups], dtype=int)
@@ -56,7 +56,7 @@ def stratified_series_sample(selected, max_samples: int, seed: int):
         group.sample(n=int(quota), random_state=seed + index)
         for index, (_, group), quota in zip(range(len(groups)), groups, quotas)
     ]
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     return pd.concat(sampled, ignore_index=False), "proportional_series_stratified"
 
 
@@ -103,8 +103,8 @@ def select_archs4_samples(
 
 
 def load_reference_counts(archs4_h5: str | Path, selected, query_adata):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    h5py = require_import("h5py", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    h5py = require_import("h5py", "pip install -r requirements.txt")
 
     query_genes = query_adata.var_names.astype(str).tolist()
     with h5py.File(archs4_h5, "r") as handle:
@@ -131,7 +131,7 @@ def load_reference_counts(archs4_h5: str | Path, selected, query_adata):
 
 
 def run(args) -> Path:
-    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
+    ad = require_import("anndata", "pip install -r requirements.txt")
 
     tissue = args.tissue.strip().lower().replace(" ", "_")
     query_adata = ad.read_h5ad(args.query_h5ad)

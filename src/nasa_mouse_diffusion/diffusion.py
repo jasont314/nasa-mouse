@@ -6,7 +6,7 @@ from nasa_mouse_glare.io import require_import
 
 
 def beta_schedule(schedule: str, *, beta_start: float, beta_end: float, timesteps: int):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     if schedule in {"quad", "quadratic"}:
         betas = np.linspace(beta_start ** 0.5, beta_end ** 0.5, timesteps, dtype=np.float64) ** 2
     elif schedule == "linear":
@@ -22,13 +22,13 @@ def beta_schedule(schedule: str, *, beta_start: float, beta_end: float, timestep
 
 
 def compute_alpha(betas, timesteps):
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     padded = torch.cat([torch.zeros(1, device=betas.device), betas], dim=0)
     return (1 - padded).cumprod(dim=0).index_select(0, timesteps + 1).view(-1, 1)
 
 
 def noise_estimation_loss(model, x0, categories, betas):
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     n = x0.shape[0]
     noise = torch.randn_like(x0)
     t = torch.randint(low=0, high=betas.shape[0], size=(n // 2 + 1,), device=x0.device)
@@ -56,8 +56,8 @@ def sample_trajectory(
     and ``t=0`` is the final generated expression.
     """
 
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     if device is None:
         device = next(model.parameters()).device
     categories = torch.as_tensor(categories, dtype=torch.long, device=device)

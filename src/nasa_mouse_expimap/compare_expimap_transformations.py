@@ -17,7 +17,7 @@ DEFAULT_RUNS = {
 
 
 def load_run(tissue_dir: Path, label: str, run_name: str):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     run_dir = tissue_dir / run_name
     training_path = run_dir / "training_summary.json"
@@ -59,7 +59,7 @@ def summarize_runs(runs):
         input_path = Path(training["input"])
         preprocessing = {}
         try:
-            ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
+            ad = require_import("anndata", "pip install -r requirements.txt")
             adata = ad.read_h5ad(input_path, backed="r")
             preprocessing = dict(adata.uns.get("expimap_preprocessing", {}))
             adata.file.close()
@@ -98,8 +98,8 @@ def summarize_runs(runs):
 
 
 def compare_effects(runs):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_stats = require_import("scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    scipy_stats = require_import("scipy.stats", "pip install -r requirements.txt")
 
     rows = []
     for i, left in enumerate(runs):
@@ -207,7 +207,7 @@ def write_markdown(output_dir: Path, tissue: str, summary, correlations) -> Path
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     tissue_dir = Path(args.tissue_dir)
     output_dir = Path(args.output_dir)

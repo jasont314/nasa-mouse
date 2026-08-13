@@ -10,11 +10,11 @@ from .io import dense_matrix, load_matrix_bundle, require_import
 
 
 def _imports():
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
-    nn = require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt")
-    optim = require_import("torch.optim", "pip install -r requirements-nasa-mouse-glare.txt")
-    sklearn = require_import("sklearn.preprocessing", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
+    nn = require_import("torch.nn", "pip install -r requirements.txt")
+    optim = require_import("torch.optim", "pip install -r requirements.txt")
+    sklearn = require_import("sklearn.preprocessing", "pip install -r requirements.txt")
     return np, torch, nn, optim, sklearn.StandardScaler
 
 

@@ -22,7 +22,7 @@ def parse_set(values: list[str]) -> dict[str, str]:
 
 
 def load_checkpoint(model_dir: Path, *, device):
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     checkpoint = torch.load(model_dir / "model.pt", map_location=device, weights_only=False)
     config = checkpoint.get("model_config")
     if config is None:
@@ -39,7 +39,7 @@ def load_checkpoint(model_dir: Path, *, device):
 
 
 def default_profile(model_dir: Path, covariates: tuple[str, ...]) -> dict[str, str]:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     path = model_dir / "observed_conditioning_profiles.tsv"
     if not path.exists():
         return {}
@@ -51,7 +51,7 @@ def default_profile(model_dir: Path, covariates: tuple[str, ...]) -> dict[str, s
 
 def encode_profile(profile: dict[str, str], vocabularies: dict[str, list[str]],
                    covariates: tuple[str, ...], *, n: int):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     encoded = []
     for covariate in covariates:
         value = profile.get(covariate)
@@ -69,8 +69,8 @@ def encode_profile(profile: dict[str, str], vocabularies: dict[str, list[str]],
 
 
 def generate_with_noise(model, categories, noise, *, batch_size: int, device):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     categories = torch.as_tensor(categories, dtype=torch.long)
     generated = []
     with torch.no_grad():
@@ -84,7 +84,7 @@ def generate_with_noise(model, categories, noise, *, batch_size: int, device):
 
 
 def write_matrix(path: Path, matrix, genes: list[str]) -> None:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     frame = pd.DataFrame(matrix, columns=genes)
     frame.insert(0, "synthetic_sample_id", [f"synthetic_{idx:04d}" for idx in range(matrix.shape[0])])
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -92,7 +92,7 @@ def write_matrix(path: Path, matrix, genes: list[str]) -> None:
 
 
 def write_one(output_dir: Path, stem: str, zscore, mean, std, genes: list[str], profile: dict) -> dict:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     log1p_cpm = zscore * std.reshape(1, -1) + mean.reshape(1, -1)
     cpm = np.expm1(log1p_cpm)
     cpm = np.maximum(cpm, 0.0)
@@ -113,8 +113,8 @@ def write_one(output_dir: Path, stem: str, zscore, mean, std, genes: list[str], 
 
 
 def run(args) -> Path:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    torch = require_import("torch", "pip install -r requirements.txt")
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
     model_dir = Path(args.model_dir)
     output_dir = Path(args.output_dir)

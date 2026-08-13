@@ -6,8 +6,8 @@ import math
 
 from nasa_mouse_glare.io import require_import
 
-torch = require_import("torch", "pip install -r requirements-nasa-mouse-glare.txt")
-nn = require_import("torch.nn", "pip install -r requirements-nasa-mouse-glare.txt")
+torch = require_import("torch", "pip install -r requirements.txt")
+nn = require_import("torch.nn", "pip install -r requirements.txt")
 
 
 def sinusoidal_embedding(timesteps, dim: int):

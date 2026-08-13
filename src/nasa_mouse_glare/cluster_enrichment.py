@@ -43,7 +43,7 @@ def read_gmt(path: str | Path) -> list[dict[str, object]]:
 
 
 def bh_fdr(pvalues):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
 
     values = np.asarray(pvalues, dtype=float)
     if len(values) == 0:
@@ -63,7 +63,7 @@ def bh_fdr(pvalues):
 
 
 def load_focus_tables(post_dir: Path, clusters: list[int]):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     cluster_path = post_dir / "gene_clusters.tsv"
     shift_path = post_dir / "gene_cluster_flight_ground_summary.tsv"
@@ -92,7 +92,7 @@ def load_focus_tables(post_dir: Path, clusters: list[int]):
 
 
 def write_gene_lists(gene_clusters, clusters: list[int], output_dir: Path):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     rows = []
     paths = {}
@@ -121,9 +121,9 @@ def run_enrichment(
     gmt_path: str | Path,
     min_overlap: int,
 ):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     hypergeom = require_import(
-        "scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.stats", "pip install -r requirements.txt"
     ).hypergeom
 
     library = read_gmt(gmt_path)
@@ -205,7 +205,7 @@ def run_enrichment(
 
 
 def write_cluster_shift_summary(shift_summary, clusters: list[int], output_dir: Path) -> str:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     order = pd.Series(range(len(clusters)), index=clusters)
     focus = shift_summary[shift_summary["gene_cluster"].isin(clusters)].copy()
@@ -217,7 +217,7 @@ def write_cluster_shift_summary(shift_summary, clusters: list[int], output_dir: 
 
 
 def write_condition_driver_summary(condition_summary, clusters: list[int], output_dir: Path) -> str:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     focus = condition_summary[condition_summary["gene_cluster"].isin(clusters)].copy()
     value_cols = [col for col in focus.columns if col not in {"gene_cluster", "n_genes"}]
@@ -242,7 +242,7 @@ def write_condition_driver_summary(condition_summary, clusters: list[int], outpu
 
 
 def write_study_driver_summary(study_summary, clusters: list[int], top_n: int, output_dir: Path) -> str:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     study_cols = [col for col in study_summary.columns if str(col).startswith("OSD-")]
     rows = []
@@ -279,10 +279,10 @@ def write_source_driver_summary(
     top_n: int,
     output_dir: Path,
 ) -> str | None:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     scipy_sparse = require_import(
-        "scipy.sparse", "pip install -r requirements-nasa-mouse-glare.txt"
+        "scipy.sparse", "pip install -r requirements.txt"
     )
 
     if "study.source name" not in profile_metadata:
@@ -348,7 +348,7 @@ def write_source_driver_summary(
 
 
 def write_top_enrichment_summary(enrichment_tables, top_n: int, output_dir: Path) -> str:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     combined = pd.concat(enrichment_tables, ignore_index=True)
     if combined.empty:

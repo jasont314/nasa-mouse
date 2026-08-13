@@ -15,7 +15,7 @@ def load_tms_gene_symbols(
 ) -> dict[str, str]:
     """Map mouse Ensembl IDs to symbols from the retained TMS reference."""
     anndata = require_import(
-        "anndata", "pip install -r requirements-nasa-mouse-glare.txt"
+        "anndata", "pip install -r requirements.txt"
     )
     adata = anndata.read_h5ad(tms_h5ad, backed="r")
     if "feature_name" not in adata.var.columns:

@@ -19,7 +19,7 @@ def score_columns(frame) -> list[str]:
 
 
 def random_effects(effect, variance, scipy_stats):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
     valid = np.isfinite(effect) & np.isfinite(variance) & (variance > 0)
     y = np.asarray(effect)[valid]
     v = np.asarray(variance)[valid]
@@ -48,8 +48,8 @@ def random_effects(effect, variance, scipy_stats):
 
 
 def accession_effects(scores, terms):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     rows = []
     for accession, frame in scores.groupby("id.accession", dropna=False):
         flight = frame.loc[frame["condition_inferred"].eq("flight")]
@@ -74,9 +74,9 @@ def accession_effects(scores, terms):
 
 
 def meta_analysis(effects):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_stats = require_import("scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    scipy_stats = require_import("scipy.stats", "pip install -r requirements.txt")
     rows = []
     for term, frame in effects.groupby("term", sort=False):
         result = random_effects(
@@ -103,9 +103,9 @@ def meta_analysis(effects):
 
 
 def leave_one_accession_out(effects):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
-    scipy_stats = require_import("scipy.stats", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
+    scipy_stats = require_import("scipy.stats", "pip install -r requirements.txt")
     rows = []
     accessions = sorted(effects["id.accession"].astype(str).unique())
     for held_out in accessions:
@@ -139,7 +139,7 @@ def leave_one_accession_out(effects):
 
 
 def run(args) -> Path:
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     scores = pd.read_csv(args.scores, sep="\t")

@@ -65,7 +65,7 @@ def load_excluded_profiles(path: str | Path | None) -> set[str]:
 
 
 def load_or_discover_metadata(path: str | Path, timeout: int):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     path = Path(path)
     if path.exists():
@@ -158,7 +158,7 @@ def sample_name_from_count_column(column: str) -> str:
 
 
 def load_counts_from_api_tables(selected, count_paths: dict[str, Path]):
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     frames = []
     sample_to_profile = {
@@ -196,8 +196,8 @@ def load_counts_from_api_tables(selected, count_paths: dict[str, Path]):
 
 
 def build_architecture(count_genes: list[str], gmt_rows: list[dict], min_genes: int, max_terms: int | None):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    pd = require_import("pandas", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    pd = require_import("pandas", "pip install -r requirements.txt")
 
     gene_to_index = {gene: index for index, gene in enumerate(count_genes)}
     retained_terms = []
@@ -239,7 +239,7 @@ def build_architecture(count_genes: list[str], gmt_rows: list[dict], min_genes: 
 
 
 def transformed_matrix(counts, transform: str):
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
 
     counts = np.asarray(counts, dtype="float32")
     if transform == "raw_counts":
@@ -316,8 +316,8 @@ def write_counts_tables(selected, output_dir: Path) -> dict[str, str]:
 
 
 def run(args) -> Path:
-    np = require_import("numpy", "pip install -r requirements-nasa-mouse-glare.txt")
-    ad = require_import("anndata", "pip install -r requirements-nasa-mouse-glare.txt")
+    np = require_import("numpy", "pip install -r requirements.txt")
+    ad = require_import("anndata", "pip install -r requirements.txt")
 
     tissue = safe_tissue_name(args.tissue)
     api_dir = Path(args.api_dir)
