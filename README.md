@@ -195,6 +195,6 @@ OSDR expression is discovered through the NASA API. Large downloaded matrices,
 checkpoints, and generated samples remain outside ordinary Git history. Curated
 tables and figures needed to inspect the final claims are tracked.
 
-The final handoff is tagged `internship-final-2026-08-13-r5`. Project-authored
+The final handoff is tagged `internship-final-2026-08-13-r6`. Project-authored
 content is released under the [MIT License](LICENSE). Vendored code and public
 data retain their original terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -98,15 +98,15 @@ outputs listed in that paper's source manifest.
 ## Clean-clone audit
 
 The handoff was tested in a new clone on 2026-08-13. Before ignored method
-sources were restored, the suite reported 163 passed tests, 13 expected skips,
-and 224 passed subtests. The following command then restored and hash-checked
+sources were restored, the suite reported 169 passed tests, 13 expected skips,
+and 225 passed subtests. The following command then restored and hash-checked
 the pinned WGAN, DDIM, MBatch, and TRRAC repositories:
 
 ```bash
 python -m nasa_mouse_generative prepare-upstreams
 ```
 
-The source-enabled suite reported 176 passed tests and 231 passed subtests.
+The source-enabled suite reported 182 passed tests and 232 passed subtests.
 `python -m compileall -q src` also completed successfully. The two synthetic
 annotation checks resolved 49 consensus associations against 33 sources and 21
 matched genes plus 10 grouped pathways against 20 sources.

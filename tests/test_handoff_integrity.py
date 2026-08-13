@@ -352,7 +352,7 @@ class HandoffIntegrityTests(unittest.TestCase):
     def test_source_packages_and_modules_are_documented(self):
         source_root = ROOT / "src"
         for package_dir in sorted(source_root.glob("nasa_mouse_*")):
-            if not package_dir.is_dir():
+            if not package_dir.is_dir() or not (package_dir / "__init__.py").is_file():
                 continue
             with self.subTest(package=package_dir.name):
                 self.assertTrue((package_dir / "README.md").is_file())

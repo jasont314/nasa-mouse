@@ -94,7 +94,7 @@ The exact files and checksums are listed in [ARTIFACTS.md](ARTIFACTS.md).
 
 - `main` contains the final report, presentation, manuscripts, source tables,
   code, configs, and selected compact outputs.
-- `internship-final-2026-08-13-r5` marks the completed handoff state. It
+- `internship-final-2026-08-13-r6` marks the completed handoff state. It
   supersedes the earlier handoff tags after licensing, repository cleanup, and
   final verification.
 - Superseded development handoffs and intermediate analyses remain available in
