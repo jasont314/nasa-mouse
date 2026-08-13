@@ -12,13 +12,14 @@ This directory separates upstream method code from large local reference files.
 | `model_sources/trrac/` | Ignored | Spaceflight batch-correction reference implementation |
 | `archs4/` | Ignored, public | Full ARCHS4 mouse expression H5 |
 | `tms/` | Ignored, public | Tabula Muris Senis reference H5AD |
+| `reference/` | Ignored, public | GENCODE vM39 mouse annotation GTF |
 | `poster_template/` | Tracked | Supplied NASA poster source template required by the poster builder |
 
 See [`../ARTIFACTS.md`](../ARTIFACTS.md) for download locations, checksums, and
 the tasks that require each large file. Upstream repository commits are listed
 in [`../docs/method_sources.md`](../docs/method_sources.md).
 
-Restore and verify both public reference matrices with:
+Restore and verify the public reference files with:
 
 ```bash
 python -m nasa_mouse_generative prepare-references

@@ -155,7 +155,7 @@ Literature labels and their cited sources follow the separate map in
 ## What a fresh clone can do
 
 A fresh clone can run tests, inspect all final source tables, and rebuild the
-documents and presentation. ARCHS4 and TMS can be downloaded with
+documents and presentation. ARCHS4, TMS, and GENCODE can be downloaded with
 `python -m nasa_mouse_generative prepare-references`, and OSDR inputs can be
 recreated through the NASA API. Selected checkpoints are needed only to rerun
 inference without retraining. The exact environment and verification commands

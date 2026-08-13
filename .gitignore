@@ -47,6 +47,9 @@ outputs/**
 !outputs/COMMANDS.md
 !outputs/MODEL_ARTIFACTS.sha256
 
+!outputs/comparison/
+!outputs/comparison/**
+
 # The compact GLARE result tables and validation summaries are publication
 # artifacts. Model weights and source matrices remain ignored elsewhere.
 !outputs/glare/

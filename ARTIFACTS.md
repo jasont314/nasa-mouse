@@ -10,6 +10,7 @@ manageable. Paths below are relative to the repository root.
 |---|---:|---|---|
 | `assets/archs4/mouse_gene_v2.5.h5` | 38,960,132,574 bytes | [ARCHS4 download page](https://maayanlab.cloud/archs4/download.html), [direct mouse file](https://s3.dev.maayanlab.cloud/archs4/files/mouse_gene_v2.5.h5) | `74b509f82623bced395119244becf30df601a24fcaaf905691e2716bf83118b8` |
 | `assets/tms/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad` | 2,548,190,251 bytes | [CELLxGENE collection](https://cellxgene.cziscience.com/collections/0b9d8a04-bb9d-44da-aa27-705bb65b54eb), [direct FACS file](https://datasets.cellxgene.cziscience.com/be2af593-fb71-4c76-85a8-3c8400783c2a.h5ad) | `1d7fd90acb33269c3337dc5031b4a89d9aa4f72806a45b9c12e768fedc8acf8f` |
+| `assets/reference/gencode.vM39.primary_assembly.annotation.gtf.gz` | 91,741,340 bytes | [GENCODE mouse vM39](https://www.gencodegenes.org/mouse/release_M39.html), [direct GTF](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M39/gencode.vM39.primary_assembly.annotation.gtf.gz) | `d6da97913ce30f99883fc1216b111569f9947cf203886a5afb607b59228574d4` |
 
 The same checksums are stored in `assets/EXTERNAL_ARTIFACTS.sha256` so local
 copies can be checked with:
@@ -18,24 +19,24 @@ copies can be checked with:
 python -m nasa_mouse_generative prepare-references --check
 ```
 
-Both files are public and can be restored directly from their versioned source
-URLs. The downloader resumes partial transfers and checks the expected byte
-count and SHA-256 digest before installing either file:
+All three files are public and can be restored directly from their versioned
+source URLs. The downloader resumes partial transfers and checks the expected
+byte count and SHA-256 digest before installing a file:
 
 ```bash
 python -m nasa_mouse_generative prepare-references --list
 python -m nasa_mouse_generative prepare-references
 ```
 
-The two downloads require about 41.5 GB of disk space before filesystem and
+The three downloads require about 41.6 GB of disk space before filesystem and
 temporary-file overhead. They do not need to be copied from the handoff machine.
 The equivalent manifest-only check remains available as
 `sha256sum --check assets/EXTERNAL_ARTIFACTS.sha256`.
 
-Both direct URLs were checked on 2026-08-13. Their reported byte counts matched
-the table, they supported resumed range requests, and the first downloaded
-megabyte matched the local files. The full local copies passed SHA-256; ARCHS4
-also matched the publisher's SHA-1
+The three direct URLs were checked on 2026-08-13. Their reported byte counts
+matched the table. ARCHS4 and TMS supported resumed range requests, and their
+first downloaded megabyte matched the local files. All three full local copies
+passed SHA-256; ARCHS4 also matched the publisher's SHA-1
 `22605c9b6c4e7502b0861d4d8591ce128907c39f`.
 
 The supplied NASA poster template is tracked at
@@ -106,9 +107,9 @@ python -m nasa_mouse_generative prepare-upstreams
 
 ## Transfer recommendation
 
-ARCHS4, TMS, OSDR, and the optional upstream method repositories can all be
-restored from public sources. They may be mirrored for convenience, but they are
-not unique handoff artifacts.
+ARCHS4, TMS, GENCODE, OSDR, and the optional upstream method repositories can
+all be restored from public sources. They may be mirrored for convenience, but
+they are not unique handoff artifacts.
 
 Before deleting the original workstation, preserve the files named in
 `outputs/MODEL_ARTIFACTS.sha256` if avoiding full model retraining matters.

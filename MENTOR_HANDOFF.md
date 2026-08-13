@@ -13,6 +13,12 @@ files outside normal Git history.
    the project question, methods, main figures, and biological interpretation.
 2. Use the [results guide](docs/results_guide.md) to move directly from each
    headline finding to its exact source table, plot, and interpretation.
+   The linked [selected-feature workbook](outputs/comparison/selected_features/selected_feature_comparison.xlsx)
+   is the quickest way to compare these results with another model. It contains
+   all 16 retained expiMap pathways, their 743 unique tissue-gene members, 1,307
+   stable tissue-gene pairs across all generative classifier arms, the narrower
+   679-row selected-arm set, 21 primary matched genes, 49 secondary consensus
+   genes, ten grouped Reactome results, and an analysis-coverage sheet.
 3. Review the [final presentation](presentation/final/SLSTP_2026_Generative_Transcriptomics.pdf)
    for the concise visual narrative. The editable deck contains speaker notes.
 4. Use the [expiMap manuscript](paper/asgsr_expimap_hvg/manuscript.pdf) for the
@@ -114,13 +120,14 @@ The exact files and checksums are listed in [ARTIFACTS.md](ARTIFACTS.md).
 
 ## Suggested preservation step
 
-The Git tag preserves the code and compact results. ARCHS4 and TMS are public
-and can be restored with `python -m nasa_mouse_generative prepare-references`;
-they do not require a private handoff copy. Long-term preservation should focus
-on the files listed in `outputs/MODEL_ARTIFACTS.sha256`, which avoid roughly
-2.3 GB of checkpoint regeneration, and the compact ignored inputs named by the
-generative paper's `frozen_input_manifest.tsv`. The repository has no public
-checkpoint download location yet. `ARTIFACTS.md` includes an archive and restore
-recipe for these local files.
+The Git tag preserves the code and compact results. ARCHS4, TMS, and GENCODE are
+public and can be restored with
+`python -m nasa_mouse_generative prepare-references`; they do not require a
+private handoff copy. Long-term preservation should focus on the files listed
+in `outputs/MODEL_ARTIFACTS.sha256`, which avoid roughly 2.3 GB of checkpoint
+regeneration, and the compact ignored inputs named by the generative paper's
+`frozen_input_manifest.tsv`. The repository has no public checkpoint download
+location yet. `ARTIFACTS.md` includes an archive and restore recipe for these
+local files.
 
 Contact: Jason Trinh, `jasontrinh@berkeley.edu`.

@@ -16,10 +16,13 @@ Reactome mouse pathway files were added on 2026-06-26 for expiMap/scArches.
   `data/pathways/reactome_current_mouse_ensembl.gmt`
 - paper-parity mouse diffusion landmarks:
   `data/diffusion/l974_mouse_paper_parity.tsv`
+- GENCODE vM39 mouse gene symbols:
+  `data/reference/gencode_vM39_mouse_gene_symbols.tsv.gz`
 
 OSDR inputs are built from the NASA OSDR Biological Data API. Downloaded API
 count CSVs are cached under `data/osdr_api/counts/` and ignored by Git.
-ARCHS4 and TMS are also public and can be restored at their expected paths with:
+ARCHS4, TMS, and the GENCODE source GTF are public and can be restored at their
+expected paths with:
 
 ```bash
 PYTHONPATH=src python -m nasa_mouse_generative prepare-references
@@ -30,6 +33,17 @@ landmarks, the Ensembl human-to-mouse map, and ARCHS4 gene annotations. Its adja
 manifest records the ten human landmarks without a direct mouse dimension and the
 ten additional paralogs used to preserve the published input width. Large prepared
 TPM matrices remain under `outputs/generative/benchmark/data/lacan_diffusion/`.
+
+The compact GENCODE gene-symbol map supplies readable names for the
+comparison-ready expiMap pathway-member tables. Regenerate it from the verified
+public GTF with:
+
+```bash
+python -m nasa_mouse_generative gene-annotations \
+  --gtf assets/reference/gencode.vM39.primary_assembly.annotation.gtf.gz \
+  --output data/reference/gencode_vM39_mouse_gene_symbols.tsv.gz \
+  --source-url https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M39/gencode.vM39.primary_assembly.annotation.gtf.gz
+```
 
 `data/archs4/` keeps only the compact tissue summary and inspection manifest.
 Per-sample candidate dumps are regenerated under

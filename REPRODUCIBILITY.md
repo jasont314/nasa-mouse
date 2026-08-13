@@ -106,16 +106,17 @@ the pinned WGAN, DDIM, MBatch, and TRRAC repositories:
 python -m nasa_mouse_generative prepare-upstreams
 ```
 
-The source-enabled suite reported 182 passed tests and 232 passed subtests.
+The source-enabled suite reported 185 passed tests and 232 passed subtests.
 `python -m compileall -q src` also completed successfully. The two synthetic
 annotation checks resolved 49 consensus associations against 33 sources and 21
 matched genes plus 10 grouped pathways against 20 sources.
 
-The public ARCHS4 and TMS URLs were checked independently with HTTP range
-requests. Their reported sizes and first megabyte matched the local files, and
-both complete local files passed the tracked SHA-256 checks. All 30 checkpoint
-manifest entries and all 30 compact generative-paper input entries also matched
-their recorded sizes and hashes on the handoff machine.
+The public ARCHS4, TMS, and GENCODE URLs were checked independently. Their
+reported sizes matched the local files, and all three complete local files
+passed the tracked SHA-256 checks. ARCHS4 and TMS also passed the recorded range
+and first-megabyte checks. All 30 checkpoint manifest entries and all 30 compact
+generative-paper input entries matched their recorded sizes and hashes on the
+handoff machine.
 
 The fresh-clone commands above rebuilt both detailed papers, the 11-page
 internship report, the poster, and the final presentation. The generated final

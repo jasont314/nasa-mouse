@@ -1,0 +1,70 @@
+{
+  "sources": {
+    "paper/asgsr_expimap_hvg/source_data/table_2_retained_pathway_evidence.tsv": "ff0a60f9769e0f5609c4c9bbd9c4567e6866e1b3b6dcdda84f266b32e7339192",
+    "paper/asgsr_expimap_hvg/source_data/table_s35_retained_pathway_member_gene_effects.tsv.gz": "06149efe0ae5ea74a26797a348767a9a15fa8b9d43c953830077d6d4cd50f882",
+    "paper/synthetic_guided_spaceflight/source_data/table_s11_all_random_effects_bh_fdr_genes.tsv": "330f64ffd80dd29f6bef218719f7dca27915a37e0a44d0904a417525d52ef241",
+    "paper/synthetic_guided_spaceflight/source_data/table_s16_promoted_gene_literature_annotations.tsv": "769d56c05ac142e59b06334e0f651037aa9df56da39e66aee2916c984dc52ada",
+    "paper/synthetic_guided_spaceflight/source_data/table_s22_matched_gene_literature_annotations.tsv": "71ea4cf2f87f968f18a626c053b6d76fc485e93d1f0420b19f4354581b6b86d2",
+    "paper/synthetic_guided_spaceflight/source_data/table_s23_grouped_pathway_literature_annotations.tsv": "19a0c4eac21222c60c5911199052a3b74ac7b2b575b413c61104203a0326c686",
+    "outputs/generative/benchmark/analyses/classifier_importance_osdr_disjoint_v1/importance_summary.tsv.gz": "0c9c0178ed27476951d40c21c3f9cd9900602ff409267ca9c340351207225702",
+    "outputs/generative/benchmark/analyses/classifier_importance_osdr_disjoint_v1/arm_vs_real_gene_comparison.tsv.gz": "3dcdb986c85cbca9004e2a410d870dcdd0e1673fb16b812f4ed4b9f7c10deaa1",
+    "outputs/generative/benchmark/analyses/classifier_importance_osdr_disjoint_v1/selected_arm_vs_real_gene_comparison.tsv.gz": "78000fcabd789c9d2b5472e9b5422eac5c845f454bd55d3b876944273a24e6e2",
+    "outputs/generative/benchmark/analyses/within_study_generated_feature_stability_osdr_disjoint_v1/tissue_arm_choices.tsv": "e33baba6b039e6a7d36652b9bf34bb0d6c69e0e8c08fe1c8c2743dd31ca262ff",
+    "outputs/generative/benchmark/analyses/within_study_generated_feature_stability_muscle_groups_osdr_disjoint_v1/tissue_arm_choices.tsv": "47601d231eb9d1276b737bb7ae83d1342bb5b6fffe829e1686f7e82c78f126bc",
+    "data/reference/gencode_vM39_mouse_gene_symbols.tsv.gz": "49907996c92a3e3e37416ba56e1305eb0a7f88acbed3da7bb298ba61b93e927d"
+  },
+  "outputs": {
+    "gene_crosswalk.tsv": {
+      "rows": 2048,
+      "sha256": "93601d0cd0f38e20e5ad06fd3bdf3a653cf33e05dafe0bdcc7c485090316af1b"
+    },
+    "pathway_crosswalk.tsv": {
+      "rows": 26,
+      "sha256": "9df52ef1d298fa124c9abbcba05e9b162e51fcba113e6a21504c6259e432973e"
+    },
+    "expimap_retained_pathways.tsv": {
+      "rows": 16,
+      "sha256": "e5c106f4a46948bd67a99ad02b9e48d8968e11d380e9ac40ece249261c491e4a"
+    },
+    "expimap_retained_pathway_gene_summary.tsv": {
+      "rows": 743,
+      "sha256": "ac7eec41d5df56130cffcbbd614dfca9cefba0ef6066a4a4129dddad7aa5bfd0"
+    },
+    "expimap_retained_pathway_members.tsv.gz": {
+      "rows": 813,
+      "sha256": "0f13bef1b2327673fd2d72b620b83ebc25f3226874637fd08dd4a86e40eb5a4e"
+    },
+    "generative_full_selected_feature_comparison.tsv.gz": {
+      "rows": 4475,
+      "sha256": "5b06ddd76f55201364a21b28629a8490841e41082a9c917619fa0863c1970772"
+    },
+    "generative_selected_arm_stable_features.tsv": {
+      "rows": 679,
+      "sha256": "36070b04e16c506dc6e6c777cd0f9b90f97565a55c68252aec7ff1a143402fb7"
+    },
+    "generative_all_arm_stable_features.tsv.gz": {
+      "rows": 3262,
+      "sha256": "0baa51d5e663f8f2d54412c14ee25062e3484070240a421f05e47bb826d69c94"
+    },
+    "generative_matched_genes.tsv": {
+      "rows": 21,
+      "sha256": "2dca70056361a0c5f92831cfb851fca90188a20a3830f8d452fab1c9adf5c150"
+    },
+    "generative_consensus_genes.tsv": {
+      "rows": 49,
+      "sha256": "fed5ed20452d07a42932a186031d37d0a31ba37fb3eeb0e4cf6ec46305774d7d"
+    },
+    "generative_grouped_pathways.tsv": {
+      "rows": 10,
+      "sha256": "57700e1e8f37f5327ddf6f00c551a1104faf9f6ba15e705416558775febf5e50"
+    },
+    "generative_analysis_coverage.tsv": {
+      "rows": 27,
+      "sha256": "659344398d473fc17072126dcf7ab9f05af5c406eb13dd35df64b0dff2ed3e2a"
+    }
+  },
+  "workbook": {
+    "path": "selected_feature_comparison.xlsx",
+    "sha256": "2d023c88b619d7e2639d7464a1f88d81e8c5ed942979c7e5b7d09d03d7ef3072"
+  }
+}

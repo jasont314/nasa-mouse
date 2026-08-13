@@ -51,6 +51,7 @@ extend it.
 | Deliverable | Purpose |
 |---|---|
 | [Results guide](docs/results_guide.md) | Direct map from headline results to exact tables, plots, and interpretations |
+| [Selected-feature workbook](outputs/comparison/selected_features/selected_feature_comparison.xlsx) | Comparison-ready expiMap pathways and genes plus generative feature importance |
 | [Internship report](paper/slstp_internship_report/manuscript.pdf) | Shortest complete account of the full project |
 | [Poster](presentation/poster/asgsr_expimap_poster.pdf) | Print-ready expiMap research poster |
 | [Midpoint presentation](presentation/midpoint/SLSTP_2026_Midpoint_Presentation.pdf) | Project status and methods at the internship midpoint |
@@ -110,13 +111,14 @@ prompt record.
 ## Fresh-clone boundary
 
 A clone contains the final papers, presentation, publication source tables,
-small data manifests, and project code. It does not contain the 39 GB ARCHS4
-file, the 2.5 GB Tabula Muris Senis reference, downloaded OSDR count tables, or
-the selected model checkpoints. ARCHS4 and TMS can be downloaded and verified
-from their public sources with `prepare-references`; OSDR counts can be fetched
-again through the NASA API. Only the trained checkpoints need separate storage
-to avoid retraining. See [`ARTIFACTS.md`](ARTIFACTS.md) for sources, checksums,
-and the task-to-artifact matrix.
+selected-feature comparison bundle, small data manifests, and project code. It
+does not contain the 39 GB ARCHS4 file, the 2.5 GB Tabula Muris Senis reference,
+the 92 MB GENCODE GTF, downloaded OSDR count tables, or the selected model
+checkpoints. The three public references can be downloaded and verified with
+`prepare-references`; OSDR counts can be fetched again through the NASA API.
+Only the trained checkpoints need separate storage to avoid retraining. See
+[`ARTIFACTS.md`](ARTIFACTS.md) for sources, checksums, and the task-to-artifact
+matrix.
 
 ## Setup
 
@@ -135,9 +137,9 @@ conda env update -f environment.yml --prune
 python -m pip install -e .
 ```
 
-Download the public ARCHS4 and Tabula Muris Senis inputs when a training or
-composition workflow needs them. The command resumes partial downloads and
-verifies the exact files used here:
+Download the public ARCHS4, Tabula Muris Senis, and GENCODE inputs when a
+workflow needs them. The command resumes partial downloads and verifies the
+exact files used here:
 
 ```bash
 python -m nasa_mouse_generative prepare-references
@@ -183,6 +185,13 @@ Rebuild the internship report and presentation:
 ```bash
 python -m nasa_mouse_internship_report.build_report
 python -m nasa_mouse_diffusion.paper_parity.build_slstp_presentation
+```
+
+Refresh the selected gene and pathway comparison bundle after rerunning feature
+importance:
+
+```bash
+python -m nasa_mouse_internship_report.build_comparison_exports
 ```
 
 The [figure reproduction guide](docs/figure_reproduction.md) gives the

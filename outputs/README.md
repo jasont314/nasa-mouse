@@ -12,6 +12,7 @@ and provenance; the paper `source_data/` tables are the final numeric record.
 
 | Path | Contents |
 |---|---|
+| `comparison/selected_features/` | Workbook and TSV crosswalks for comparing selected genes and pathways with another model |
 | `osdr/inventory/` | OSDR sample inventories and tissue/material summaries |
 | `glare/` | GLARE and MOBER runs when regenerated |
 | `expimap/runs/direct/` | OSDR-only expiMap runs, organized by tissue |

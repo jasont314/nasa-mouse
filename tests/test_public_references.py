@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from unittest import mock
 
+from nasa_mouse_generative.gene_annotations import build_gene_annotations
 from nasa_mouse_generative.public_references import (
     PUBLIC_REFERENCES,
     PublicReference,
@@ -57,6 +58,37 @@ class PublicReferenceTests(unittest.TestCase):
         )
         self.assertEqual(PUBLIC_REFERENCES["archs4"].size_bytes, 38_960_132_574)
         self.assertEqual(PUBLIC_REFERENCES["tms"].size_bytes, 2_548_190_251)
+        self.assertEqual(PUBLIC_REFERENCES["gencode"].size_bytes, 91_741_340)
+
+    def test_gencode_gene_annotations_are_versionless(self):
+        fixture = (
+            "##description: fixture\n"
+            'chr1\tHAVANA\tgene\t1\t20\t.\t+\t.\tgene_id '
+            '"ENSMUSG00000000001.7"; gene_type "protein_coding"; '
+            'gene_name "Gnai3";\n'
+            'chr2\tHAVANA\tgene\t30\t50\t.\t-\t.\tgene_id '
+            '"ENSMUSG00000000028.15"; gene_type "protein_coding"; '
+            'gene_name "Cdc45";\n'
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "fixture.gtf"
+            path.write_text(fixture, encoding="utf-8")
+            observed = build_gene_annotations(path)
+        self.assertEqual(
+            observed.to_dict(orient="records"),
+            [
+                {
+                    "gene_id": "ENSMUSG00000000001",
+                    "gene_symbol": "Gnai3",
+                    "gene_type": "protein_coding",
+                },
+                {
+                    "gene_id": "ENSMUSG00000000028",
+                    "gene_symbol": "Cdc45",
+                    "gene_type": "protein_coding",
+                },
+            ],
+        )
 
     def test_download_verifies_and_atomically_installs(self):
         payload = b"public-reference-fixture"

@@ -19,7 +19,8 @@ Run `python -m nasa_mouse_generative <command> --help`. The main commands are:
 | `matrix-run` | `matrix_runner.py` | Execute or resume experiment-plan rows |
 | `train`, `evaluate`, `generate` | `runner.py`, `evaluate.py`, `generate.py` | Run one resolved model configuration |
 | `scoreboard` | `scoreboard.py` | Summarize completed screens using hard metric gates |
-| `prepare-references` | `public_references.py` | Resume and checksum-verify the public ARCHS4 and TMS inputs |
+| `prepare-references` | `public_references.py` | Resume and checksum-verify the public ARCHS4, TMS, and GENCODE inputs |
+| `gene-annotations` | `gene_annotations.py` | Build the tracked mouse Ensembl gene-symbol map from GENCODE vM39 |
 | `prepare-upstreams` | `upstreams.py` | Restore pinned optional model-source checkouts |
 | `archs4-figures`, `condition-figures` | figure modules | Build evaluation figures from completed runs |
 | `gene-lengths` | `gene_lengths.py` | Build the mouse Ensembl gene-length table |

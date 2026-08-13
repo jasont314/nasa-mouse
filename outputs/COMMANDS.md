@@ -104,6 +104,7 @@ python -m nasa_mouse_diffusion.paper_parity.classifier_importance \
 python -m nasa_mouse_diffusion.paper_parity.grouped_pathway_importance \
   --config configs/generative/diffusion/grouped_pathway_importance_osdr_disjoint.yaml
 python -m nasa_mouse_diffusion.paper_parity.annotate_importance_literature --check
+python -m nasa_mouse_internship_report.build_comparison_exports
 ```
 
 ### Liver harmonization benchmark

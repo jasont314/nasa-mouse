@@ -1,4 +1,6 @@
 import ast
+import hashlib
+import json
 from pathlib import Path
 import re
 import sys
@@ -133,6 +135,142 @@ class HandoffIntegrityTests(unittest.TestCase):
             evidence.iloc[1]["matched_all_gene_result"],
         )
         self.assertNotIn("guided delta", "\n".join(evidence.astype(str).stack()))
+
+    def test_selected_feature_comparison_bundle_is_complete(self):
+        bundle = ROOT / "outputs/comparison/selected_features"
+        pathways = pd.read_csv(bundle / "pathway_crosswalk.tsv", sep="\t")
+        genes = pd.read_csv(bundle / "gene_crosswalk.tsv", sep="\t")
+        stable = pd.read_csv(
+            bundle / "generative_selected_arm_stable_features.tsv",
+            sep="\t",
+        )
+        all_arm_stable = pd.read_csv(
+            bundle / "generative_all_arm_stable_features.tsv.gz",
+            sep="\t",
+        )
+        coverage = pd.read_csv(bundle / "generative_analysis_coverage.tsv", sep="\t")
+        matched = pd.read_csv(bundle / "generative_matched_genes.tsv", sep="\t")
+        consensus = pd.read_csv(bundle / "generative_consensus_genes.tsv", sep="\t")
+
+        self.assertEqual(len(pathways), 26)
+        self.assertEqual((pathways["method"] == "expiMap").sum(), 16)
+        self.assertEqual(
+            (pathways["method"] == "conditional_DDIM_classifier").sum(),
+            10,
+        )
+        self.assertTrue(pathways["pathway_id"].str.fullmatch(r"R-MMU-\d+").all())
+        self.assertTrue(
+            pathways.apply(
+                lambda row: row["pathway_term"].startswith(row["pathway_id"]),
+                axis=1,
+            ).all()
+        )
+        self.assertEqual(len(stable), 679)
+        self.assertEqual(len(all_arm_stable), 3262)
+        self.assertEqual(
+            len(
+                all_arm_stable[
+                    ["analysis_scope", "tissue", "gene"]
+                ].drop_duplicates()
+            ),
+            1307,
+        )
+        self.assertEqual(
+            len(all_arm_stable[["analysis_scope", "tissue"]].drop_duplicates()),
+            27,
+        )
+        self.assertEqual(len(coverage), 27)
+        self.assertEqual(
+            coverage["selected_arm_feature_comparison_available"].sum(),
+            22,
+        )
+        unavailable = coverage.loc[
+            ~coverage["selected_arm_feature_comparison_available"],
+            ["scope", "tissue"],
+        ]
+        self.assertEqual(
+            set(map(tuple, unavailable.itertuples(index=False, name=None))),
+            {
+                ("tissue", "cecum"),
+                ("tissue", "colon"),
+                ("tissue", "liver"),
+                ("muscle_group", "edl"),
+                ("muscle_group", "quadriceps"),
+            },
+        )
+        self.assertEqual(
+            stable["minimum_selection_frequency"].unique().tolist(),
+            [0.5],
+        )
+        self.assertEqual(
+            stable["minimum_coefficient_sign_agreement"].unique().tolist(),
+            [0.75],
+        )
+        self.assertEqual(len(matched), 21)
+        self.assertEqual(len(consensus), 49)
+        self.assertEqual(coverage["full_selected_arm_feature_count"].sum(), 4475)
+        self.assertEqual(coverage["all_arm_stable_feature_row_count"].sum(), 3262)
+        self.assertEqual(coverage["all_arm_stable_unique_gene_count"].sum(), 1307)
+        self.assertEqual(coverage["stable_selected_feature_count"].sum(), 679)
+        self.assertEqual(coverage["matched_primary_gene_count"].sum(), 21)
+        self.assertEqual(coverage["consensus_secondary_gene_count"].sum(), 49)
+        self.assertEqual(coverage["grouped_pathway_count"].sum(), 10)
+        self.assertEqual(genes["expimap_pathway_member"].sum(), 743)
+        self.assertEqual(genes["generative_any_arm_stable_feature"].sum(), 1307)
+        self.assertEqual(
+            genes["generative_selected_arm_stable_feature"].sum(),
+            679,
+        )
+        self.assertEqual(genes["matched_primary"].sum(), 21)
+        self.assertEqual(genes["consensus_secondary"].sum(), 49)
+        expimap_symbols = genes.loc[
+            genes["expimap_pathway_member"],
+            "gene_symbol",
+        ]
+        self.assertFalse(expimap_symbols.str.startswith("ENSMUSG").any())
+        expimap_pathway_ids = genes.loc[
+            genes["expimap_pathway_member"],
+            "retained_pathway_ids",
+        ].str.split(";")
+        self.assertTrue(
+            expimap_pathway_ids.explode().str.fullmatch(r"R-MMU-\d+").all()
+        )
+        self.assertFalse(
+            genes.duplicated(["analysis_scope", "tissue", "gene_id"]).any()
+        )
+
+        workbook = pd.ExcelFile(bundle / "selected_feature_comparison.xlsx")
+        self.assertEqual(
+            set(workbook.sheet_names),
+            {
+                "guide",
+                "gene_crosswalk",
+                "pathway_crosswalk",
+                "expimap_pathways",
+                "expimap_genes",
+                "expimap_members",
+                "gen_stable_features",
+                "gen_all_arm_stable",
+                "gen_matched_genes",
+                "gen_consensus_genes",
+                "gen_grouped_pathways",
+                "gen_analysis_coverage",
+            },
+        )
+
+        manifest = json.loads((bundle / "manifest.json").read_text())
+        for filename, metadata in manifest["outputs"].items():
+            path = bundle / filename
+            self.assertEqual(
+                hashlib.sha256(path.read_bytes()).hexdigest(),
+                metadata["sha256"],
+            )
+        self.assertEqual(
+            hashlib.sha256(
+                (bundle / manifest["workbook"]["path"]).read_bytes()
+            ).hexdigest(),
+            manifest["workbook"]["sha256"],
+        )
 
     def test_literature_annotation_sources_resolve(self):
         expimap_dir = ROOT / "paper/asgsr_expimap_hvg/source_data"

@@ -16,6 +16,32 @@ The standalone final plots are grouped in three places:
 - [expiMap main and supplementary figures](../paper/asgsr_expimap_hvg/figures/);
 - [generative main and supplementary figures](../paper/synthetic_guided_spaceflight/figures/).
 
+## Gene and pathway comparison files
+
+For comparison with another model, start with the
+[selected-feature workbook](../outputs/comparison/selected_features/selected_feature_comparison.xlsx)
+or the [bundle README](../outputs/comparison/selected_features/README.md). The
+workbook has separate sheets for expiMap pathways, expiMap pathway-member genes,
+generative feature importance, primary matched genes, secondary consensus
+genes, grouped Reactome pathways, and coverage of all 27 generative analysis
+units.
+
+Two TSV files provide direct cross-method join points:
+
+- [`gene_crosswalk.tsv`](../outputs/comparison/selected_features/gene_crosswalk.tsv)
+  uses versionless mouse Ensembl IDs and gene symbols across both methods;
+- [`pathway_crosswalk.tsv`](../outputs/comparison/selected_features/pathway_crosswalk.tsv)
+  uses Reactome `R-MMU-*` pathway IDs.
+
+The expiMap model selected pathways. Its gene rows are measured members of
+those retained pathways, not an independently selected gene panel. The
+generative bundle separately identifies 1,307 unique stable tissue-gene pairs
+across all tested arms, the 679 selected-arm stable rows, the 21 primary matched
+genes, and the 49 secondary consensus genes.
+[`generative_analysis_coverage.tsv`](../outputs/comparison/selected_features/generative_analysis_coverage.tsv)
+shows which units retained a synthetic-supported arm and the result count from
+each feature analysis.
+
 ## GLARE and MOBER
 
 GLARE is an informative negative result in the final report. In pooled skeletal

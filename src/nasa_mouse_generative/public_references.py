@@ -1,4 +1,4 @@
-"""Download and verify the public reference matrices used by the workflows."""
+"""Download and verify the public reference files used by the workflows."""
 
 from __future__ import annotations
 
@@ -53,6 +53,20 @@ PUBLIC_REFERENCES = {
         ),
         size_bytes=2_548_190_251,
         sha256="1d7fd90acb33269c3337dc5031b4a89d9aa4f72806a45b9c12e768fedc8acf8f",
+    ),
+    "gencode": PublicReference(
+        key="gencode",
+        label="GENCODE mouse primary-assembly annotation vM39",
+        path=Path(
+            "assets/reference/gencode.vM39.primary_assembly.annotation.gtf.gz"
+        ),
+        url=(
+            "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/"
+            "release_M39/gencode.vM39.primary_assembly.annotation.gtf.gz"
+        ),
+        source_page="https://www.gencodegenes.org/mouse/release_M39.html",
+        size_bytes=91_741_340,
+        sha256="d6da97913ce30f99883fc1216b111569f9947cf203886a5afb607b59228574d4",
     ),
 }
 
@@ -200,7 +214,7 @@ def parse_args() -> argparse.Namespace:
         "--reference",
         action="append",
         choices=sorted(PUBLIC_REFERENCES),
-        help="Reference to process; repeat to select both (default: both)",
+        help="Reference to process; repeat to select several (default: all)",
     )
     parser.add_argument(
         "--list", action="store_true", help="Print source and destination metadata"
