@@ -63,7 +63,7 @@ working tree.
   - purpose: paper implementation and L1000 metadata used by the DDIM
     paper-parity workflow.
 - `assets/model_sources/MBatch`
-  - upstream: https://github.com/MD-Anderson-Bioinformatics/MBatch
+  - upstream: https://github.com/MD-Anderson-Bioinformatics/BatchEffectsPackage
   - commit: `93cddd2ba18ed8781b9865ba0259fafa057bcc17`
   - purpose: official R implementations used by the MBatch harmonization
     adapters.

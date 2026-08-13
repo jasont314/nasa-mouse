@@ -12,9 +12,28 @@ from .paper_contracts import PAPER_SOURCES, verify_pinned_source
 def prepare_source(model: str, path: str | Path) -> Path:
     contract = PAPER_SOURCES[model]
     target = Path(path)
+    if target.is_dir() and not (target / ".git").exists():
+        verify_pinned_source(model, target)
+        return target
     if not (target / ".git").exists():
         target.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(["git", "clone", contract["url"], str(target)], check=True)
+    observed_url = subprocess.check_output(
+        ["git", "-C", str(target), "remote", "get-url", "origin"], text=True
+    ).strip()
+    if observed_url != contract["url"]:
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(target),
+                "remote",
+                "set-url",
+                "origin",
+                contract["url"],
+            ],
+            check=True,
+        )
     subprocess.run(["git", "-C", str(target), "fetch", "origin"], check=True)
     subprocess.run(
         ["git", "-C", str(target), "checkout", "--detach", contract["commit"]],

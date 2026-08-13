@@ -28,7 +28,7 @@ PAPER_SOURCES: dict[str, dict[str, Any]] = {
         },
     },
     "mbatch": {
-        "url": "https://github.com/MD-Anderson-Bioinformatics/MBatch.git",
+        "url": "https://github.com/MD-Anderson-Bioinformatics/BatchEffectsPackage.git",
         "commit": "93cddd2ba18ed8781b9865ba0259fafa057bcc17",
         "files": {
             "apps/MBatch/R/BEA_CorrectionsMP.R": "706084efe5c2bad7bad2ec24b7013c9105cfab7e1f865d72946c0cf3b411dc0f",

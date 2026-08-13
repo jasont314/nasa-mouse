@@ -22,11 +22,12 @@ from nasa_mouse_generative.metrics import (
     _synthetic_training_profiles,
     classifier_utility,
 )
-from nasa_mouse_generative.paper_contracts import verify_pinned_source
+from nasa_mouse_generative.paper_contracts import PAPER_SOURCES, verify_pinned_source
 from nasa_mouse_generative.preprocessing import FittedPreprocessor
 from nasa_mouse_generative.profiles import load_model_parameters
 from nasa_mouse_generative.runner import run as run_training
 from nasa_mouse_generative.training_data import DataPartition, effective_covariates
+from nasa_mouse_generative.upstreams import prepare_source
 from nasa_mouse_generative.adapters.wgan import WGANAdapter
 from nasa_mouse_wgan.model import ConditionalWGANGP, embedding_dim
 
@@ -64,6 +65,24 @@ def _matrix_row(**updates):
 
 
 class PaperContractTests(unittest.TestCase):
+    def test_mbatch_revision_uses_the_batch_effects_package_repository(self):
+        self.assertEqual(
+            PAPER_SOURCES["mbatch"]["url"],
+            "https://github.com/MD-Anderson-Bioinformatics/BatchEffectsPackage.git",
+        )
+
+    @mock.patch("nasa_mouse_generative.upstreams.subprocess.run")
+    @mock.patch("nasa_mouse_generative.upstreams.verify_pinned_source")
+    def test_prepare_source_accepts_a_verified_snapshot(
+        self, verify_source, run_command
+    ):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "snapshot"
+            target.mkdir()
+            self.assertEqual(prepare_source("mbatch", target), target)
+        verify_source.assert_called_once_with("mbatch", target)
+        run_command.assert_not_called()
+
     def test_wgan_accelerated_gamma_matches_released_numpy_definition(self):
         rng = np.random.default_rng(9)
         real = rng.normal(size=(30, 8))
