@@ -32,12 +32,15 @@ sequence rather than trying to infer the project from directory names:
 7. Read [selected outputs](outputs/README.md), the
    [command ledger](outputs/COMMANDS.md), [artifact inventory](ARTIFACTS.md),
    and [reproducibility record](REPRODUCIBILITY.md) before rerunning code.
-8. Open the package README linked from [`src/README.md`](src/README.md) before
+8. Use the [figure reproduction guide](docs/figure_reproduction.md) to rebuild
+   papers, plots, the poster, and the final presentation.
+9. Open the package README linked from [`src/README.md`](src/README.md) before
    modifying a workflow. Those files inventory the retained modules and mark
    final, supporting, and developmental entry points.
 
 Steps 1 through 6 explain the scientific work and repository organization.
-Steps 7 and 8 add the operational detail needed to reproduce or extend it.
+The remaining steps provide the operational detail needed to reproduce or
+extend it.
 
 ## Start here
 
@@ -165,6 +168,9 @@ Rebuild the internship report and presentation:
 python -m nasa_mouse_internship_report.build_report
 python -m nasa_mouse_diffusion.paper_parity.build_slstp_presentation
 ```
+
+The [figure reproduction guide](docs/figure_reproduction.md) gives the
+fresh-clone commands for both detailed papers and the poster.
 
 The complete training and analysis sequence is in
 [`outputs/COMMANDS.md`](outputs/COMMANDS.md). Model-specific background is

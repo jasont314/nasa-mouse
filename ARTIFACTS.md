@@ -76,7 +76,7 @@ python -m nasa_mouse_generative prepare-upstreams
 | Task | ARCHS4 | TMS | OSDR count cache | Checkpoints | Final analysis outputs |
 |---|---:|---:|---:|---:|---:|
 | Read final papers and presentation | No | No | No | No | No |
-| Render papers; rebuild report and presentation | No | No | No | No | No |
+| Redraw frozen-source figures; render papers, poster, report, and final presentation | No | No | No | No | No |
 | Refresh OSDR inventory | No | No | Downloaded as needed | No | No |
 | Refresh detailed generative-paper tables and figures | No | No | No | No | Yes |
 | Run selected model inference | No | No | Depends on analysis | Yes | No |
@@ -91,3 +91,7 @@ files they name to managed storage. Record the storage URL, access policy, and
 retrieval date in this file. Do not add multi-gigabyte checkpoints or expression
 matrices to ordinary Git history. The ignored root `.env` is machine-specific
 and may contain credentials; do not include it in a handoff archive.
+
+The boundary between figures rebuilt from tracked tables and graphics that
+require model outputs is documented in
+[`docs/figure_reproduction.md`](docs/figure_reproduction.md).

@@ -22,6 +22,9 @@ The primary descriptive quantity is the equally weighted project- or accession-s
 - `source_data/table_s31_latent_mapping_coordinates.tsv.gz` and `table_s32_latent_mapping_qc.tsv`: reference-query coordinates and mapping-coverage diagnostics.
 - `source_data/table_s33_representative_program_sample_scores.tsv.gz`: project-centered sample scores behind Figure S9.
 - `source_data/table_s34_retained_pathway_member_gene_support.tsv` and `table_s35_retained_pathway_member_gene_effects.tsv.gz`: pathway-level and gene-level directional support behind Figure 4.
+- `source_data/table_s36_kidney_spleen_seed_accession_effects.tsv.gz`: frozen
+  project effects used to redraw the corrected spleen panel without the ignored
+  reassessment directory.
 - `source_data/figure_build_manifest.tsv`: dimensions, file sizes, vector-copy status, and border checks for every figure.
 - `source_data/table_s3_all_pathway_effects.tsv` and `table_s9_systematic_pathway_screen.tsv`: complete original thymus, skin, liver, and soleus results.
 - `source_data/table_s24_pathway_robustness_evidence.tsv`: original four-model five-check matrix.
@@ -38,7 +41,18 @@ full source records. The corresponding review instructions are preserved in
 
 ## Rebuild
 
-Run the original four-model build and robustness analyses first, then the corrected kidney/spleen analysis, paper integration, final publication-figure build, and document renderer:
+Redraw the final publication figures, render the documents, and rebuild the
+poster from a fresh clone:
+
+```bash
+python -m nasa_mouse_expimap.build_publication_figures --from-frozen-source
+python -m nasa_mouse_expimap.render_asgsr_documents
+python -m nasa_mouse_expimap.build_asgsr_poster
+```
+
+To recompute the source tables from the selected model outputs, run the original
+four-model build and robustness analyses first, followed by the corrected kidney
+and spleen analysis, paper integration, figure build, and renderer:
 
 ```bash
 python -m nasa_mouse_expimap.build_asgsr_paper
@@ -55,6 +69,10 @@ python -m nasa_mouse_expimap.build_asgsr_poster
 ```
 
 `build_publication_figures` authors the final main figures and dense supplementary summaries at a 7.2-inch publication width, writes 300-dpi PNG and vector PDF copies, and checks image borders and dimensions. It also produces the latent-mapping, sample-score, and retained-member-gene source tables. Figure 6 is a deterministic Discussion schematic that explicitly separates prior-literature phenotypes, observed pathway-score directions, and new tissue-state hypotheses. A broader non-evidentiary process summary is regenerated under `outputs/expimap/analyses/publication_process_summary/`.
+
+With `--from-frozen-source`, the same plotting functions read Tables S31 through
+S36 instead of H5AD files and ignored reassessment outputs. This mode redraws
+figures but does not rerun expiMap or recompute their source values.
 
 `build_asgsr_poster` creates an editable, single-slide 48 x 27 inch landscape PowerPoint using the approved NASA poster template's 16:9 structure and branding. The project objective and cross-study framing are adapted from the midpoint presentation, while all biological claims use the final robustness-filtered analysis. Native PowerPoint objects are used for poster text, architecture, and tables. The retained-pathway plot is regenerated at a poster-readable 400 dpi from the same source data as manuscript Figure 3, and the tissue-state figure is rendered from its vector PDF at 700 dpi; both exceed 300 effective pixels per inch at final placement. When LibreOffice is installed, the command also exports the print PDF, 4,800 x 2,700 pixel preview, and a 300-dpi standalone architecture graphic.
 

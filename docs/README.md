@@ -13,6 +13,7 @@ tables live with the papers rather than being duplicated here.
 | [Method sources](method_sources.md) | Upstream repositories, pinned commits, and method provenance |
 | [Generative pipeline](generative_pipeline.md) | Configurable DDIM/WGAN workflow and selected implementation branch |
 | [Generative validation](generative_validation.md) | Final OSDR-disjoint model comparison and validation summary |
+| [Figure reproduction](figure_reproduction.md) | Fresh-clone figure builds, model-dependent exceptions, and visual checks |
 | [Biological hypotheses](distributed_response_hypotheses.md) | Literature-supported interpretation used by the internship report |
 | [Literature annotations](annotation_provenance.md) | LLM-assisted annotation tables, rationale fields, source catalogs, and rebuild scripts |
 | [Annotation prompts](annotation_prompts.md) | Original instruction sequence, final label definitions, canonical rerun prompts, and historical limits |

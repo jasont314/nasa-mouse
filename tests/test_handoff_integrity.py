@@ -13,6 +13,7 @@ from nasa_mouse_diffusion.paper_parity import (
     annotate_importance_literature,
     build_synthetic_guided_paper,
 )
+from nasa_mouse_expimap import integrate_reassessed_tissues_paper
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,6 +64,40 @@ class HandoffIntegrityTests(unittest.TestCase):
         )
         missing = [path for path in manifest["path"] if not (ROOT / path).exists()]
         self.assertEqual(missing, [])
+
+    def test_frozen_figure_sources_are_complete(self):
+        tables = build_synthetic_guided_paper.load_frozen_figure_tables()
+        expected = {
+            "arch_summary",
+            "locked_repeats",
+            "naive_utility",
+            "thymus_core",
+            "thymus_reactome",
+            "muscle_summary",
+            "soleus_genes",
+            "muscle_reactome",
+            "tissue_summary",
+            "model_screen",
+            "matched_utility",
+            "matched_candidates",
+            "matched_consensus_comparison",
+            "development_highlights",
+        }
+        self.assertEqual(set(tables), expected)
+        self.assertEqual(len(tables["development_highlights"]), 10)
+
+        missing_root = ROOT / "does-not-exist"
+        with mock.patch.object(
+            integrate_reassessed_tissues_paper,
+            "REASSESSMENT_DIR",
+            missing_root,
+        ):
+            effects = integrate_reassessed_tissues_paper.project_effects(
+                "spleen",
+                ("R-MMU-202403_TCR_SIGNALING",),
+            )
+        self.assertFalse(effects.empty)
+        self.assertEqual(effects["heldout_project"].nunique(), 5)
 
     def test_literature_annotation_sources_resolve(self):
         expimap_dir = ROOT / "paper/asgsr_expimap_hvg/source_data"

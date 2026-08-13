@@ -27,6 +27,8 @@ files outside normal Git history.
 7. Consult [outputs/README.md](outputs/README.md) and
    [outputs/COMMANDS.md](outputs/COMMANDS.md) only when tracing a result back to
    a run or rebuilding an analysis.
+8. Use the [figure reproduction guide](docs/figure_reproduction.md) for the
+   exact fresh-clone and full-analysis figure paths.
 
 ## What was completed
 
@@ -76,7 +78,7 @@ All biological association tests were calculated from real OSDR profiles.
 |---|---:|---|
 | Read PDFs and inspect source tables | Yes | None |
 | Edit the PPTX or manuscripts | Yes | Office/PDF tools as needed |
-| Render all manuscripts; rebuild report and presentation | Yes | `nasa-mouse` environment |
+| Redraw frozen-source figures; render manuscripts, poster, and final presentation | Yes | `nasa-mouse` environment; LibreOffice for PPTX-to-PDF export |
 | Refresh detailed generative-paper tables and figures | No | Ignored final analysis outputs |
 | Rerun OSDR ingestion | Yes | Network access to NASA OSDR |
 | Rerun final model inference | No | Selected local checkpoints |

@@ -537,6 +537,59 @@ def _bh_fdr_tissue_summary(
     return pd.DataFrame(rows)
 
 
+def _development_highlights(
+    tissue_summary: pd.DataFrame,
+    muscle_summary: pd.DataFrame,
+) -> pd.DataFrame:
+    development_tissues = [
+        "thymus",
+        "skeletal_muscle",
+        "kidney",
+        "spleen",
+        "skin",
+        "lung",
+        "retina",
+        "adrenal_gland",
+    ]
+    columns = [
+        "tissue",
+        "selected_arm",
+        "real_mean_balanced_accuracy",
+        "selected_mean_balanced_accuracy",
+        "real_mean_roc_auc",
+        "selected_mean_roc_auc",
+        "real_mean_average_precision",
+        "selected_mean_average_precision",
+        "generated_arm_eligible_all_metrics",
+    ]
+    canonical = tissue_summary.loc[
+        tissue_summary["tissue"].isin(development_tissues), columns
+    ].copy()
+    canonical.insert(0, "analysis_scope", "canonical_tissue")
+    muscle = muscle_summary.loc[
+        muscle_summary["tissue"].isin(["soleus", "gastrocnemius"]), columns
+    ].copy()
+    muscle.insert(0, "analysis_scope", "skeletal_muscle_group")
+    highlights = pd.concat([canonical, muscle], ignore_index=True)
+    order = development_tissues + ["soleus", "gastrocnemius"]
+    highlights["_order"] = highlights["tissue"].map(
+        {tissue: index for index, tissue in enumerate(order)}
+    )
+    highlights = (
+        highlights.sort_values("_order")
+        .drop(columns="_order")
+        .reset_index(drop=True)
+    )
+    if len(highlights) != 10:
+        raise ValueError(
+            "Expected ten tissue-specific utility highlights, "
+            f"found {len(highlights)}"
+        )
+    if not highlights["generated_arm_eligible_all_metrics"].astype(bool).all():
+        raise ValueError("Every tissue-specific utility highlight must pass the arm gate")
+    return highlights
+
+
 def build_source_tables() -> dict[str, pd.DataFrame]:
     arch_eval = _read_json(ARCHS4_RUN / "evaluation/summary.json")
     arch_run = _read_json(ARCHS4_RUN / "run_summary.json")
@@ -1199,58 +1252,10 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
         validate="one_to_one",
     )
 
-    development_tissues = [
-        "thymus",
-        "skeletal_muscle",
-        "kidney",
-        "spleen",
-        "skin",
-        "lung",
-        "retina",
-        "adrenal_gland",
-    ]
-    development_highlights = tissue_summary.loc[
-        tissue_summary["tissue"].isin(development_tissues),
-        [
-            "tissue",
-            "selected_arm",
-            "real_mean_balanced_accuracy",
-            "selected_mean_balanced_accuracy",
-            "real_mean_roc_auc",
-            "selected_mean_roc_auc",
-            "real_mean_average_precision",
-            "selected_mean_average_precision",
-            "generated_arm_eligible_all_metrics",
-        ],
-    ].copy()
-    development_highlights.insert(0, "analysis_scope", "canonical_tissue")
-    muscle_highlights = muscle_summary.loc[
-        muscle_summary["tissue"].isin(["soleus", "gastrocnemius"]),
-        development_highlights.columns.drop("analysis_scope").tolist(),
-    ].copy()
-    muscle_highlights.insert(0, "analysis_scope", "skeletal_muscle_group")
-    development_highlights = pd.concat(
-        [development_highlights, muscle_highlights],
-        ignore_index=True,
+    development_highlights = _development_highlights(
+        tissue_summary,
+        muscle_summary,
     )
-    development_order = development_tissues + ["soleus", "gastrocnemius"]
-    development_highlights["_order"] = development_highlights["tissue"].map(
-        {tissue: index for index, tissue in enumerate(development_order)}
-    )
-    development_highlights = (
-        development_highlights.sort_values("_order")
-        .drop(columns="_order")
-        .reset_index(drop=True)
-    )
-    if len(development_highlights) != 10:
-        raise ValueError(
-            "Expected ten tissue-specific utility highlights, "
-            f"found {len(development_highlights)}"
-        )
-    if not development_highlights["generated_arm_eligible_all_metrics"].all():
-        raise ValueError(
-            "Every tissue-specific utility highlight must pass the arm gate"
-        )
 
     evidence = pd.DataFrame(
         [
@@ -1408,6 +1413,34 @@ def build_source_tables() -> dict[str, pd.DataFrame]:
     }
     for key, name in names.items():
         _write_tsv(tables[key], name)
+    return tables
+
+
+def load_frozen_figure_tables() -> dict[str, pd.DataFrame]:
+    """Load tracked source tables needed to redraw the publication figures."""
+    names = {
+        "arch_summary": "table_s1_archs4_ddim_metrics.tsv",
+        "locked_repeats": "table_s2_locked_ddim_repeats.tsv",
+        "naive_utility": "table_s3_naive_augmentation.tsv",
+        "thymus_core": "table_s4_thymus_core_genes.tsv",
+        "thymus_reactome": "table_s5_thymus_reactome.tsv",
+        "muscle_summary": "table_s6_muscle_group_summary.tsv",
+        "soleus_genes": "table_s7_soleus_genes.tsv",
+        "muscle_reactome": "table_s8_muscle_reactome.tsv",
+        "tissue_summary": "table_s9_all_tissue_development_screen.tsv",
+        "model_screen": "table_4_generator_model_selection.tsv",
+        "matched_utility": "table_s18_matched_all_gene_utility.tsv",
+        "matched_candidates": "table_s19_matched_all_gene_candidates.tsv",
+        "matched_consensus_comparison": "table_s21_matched_consensus_comparison.tsv",
+    }
+    tables = {
+        key: pd.read_csv(_required(SOURCE_DIR / name), sep="\t")
+        for key, name in names.items()
+    }
+    tables["development_highlights"] = _development_highlights(
+        tables["tissue_summary"],
+        tables["muscle_summary"],
+    )
     return tables
 
 
@@ -2603,11 +2636,38 @@ def main() -> None:
         action="store_true",
         help="Render tracked Markdown and figures without reading ignored analysis outputs.",
     )
+    render_mode.add_argument(
+        "--figures-from-frozen-source",
+        action="store_true",
+        help=(
+            "Redraw table-derived publication figures from tracked source tables, "
+            "then render the paper without reading ignored analysis outputs."
+        ),
+    )
     args = parser.parse_args()
 
     if args.render_only:
         render_paper_documents()
         print(f"Rendered tracked paper package: {PAPER_DIR}")
+        return
+
+    if args.figures_from_frozen_source:
+        FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+        _style()
+        tables = load_frozen_figure_tables()
+        figure_1_validation(tables)
+        figure_s2_utility(tables)
+        figure_3_thymus(tables)
+        figure_4_soleus(tables)
+        figure_5_evidence(tables)
+        for filename in (
+            "figure_2a_archs4_denoising_trajectory.png",
+            "figure_2b_locked_real_vs_synthetic_pca.png",
+            "figure_s1_muscle_arm_heatmap.png",
+        ):
+            _required(FIGURE_DIR / filename)
+        render_paper_documents()
+        print(f"Redrew frozen-source figures and rendered: {PAPER_DIR}")
         return
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)

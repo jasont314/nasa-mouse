@@ -85,6 +85,19 @@ python \
   --render-only
 ```
 
+To redraw every table-derived figure before rendering, use:
+
+```bash
+python \
+  -m nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper \
+  --figures-from-frozen-source
+```
+
+This redraws Figures 1, 3, 4, and 5 and Figure S2. Figure 2 and Figure S1 are
+model-output graphics whose tracked copies are preserved during this mode. Their
+full regeneration commands are listed in
+[`docs/figure_reproduction.md`](../../docs/figure_reproduction.md).
+
 To refresh source tables and figures from the completed local analyses, omit
 `--render-only`. That operation requires the ignored final outputs listed in
 `source_data/frozen_input_manifest.tsv`. It checks key values before writing

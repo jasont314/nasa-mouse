@@ -21,6 +21,9 @@ PAPER_DIR = ROOT / "paper/asgsr_expimap_hvg"
 SOURCE_DIR = PAPER_DIR / "source_data"
 FIGURE_DIR = PAPER_DIR / "figures"
 REASSESSMENT_DIR = ROOT / "outputs/expimap/analyses/kidney_spleen_reassessment"
+FROZEN_REASSESSMENT_EFFECTS = (
+    SOURCE_DIR / "table_s36_kidney_spleen_seed_accession_effects.tsv.gz"
+)
 
 MAIN_TISSUES = ("thymus", "skin", "liver", "spleen")
 TISSUE_ORDER = (*MAIN_TISSUES, "kidney")
@@ -418,9 +421,11 @@ def plot_workflow(scope: pd.DataFrame) -> None:
 
 def project_effects(tissue: str, terms: tuple[str, ...]) -> pd.DataFrame:
     if tissue == "spleen":
-        effects = pd.read_csv(
-            REASSESSMENT_DIR / "seed_accession_effects.tsv.gz", sep="\t"
+        live_effects = REASSESSMENT_DIR / "seed_accession_effects.tsv.gz"
+        effects_path = (
+            live_effects if live_effects.is_file() else FROZEN_REASSESSMENT_EFFECTS
         )
+        effects = pd.read_csv(effects_path, sep="\t")
         effects = effects.loc[
             effects["tissue"].eq(tissue)
             & effects["seed"].eq(2020)

@@ -26,8 +26,17 @@ libreoffice --headless --convert-to pdf --outdir presentation/final \
 
 The midpoint presentation is the original delivered deck. The final builder
 uses selected tracked extracts from it under `final/source/assets/`; it does not
-modify the midpoint deck.
+modify the midpoint deck. The midpoint PPTX is its editable source and can be
+exported again with LibreOffice:
+
+```bash
+libreoffice --headless --convert-to pdf --outdir presentation/midpoint \
+  presentation/midpoint/SLSTP_2026_Midpoint_Presentation.pptx
+```
 
 The poster and final presentation were visually checked after rendering. The
 PowerPoint files are the editable sources; the PDFs are the review and print
 copies.
+
+See [`docs/figure_reproduction.md`](../docs/figure_reproduction.md) for the
+figure-level source boundary and full-analysis commands.

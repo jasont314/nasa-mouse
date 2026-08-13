@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 from dataclasses import dataclass
 from pathlib import Path
 import textwrap
@@ -155,7 +156,11 @@ def save_figure(fig: plt.Figure, name: str, output_dir: Path = FIGURE_DIR) -> No
     """Preserve the authored final dimensions in both raster and vector output."""
     output_dir.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_dir / f"{name}.png", dpi=300, facecolor="white")
-    fig.savefig(output_dir / f"{name}.pdf", facecolor="white")
+    fig.savefig(
+        output_dir / f"{name}.pdf",
+        facecolor="white",
+        metadata={"CreationDate": None, "ModDate": None},
+    )
     plt.close(fig)
 
 
@@ -1646,7 +1651,7 @@ def validate_new_figures(manifest: pd.DataFrame) -> None:
         raise RuntimeError(f"Figure content approaches the image boundary:\n{failures}")
 
 
-def run() -> None:
+def run(*, from_frozen_source: bool = False) -> None:
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     configure_style()
@@ -1654,12 +1659,30 @@ def run() -> None:
     scope = pd.read_csv(SOURCE_DIR / "table_s25_revised_model_scope.tsv", sep="\t")
 
     plot_workflow(scope)
-    coordinates, qc = build_latent_mapping_tables()
+    if from_frozen_source:
+        coordinates = pd.read_csv(
+            SOURCE_DIR / "table_s31_latent_mapping_coordinates.tsv.gz", sep="\t"
+        )
+        qc = pd.read_csv(SOURCE_DIR / "table_s32_latent_mapping_qc.tsv", sep="\t")
+    else:
+        coordinates, qc = build_latent_mapping_tables()
     plot_latent_mapping(coordinates, qc)
     plot_pathway_shifts(evidence)
-    scores = build_program_score_table(evidence)
+    if from_frozen_source:
+        scores = pd.read_csv(
+            SOURCE_DIR / "table_s33_representative_program_sample_scores.tsv.gz",
+            sep="\t",
+        )
+    else:
+        scores = build_program_score_table(evidence)
     plot_program_score_distributions(scores, evidence)
-    gene_summary, _ = build_member_gene_tables(evidence)
+    if from_frozen_source:
+        gene_summary = pd.read_csv(
+            SOURCE_DIR / "table_s34_retained_pathway_member_gene_support.tsv",
+            sep="\t",
+        )
+    else:
+        gene_summary, _ = build_member_gene_tables(evidence)
     plot_evidence_and_gene_support(evidence, gene_summary)
     plot_skin_protocol_context()
     plot_tissue_state_hypotheses()
@@ -1679,4 +1702,13 @@ def run() -> None:
 
 
 if __name__ == "__main__":
-    run()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--from-frozen-source",
+        action="store_true",
+        help=(
+            "Regenerate figures from tracked publication source tables without "
+            "reading ignored model outputs."
+        ),
+    )
+    run(from_frozen_source=parser.parse_args().from_frozen_source)

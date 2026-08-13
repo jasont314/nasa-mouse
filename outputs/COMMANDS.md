@@ -428,6 +428,24 @@ final analysis.
 
 ## Manuscripts, Figures, and Presentation
 
+These commands redraw all table-derived publication figures and visual
+deliverables from tracked inputs in a fresh clone:
+
+```bash
+python -m nasa_mouse_expimap.build_publication_figures --from-frozen-source
+python -m nasa_mouse_expimap.render_asgsr_documents
+python -m nasa_mouse_expimap.build_asgsr_poster
+python \
+  -m nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper \
+  --figures-from-frozen-source
+python -m nasa_mouse_diffusion.paper_parity.build_slstp_presentation
+python -m nasa_mouse_internship_report.build_report
+```
+
+The following commands refresh publication source tables from completed local
+analyses and therefore require the ignored outputs and checkpoints documented in
+`ARTIFACTS.md`:
+
 ```bash
 python -m nasa_mouse_expimap.build_asgsr_paper
 python -m nasa_mouse_expimap.build_publication_figures
@@ -438,3 +456,5 @@ python -m nasa_mouse_internship_report.build_report
 
 Publication builders read only the final selections listed in
 `outputs/README.md`; they do not choose a model by scanning every run directory.
+The figure-level distinction between frozen-source and model-output regeneration
+is documented in `docs/figure_reproduction.md`.

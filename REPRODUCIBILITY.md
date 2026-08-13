@@ -58,15 +58,23 @@ checkouts.
 Document-only verification does not require the large data or models:
 
 ```bash
+python -m nasa_mouse_expimap.build_publication_figures --from-frozen-source
 python -m nasa_mouse_internship_report.build_report
 python -m nasa_mouse_diffusion.paper_parity.build_slstp_presentation
 python -m nasa_mouse_expimap.render_asgsr_documents
-python -m nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper --render-only
+python -m nasa_mouse_expimap.build_asgsr_poster
+python \
+  -m nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper \
+  --figures-from-frozen-source
 ```
 
 These commands read tracked source tables, figures, and manuscript files. They
-do not retrain a model. A full refresh of the detailed generative paper requires
-the ignored final analysis outputs listed in that paper's source manifest.
+do not retrain a model. Three generative graphics and several expiMap sensitivity
+figures are preserved as tracked model-output figures; recreating their source
+coordinates requires the full analysis path. The distinction and commands are
+listed in [`docs/figure_reproduction.md`](docs/figure_reproduction.md). A full
+refresh of the detailed generative paper requires the ignored final analysis
+outputs listed in that paper's source manifest.
 
 ## Provenance conventions
 
