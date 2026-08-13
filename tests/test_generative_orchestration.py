@@ -35,13 +35,23 @@ from nasa_mouse_wgan.model import ConditionalWGANGP, embedding_dim
 ROOT = Path(__file__).resolve().parents[1]
 PINNED_WGAN_SOURCE = ROOT / "assets/model_sources/adversarial-gene-expression"
 PINNED_DDIM_SOURCE = ROOT / "assets/model_sources/rna-diffusion"
+PINNED_MBATCH_SOURCE = ROOT / "assets/model_sources/MBatch"
+PINNED_TRRAC_SOURCE = ROOT / "assets/model_sources/trrac"
 REQUIRES_PINNED_WGAN = unittest.skipUnless(
     PINNED_WGAN_SOURCE.is_dir(),
     "restore the pinned WGAN source with prepare-upstreams",
 )
 REQUIRES_ALL_PINNED_SOURCES = unittest.skipUnless(
-    PINNED_WGAN_SOURCE.is_dir() and PINNED_DDIM_SOURCE.is_dir(),
-    "restore the pinned WGAN and DDIM sources with prepare-upstreams",
+    all(
+        path.is_dir()
+        for path in (
+            PINNED_WGAN_SOURCE,
+            PINNED_DDIM_SOURCE,
+            PINNED_MBATCH_SOURCE,
+            PINNED_TRRAC_SOURCE,
+        )
+    ),
+    "restore the pinned method sources with prepare-upstreams",
 )
 
 
@@ -69,6 +79,16 @@ class PaperContractTests(unittest.TestCase):
         self.assertEqual(
             PAPER_SOURCES["mbatch"]["url"],
             "https://github.com/MD-Anderson-Bioinformatics/BatchEffectsPackage.git",
+        )
+
+    def test_prepare_upstreams_includes_the_trrac_reference(self):
+        self.assertEqual(
+            PAPER_SOURCES["trrac"]["url"],
+            "https://github.com/nasa/trrac.git",
+        )
+        self.assertIn(
+            "manuscripts/2023_liver_ilangovan/scripts/countNormalize.R",
+            PAPER_SOURCES["trrac"]["files"],
         )
 
     @mock.patch("nasa_mouse_generative.upstreams.subprocess.run")
@@ -185,6 +205,8 @@ class PaperContractTests(unittest.TestCase):
         roots = {
             "vinas_wgan_gp": PINNED_WGAN_SOURCE,
             "lacan_diffusion": PINNED_DDIM_SOURCE,
+            "mbatch": PINNED_MBATCH_SOURCE,
+            "trrac": PINNED_TRRAC_SOURCE,
         }
         for model, root in roots.items():
             with self.subTest(model=model):

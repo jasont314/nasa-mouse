@@ -52,6 +52,7 @@ def parse_args() -> argparse.Namespace:
         "--diffusion", default="assets/model_sources/rna-diffusion"
     )
     parser.add_argument("--mbatch", default="assets/model_sources/MBatch")
+    parser.add_argument("--trrac", default="assets/model_sources/trrac")
     return parser.parse_args()
 
 
@@ -61,6 +62,7 @@ def main() -> None:
         "vinas_wgan_gp": prepare_source("vinas_wgan_gp", args.wgan),
         "lacan_diffusion": prepare_source("lacan_diffusion", args.diffusion),
         "mbatch": prepare_source("mbatch", args.mbatch),
+        "trrac": prepare_source("trrac", args.trrac),
     }
     for model, path in paths.items():
         print(f"{model}\t{path}")

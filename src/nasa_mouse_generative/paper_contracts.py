@@ -36,6 +36,15 @@ PAPER_SOURCES: dict[str, dict[str, Any]] = {
             "apps/MBatch/R/BEA_CorrectionsAN.R": "9f7afddf224d8fc5d46e74c5a55b2a98457a6c7aabf7a3e4328f6a66b2f8ff5b",
         },
     },
+    "trrac": {
+        "url": "https://github.com/nasa/trrac.git",
+        "commit": "abcf12d57d68a36a4628f83dec191e2b2a6b778e",
+        "files": {
+            "README.md": "5354c7378c909b6d942e343720517ef69d61a6e5a914657f2db9219b2d310005",
+            "manuscripts/2023_liver_ilangovan/scripts/countNormalize.R": "191a4adcc52a5a36b24e2769c953bad4e9a7a95c894b9acc1ca7aaf74ec60045",
+            "manuscripts/2023_liver_ilangovan/scripts/RNASeqUtility.py": "b2cce3bf93076572fcd4701c8bdf1c0b1961ee421b95d475f510ec325cb59df1",
+        },
+    },
 }
 
 
