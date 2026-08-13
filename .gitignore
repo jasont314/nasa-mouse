@@ -2,6 +2,8 @@
 assets/*
 !assets/EXTERNAL_ARTIFACTS.sha256
 !assets/README.md
+!assets/poster_template/
+!assets/poster_template/**
 !assets/model_sources/
 assets/model_sources/*
 !assets/model_sources/glare/

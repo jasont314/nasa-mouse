@@ -100,6 +100,34 @@ python -m nasa_mouse_diffusion.paper_parity.grouped_pathway_importance \
 python -m nasa_mouse_diffusion.paper_parity.annotate_importance_literature --check
 ```
 
+### Liver harmonization benchmark
+
+The nine liver harmonization arms use the same OSDR extension contract. To
+recreate the arm outputs and their comparison table:
+
+```bash
+HARMONIZATION_CONFIGS=(
+  configs/generative/diffusion/osdr_liver_tpm_maxabs_matched.yaml
+  configs/generative/diffusion/osdr_liver_ilangovan_mor_log2_study_zscore.yaml
+  configs/generative/diffusion/osdr_liver_mentor_two_stage_matched.yaml
+  configs/generative/diffusion/osdr_liver_sanders_mor_combat_study.yaml
+  configs/generative/diffusion/osdr_liver_sanders_combat_seq_study.yaml
+  configs/generative/diffusion/osdr_liver_sanders_mbatch_median_polish_study.yaml
+  configs/generative/diffusion/osdr_liver_sanders_mbatch_empirical_bayes_study.yaml
+  configs/generative/diffusion/osdr_liver_sanders_mbatch_anova_study.yaml
+  configs/generative/diffusion/osdr_liver_mober_mor_study.yaml
+)
+
+for CFG in "${HARMONIZATION_CONFIGS[@]}"; do
+  python -m nasa_mouse_diffusion.paper_parity prepare-osdr --config "$CFG"
+  python -m nasa_mouse_diffusion.paper_parity train-osdr --config "$CFG"
+  python -m nasa_mouse_diffusion.paper_parity evaluate-osdr --config "$CFG"
+done
+
+python -m nasa_mouse_diffusion.paper_parity.harmonization_summary \
+  --manifest configs/generative/diffusion/liver_harmonization_benchmark.yaml
+```
+
 ## OSDR API and ARCHS4 Inventories
 
 ```bash
@@ -191,6 +219,112 @@ required. Final liver analysis used the primary-deduplicated query. Kidney and
 spleen used the corrected `reassessment_hvg_2000` runs. Exact file names and
 arguments are in `tutorial_hvg_input_manifest.json`, `training_summary.json`,
 and `query_mapping_summary.json` inside each run.
+
+### Primary liver de-duplicated query
+
+The selected liver reference used a 5,000-profile, series-stratified ARCHS4
+sample. The primary query is recreated deterministically by removing the
+overlapping OSD-164 and OSD-168 accessions after the shared HVG space is built:
+
+```bash
+LIVER_DIRECT=outputs/expimap/runs/direct/liver/input
+LIVER_REFERENCE=outputs/expimap/runs/reference_query/liver/reference_input_5000_stratified
+LIVER_HVG=outputs/expimap/runs/reference_query/liver/tutorial_hvg_2000
+LIVER_QUERY="$LIVER_HVG/input/osdr_liver_query_tutorial_hvg_raw_counts.h5ad"
+LIVER_PRIMARY="$LIVER_HVG/input/osdr_liver_query_tutorial_hvg_primary_deduplicated_raw_counts.h5ad"
+LIVER_RUN="$LIVER_HVG/query_nb_250epoch_seed2020_primary_deduplicated"
+
+python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue \
+  --tissue liver --transform raw_counts --output-dir "$LIVER_DIRECT"
+python -m nasa_mouse_expimap.prepare_expimap_archs4_reference \
+  --query-h5ad "$LIVER_DIRECT/osdr_liver_flt_gc_reactome_raw_counts.h5ad" \
+  --tissue liver --output-dir "$LIVER_REFERENCE" \
+  --max-samples 5000 --sample-seed 2020
+python -m nasa_mouse_expimap.prepare_expimap_tutorial_hvg \
+  --reference-h5ad "$LIVER_REFERENCE/archs4_mouse_liver_reference_reactome_raw_counts.h5ad" \
+  --query-h5ad "$LIVER_DIRECT/osdr_liver_flt_gc_reactome_raw_counts.h5ad" \
+  --output-dir "$LIVER_HVG/input" --n-top-genes 2000 \
+  --allow-no-batch-fallback
+python -m nasa_mouse_expimap.train_expimap_archs4_reference \
+  --input "$LIVER_HVG/input/archs4_mouse_liver_reference_tutorial_hvg_raw_counts.h5ad" \
+  --output-dir "$LIVER_HVG/reference_nb_400epoch_seed2020" \
+  --recon-loss nb --epochs 400 --seed 2020 --hidden-layers 300,300,300 \
+  --alpha-kl 0.5 --alpha-epoch-anneal 100 \
+  --early-stopping --early-stopping-patience 50
+python -m nasa_mouse_expimap.subset_expimap_query \
+  --input "$LIVER_QUERY" --output "$LIVER_PRIMARY" \
+  --exclude-accession OSD-164 --exclude-accession OSD-168 \
+  --expected-samples 197
+python -m nasa_mouse_expimap.map_expimap_osdr_query \
+  --reference-model "$LIVER_HVG/reference_nb_400epoch_seed2020/model" \
+  --query-h5ad "$LIVER_PRIMARY" --output-dir "$LIVER_RUN" \
+  --epochs 250 --seed 2020 --learning-rate 0.001 \
+  --alpha 0.7 --alpha-kl 0.35 --alpha-epoch-anneal 10
+python -m nasa_mouse_expimap.analyze_expimap_pathways \
+  --scores "$LIVER_RUN/query_pathway_scores.tsv" \
+  --output-dir "$LIVER_RUN/analysis"
+python -m nasa_mouse_expimap.validate_expimap_accession_effects \
+  --scores "$LIVER_RUN/query_pathway_scores.tsv" \
+  --output-dir "$LIVER_RUN/accession_validation"
+```
+
+### Selected soleus query and shared muscle reference
+
+The reference stored under `tutorial_hvg_edl_2000` is the shared 1,412-profile
+ARCHS4 skeletal-muscle reference. The `edl` name records which query was used
+when its common HVG space was first prepared; the ARCHS4 profiles themselves are
+not EDL-specific. The selected soleus query was mapped to that shared reference.
+The complete input, reference, and mapping recipe is:
+
+```bash
+MUSCLE=outputs/expimap/runs/muscle_groups/combined_min8
+MUSCLE_INPUT="$MUSCLE/input/osdr_skeletal_muscle_flt_gc_reactome_raw_counts.h5ad"
+MUSCLE_REFERENCE="$MUSCLE/reference_input_all/archs4_mouse_skeletal_muscle_reference_reactome_raw_counts.h5ad"
+EDL_HVG="$MUSCLE/tutorial_hvg_edl_2000"
+SOLEUS_HVG="$MUSCLE/tutorial_hvg_soleus_2000"
+
+python -m nasa_mouse_expimap.prepare_expimap_osdr_tissue \
+  --tissue skeletal_muscle --transform raw_counts --output-dir "$MUSCLE/input"
+python -m nasa_mouse_expimap.split_expimap_muscle_groups \
+  --input "$MUSCLE_INPUT" --output-dir "$MUSCLE/group_inputs" \
+  --min-per-condition 8 --min-accessions 3
+python -m nasa_mouse_expimap.split_expimap_muscle_groups \
+  --input "$MUSCLE_INPUT" --output-dir "$MUSCLE/group_inputs_exploratory_2acc" \
+  --min-per-condition 8 --min-accessions 2
+python -m nasa_mouse_expimap.prepare_expimap_archs4_reference \
+  --query-h5ad "$MUSCLE_INPUT" --tissue skeletal_muscle \
+  --output-dir "$MUSCLE/reference_input_all" --max-samples 0 --sample-seed 2020
+
+python -m nasa_mouse_expimap.prepare_expimap_tutorial_hvg \
+  --reference-h5ad "$MUSCLE_REFERENCE" \
+  --query-h5ad "$MUSCLE/group_inputs_exploratory_2acc/osdr_skeletal_muscle_edl_flt_gc_reactome_plus_muscle_raw_counts.h5ad" \
+  --output-dir "$EDL_HVG/input" --label skeletal_muscle_edl \
+  --n-top-genes 2000 --allow-no-batch-fallback
+python -m nasa_mouse_expimap.train_expimap_archs4_reference \
+  --input "$EDL_HVG/input/archs4_mouse_skeletal_muscle_edl_reference_tutorial_hvg_raw_counts.h5ad" \
+  --output-dir "$EDL_HVG/reference_nb_400epoch_seed2020" \
+  --recon-loss nb --epochs 400 --seed 2020 --hidden-layers 300,300,300 \
+  --alpha-kl 0.5 --alpha-epoch-anneal 100 \
+  --early-stopping --early-stopping-patience 50
+
+python -m nasa_mouse_expimap.prepare_expimap_tutorial_hvg \
+  --reference-h5ad "$MUSCLE_REFERENCE" \
+  --query-h5ad "$MUSCLE/group_inputs/osdr_skeletal_muscle_soleus_flt_gc_reactome_plus_muscle_raw_counts.h5ad" \
+  --output-dir "$SOLEUS_HVG/input" --label skeletal_muscle_soleus \
+  --n-top-genes 2000 --allow-no-batch-fallback
+python -m nasa_mouse_expimap.map_expimap_osdr_query \
+  --reference-model "$EDL_HVG/reference_nb_400epoch_seed2020/model" \
+  --query-h5ad "$SOLEUS_HVG/input/osdr_skeletal_muscle_soleus_query_tutorial_hvg_raw_counts.h5ad" \
+  --output-dir "$SOLEUS_HVG/query_nb_250epoch_seed2020" \
+  --epochs 250 --seed 2020 --no-alpha --alpha-kl 0.22 \
+  --alpha-epoch-anneal 10
+python -m nasa_mouse_expimap.analyze_expimap_pathways \
+  --scores "$SOLEUS_HVG/query_nb_250epoch_seed2020/query_pathway_scores.tsv" \
+  --output-dir "$SOLEUS_HVG/query_nb_250epoch_seed2020/analysis"
+python -m nasa_mouse_expimap.validate_expimap_accession_effects \
+  --scores "$SOLEUS_HVG/query_nb_250epoch_seed2020/query_pathway_scores.tsv" \
+  --output-dir "$SOLEUS_HVG/query_nb_250epoch_seed2020/accession_validation"
+```
 
 ### Query de novo programs
 

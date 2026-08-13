@@ -24,7 +24,7 @@ and [`outputs/COMMANDS.md`](../../outputs/COMMANDS.md).
 
 | Area | Modules |
 |---|---|
-| Reference and query preparation | `inspect_archs4_mouse.py`, `prepare_expimap_archs4_reference.py`, `prepare_expimap_osdr_tissue.py`, `prepare_expimap_tutorial_hvg.py`, `split_expimap_muscle_groups.py` |
+| Reference and query preparation | `inspect_archs4_mouse.py`, `prepare_expimap_archs4_reference.py`, `prepare_expimap_osdr_tissue.py`, `prepare_expimap_tutorial_hvg.py`, `subset_expimap_query.py`, `split_expimap_muscle_groups.py` |
 | Training, mapping, and scoring | `train_expimap_archs4_reference.py`, `train_expimap_direct.py`, `map_expimap_osdr_query.py`, `export_expimap_scores.py`, `analyze_expimap_pathways.py`, `validate_expimap_accession_effects.py` |
 | Variant and exploratory analyses | `run_expimap_tissue_variant_matrix.py`, `compare_expimap_transformations.py`, `cluster_expimap_condition_scores.py`, `run_expimap_latent_enrich_condition.py`, `summarize_expimap_latent_enrich_bf.py`, `summarize_expimap_de_novo.py`, `summarize_expimap_reference_seeds.py`, `summarize_expimap_results.py` |
 | Muscle and pathway follow-up | `analyze_muscle_targeted_modules.py`, `plot_expimap_pathway_followup.py`, `plot_expimap_accession_heatmaps.py`, `plot_hvg_interpretation_heatmaps.py`, `plot_hvg_literature_review_heatmaps.py` |

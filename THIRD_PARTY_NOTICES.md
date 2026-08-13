@@ -13,6 +13,9 @@ The tracked third-party license files include:
 - `assets/model_sources/MOBER/LICENSE`: MOBER snapshot, MIT License, Novartis.
 - `data/reference/expimap/UPSTREAM_LICENSE`: expiMap reference-material
   license notice.
+- `assets/poster_template/00 Poster Session Student Template_Approved by Legal.pptx`:
+  NASA-supplied presentation template retained for reproducibility and not
+  relicensed under the repository's MIT License.
 
 Public data obtained from NASA OSDR, ARCHS4, CELLxGENE, Reactome, GENCODE, and
 other cited providers are not relicensed by this repository. Their source and
