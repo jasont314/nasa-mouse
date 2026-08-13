@@ -54,6 +54,7 @@ separate interpretation or sensitivity annotations rather than inclusion gates.
 - `manuscript.md`, `manuscript.html`, and `manuscript.pdf`: full paper draft.
 - `supplementary_methods.md`, `.html`, and `.pdf`: implementation details,
   evaluation metrics, complete supporting results, and limitations.
+- `visual_audit.md`: page-render and figure-display checks for the final PDF.
 - `figures/`: five main figures and two supplementary figures in PNG/PDF.
   Figures 1-2 report generator metrics and diffusion trajectories; Figures 3-5
   report the tissue biology.
@@ -105,16 +106,12 @@ figures and does not retrain a model or rerun feature selection.
 
 ## Editorial provenance
 
-The current manuscript, presentation text, and speaker notes were audited on
-2026-08-03 with
+The manuscript, presentation text, and speaker notes were reviewed with
 [`blader/humanizer`](https://github.com/blader/humanizer) version 2.9.1 under
-its no-fabrication rule. The file-mode pass simplified formulaic transitions and
-repetitive sentence structures while preserving the scientific register. It did
-not alter frozen analysis outputs, source-table values, gene names, citations,
-or statistical interpretations. Humanizer was an editorial check, not part of
-the scientific method. This audit is recorded in the commit named
-`Reaudit manuscript and slides with Humanizer`; it supersedes an earlier
-provenance note whose cited commit is not present in this repository.
+its no-fabrication rule. The repository-wide scope and protected scientific
+content are recorded in
+[`docs/editorial_review.md`](../../docs/editorial_review.md). Humanizer was an
+editorial check, not part of the analysis.
 
 ## Evidence interpretation
 

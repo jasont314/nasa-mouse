@@ -2,6 +2,8 @@
 
 Final artifact: `manuscript.pdf`
 
+Handoff rerender checked: August 13, 2026 UTC.
+
 - Paper size: A4
 - Total pages: 11
 - Scientific main text: pages 1-9

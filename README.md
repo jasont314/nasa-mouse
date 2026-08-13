@@ -29,12 +29,14 @@ sequence rather than trying to infer the project from directory names:
    [prompt record](docs/annotation_prompts.md) to trace pathway and
    feature-importance interpretations to written rationale, sources, and the
    review instructions.
-7. Read [selected outputs](outputs/README.md), the
+7. Read the [editorial review record](docs/editorial_review.md) for the scope of
+   the Humanizer pass and the scientific content that was held fixed.
+8. Read [selected outputs](outputs/README.md), the
    [command ledger](outputs/COMMANDS.md), [artifact inventory](ARTIFACTS.md),
    and [reproducibility record](REPRODUCIBILITY.md) before rerunning code.
-8. Use the [figure reproduction guide](docs/figure_reproduction.md) to rebuild
+9. Use the [figure reproduction guide](docs/figure_reproduction.md) to rebuild
    papers, plots, the poster, and the final presentation.
-9. Open the package README linked from [`src/README.md`](src/README.md) before
+10. Open the package README linked from [`src/README.md`](src/README.md) before
    modifying a workflow. Those files inventory the retained modules and mark
    final, supporting, and developmental entry points.
 

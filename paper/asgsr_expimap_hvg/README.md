@@ -33,11 +33,26 @@ The primary descriptive quantity is the equally weighted project- or accession-s
   for the original tissue review.
 - `visual_audit.md`: rendered-page and standalone-figure quality-control record.
 
+## Review history
+
+The paper directory also preserves reviewer-response and sensitivity records:
+`reviewer_response.md`, `reviewer_pathway_evidence.md`,
+`reviewer_robustness_analysis.md`, `expanded_pathway_family_review.md`, and
+`submission_checklist.md`. They explain how the final scope was reached but are
+not the recommended entry point for the results.
+
+`aligned_complementary_story.md` records the earlier thymus, skin, liver, and
+soleus interpretation. It predates the corrected spleen and kidney analyses and
+is retained only as review history. Use the manuscript,
+`tissue_selection_audit.md`, and Table 2 for the current tissue set.
+
 The project-wide annotation index is
 [`docs/annotation_provenance.md`](../../docs/annotation_provenance.md). It maps
 the expiMap pathway labels and member-gene checks to their rationale fields and
 full source records. The corresponding review instructions are preserved in
 [`docs/annotation_prompts.md`](../../docs/annotation_prompts.md).
+The manuscript's Humanizer review is recorded in
+[`docs/editorial_review.md`](../../docs/editorial_review.md).
 
 ## Rebuild
 

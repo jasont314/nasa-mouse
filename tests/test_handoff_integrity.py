@@ -246,6 +246,26 @@ class HandoffIntegrityTests(unittest.TestCase):
             clone_only = annotate_importance_literature._collapse_grouped()
         self.assertEqual(len(clone_only), 10)
 
+    def test_editorial_review_covers_final_manuscripts(self):
+        record = (ROOT / "docs/editorial_review.md").read_text(encoding="utf-8")
+        self.assertIn("https://github.com/blader/humanizer", record)
+        self.assertIn("version 2.9.1", record)
+        self.assertIn("no-fabrication", record)
+
+        reviewed_paths = [
+            ROOT / "paper/slstp_internship_report/manuscript.md",
+            ROOT / "paper/asgsr_expimap_hvg/manuscript.md",
+            ROOT / "paper/synthetic_guided_spaceflight/manuscript.md",
+        ]
+        for path in reviewed_paths:
+            with self.subTest(path=path.relative_to(ROOT)):
+                text = path.read_text(encoding="utf-8")
+                self.assertNotRegex(text, r"[\u2013\u2014]")
+                self.assertNotRegex(
+                    text,
+                    r"\[(?:add|confirm|insert|review|todo|tbd)[^]]*\]",
+                )
+
     def test_presentation_deliverables_are_grouped(self):
         presentation_root = ROOT / "presentation"
         self.assertEqual(

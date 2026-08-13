@@ -10,7 +10,7 @@
 
 <p>Correspondence: jasontrinh@berkeley.edu</p>
 
-<p class="draft-note"><strong>Research manuscript draft for author review.</strong> Author list, acknowledgments, repository release URL, and archival DOI require final review before submission.</p>
+<p class="draft-note"><strong>Research manuscript draft for mentor review.</strong> Confirm the author list and required NASA clearance before submission.</p>
 
 </div>
 
@@ -30,13 +30,13 @@
 
 Spaceflight affects immune, musculoskeletal, metabolic, and barrier tissues through a combination of microgravity, radiation, confinement, altered nutrition, stress, and mission-specific procedures. Mouse flight experiments provide tissue access that is unavailable in astronauts, but their transcriptomic interpretation is difficult. Individual studies are small, missions differ in strain and duration, and condition labels can be entangled with study, material, genotype, or collection protocol. Pooling samples without preserving these design variables can convert study effects into apparent flight biology.
 
-The NASA Open Science Data Repository (OSDR) now exposes sample metadata and processed assay data through a queryable biological API [1]. This makes it possible to assemble a cross-study cohort while retaining accession-level provenance. Public reference resources offer a second opportunity. ARCHS4 uniformly processes a large fraction of public human and mouse RNA-seq data [2], providing tissue-diverse reference profiles for pretraining models that would be underdetermined on OSDR alone.
+The NASA Open Science Data Repository (OSDR) exposes sample metadata and processed assay data through a queryable biological API [1]. We used it to assemble a cross-study cohort while retaining accession-level provenance. ARCHS4 uniformly processes a large collection of public human and mouse RNA-seq data [2] and supplied tissue-diverse reference profiles for models that would be underdetermined on OSDR alone.
 
 Deep generative models can learn high-dimensional expression distributions. Conditional WGAN-GP models have reproduced tissue and cancer properties in GTEx and TCGA [3]. More recently, Lacan and colleagues adapted denoising diffusion probabilistic and implicit models to bulk transcriptomics and reported strong gene-correlation, neighborhood, adversarial, and downstream classification metrics [4]. We therefore compared these two generator families under a shared data and evaluation framework.
 
 The model is only one part of the problem. Multi-study bulk RNA-seq can be represented as counts, CPM, TPM, or transformed and scaled expression; studies can be corrected, explicitly conditioned, modeled separately, or pooled. Published spaceflight workflows have used within-study standardization [23] and compared ComBat, ComBat-seq, and MBatch correction families [24]. MOBER offers a learned, inductive alternative based on an adversarial conditional variational autoencoder [25]. Any of these choices can improve one diagnostic while erasing flight-related structure or preserving study artifacts instead of biology.
 
-We built a configurable pipeline around WGAN-GP and DDIM. It exposed preprocessing, harmonization, training source, cohort structure, conditioning, and validation as independent choices under a common run contract. Models were compared using correlation, neighborhood, adversarial, distributional, diversity, memorization, and FLT/GC-effect metrics. The OSDR-adapted DDIM was less distinguishable from real profiles and had lower distributional distance while maintaining high fidelity, so it was used for downstream analysis.
+We implemented WGAN-GP and DDIM in one configurable pipeline. Preprocessing, harmonization, training source, cohort structure, conditioning, and validation could be changed independently. We compared models using correlation, neighborhood, adversarial, distributional, diversity, memorization, and FLT/GC-effect metrics. The OSDR-adapted DDIM was less distinguishable from real profiles and had lower distributional distance while maintaining high fidelity, so we used it for downstream analysis.
 
 Synthetic expression is commonly presented as a remedy for small sample size. Generated profiles, however, are not new biological replicates. After choosing diffusion for downstream analysis, we separated three questions: whether one pooled augmentation strategy helped at all, whether synthetic training changed tissue-specific classifiers when model choices were held fixed, and whether compact consensus panels offered additional biological interpretation.
 
@@ -297,11 +297,11 @@ The 974-gene landmark panel excludes potentially relevant genes. FDR was control
 
 Synthetic expression did not improve one pooled multi-tissue classifier, but tissue-specific matched augmentation improved held-out-real performance in 16 analysis units without reducing any mean pooled or accession-macro metric. Twenty-one real-data BH-FDR associations also had synthetic-supported marginal importance. Thymus supplied 15 of them and a significant mitotic program, making it the strongest result. Liver, skin, and spleen supplied narrower matched findings.
 
-The secondary consensus analysis retained broader correlated panels, including a coherent soleus mitochondrial and lipid-metabolism result, but those panels should not be treated as equivalent to matched synthetic contribution. Together, the analyses show where generated expression changes prediction and where it helps organize biological hypotheses. Independent biological data are needed to test those hypotheses.
+The secondary consensus analysis retained broader correlated panels, including a coherent soleus mitochondrial and lipid-metabolism result, but those panels are not equivalent to matched synthetic contribution. The matched analysis shows where generated expression changed prediction; the consensus analysis organizes correlated biological hypotheses. Independent biological data are needed to test those hypotheses.
 
 ## Data and code availability
 
-OSDR data were accessed through the public Biological Data API [1]. ARCHS4 and Reactome are public resources [2,7]. Repository scripts are under `src/nasa_mouse_diffusion/paper_parity/`; frozen run outputs are under `outputs/generative/benchmark/`; this paper package is under `paper/synthetic_guided_spaceflight/`. The figure and table builder is `nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper`. Public repository URL and archival DOI will be added after author review.
+OSDR data were accessed through the public Biological Data API [1]. ARCHS4 and Reactome are public resources [2,7]. The code repository is <https://github.com/jasont314/nasa-mouse>. Analysis scripts are under `src/nasa_mouse_diffusion/paper_parity/`, frozen run outputs are under `outputs/generative/benchmark/`, and this paper package is under `paper/synthetic_guided_spaceflight/`. The figure and table builder is `nasa_mouse_diffusion.paper_parity.build_synthetic_guided_paper`. Annotation prompts, accepted rationales, and source links are recorded in `docs/annotation_prompts.md` and `docs/annotation_provenance.md`. No archival DOI has been assigned.
 
 ## Ethics statement
 
@@ -313,7 +313,7 @@ The author declares no competing interests.
 
 ## Acknowledgments
 
-The author acknowledges the NASA Open Science Data Repository, GeneLab data-processing teams, original flight-study investigators, ARCHS4, Reactome, and the developers of the evaluated generative-model implementations. Program and mentor acknowledgments require final author review.
+The author acknowledges the NASA Open Science Data Repository, GeneLab data-processing teams, original flight-study investigators, ARCHS4, Reactome, and the developers of the evaluated generative-model implementations. Program and mentor acknowledgments should be confirmed before submission.
 
 ## References
 

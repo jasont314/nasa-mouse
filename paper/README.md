@@ -18,6 +18,8 @@ The expiMap and generative packages include source-checked literature
 annotations. Their table locations, rationale fields, source catalogs, and
 rebuild scripts are indexed in
 [`docs/annotation_provenance.md`](../docs/annotation_provenance.md).
+The project-wide prose audit is recorded in
+[`docs/editorial_review.md`](../docs/editorial_review.md).
 
 ## Rebuild
 

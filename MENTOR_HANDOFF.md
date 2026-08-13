@@ -29,6 +29,8 @@ files outside normal Git history.
    a run or rebuilding an analysis.
 8. Use the [figure reproduction guide](docs/figure_reproduction.md) for the
    exact fresh-clone and full-analysis figure paths.
+9. See the [editorial review record](docs/editorial_review.md) for the files
+   reviewed with Humanizer and the content that the prose pass did not alter.
 
 ## What was completed
 

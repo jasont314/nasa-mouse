@@ -1,6 +1,7 @@
 # Visual rendering audit
 
-Audit date: July 15, 2026 UTC.
+Initial audit: July 15, 2026 UTC. Handoff rerender checked: August 13,
+2026 UTC.
 
 ## Scope
 
@@ -36,4 +37,7 @@ Color is not the sole encoding of a reported distinction. Flight and ground use 
 | Figure S8, confound and overlap sensitivity | 4894 x 2074 | Yes | Pass; landscape |
 | Figure S9, sample-score distributions | 2160 x 1575 | Yes | Pass |
 
-The abstract remains one page and renders without clipping. The manuscript still contains visible placeholders for the repository DOI, funding, acknowledgments, contribution review, and final clearance confirmation. These are submission and editorial tasks, not figure-rendering defects.
+The abstract remains one page and renders without clipping. The handoff rerender
+contains the public repository URL and the known funding statement. Items that
+still require author or NASA confirmation are stated directly rather than left
+as bracketed drafting placeholders.
